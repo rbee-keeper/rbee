@@ -153,7 +153,7 @@ export function WorkerCatalogView({
         </p>
       </div>
       
-      {/* Installation Progress */}
+      {/* Installation Progress - TEAM-384: Now shows parsed messages */}
       {(isInstalling || installSuccess || installError) && (
         <Card className={
           installError 

@@ -15,6 +15,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@rbee/ui/atoms'
+import { parseNarrationLine } from '@rbee/ui/organisms'
 import { useWorkers, useWorkerOperations } from '@rbee/rbee-hive-react'
 import { useModels } from '@rbee/rbee-hive-react'
 import { ActiveWorkersView } from './ActiveWorkersView'
@@ -26,7 +27,23 @@ import type { ViewMode, SpawnFormState } from './types'
 export function WorkerManagement() {
   const { workers, loading, error } = useWorkers()
   const { models } = useModels()
-  const { spawnWorker, installWorker, isPending, installProgress, isSuccess, isError, error: installError, reset } = useWorkerOperations()
+  
+  // TEAM-384: Parse SSE messages for better formatting
+  const [installProgress, setInstallProgress] = useState<string[]>([])
+  
+  const { spawnWorker, installWorker, isPending, isSuccess, isError, error: installError, reset } = useWorkerOperations({
+    onSSEMessage: (line: string) => {
+      // TEAM-384: Parse the line to extract just the message
+      const parsed = parseNarrationLine(line)
+      setInstallProgress(prev => [...prev, parsed.message])
+    }
+  })
+  
+  const handleReset = () => {
+    reset()
+    setInstallProgress([])
+  }
+  
   const [viewMode, setViewMode] = useState<ViewMode>('catalog') // Start with catalog - install workers first!
 
   // Separate idle and active workers
@@ -106,7 +123,7 @@ export function WorkerManagement() {
               isInstalling={isPending}
               installSuccess={isSuccess}
               installError={isError ? installError : null}
-              onResetInstall={reset}
+              onResetInstall={handleReset}
             />
           </TabsContent>
 

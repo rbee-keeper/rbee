@@ -12,6 +12,8 @@ export * from './Footer'
 export * from './GPUSelector/GPUSelector'
 export * from './IndustryCaseCard/IndustryCaseCard'
 export * from './MontlyEarningsPanel/MonthlyEarningsPanel'
+// TEAM-384: Narration panel for real-time backend events
+export * from './NarrationPanel'
 export * from './Navigation'
 export * from './ProvidersCaseCard/ProvidersCaseCard'
 export * from './RibbonBanner/RibbonBanner'

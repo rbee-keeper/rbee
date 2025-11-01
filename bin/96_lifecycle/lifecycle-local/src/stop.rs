@@ -47,7 +47,6 @@ use anyhow::{Context, Result};
 use observability_narration_core::n;
 use observability_narration_macros::with_job_id;
 use std::time::Duration;
-use tokio::time::sleep;
 
 /// Configuration for stopping daemon LOCALLY
 ///
@@ -100,28 +99,11 @@ pub async fn stop_daemon(stop_config: StopConfig) -> Result<()> {
 
     match client.post(shutdown_url).send().await {
         Ok(response) if response.status().is_success() => {
-            n!("http_success", "✅ HTTP shutdown request accepted");
-
-            // Step 2: Poll health endpoint to verify shutdown
-            n!("polling", "⏳ Waiting for daemon to stop (up to 10 attempts)...");
-
-            for attempt in 1..=10 {
-                sleep(Duration::from_millis(500)).await;
-
-                match client.get(health_url).send().await {
-                    Ok(resp) if resp.status().is_success() => {
-                        n!("still_running", "⏳ Daemon still running (attempt {}/10)", attempt);
-                    }
-                    _ => {
-                        // Daemon stopped responding - success!
-                        n!("stopped", "✅ Daemon stopped gracefully via HTTP");
-                        n!("stop_complete", "🎉 {} stopped successfully", daemon_name);
-                        return Ok(());
-                    }
-                }
-            }
-
-            n!("http_timeout", "⚠️  Daemon didn't stop after HTTP shutdown, falling back to SSH");
+            // TEAM-384: Trust HTTP shutdown - no polling needed
+            // If daemon doesn't stop, start.rs will fail (which is correct behavior)
+            n!("http_success", "✅ HTTP shutdown accepted, daemon will stop gracefully");
+            n!("stop_complete", "🎉 {} stopped successfully", daemon_name);
+            return Ok(());
         }
         Ok(response) => {
             n!(

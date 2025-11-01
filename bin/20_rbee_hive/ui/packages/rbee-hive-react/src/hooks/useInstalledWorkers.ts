@@ -52,14 +52,29 @@ export function useInstalledWorkers() {
         }
       })
       
-      // Find JSON response line (starts with "{")
-      const jsonLine = lines.find(line => line.trim().startsWith('{'))
+      // TEAM-384: Narration format is:
+      // Line 1: "job_router::handle_job worker_list_installed_json"
+      // Line 2: "{\"workers\": [...]}"
+      // So we need to find a line that contains JSON (has both { and })
+      const jsonLine = lines.find(line => {
+        const trimmed = line.trim()
+        return trimmed.includes('{') && trimmed.includes('}')
+      })
+      
       if (!jsonLine) {
+        console.error('[useInstalledWorkers] No JSON found in lines:', lines)
         throw new Error('No JSON response received from server')
       }
       
-      const response = JSON.parse(jsonLine)
-      return response.workers
+      // Extract JSON from the line (it might have narration prefix)
+      const jsonMatch = jsonLine.match(/(\{.*\})/)
+      if (!jsonMatch) {
+        console.error('[useInstalledWorkers] Could not extract JSON from line:', jsonLine)
+        throw new Error('Could not parse JSON response')
+      }
+      
+      const response = JSON.parse(jsonMatch[1])
+      return response.workers || []
     },
     refetchInterval: 10000, // Refresh every 10 seconds
   })

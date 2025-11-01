@@ -1,9 +1,9 @@
 // TEAM-378: Worker operations using TanStack Query mutations
 // Handles worker installation and spawning
+// TEAM-384: Returns raw SSE lines for app to handle (UI-agnostic)
 
 'use client'
 
-import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { init, HiveClient, OperationBuilder } from '@rbee/rbee-hive-sdk'
 
@@ -44,6 +44,11 @@ export interface SpawnWorkerParams {
   deviceId?: number
 }
 
+export interface UseWorkerOperationsOptions {
+  /** Optional callback for SSE messages (for narration UI) */
+  onSSEMessage?: (line: string) => void
+}
+
 export interface UseWorkerOperationsResult {
   installWorker: (workerId: string) => void
   spawnWorker: (params: SpawnWorkerParams) => void
@@ -51,7 +56,6 @@ export interface UseWorkerOperationsResult {
   isSuccess: boolean
   isError: boolean
   error: Error | null
-  installProgress: string[]
   reset: () => void
 }
 
@@ -59,39 +63,38 @@ export interface UseWorkerOperationsResult {
  * Hook for Worker operations using TanStack Query mutations
  * 
  * TEAM-378: Handles worker installation and spawning
+ * TEAM-384: Accepts optional onSSEMessage callback for narration UI
+ * 
  * - installWorker: Download PKGBUILD, build, and install worker binary
  * - spawnWorker: Start a worker process with a model
  * 
+ * @param options - Optional configuration
+ * @param options.onSSEMessage - Callback for SSE messages (for narration UI)
  * @returns Mutation functions and state
  * 
  * @example
  * ```tsx
- * const { installWorker, spawnWorker, isPending } = useWorkerOperations()
+ * const { installWorker, spawnWorker, isPending } = useWorkerOperations({
+ *   onSSEMessage: (line) => {
+ *     // Handle narration in app layer
+ *     const parsed = parseNarrationLine(line)
+ *     addToNarrationStore(parsed)
+ *   }
+ * })
  * 
  * // Install a worker binary
  * <button onClick={() => installWorker('llm-worker-rbee-cpu')}>
  *   Install Worker
  * </button>
- * 
- * // Spawn a worker process
- * <button onClick={() => spawnWorker({ 
- *   modelId: 'llama-3.2-1b',
- *   workerType: 'cuda',
- *   deviceId: 0
- * })}>
- *   Spawn Worker
- * </button>
  * ```
  */
-export function useWorkerOperations(): UseWorkerOperationsResult {
-  // TEAM-378: Track installation progress messages
-  const [progressMessages, setProgressMessages] = useState<string[]>([])
+export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWorkerOperationsResult {
+  const { onSSEMessage } = options || {}
   
   // TEAM-378: Worker installation mutation
   const installMutation = useMutation<any, Error, string>({
     mutationFn: async (workerId: string) => {
       console.log('[useWorkerOperations] 🎬 Starting installation mutation for:', workerId)
-      setProgressMessages([]) // Clear previous messages
       
       console.log('[useWorkerOperations] 🔧 Initializing WASM...')
       await ensureWasmInit()
@@ -112,8 +115,8 @@ export function useWorkerOperations(): UseWorkerOperationsResult {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[useWorkerOperations] 📨 SSE message:', line)
-          // TEAM-378: Update progress in real-time
-          setProgressMessages(prev => [...prev, line])
+          // TEAM-384: Call callback if provided (for narration UI in app layer)
+          onSSEMessage?.(line)
         } else {
           console.log('[useWorkerOperations] 🏁 SSE stream complete ([DONE] received)')
         }
@@ -157,11 +160,9 @@ export function useWorkerOperations(): UseWorkerOperationsResult {
     isSuccess: installMutation.isSuccess || spawnMutation.isSuccess,
     isError: installMutation.isError || spawnMutation.isError,
     error: installMutation.error || spawnMutation.error,
-    installProgress: progressMessages,
     reset: () => {
       installMutation.reset()
       spawnMutation.reset()
-      setProgressMessages([])
     },
   }
 }

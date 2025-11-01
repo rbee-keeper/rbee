@@ -1,8 +1,13 @@
 # TEAM-382 Handoff: Installed Workers Implementation
 
-**Status:** ✅ COMPLETE  
+**Status:** ✅ COMPLETE & BUILT  
 **Date:** 2025-11-01  
 **Mission:** Implement "Installed Workers" tab to list worker binaries from catalog
+
+**Build Status:** ✅ All packages built successfully
+- SDK WASM: `pkg/bundler/` generated (857KB WASM)
+- React hooks: `dist/` compiled with useInstalledWorkers export
+- Frontend app: `dist/` bundle ready (782KB)
 
 ---
 

@@ -2,28 +2,35 @@
 // Executes build and package functions from parsed PKGBUILD files
 
 use crate::pkgbuild_parser::PkgBuild;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
+/// PKGBUILD execution errors
 #[derive(Debug, thiserror::Error)]
 pub enum ExecutionError {
+    /// IO error during script execution
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
     
+    /// Build function failed with non-zero exit code
     #[error("Build failed with exit code {0}")]
     BuildFailed(i32),
     
+    /// Package function failed with non-zero exit code
     #[error("Package failed with exit code {0}")]
     PackageFailed(i32),
     
+    /// PKGBUILD does not contain a build() function
     #[error("Missing build function in PKGBUILD")]
     MissingBuildFunction,
     
+    /// PKGBUILD does not contain a package() function
     #[error("Missing package function in PKGBUILD")]
     MissingPackageFunction,
     
+    /// Source directory does not exist
     #[error("Source directory not found: {0}")]
     SourceDirNotFound(String),
 }
@@ -225,25 +232,43 @@ export pkgdir="{pkgdir}"
             .stderr(Stdio::piped())
             .spawn()?;
         
-        // Stream stdout
-        if let Some(stdout) = child.stdout.take() {
+        let stdout = child.stdout.take().expect("Failed to capture stdout");
+        let stderr = child.stderr.take().expect("Failed to capture stderr");
+        
+        // TEAM-378: Stream output in REAL-TIME through callback
+        // We need to use channels to send output from tasks back to main thread
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+        
+        let tx_stdout = tx.clone();
+        let stdout_task = tokio::spawn(async move {
             let reader = BufReader::new(stdout);
             let mut lines = reader.lines();
             
-            while let Some(line) = lines.next_line().await? {
-                output_callback(&line);
+            while let Ok(Some(line)) = lines.next_line().await {
+                let _ = tx_stdout.send(line);
             }
-        }
+        });
         
-        // Stream stderr
-        if let Some(stderr) = child.stderr.take() {
+        let tx_stderr = tx.clone();
+        let stderr_task = tokio::spawn(async move {
             let reader = BufReader::new(stderr);
             let mut lines = reader.lines();
             
-            while let Some(line) = lines.next_line().await? {
-                output_callback(&format!("ERROR: {}", line));
+            while let Ok(Some(line)) = lines.next_line().await {
+                let _ = tx_stderr.send(format!("ERROR: {}", line));
             }
+        });
+        
+        // Drop original tx so channel closes when tasks finish
+        drop(tx);
+        
+        // Stream output in real-time as it arrives
+        while let Some(line) = rx.recv().await {
+            output_callback(&line);
         }
+        
+        // Wait for tasks to complete
+        let _ = tokio::join!(stdout_task, stderr_task);
         
         // Wait for completion
         let status = child.wait().await?;

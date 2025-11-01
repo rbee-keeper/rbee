@@ -16,12 +16,10 @@ use tokio::process::Command;
 /// - `git+https://github.com/user/repo.git#commit=abc123`
 /// - Plain URLs (future: tarballs, etc.)
 ///
-/// TEAM-378: For local development, if sources is empty, tries to symlink
-/// the current workspace to srcdir (avoids needing to push/tag)
+/// TEAM-378: Automatically converts HTTPS GitHub URLs to SSH (git@github.com:user/repo.git)
 pub async fn fetch_sources(sources: &[String], srcdir: &Path) -> Result<()> {
     if sources.is_empty() {
-        n!("fetch_sources_empty", "📝 Empty source array - checking for local workspace");
-        return try_use_local_workspace(srcdir).await;
+        anyhow::bail!("No sources specified in PKGBUILD. Cannot proceed.");
     }
 
     for (idx, source) in sources.iter().enumerate() {
@@ -45,6 +43,8 @@ pub async fn fetch_sources(sources: &[String], srcdir: &Path) -> Result<()> {
 /// Syntax: `git+https://github.com/user/repo.git#tag=v1.0.0`
 /// Syntax: `git+https://github.com/user/repo.git#branch=main`
 /// Syntax: `git+https://github.com/user/repo.git#commit=abc123`
+///
+/// TEAM-378: Converts HTTPS GitHub URLs to SSH format automatically
 async fn fetch_git_source(source: &str, srcdir: &Path) -> Result<()> {
     // Parse git URL
     let source = source.strip_prefix("git+").unwrap_or(source);
@@ -57,6 +57,9 @@ async fn fetch_git_source(source: &str, srcdir: &Path) -> Result<()> {
         (source, None)
     };
 
+    // TEAM-378: Convert HTTPS GitHub URLs to SSH
+    let url = convert_https_to_ssh(url);
+    
     n!("git_clone_start", "🔄 Cloning repository: {}", url);
     
     // Extract repo name from URL for directory name
@@ -67,6 +70,14 @@ async fn fetch_git_source(source: &str, srcdir: &Path) -> Result<()> {
         .trim_end_matches(".git");
     
     let clone_dir = srcdir.join(repo_name);
+
+    // TEAM-378: Clean up existing directory if it exists (for dev retries)
+    if clone_dir.exists() {
+        n!("git_cleanup", "🧹 Removing existing directory: {}", clone_dir.display());
+        tokio::fs::remove_dir_all(&clone_dir)
+            .await
+            .context("Failed to remove existing clone directory")?;
+    }
 
     // Clone the repository
     let mut cmd = Command::new("git");
@@ -91,18 +102,53 @@ async fn fetch_git_source(source: &str, srcdir: &Path) -> Result<()> {
         }
     }
 
-    cmd.arg(url).arg(&clone_dir);
+    cmd.arg(&url).arg(&clone_dir);
+    cmd.stdout(std::process::Stdio::piped());
+    cmd.stderr(std::process::Stdio::piped());
 
     n!("git_clone_exec", "⚙️  Executing: git clone {} -> {}", url, clone_dir.display());
     
-    let output = cmd
-        .output()
-        .await
-        .context("Failed to execute git clone")?;
+    // TEAM-378: Spawn process and stream output in real-time
+    let mut child = cmd.spawn().context("Failed to spawn git clone")?;
+    
+    // Get stdout and stderr handles
+    let stdout = child.stdout.take().context("Failed to get stdout")?;
+    let stderr = child.stderr.take().context("Failed to get stderr")?;
+    
+    // Stream stdout
+    let stdout_task = tokio::spawn(async move {
+        use tokio::io::{AsyncBufReadExt, BufReader};
+        let reader = BufReader::new(stdout);
+        let mut lines = reader.lines();
+        while let Ok(Some(line)) = lines.next_line().await {
+            n!("git_stdout", "  {}", line);
+        }
+    });
+    
+    // Stream stderr (git progress goes to stderr)
+    let stderr_task = tokio::spawn(async move {
+        use tokio::io::{AsyncBufReadExt, BufReader};
+        let reader = BufReader::new(stderr);
+        let mut lines = reader.lines();
+        while let Ok(Some(line)) = lines.next_line().await {
+            n!("git_stderr", "  {}", line);
+        }
+    });
+    
+    // Wait for process with timeout
+    let status = tokio::time::timeout(
+        std::time::Duration::from_secs(60),
+        child.wait()
+    )
+    .await
+    .context("Git clone timed out after 60 seconds")?
+    .context("Failed to wait for git clone")?;
+    
+    // Wait for output tasks to complete
+    let _ = tokio::join!(stdout_task, stderr_task);
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("Git clone failed: {}", stderr);
+    if !status.success() {
+        anyhow::bail!("Git clone failed (exit code: {:?})", status.code());
     }
 
     n!("git_clone_ok", "✓ Repository cloned to: {}", clone_dir.display());
@@ -133,78 +179,45 @@ async fn fetch_git_source(source: &str, srcdir: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Try to use local workspace for development
+/// Convert HTTPS GitHub URLs to SSH format
 ///
-/// TEAM-378: If we're running inside the llama-orch workspace,
-/// symlink it to srcdir instead of cloning from git.
-/// This allows local development without needing to push/tag.
-async fn try_use_local_workspace(srcdir: &Path) -> Result<()> {
-    // Find workspace root by looking for Cargo.toml with [workspace]
-    let mut current = std::env::current_dir()?;
-    
-    loop {
-        let cargo_toml = current.join("Cargo.toml");
-        if cargo_toml.exists() {
-            let content = tokio::fs::read_to_string(&cargo_toml).await?;
-            if content.contains("[workspace]") {
-                n!("local_workspace_found", "🏠 Found local workspace: {}", current.display());
-                
-                // Create srcdir parent if needed
-                if let Some(parent) = srcdir.parent() {
-                    tokio::fs::create_dir_all(parent).await?;
-                }
-                
-                // Symlink workspace to srcdir/llama-orch
-                let target = srcdir.join("llama-orch");
-                
-                #[cfg(unix)]
-                {
-                    tokio::fs::symlink(&current, &target).await
-                        .context("Failed to create symlink to local workspace")?;
-                }
-                
-                #[cfg(not(unix))]
-                {
-                    // On Windows, copy instead of symlink (requires admin for symlinks)
-                    anyhow::bail!("Windows not yet supported for local development. Use git+ sources.");
-                }
-                
-                n!("local_workspace_linked", "✓ Linked local workspace to: {}", target.display());
-                return Ok(());
-            }
-        }
-        
-        // Move up one directory
-        if !current.pop() {
-            break;
-        }
+/// TEAM-378: Converts https://github.com/user/repo.git to git@github.com:user/repo.git
+fn convert_https_to_ssh(url: &str) -> String {
+    // Check if it's a GitHub HTTPS URL
+    if url.starts_with("https://github.com/") {
+        // Extract the path after github.com/
+        let path = url.strip_prefix("https://github.com/").unwrap();
+        let ssh_url = format!("git@github.com:{}", path);
+        n!("url_convert", "🔄 Converting HTTPS to SSH: {} -> {}", url, ssh_url);
+        ssh_url
+    } else {
+        // Return as-is for non-GitHub URLs or already SSH URLs
+        url.to_string()
     }
-    
-    anyhow::bail!("No sources specified and not running in llama-orch workspace. Cannot proceed.");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
-    #[tokio::test]
-    async fn test_parse_git_url_with_tag() {
-        let temp = TempDir::new().unwrap();
-        let srcdir = temp.path();
-
-        // This would require a real git repo, so we'll skip actual cloning in tests
-        // Just test the parsing logic
-        let source = "git+https://github.com/user/repo.git#tag=v1.0.0";
-        assert!(source.starts_with("git+"));
+    #[test]
+    fn test_convert_https_to_ssh() {
+        let https_url = "https://github.com/veighnsche/llama-orch.git";
+        let ssh_url = convert_https_to_ssh(https_url);
+        assert_eq!(ssh_url, "git@github.com:veighnsche/llama-orch.git");
     }
 
-    #[tokio::test]
-    async fn test_empty_sources() {
-        let temp = TempDir::new().unwrap();
-        let srcdir = temp.path();
+    #[test]
+    fn test_convert_non_github_url() {
+        let url = "https://gitlab.com/user/repo.git";
+        let result = convert_https_to_ssh(url);
+        assert_eq!(result, url); // Should return unchanged
+    }
 
-        let result = fetch_sources(&[], srcdir).await;
-        assert!(result.is_ok());
+    #[test]
+    fn test_convert_already_ssh() {
+        let ssh_url = "git@github.com:user/repo.git";
+        let result = convert_https_to_ssh(ssh_url);
+        assert_eq!(result, ssh_url); // Should return unchanged
     }
 }

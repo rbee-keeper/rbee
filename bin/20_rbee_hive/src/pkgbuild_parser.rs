@@ -4,6 +4,10 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+/// Parsed PKGBUILD file
+///
+/// Represents a parsed Arch Linux PKGBUILD file with all metadata
+/// and build/package functions extracted.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PkgBuild {
     /// Package name
@@ -61,17 +65,22 @@ impl PkgBuild {
     }
 }
 
+/// PKGBUILD parsing errors
 #[derive(Debug, thiserror::Error)]
 pub enum ParseError {
+    /// IO error while reading PKGBUILD file
     #[error("IO error: {0}")]
     IoError(String),
     
+    /// Missing required field (pkgname, pkgver, or pkgrel)
     #[error("Missing required field: {0}")]
     MissingField(String),
     
+    /// Invalid array syntax in PKGBUILD
     #[error("Invalid array syntax at line {0}")]
     InvalidArray(usize),
     
+    /// Invalid function syntax (unmatched braces)
     #[error("Invalid function syntax at line {0}")]
     InvalidFunction(usize),
 }

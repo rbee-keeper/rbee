@@ -29,9 +29,21 @@ interface WorkerCatalogViewProps {
   onInstall?: (workerId: string) => void
   onRemove?: (workerId: string) => void
   installProgress?: string[]
+  isInstalling?: boolean
+  installSuccess?: boolean
+  installError?: Error | null
+  onResetInstall?: () => void
 }
 
-export function WorkerCatalogView({ onInstall, onRemove, installProgress = [] }: WorkerCatalogViewProps) {
+export function WorkerCatalogView({ 
+  onInstall, 
+  onRemove, 
+  installProgress = [],
+  isInstalling = false,
+  installSuccess = false,
+  installError = null,
+  onResetInstall
+}: WorkerCatalogViewProps) {
   const { data: catalog, isLoading, error } = useWorkerCatalog()
   const currentPlatform = getCurrentPlatform()
   const [installingWorker, setInstallingWorker] = useState<string | null>(null)
@@ -142,23 +154,71 @@ export function WorkerCatalogView({ onInstall, onRemove, installProgress = [] }:
       </div>
       
       {/* Installation Progress */}
-      {installProgress.length > 0 && (
-        <Card className="border-blue-500 bg-blue-50 dark:bg-blue-950">
+      {(isInstalling || installSuccess || installError) && (
+        <Card className={
+          installError 
+            ? "border-red-500 bg-red-50 dark:bg-red-950" 
+            : installSuccess 
+            ? "border-green-500 bg-green-50 dark:bg-green-950"
+            : "border-blue-500 bg-blue-50 dark:bg-blue-950"
+        }>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Installing Worker...
+            <CardTitle className={`flex items-center gap-2 ${
+              installError 
+                ? "text-red-700 dark:text-red-300" 
+                : installSuccess 
+                ? "text-green-700 dark:text-green-300"
+                : "text-blue-700 dark:text-blue-300"
+            }`}>
+              {installError ? (
+                <>
+                  <AlertCircle className="h-5 w-5" />
+                  Installation Failed
+                </>
+              ) : installSuccess ? (
+                <>
+                  <CheckCircle className="h-5 w-5" />
+                  Installation Complete!
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Installing Worker...
+                </>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-1 font-mono text-xs max-h-48 overflow-y-auto">
               {installProgress.map((msg, idx) => (
-                <div key={idx} className="text-blue-900 dark:text-blue-100">
+                <div key={idx} className={
+                  installError 
+                    ? "text-red-900 dark:text-red-100" 
+                    : installSuccess 
+                    ? "text-green-900 dark:text-green-100"
+                    : "text-blue-900 dark:text-blue-100"
+                }>
                   {msg}
                 </div>
               ))}
+              {installError && (
+                <div className="mt-2 p-2 bg-red-100 dark:bg-red-900 rounded text-red-900 dark:text-red-100">
+                  Error: {installError.message}
+                </div>
+              )}
             </div>
           </CardContent>
+          {(installSuccess || installError) && onResetInstall && (
+            <CardFooter>
+              <Button 
+                onClick={onResetInstall} 
+                variant="outline"
+                size="sm"
+              >
+                Clear
+              </Button>
+            </CardFooter>
+          )}
         </Card>
       )}
       

@@ -25,6 +25,7 @@ impl Operation {
             
             // Hive operations - Worker lifecycle
             Operation::WorkerInstall { .. } => "worker_install", // TEAM-378: Worker binary installation
+            Operation::WorkerListInstalled { .. } => "worker_list_installed", // TEAM-378: List installed workers
             Operation::WorkerSpawn { .. } => "worker_spawn",
             Operation::WorkerProcessList { .. } => "worker_process_list",
             Operation::WorkerProcessGet { .. } => "worker_process_get",
@@ -56,6 +57,7 @@ impl Operation {
         match self {
             // Operations with hive_id in typed requests
             Operation::WorkerInstall(req) => Some(&req.hive_id), // TEAM-378: Worker binary installation
+            Operation::WorkerListInstalled(req) => Some(&req.hive_id), // TEAM-378: List installed workers
             Operation::WorkerSpawn(req) => Some(&req.hive_id),
             Operation::WorkerProcessList(req) => Some(&req.hive_id),
             Operation::WorkerProcessGet(req) => Some(&req.hive_id),
@@ -108,6 +110,7 @@ impl Operation {
             
             // Hive operations (worker/model lifecycle)
             Operation::WorkerInstall(_) // TEAM-378: Worker binary installation
+                | Operation::WorkerListInstalled(_) // TEAM-378: List installed workers
                 | Operation::WorkerSpawn(_)
                 | Operation::WorkerProcessList(_)
                 | Operation::WorkerProcessGet(_)

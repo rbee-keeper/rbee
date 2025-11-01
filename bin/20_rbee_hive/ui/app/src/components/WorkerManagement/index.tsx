@@ -20,12 +20,13 @@ import { useModels } from '@rbee/rbee-hive-react'
 import { ActiveWorkersView } from './ActiveWorkersView'
 import { SpawnWorkerView } from './SpawnWorkerView'
 import { WorkerCatalogView } from './WorkerCatalogView'
+import { InstalledWorkersView } from './InstalledWorkersView'
 import type { ViewMode, SpawnFormState } from './types'
 
 export function WorkerManagement() {
   const { workers, loading, error } = useWorkers()
   const { models } = useModels()
-  const { spawnWorker, installWorker, isPending, installProgress } = useWorkerOperations()
+  const { spawnWorker, installWorker, isPending, installProgress, isSuccess, isError, error: installError, reset } = useWorkerOperations()
   const [viewMode, setViewMode] = useState<ViewMode>('catalog') // Start with catalog - install workers first!
 
   // Separate idle and active workers
@@ -77,18 +78,22 @@ export function WorkerManagement() {
       <CardContent className="space-y-4">
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="catalog">
               <Package className="h-4 w-4 mr-2" />
-              Worker Catalog
+              Catalog
+            </TabsTrigger>
+            <TabsTrigger value="installed">
+              <Server className="h-4 w-4 mr-2" />
+              Installed
             </TabsTrigger>
             <TabsTrigger value="active">
               <Activity className="h-4 w-4 mr-2" />
-              Active Workers ({workers.length})
+              Active ({workers.length})
             </TabsTrigger>
             <TabsTrigger value="spawn">
               <Plus className="h-4 w-4 mr-2" />
-              Spawn Worker
+              Spawn
             </TabsTrigger>
           </TabsList>
 
@@ -98,6 +103,17 @@ export function WorkerManagement() {
               onInstall={handleInstallWorker}
               onRemove={handleRemoveWorker}
               installProgress={installProgress}
+              isInstalling={isPending}
+              installSuccess={isSuccess}
+              installError={isError ? installError : null}
+              onResetInstall={reset}
+            />
+          </TabsContent>
+
+          {/* Installed Workers Tab */}
+          <TabsContent value="installed" className="space-y-4">
+            <InstalledWorkersView
+              onUninstall={handleRemoveWorker}
             />
           </TabsContent>
 

@@ -120,7 +120,9 @@ pub async fn handle_stream_job(
         };
 
         let mut last_event_time = std::time::Instant::now();
-        let completion_timeout = std::time::Duration::from_millis(2000);
+        // TEAM-378: Increased timeout for long-running operations (git clone, cargo build)
+        // 2 seconds was too short - git clone can have long pauses during transfer
+        let completion_timeout = std::time::Duration::from_secs(30);
         let mut received_first_event = false;
 
         loop {

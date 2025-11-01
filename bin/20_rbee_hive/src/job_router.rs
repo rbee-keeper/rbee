@@ -62,7 +62,8 @@ pub async fn create_job(state: JobState, payload: serde_json::Value) -> Result<J
     state.registry.set_payload(&job_id, payload);
 
     // Create job-specific SSE channel for isolation
-    observability_narration_core::sse_sink::create_job_channel(job_id.clone(), 1000);
+    // TEAM-378: Increased buffer for high-volume operations (cargo build produces many messages)
+    observability_narration_core::sse_sink::create_job_channel(job_id.clone(), 10000);
 
     n!("job_create", "Job {} created, waiting for client connection", job_id);
 
@@ -169,6 +170,38 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
                 "✅ Worker '{}' installation complete",
                 request.worker_id
             );
+        }
+
+        Operation::WorkerListInstalled(request) => {
+            // TEAM-382: List installed worker binaries from catalog
+            let hive_id = request.hive_id.clone();
+            n!("worker_list_installed_start", "📋 Listing installed workers on hive '{}'", hive_id);
+            
+            // List all installed workers from catalog
+            let workers = state.worker_catalog.list();
+            
+            n!("worker_list_installed_count", "Found {} installed workers", workers.len());
+            
+            // Convert to JSON response for frontend
+            let response = serde_json::json!({
+                "workers": workers.iter().map(|w| {
+                    serde_json::json!({
+                        "id": w.id(),
+                        "name": w.name(),
+                        "worker_type": format!("{:?}", w.worker_type()),
+                        "platform": format!("{:?}", w.platform()),
+                        "version": w.version(),
+                        "size": w.size(),
+                        "path": w.path().display().to_string(),
+                        "added_at": w.added_at().to_rfc3339(),
+                    })
+                }).collect::<Vec<_>>()
+            });
+            
+            n!("worker_list_installed_ok", "✅ Listed {} installed workers", workers.len());
+            
+            // Emit JSON response as final narration line
+            n!("worker_list_installed_json", "{}", response.to_string());
         }
 
         Operation::WorkerSpawn(request) => {

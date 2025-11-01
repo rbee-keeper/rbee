@@ -19,6 +19,15 @@ pub struct WorkerInstallRequest {
     pub worker_id: String,
 }
 
+/// Request to list installed worker binaries on hive
+/// 
+/// TEAM-378: Lists workers from the worker catalog (installed binaries)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorkerListInstalledRequest {
+    /// Hive ID to list installed workers from
+    pub hive_id: String,
+}
+
 /// Request to spawn a worker process
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorkerSpawnRequest {

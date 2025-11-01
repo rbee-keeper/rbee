@@ -194,3 +194,7 @@ export type {
 // TEAM-378: Worker operations (install + spawn)
 export { useWorkerOperations } from './hooks/useWorkerOperations'
 export type { UseWorkerOperationsResult } from './hooks/useWorkerOperations'
+
+// TEAM-382: Installed workers listing
+export { useInstalledWorkers } from './hooks/useInstalledWorkers'
+export type { InstalledWorker } from './hooks/useInstalledWorkers'

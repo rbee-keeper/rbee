@@ -29,7 +29,8 @@ struct WorkerMetadata {
     platforms: Vec<String>,
     architectures: Vec<String>,
     #[serde(default)]
-    dependencies: Vec<String>,
+    depends: Vec<String>,
+    // Ignore other fields we don't need
 }
 
 /// Handle worker installation operation
@@ -115,10 +116,15 @@ pub async fn handle_worker_install(
 
     // 9. Install binary
     n!("install_binary", "💾 Installing binary...");
-    install_binary(&temp_dir, &pkgbuild)?;
-    n!("install_binary_ok", "✓ Binary installed");
+    let binary_path = install_binary(&temp_dir, &pkgbuild)?;
+    n!("install_binary_ok", "✓ Binary installed to: {}", binary_path.display());
 
-    // 10. Update capabilities (placeholder - actual implementation depends on capabilities system)
+    // 10. Add to worker catalog
+    n!("catalog_add", "📝 Adding to worker catalog...");
+    add_to_catalog(&worker_id, &pkgbuild, &binary_path)?;
+    n!("catalog_add_ok", "✓ Added to catalog");
+
+    // 11. Update capabilities (placeholder - actual implementation depends on capabilities system)
     n!("update_caps", "📝 Updating capabilities cache...");
     // TODO: Implement capabilities update when capabilities system is ready
     n!("update_caps_ok", "✓ Capabilities updated");
@@ -138,13 +144,23 @@ async fn fetch_worker_metadata(worker_id: &str) -> Result<WorkerMetadata> {
         .unwrap_or_else(|_| "http://localhost:8787".to_string());
 
     let url = format!("{}/workers/{}", catalog_url, worker_id);
+    n!("fetch_url", "📡 Fetching from: {}", url);
 
-    let client = reqwest::Client::new();
+    // TEAM-378: Add 10-second timeout for catalog requests
+    n!("build_client", "🔧 Building HTTP client with 10s timeout...");
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .context("Failed to create HTTP client")?;
+    n!("build_client_ok", "✓ HTTP client built");
+    
+    n!("send_request", "📤 Sending GET request to catalog...");
     let response = client
         .get(&url)
         .send()
         .await
         .context("Failed to fetch worker metadata")?;
+    n!("send_request_ok", "✓ Response received: {}", response.status());
 
     if !response.status().is_success() {
         anyhow::bail!(
@@ -154,10 +170,12 @@ async fn fetch_worker_metadata(worker_id: &str) -> Result<WorkerMetadata> {
         );
     }
 
+    n!("parse_json", "📄 Parsing JSON response...");
     let metadata: WorkerMetadata = response
         .json()
         .await
         .context("Failed to parse worker metadata")?;
+    n!("parse_json_ok", "✓ Metadata parsed: {} v{}", metadata.name, metadata.version);
 
     Ok(metadata)
 }
@@ -200,7 +218,11 @@ async fn download_pkgbuild(worker_id: &str) -> Result<String> {
     n!("pkgbuild_url", "📡 Fetching from: {}", url);
 
     n!("pkgbuild_http_start", "🌐 Creating HTTP client...");
-    let client = reqwest::Client::new();
+    // TEAM-378: Add 10-second timeout for catalog requests
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .context("Failed to create HTTP client")?;
     
     n!("pkgbuild_http_get", "📤 Sending GET request...");
     let response = client
@@ -234,7 +256,7 @@ async fn download_pkgbuild(worker_id: &str) -> Result<String> {
 fn check_dependencies(worker: &WorkerMetadata) -> Result<()> {
     // For now, just log the dependencies
     // TODO: Implement actual dependency checking (which, dpkg -l, etc.)
-    for dep in &worker.dependencies {
+    for dep in &worker.depends {
         n!("dep_check", "  Dependency: {}", dep);
     }
 
@@ -254,7 +276,7 @@ fn create_temp_directories(worker_id: &str) -> Result<PathBuf> {
 }
 
 /// Install binary to system
-fn install_binary(temp_dir: &PathBuf, pkgbuild: &crate::pkgbuild_parser::PkgBuild) -> Result<()> {
+fn install_binary(temp_dir: &PathBuf, pkgbuild: &crate::pkgbuild_parser::PkgBuild) -> Result<PathBuf> {
     let pkg_dir = temp_dir.join("pkg");
     let binary_name = &pkgbuild.pkgname;
 
@@ -302,6 +324,52 @@ fn install_binary(temp_dir: &PathBuf, pkgbuild: &crate::pkgbuild_parser::PkgBuil
         binary_dest.display()
     );
 
+    Ok(binary_dest)
+}
+
+/// Add installed worker to catalog
+/// 
+/// TEAM-378: Registers the installed binary in the worker catalog
+/// so it shows up in the "Installed Workers" view
+fn add_to_catalog(worker_id: &str, pkgbuild: &crate::pkgbuild_parser::PkgBuild, binary_path: &PathBuf) -> Result<()> {
+    use rbee_hive_worker_catalog::{WorkerCatalog, WorkerBinary, WorkerType, Platform};
+    use rbee_hive_artifact_catalog::ArtifactCatalog;
+    
+    let catalog = WorkerCatalog::new()?;
+    
+    // Determine worker type from worker_id
+    let worker_type = if worker_id.contains("cpu") {
+        WorkerType::CpuLlm
+    } else if worker_id.contains("cuda") {
+        WorkerType::CudaLlm
+    } else if worker_id.contains("metal") {
+        WorkerType::MetalLlm
+    } else {
+        anyhow::bail!("Unknown worker type for worker_id: {}", worker_id);
+    };
+    
+    // Get current platform
+    let platform = Platform::current();
+    
+    // Get binary size
+    let size = std::fs::metadata(binary_path)?.len();
+    
+    // Create unique ID: worker_id-version-platform
+    let id = format!("{}-{}-{:?}", worker_id, pkgbuild.pkgver, platform).to_lowercase();
+    
+    // Create WorkerBinary entry
+    let worker_binary = WorkerBinary::new(
+        id,
+        worker_type,
+        platform,
+        binary_path.clone(),
+        size,
+        pkgbuild.pkgver.clone(),
+    );
+    
+    // Add to catalog
+    catalog.add(worker_binary)?;
+    
     Ok(())
 }
 

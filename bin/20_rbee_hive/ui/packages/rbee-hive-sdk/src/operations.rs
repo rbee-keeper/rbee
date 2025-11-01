@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 use operations_contract::{
     Operation, 
     WorkerInstallRequest,
+    WorkerListInstalledRequest,
     WorkerSpawnRequest, 
     WorkerProcessListRequest, 
     WorkerProcessDeleteRequest, 
@@ -160,6 +161,20 @@ impl OperationBuilder {
         let op = Operation::WorkerInstall(WorkerInstallRequest {
             hive_id, // TEAM-353: Network address of the Hive
             worker_id,
+        });
+        to_value(&op).unwrap()
+    }
+
+    /// Create WorkerListInstalled operation
+    ///
+    /// # JavaScript Example
+    /// ```javascript
+    /// const op = OperationBuilder.workerListInstalled('192.168.1.100');
+    /// ```
+    #[wasm_bindgen(js_name = workerListInstalled)]
+    pub fn worker_list_installed(hive_id: String) -> JsValue {
+        let op = Operation::WorkerListInstalled(WorkerListInstalledRequest {
+            hive_id, // TEAM-382: Network address of the Hive
         });
         to_value(&op).unwrap()
     }

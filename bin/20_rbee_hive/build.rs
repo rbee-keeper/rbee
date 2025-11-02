@@ -26,8 +26,10 @@ fn main() {
     let ui_dist = ui_app_dir.join("dist");
 
     // TEAM-381: Skip ALL UI builds if Vite dev server is running (port 7836)
+    // TEAM-386: Also check for turbo dev process to prevent killing active dev sessions
     // This avoids conflicts with the dev server and speeds up cargo builds during development
-    // TEAM-381: Use HTTP check instead of TCP to avoid false positives from TIME_WAIT sockets
+    
+    // Check 1: HTTP check for rbee-hive Vite dev server (port 7836)
     let vite_dev_running = Command::new("curl")
         .args(&["-s", "-o", "/dev/null", "-w", "%{http_code}", "http://127.0.0.1:7836"])
         .output()
@@ -36,8 +38,22 @@ fn main() {
         .map(|code| code.starts_with('2') || code.starts_with('3')) // 2xx or 3xx response
         .unwrap_or(false);
 
-    if vite_dev_running {
-        println!("cargo:warning=⚡ Vite dev server detected on port 7836 - SKIPPING ALL UI builds");
+    // Check 2: Look for turbo dev process (prevents killing turbo dev sessions)
+    let turbo_dev_running = Command::new("pgrep")
+        .args(&["-f", "turbo.*dev"])
+        .output()
+        .ok()
+        .map(|output| !output.stdout.is_empty())
+        .unwrap_or(false);
+
+    if vite_dev_running || turbo_dev_running {
+        if vite_dev_running {
+            println!("cargo:warning=⚡ Vite dev server detected on port 7836 - SKIPPING ALL UI builds");
+        }
+        if turbo_dev_running {
+            println!("cargo:warning=⚡ Turbo dev process detected - SKIPPING ALL UI builds");
+            println!("cargo:warning=   (Prevents killing active turbo dev session)");
+        }
         println!("cargo:warning=   (Dev server provides fresh packages via hot reload)");
         println!("cargo:warning=   SDK and App builds skipped");
         return; // Skip all UI builds

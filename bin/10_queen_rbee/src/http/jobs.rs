@@ -143,8 +143,9 @@ pub async fn handle_stream_job(
                             last_event_time = std::time::Instant::now();
                             // TEAM-350: Send JSON for frontend parsing (not formatted text)
                             // Frontend needs structured data to display in UI
+                            // TEAM-388: Fixed - SseEvent is an enum, serialize the whole thing
                             let json = serde_json::to_string(&event)
-                                .unwrap_or_else(|_| event.formatted.clone());
+                                .unwrap_or_else(|_| format!("{{\"type\":\"error\",\"message\":\"Failed to serialize event\"}}"));
                             yield Ok(Event::default().data(&json));
                         }
                         None => {

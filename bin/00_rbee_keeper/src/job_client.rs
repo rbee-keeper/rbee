@@ -45,10 +45,11 @@ pub async fn submit_and_stream_job(target_url: &str, operation: Operation) -> Re
 
     // Wrap SSE streaming with timeout
     // TEAM-385: Model downloads can take several minutes, use longer timeout
-    let timeout_secs = if operation_name == "model_download" {
-        600 // 10 minutes for model downloads
-    } else {
-        30  // 30 seconds for other operations
+    // TEAM-388: Worker installation (cargo build) can take 10-15 minutes
+    let timeout_secs = match operation_name {
+        "model_download" => 600,  // 10 minutes for model downloads
+        "worker_install" => 900,  // 15 minutes for worker builds (cargo can be slow)
+        _ => 30,  // 30 seconds for other operations
     };
     
     // TEAM-387: Simpler approach - spawn streaming task, get job_id via channel

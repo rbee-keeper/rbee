@@ -155,7 +155,7 @@ async fn handle_command(cli: Cli) -> Result<()> {
         Commands::Queen { action } => handle_queen(action, &queen_url).await,
         Commands::Hive { action } => handle_hive_lifecycle(action, &queen_url).await,
         Commands::HiveJobs { hive_id, action } => handle_hive_jobs(hive_id, action).await,
-        Commands::Worker { hive_id, action } => handle_worker(hive_id, action, &queen_url).await,
+        Commands::Worker { hive_id, action } => handle_worker(hive_id, action).await, // TEAM-388: Removed queen_url param
         Commands::Model { hive_id, action } => handle_model(hive_id, action).await,
         Commands::Infer {
             hive_id,

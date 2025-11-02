@@ -24,8 +24,12 @@ impl Operation {
             Operation::Infer { .. } => "infer",
             
             // Hive operations - Worker lifecycle
-            Operation::WorkerInstall { .. } => "worker_install", // TEAM-378: Worker binary installation
+            Operation::WorkerCatalogList { .. } => "worker_catalog_list", // TEAM-388: List available workers from catalog
+            Operation::WorkerCatalogGet { .. } => "worker_catalog_get", // TEAM-388: Get worker from catalog
             Operation::WorkerListInstalled { .. } => "worker_list_installed", // TEAM-378: List installed workers
+            Operation::WorkerInstalledGet { .. } => "worker_installed_get", // TEAM-388: Get installed worker details
+            Operation::WorkerInstall { .. } => "worker_install", // TEAM-378: Worker binary installation
+            Operation::WorkerRemove { .. } => "worker_remove", // TEAM-388: Remove installed worker
             Operation::WorkerSpawn { .. } => "worker_spawn",
             Operation::WorkerProcessList { .. } => "worker_process_list",
             Operation::WorkerProcessGet { .. } => "worker_process_get",
@@ -56,8 +60,12 @@ impl Operation {
     pub fn hive_id(&self) -> Option<&str> {
         match self {
             // Operations with hive_id in typed requests
-            Operation::WorkerInstall(req) => Some(&req.hive_id), // TEAM-378: Worker binary installation
+            Operation::WorkerCatalogList(req) => Some(&req.hive_id), // TEAM-388: List available workers
+            Operation::WorkerCatalogGet(req) => Some(&req.hive_id), // TEAM-388: Get worker from catalog
             Operation::WorkerListInstalled(req) => Some(&req.hive_id), // TEAM-378: List installed workers
+            Operation::WorkerInstalledGet(req) => Some(&req.hive_id), // TEAM-388: Get installed worker
+            Operation::WorkerInstall(req) => Some(&req.hive_id), // TEAM-378: Worker binary installation
+            Operation::WorkerRemove(req) => Some(&req.hive_id), // TEAM-388: Remove installed worker
             Operation::WorkerSpawn(req) => Some(&req.hive_id),
             Operation::WorkerProcessList(req) => Some(&req.hive_id),
             Operation::WorkerProcessGet(req) => Some(&req.hive_id),
@@ -109,8 +117,12 @@ impl Operation {
             Operation::Status | Operation::Infer(_) => TargetServer::Queen,
             
             // Hive operations (worker/model lifecycle)
-            Operation::WorkerInstall(_) // TEAM-378: Worker binary installation
+            Operation::WorkerCatalogList(_) // TEAM-388: List available workers from catalog
+                | Operation::WorkerCatalogGet(_) // TEAM-388: Get worker from catalog
                 | Operation::WorkerListInstalled(_) // TEAM-378: List installed workers
+                | Operation::WorkerInstalledGet(_) // TEAM-388: Get installed worker details
+                | Operation::WorkerInstall(_) // TEAM-378: Worker binary installation
+                | Operation::WorkerRemove(_) // TEAM-388: Remove installed worker
                 | Operation::WorkerSpawn(_)
                 | Operation::WorkerProcessList(_)
                 | Operation::WorkerProcessGet(_)

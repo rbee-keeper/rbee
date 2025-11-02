@@ -73,17 +73,22 @@ pub async fn handle_cancel_job(
     Path(job_id): Path<String>,
     State(state): State<HiveState>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    // TEAM-388: Add narration to debug cancellation
+    observability_narration_core::n!("cancel_request", "🛑 Received cancel request for job {}", job_id);
+    
     let cancelled = state.registry.cancel_job(&job_id);
 
     if cancelled {
+        observability_narration_core::n!("cancel_success", "✅ Job {} cancellation token triggered", job_id);
         Ok(Json(serde_json::json!({
             "job_id": job_id,
             "status": "cancelled"
         })))
     } else {
+        observability_narration_core::n!("cancel_failed", "❌ Job {} not found or cannot be cancelled", job_id);
         Err((
             StatusCode::NOT_FOUND,
-            format!("Job {} not found or cannot be cancelled (already completed/failed)", job_id),
+            format!("Job {} not found or cannot be cancelled", job_id),
         ))
     }
 }

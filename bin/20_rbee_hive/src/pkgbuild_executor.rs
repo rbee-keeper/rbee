@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
+use tokio_util::sync::CancellationToken; // TEAM-388: For cancellable builds
 
 /// PKGBUILD execution errors
 #[derive(Debug, thiserror::Error)]
@@ -92,6 +93,41 @@ impl PkgBuildExecutor {
         
         // Execute script
         self.execute_script(&script, "build", &mut output_callback).await?;
+        
+        output_callback(&format!("==> Build complete: {}", pkgbuild.pkgname));
+        Ok(())
+    }
+    
+    /// Execute the build() function from PKGBUILD with cancellation support
+    /// 
+    /// TEAM-388: Cancellable version of build() - checks cancellation token periodically
+    /// This is critical for cargo builds which can take minutes.
+    /// 
+    /// # Arguments
+    /// * `pkgbuild` - Parsed PKGBUILD
+    /// * `cancel_token` - Cancellation token to check
+    /// * `output_callback` - Called for each line of output
+    pub async fn build_with_cancellation<F>(
+        &self,
+        pkgbuild: &PkgBuild,
+        cancel_token: CancellationToken,
+        mut output_callback: F,
+    ) -> Result<(), ExecutionError>
+    where
+        F: FnMut(&str),
+    {
+        let build_fn = pkgbuild
+            .build_fn
+            .as_ref()
+            .ok_or(ExecutionError::MissingBuildFunction)?;
+        
+        output_callback(&format!("==> Building {} {} (cancellable)...", pkgbuild.pkgname, pkgbuild.pkgver));
+        
+        // Create shell script with PKGBUILD variables
+        let script = self.create_build_script(pkgbuild, build_fn);
+        
+        // Execute script with cancellation support
+        self.execute_script_with_cancellation(&script, "build", cancel_token, &mut output_callback).await?;
         
         output_callback(&format!("==> Build complete: {}", pkgbuild.pkgname));
         Ok(())
@@ -199,6 +235,146 @@ export pkgdir="{pkgdir}"
             pkgdir = self.pkgdir.display(),
             package_fn = package_fn,
         )
+    }
+    
+    /// Execute a shell script and stream output with cancellation support
+    /// 
+    /// TEAM-388: Cancellable version that kills the child process when cancelled
+    async fn execute_script_with_cancellation<F>(
+        &self,
+        script: &str,
+        phase: &str,
+        cancel_token: CancellationToken,
+        output_callback: &mut F,
+    ) -> Result<(), ExecutionError>
+    where
+        F: FnMut(&str),
+    {
+        // Write script to temp file
+        let script_path = self.workdir.join(format!("{}.sh", phase));
+        tokio::fs::write(&script_path, script).await?;
+        
+        // Make executable
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = tokio::fs::metadata(&script_path).await?.permissions();
+            perms.set_mode(0o755);
+            tokio::fs::set_permissions(&script_path, perms).await?;
+        }
+        
+        // Execute script
+        // TEAM-388: Create new process group so we can kill all subprocesses (including cargo)
+        let mut cmd = Command::new("bash");
+        cmd.arg(&script_path)
+            .current_dir(&self.workdir)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        
+        // TEAM-388: On Unix, create a new process group
+        #[cfg(unix)]
+        {
+            use std::os::unix::process::CommandExt;
+            cmd.process_group(0);  // 0 = create new process group with PID as PGID
+        }
+        
+        let mut child = cmd.spawn()?;
+        
+        let stdout = child.stdout.take().expect("Failed to capture stdout");
+        let stderr = child.stderr.take().expect("Failed to capture stderr");
+        
+        // Stream output in REAL-TIME through callback
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+        
+        let tx_stdout = tx.clone();
+        let stdout_task = tokio::spawn(async move {
+            let reader = BufReader::new(stdout);
+            let mut lines = reader.lines();
+            
+            while let Ok(Some(line)) = lines.next_line().await {
+                let _ = tx_stdout.send(line);
+            }
+        });
+        
+        let tx_stderr = tx.clone();
+        let stderr_task = tokio::spawn(async move {
+            let reader = BufReader::new(stderr);
+            let mut lines = reader.lines();
+            
+            while let Ok(Some(line)) = lines.next_line().await {
+                if line.to_lowercase().contains("error:") || line.to_lowercase().contains("failed") {
+                    let _ = tx_stderr.send(format!("ERROR: {}", line));
+                } else {
+                    let _ = tx_stderr.send(line);
+                }
+            }
+        });
+        
+        // Drop original tx so channel closes when tasks finish
+        drop(tx);
+        
+        // TEAM-388: Stream output and check for cancellation
+        loop {
+            tokio::select! {
+                // Check for cancellation
+                _ = cancel_token.cancelled() => {
+                    output_callback("==> Build cancelled, killing process group...");
+                    
+                    // TEAM-388: Kill the entire process group (bash + cargo + all subprocesses)
+                    #[cfg(unix)]
+                    {
+                        if let Some(pid) = child.id() {
+                            output_callback(&format!("==> Killing process group PGID: {}", pid));
+                            // Kill the process group by sending signal to negative PID
+                            unsafe {
+                                libc::kill(-(pid as i32), libc::SIGTERM);
+                            }
+                            output_callback("==> SIGTERM sent to process group");
+                            
+                            // Give it a moment to terminate gracefully
+                            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                            
+                            // If still running, send SIGKILL
+                            unsafe {
+                                libc::kill(-(pid as i32), libc::SIGKILL);
+                            }
+                            output_callback("==> SIGKILL sent to process group");
+                        }
+                    }
+                    
+                    // Also try tokio's kill (for the parent process)
+                    let _ = child.kill().await;
+                    
+                    // Wait for tasks to complete
+                    let _ = tokio::join!(stdout_task, stderr_task);
+                    return Err(ExecutionError::BuildFailed(-1));
+                }
+                // Receive output
+                line = rx.recv() => {
+                    match line {
+                        Some(line) => output_callback(&line),
+                        None => break, // Channel closed, process finished
+                    }
+                }
+            }
+        }
+        
+        // Wait for tasks to complete
+        let _ = tokio::join!(stdout_task, stderr_task);
+        
+        // Wait for completion
+        let status = child.wait().await?;
+        
+        if !status.success() {
+            let code = status.code().unwrap_or(-1);
+            return Err(match phase {
+                "build" => ExecutionError::BuildFailed(code),
+                "package" => ExecutionError::PackageFailed(code),
+                _ => ExecutionError::BuildFailed(code),
+            });
+        }
+        
+        Ok(())
     }
     
     /// Execute a shell script and stream output

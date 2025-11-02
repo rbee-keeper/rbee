@@ -142,8 +142,127 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
         // - WorkerSpawn: Start a worker process (assumes binary exists in catalog)
         // - WorkerProcessList/Get/Delete: Manage running processes (ps/kill)
         //
+        Operation::WorkerCatalogList(request) => {
+            // TEAM-388: List available workers from Hono catalog server
+            let hive_id = request.hive_id.clone();
+            n!("worker_catalog_list_start", "📋 Listing available workers from catalog (hive '{}')", hive_id);
+            
+            // Query Hono catalog server
+            let catalog_url = "http://localhost:8787/workers";
+            n!("worker_catalog_query", "🌐 Querying Hono catalog at {}", catalog_url);
+            
+            match reqwest::get(catalog_url).await {
+                Ok(response) => {
+                    match response.json::<serde_json::Value>().await {
+                        Ok(catalog_data) => {
+                            let empty_vec = vec![];
+                            let workers = catalog_data["workers"]
+                                .as_array()
+                                .unwrap_or(&empty_vec);
+                            
+                            n!("worker_catalog_list_ok", "✅ Listed {} available workers from catalog", workers.len());
+                            
+                            // TEAM-388: Create simplified, user-friendly table with only essential info
+                            let simplified: Vec<serde_json::Value> = workers.iter().map(|w| {
+                                serde_json::json!({
+                                    "id": w["id"],
+                                    "name": w["name"],
+                                    "type": w["worker_type"],
+                                    "platforms": w["platforms"]
+                                        .as_array()
+                                        .map(|arr| arr.iter()
+                                            .filter_map(|v| v.as_str())
+                                            .collect::<Vec<_>>()
+                                            .join(", "))
+                                        .unwrap_or_else(|| "unknown".to_string()),
+                                    "description": w["description"]
+                                })
+                            }).collect();
+                            
+                            n!("worker_catalog_list_table", table: &simplified);
+                        }
+                        Err(e) => {
+                            n!("worker_catalog_list_parse_error", "❌ Failed to parse catalog response: {}", e);
+                            return Err(anyhow::anyhow!("Failed to parse catalog response: {}", e));
+                        }
+                    }
+                }
+                Err(e) => {
+                    n!("worker_catalog_list_error", "❌ Failed to query Hono catalog: {}", e);
+                    n!("worker_catalog_list_hint", "💡 Make sure Hono catalog server is running on port 8787");
+                    return Err(anyhow::anyhow!("Failed to query Hono catalog at {}: {}", catalog_url, e));
+                }
+            }
+        }
+
+        Operation::WorkerCatalogGet(request) => {
+            // TEAM-388: Get worker details from Hono catalog server
+            let hive_id = request.hive_id.clone();
+            let worker_id = request.worker_id.clone();
+            n!("worker_catalog_get_start", "🔍 Getting worker '{}' from catalog (hive '{}')", worker_id, hive_id);
+            
+            // Query Hono catalog server for specific worker
+            let catalog_url = format!("http://localhost:8787/workers/{}", worker_id);
+            n!("worker_catalog_get_query", "🌐 Querying Hono catalog at {}", catalog_url);
+            
+            match reqwest::get(&catalog_url).await {
+                Ok(response) => {
+                    if response.status().is_success() {
+                        match response.json::<serde_json::Value>().await {
+                            Ok(worker_data) => {
+                                n!("worker_catalog_get_ok", "✅ Found worker '{}' in catalog", worker_id);
+                                n!("worker_catalog_get_json", "{}", worker_data.to_string());
+                            }
+                            Err(e) => {
+                                n!("worker_catalog_get_parse_error", "❌ Failed to parse worker data: {}", e);
+                                return Err(anyhow::anyhow!("Failed to parse worker data: {}", e));
+                            }
+                        }
+                    } else if response.status().as_u16() == 404 {
+                        n!("worker_catalog_get_not_found", "❌ Worker '{}' not found in catalog", worker_id);
+                        return Err(anyhow::anyhow!("Worker '{}' not found in catalog", worker_id));
+                    } else {
+                        n!("worker_catalog_get_error", "❌ Catalog server returned status: {}", response.status());
+                        return Err(anyhow::anyhow!("Catalog server returned status: {}", response.status()));
+                    }
+                }
+                Err(e) => {
+                    n!("worker_catalog_get_error", "❌ Failed to query Hono catalog: {}", e);
+                    n!("worker_catalog_get_hint", "💡 Make sure Hono catalog server is running on port 8787");
+                    return Err(anyhow::anyhow!("Failed to query Hono catalog at {}: {}", catalog_url, e));
+                }
+            }
+        }
+
+        Operation::WorkerInstalledGet(request) => {
+            // TEAM-388: Get installed worker details from catalog
+            let hive_id = request.hive_id.clone();
+            let worker_id = request.worker_id.clone();
+            n!("worker_installed_get_start", "🔍 Getting installed worker '{}' (hive '{}')", worker_id, hive_id);
+            
+            // Find worker in catalog
+            let workers = state.worker_catalog.list();
+            let worker = workers.iter().find(|w| w.id() == worker_id)
+                .ok_or_else(|| anyhow::anyhow!("Worker '{}' not found in catalog", worker_id))?;
+            
+            let response = serde_json::json!({
+                "id": worker.id(),
+                "name": worker.name(),
+                "worker_type": format!("{:?}", worker.worker_type()),
+                "platform": format!("{:?}", worker.platform()),
+                "version": worker.version(),
+                "size": worker.size(),
+                "path": worker.path().display().to_string(),
+                "added_at": worker.added_at().to_rfc3339(),
+            });
+            
+            n!("worker_installed_get_ok", "✅ Found installed worker '{}'", worker_id);
+            n!("worker_installed_get_json", "{}", response.to_string());
+        }
+
         Operation::WorkerInstall(request) => {
             // TEAM-378: Worker binary installation from catalog
+            // TEAM-388: Added cancellation support (especially for cargo build)
             n!(
                 "worker_install_start",
                 "📦 Installing worker '{}' on hive '{}'",
@@ -151,9 +270,16 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
                 request.hive_id
             );
 
+            // TEAM-388: Get cancellation token from job registry
+            // This allows the cancel endpoint to actually cancel the build
+            let cancel_token = state.registry
+                .get_cancellation_token(&job_id)
+                .ok_or_else(|| anyhow::anyhow!("Job not found in registry"))?;
+
             rbee_hive::worker_install::handle_worker_install(
                 request.worker_id.clone(),
                 state.worker_catalog.clone(),
+                cancel_token,
             )
             .await?;
 
@@ -162,6 +288,24 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
                 "✅ Worker '{}' installation complete",
                 request.worker_id
             );
+        }
+
+        Operation::WorkerRemove(request) => {
+            // TEAM-388: Remove installed worker binary
+            let hive_id = request.hive_id.clone();
+            let worker_id = request.worker_id.clone();
+            n!("worker_remove_start", "🗑️  Removing worker '{}' from hive '{}'", worker_id, hive_id);
+            
+            // Check if worker exists before attempting removal
+            if !state.worker_catalog.contains(&worker_id) {
+                n!("worker_remove_not_found", "❌ Worker '{}' not found in catalog", worker_id);
+                return Err(anyhow::anyhow!("Worker '{}' not found in catalog", worker_id));
+            }
+            
+            // Remove from catalog
+            state.worker_catalog.remove(&worker_id)?;
+            
+            n!("worker_remove_ok", "✅ Worker '{}' removed from catalog", worker_id);
         }
 
         Operation::WorkerListInstalled(request) => {

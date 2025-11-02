@@ -127,10 +127,22 @@ pub enum Operation {
     
     // Worker Lifecycle
     // ───────────────────────────────────────────────────────────────────────
-    /// Install a worker binary from catalog (download PKGBUILD, build, install)
-    WorkerInstall(WorkerInstallRequest),
+    /// List available workers from catalog server (Hono)
+    /// TEAM-388: Queries http://localhost:8787/workers
+    WorkerCatalogList(WorkerCatalogListRequest),
+    /// Get worker details from catalog server (Hono)
+    /// TEAM-388: Queries http://localhost:8787/workers/:id
+    WorkerCatalogGet(WorkerCatalogGetRequest),
     /// List installed worker binaries on hive (from worker catalog)
     WorkerListInstalled(WorkerListInstalledRequest),
+    /// Get details of a specific installed worker binary
+    /// TEAM-388: Shows details from ~/.cache/rbee/workers/
+    WorkerInstalledGet(WorkerCatalogGetRequest),
+    /// Install a worker binary from catalog (download PKGBUILD, build, install)
+    WorkerInstall(WorkerInstallRequest),
+    /// Remove an installed worker binary
+    /// TEAM-388: Removes from ~/.cache/rbee/workers/
+    WorkerRemove(WorkerRemoveRequest),
     /// Spawn a worker process on hive
     WorkerSpawn(WorkerSpawnRequest),
     /// List worker processes running on hive (local ps, not registry)

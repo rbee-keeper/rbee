@@ -19,6 +19,7 @@ use observability_narration_core::n;
 use rbee_hive_worker_catalog::WorkerCatalog;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tokio_util::sync::CancellationToken; // TEAM-388: For cancellable operations
 
 /// Worker metadata from catalog
 #[derive(Debug, serde::Deserialize)]
@@ -36,10 +37,17 @@ struct WorkerMetadata {
 /// Handle worker installation operation
 ///
 /// TEAM-378: Full implementation with PKGBUILD download and execution
+/// TEAM-388: Added cancellation token support for cancellable builds
 pub async fn handle_worker_install(
     worker_id: String,
     worker_catalog: Arc<WorkerCatalog>,
+    cancel_token: CancellationToken,
 ) -> Result<()> {
+    // TEAM-388: Check cancellation before starting
+    if cancel_token.is_cancelled() {
+        n!("install_cancelled", "❌ Installation cancelled before start");
+        anyhow::bail!("Installation cancelled");
+    }
     // 1. Fetch worker metadata from catalog
     n!("fetch_metadata", "📦 Fetching worker metadata from catalog...");
     let worker = fetch_worker_metadata(&worker_id).await?;
@@ -90,21 +98,29 @@ pub async fn handle_worker_install(
     crate::source_fetcher::fetch_sources(&pkgbuild.source, &srcdir).await?;
     n!("fetch_sources_ok", "✓ Sources fetched to: {}", srcdir.display());
 
-    // 7. Execute build()
-    n!("build_start", "🏗️  Starting build phase...");
+    // 7. Execute build() - THIS IS THE LONG-RUNNING OPERATION
+    n!("build_start", "🏗️  Starting build phase (cancellable)...");
     let executor = crate::pkgbuild_executor::PkgBuildExecutor::new(
         temp_dir.join("src"),
         temp_dir.join("pkg"),
         temp_dir.clone(),
     );
 
-    // TEAM-384: Add error narration for build failures
+    // TEAM-388: Build with cancellation support
+    // The build phase is the longest operation (cargo build can take minutes)
+    // Pass the cancel_token to the executor so it can check for cancellation
     if let Err(e) = executor
-        .build(&pkgbuild, |line| {
+        .build_with_cancellation(&pkgbuild, cancel_token.clone(), |line| {
             n!("build_output", "{}", line);
         })
         .await
     {
+        // Check if it was cancelled
+        if cancel_token.is_cancelled() {
+            n!("build_cancelled", "❌ Build cancelled by user");
+            cleanup_temp_directories(&temp_dir).ok(); // Best effort cleanup
+            anyhow::bail!("Build cancelled");
+        }
         n!("build_failed", "❌ Build failed: {}", e);
         n!("build_error_detail", "Error details: {:?}", e);
         return Err(e.into());

@@ -10,12 +10,45 @@ use serde::{Deserialize, Serialize};
 // Worker Operation Requests
 // ============================================================================
 
+/// Request to list available workers from catalog server
+/// 
+/// TEAM-388: Lists workers from Hono catalog (http://localhost:8787/workers)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorkerCatalogListRequest {
+    /// Hive ID (for routing)
+    pub hive_id: String,
+}
+
+/// Request to get worker details from catalog server
+/// 
+/// TEAM-388: Gets worker details from Hono catalog (http://localhost:8787/workers/:id)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorkerCatalogGetRequest {
+    /// Hive ID (for routing)
+    pub hive_id: String,
+    /// Worker ID from catalog (e.g., "llm-worker-rbee-cpu")
+    pub worker_id: String,
+}
+
 /// Request to install a worker binary from catalog
+/// 
+/// TEAM-388: Downloads PKGBUILD, builds, and installs worker
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorkerInstallRequest {
     /// Hive ID where worker should be installed
     pub hive_id: String,
     /// Worker ID from catalog (e.g., "llm-worker-rbee-cpu")
+    pub worker_id: String,
+}
+
+/// Request to remove an installed worker binary
+/// 
+/// TEAM-388: Removes worker from ~/.cache/rbee/workers/
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorkerRemoveRequest {
+    /// Hive ID where worker is installed
+    pub hive_id: String,
+    /// Worker ID to remove (e.g., "llm-worker-rbee-cpu")
     pub worker_id: String,
 }
 

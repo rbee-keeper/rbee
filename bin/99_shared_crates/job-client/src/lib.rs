@@ -1,6 +1,7 @@
 //! Shared HTTP client for job submission and SSE streaming
 //!
 //! TEAM-259: Consolidate job submission patterns
+//! TEAM-384: Migrated to use jobs-contract for shared types
 //!
 //! This crate provides a reusable pattern for:
 //! - Submitting operations to /v1/jobs endpoints
@@ -27,6 +28,7 @@
 //! ```
 
 use anyhow::Result;
+use jobs_contract::{JobResponse, completion_markers}; // TEAM-384: Use shared contract
 use operations_contract::Operation;
 
 // TEAM-286: StreamExt needed for both native and WASM
@@ -94,7 +96,8 @@ impl JobClient {
             .map_err(|e| anyhow::anyhow!("Failed to serialize operation: {}", e))?;
 
         // 2. POST to /v1/jobs endpoint
-        let job_response: serde_json::Value = self
+        // TEAM-384: Use JobResponse from contract instead of serde_json::Value
+        let job_response: JobResponse = self
             .client
             .post(format!("{}/v1/jobs", self.base_url))
             .json(&payload)
@@ -105,12 +108,8 @@ impl JobClient {
             .await
             .map_err(|e| anyhow::anyhow!("Failed to parse job response: {}", e))?;
 
-        // 3. Extract job_id from response
-        let job_id = job_response
-            .get("job_id")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Server did not return job_id"))?
-            .to_string();
+        // 3. Extract job_id from response (contract guarantees field exists)
+        let job_id = job_response.job_id;
 
         // 4. Connect to SSE stream
         let stream_url = format!("{}/v1/jobs/{}/stream", self.base_url, job_id);
@@ -162,20 +161,20 @@ impl JobClient {
                     // Call handler for each line
                     line_handler(data)?;
 
-                    // TEAM-304: Check for [DONE] marker
-                    if data.contains("[DONE]") {
-                        return Ok(job_id);
-                    }
-
-                    // TEAM-305-FIX: Check for [CANCELLED] marker
-                    if data.contains("[CANCELLED]") {
-                        return Err(anyhow::anyhow!("Job was cancelled"));
-                    }
-
-                    // TEAM-304: Check for [ERROR] marker
-                    if data.contains("[ERROR]") {
-                        let error_msg = data.strip_prefix("[ERROR]").unwrap_or(data).trim();
-                        return Err(anyhow::anyhow!("Job failed: {}", error_msg));
+                    // TEAM-384: Check for completion markers using contract
+                    if completion_markers::is_completion_marker(data) {
+                        if data == completion_markers::DONE {
+                            return Ok(job_id);
+                        } else if data == completion_markers::CANCELLED {
+                            return Err(anyhow::anyhow!("Job was cancelled"));
+                        } else if data.starts_with(completion_markers::ERROR_PREFIX) {
+                            // Extract error message
+                            let error_msg = data
+                                .strip_prefix(completion_markers::ERROR_PREFIX)
+                                .and_then(|s| s.strip_prefix(" "))
+                                .unwrap_or(data);
+                            return Err(anyhow::anyhow!("Job failed: {}", error_msg));
+                        }
                     }
                 }
             }

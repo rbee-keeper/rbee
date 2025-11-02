@@ -104,10 +104,16 @@ pub async fn handle_stream_job(
     Path(job_id): Path<String>,
     State(state): State<HiveState>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    // Take the receiver (can only be done once per job)
+    // Take the receiver FIRST (can only be done once per job)
     let sse_rx_opt = sse_sink::take_job_receiver(&job_id);
 
-    // Trigger job execution (spawns in background) - do this even if channel missing
+    // TEAM-384: Get registry before moving state
+    let registry = state.registry.clone();
+    let job_id_for_state = job_id.clone();
+
+    // Trigger job execution (spawns in background)
+    // The return value is a token stream for job-server internal use - we don't need it
+    // The SSE channel closing IS our completion signal
     let _token_stream = crate::job_router::execute_job(job_id.clone(), state.into()).await;
 
     // Single stream that handles both error and success cases
@@ -115,49 +121,30 @@ pub async fn handle_stream_job(
     let combined_stream = async_stream::stream! {
         // Check if channel exists
         let Some(mut sse_rx) = sse_rx_opt else {
+            // TEAM-384: Send error AND [DONE] marker so frontend doesn't hang
             yield Ok(Event::default().data("ERROR: Job channel not found. This may indicate a race condition or job creation failure."));
+            yield Ok(Event::default().data("[DONE]"));
             return;
         };
 
-        let mut last_event_time = std::time::Instant::now();
-        // TEAM-378: Increased timeout for long-running operations (git clone, cargo build)
-        // 2 seconds was too short - git clone can have long pauses during transfer
-        let completion_timeout = std::time::Duration::from_secs(30);
-        let mut received_first_event = false;
-
-        loop {
-            // Wait for either a narration event or timeout
-            let timeout_fut = tokio::time::sleep(completion_timeout);
-            tokio::pin!(timeout_fut);
-
-            tokio::select! {
-                // MPSC recv() returns Option<T>
-                event_opt = sse_rx.recv() => {
-                    match event_opt {
-                        Some(event) => {
-                            received_first_event = true;
-                            last_event_time = std::time::Instant::now();
-                            // Use pre-formatted text from narration-core
-                            yield Ok(Event::default().data(&event.formatted));
-                        }
-                        None => {
-                            // Sender dropped (job completed)
-                            if received_first_event {
-                                yield Ok(Event::default().data("[DONE]"));
-                            }
-                            break;
-                        }
-                    }
-                }
-                // Timeout: if no events for 2 seconds after first event, we're done
-                _ = &mut timeout_fut, if received_first_event => {
-                    if last_event_time.elapsed() >= completion_timeout {
-                        yield Ok(Event::default().data("[DONE]"));
-                        break;
-                    }
-                }
-            }
+        // TEAM-384: Stream ALL narration events from SSE channel
+        // When channel closes, check job state and send appropriate completion signal
+        
+        while let Some(event) = sse_rx.recv().await {
+            // Use pre-formatted text from narration-core
+            yield Ok(Event::default().data(&event.formatted));
         }
+        
+        // TEAM-384: SSE channel closed - job completed!
+        // Check final job state to determine success/failure/cancelled
+        use job_server::JobState;
+        let state = registry.get_job_state(&job_id_for_state);
+        let signal = match state {
+            Some(JobState::Failed(err)) => format!("[ERROR] {}", err),
+            Some(JobState::Cancelled) => "[CANCELLED]".to_string(),
+            _ => "[DONE]".to_string(),
+        };
+        yield Ok(Event::default().data(&signal));
 
         // Cleanup - remove sender from HashMap to prevent memory leak
         // Receiver is already dropped by moving out of this scope

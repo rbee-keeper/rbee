@@ -38,7 +38,7 @@ struct WorkerMetadata {
 /// TEAM-378: Full implementation with PKGBUILD download and execution
 pub async fn handle_worker_install(
     worker_id: String,
-    _worker_catalog: Arc<WorkerCatalog>,
+    worker_catalog: Arc<WorkerCatalog>,
 ) -> Result<()> {
     // 1. Fetch worker metadata from catalog
     n!("fetch_metadata", "📦 Fetching worker metadata from catalog...");
@@ -98,20 +98,31 @@ pub async fn handle_worker_install(
         temp_dir.clone(),
     );
 
-    executor
+    // TEAM-384: Add error narration for build failures
+    if let Err(e) = executor
         .build(&pkgbuild, |line| {
             n!("build_output", "{}", line);
         })
-        .await?;
+        .await
+    {
+        n!("build_failed", "❌ Build failed: {}", e);
+        n!("build_error_detail", "Error details: {:?}", e);
+        return Err(e.into());
+    }
     n!("build_complete", "✓ Build complete");
 
     // 8. Execute package()
     n!("package_start", "📦 Starting package phase...");
-    executor
+    if let Err(e) = executor
         .package(&pkgbuild, |line| {
             n!("package_output", "{}", line);
         })
-        .await?;
+        .await
+    {
+        n!("package_failed", "❌ Package failed: {}", e);
+        n!("package_error_detail", "Error details: {:?}", e);
+        return Err(e.into());
+    }
     n!("package_complete", "✓ Package complete");
 
     // 9. Install binary
@@ -121,7 +132,9 @@ pub async fn handle_worker_install(
 
     // 10. Add to worker catalog
     n!("catalog_add", "📝 Adding to worker catalog...");
-    add_to_catalog(&worker_id, &pkgbuild, &binary_path)?;
+    eprintln!("[worker_install] About to call add_to_catalog for worker_id={}", worker_id);
+    add_to_catalog(&worker_id, &pkgbuild, &binary_path, &worker_catalog)?;
+    eprintln!("[worker_install] add_to_catalog returned successfully");
     n!("catalog_add_ok", "✓ Added to catalog");
 
     // 11. Update capabilities (placeholder - actual implementation depends on capabilities system)
@@ -331,11 +344,17 @@ fn install_binary(temp_dir: &PathBuf, pkgbuild: &crate::pkgbuild_parser::PkgBuil
 /// 
 /// TEAM-378: Registers the installed binary in the worker catalog
 /// so it shows up in the "Installed Workers" view
-fn add_to_catalog(worker_id: &str, pkgbuild: &crate::pkgbuild_parser::PkgBuild, binary_path: &PathBuf) -> Result<()> {
-    use rbee_hive_worker_catalog::{WorkerCatalog, WorkerBinary, WorkerType, Platform};
-    use rbee_hive_artifact_catalog::ArtifactCatalog;
+/// TEAM-384: Use shared catalog instance instead of creating new one
+fn add_to_catalog(
+    worker_id: &str, 
+    pkgbuild: &crate::pkgbuild_parser::PkgBuild, 
+    binary_path: &PathBuf,
+    catalog: &WorkerCatalog,
+) -> Result<()> {
+    use rbee_hive_worker_catalog::{WorkerBinary, WorkerType, Platform};
+    use rbee_hive_artifact_catalog::catalog::ArtifactCatalog;
     
-    let catalog = WorkerCatalog::new()?;
+    eprintln!("[add_to_catalog] worker_id={}, binary_path={}", worker_id, binary_path.display());
     
     // Determine worker type from worker_id
     let worker_type = if worker_id.contains("cpu") {
@@ -347,28 +366,34 @@ fn add_to_catalog(worker_id: &str, pkgbuild: &crate::pkgbuild_parser::PkgBuild, 
     } else {
         anyhow::bail!("Unknown worker type for worker_id: {}", worker_id);
     };
+    eprintln!("[add_to_catalog] Determined worker_type: {:?}", worker_type);
     
     // Get current platform
     let platform = Platform::current();
+    eprintln!("[add_to_catalog] Platform: {:?}", platform);
     
     // Get binary size
     let size = std::fs::metadata(binary_path)?.len();
+    eprintln!("[add_to_catalog] Binary size: {} bytes", size);
     
     // Create unique ID: worker_id-version-platform
     let id = format!("{}-{}-{:?}", worker_id, pkgbuild.pkgver, platform).to_lowercase();
+    eprintln!("[add_to_catalog] Generated ID: {}", id);
     
     // Create WorkerBinary entry
     let worker_binary = WorkerBinary::new(
-        id,
+        id.clone(),
         worker_type,
         platform,
         binary_path.clone(),
         size,
         pkgbuild.pkgver.clone(),
     );
+    eprintln!("[add_to_catalog] WorkerBinary created, calling catalog.add()...");
     
     // Add to catalog
     catalog.add(worker_binary)?;
+    eprintln!("[add_to_catalog] ✓ catalog.add() succeeded");
     
     Ok(())
 }

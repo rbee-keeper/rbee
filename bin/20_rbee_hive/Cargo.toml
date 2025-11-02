@@ -51,6 +51,7 @@ serde_json = "1.0"
 # TEAM-261: Job server pattern (mirrors queen-rbee)
 job-server = { path = "../99_shared_crates/job-server" }
 operations-contract = { path = "../97_contracts/operations-contract" }  # TEAM-284: Renamed from rbee-operations
+jobs-contract = { path = "../97_contracts/jobs-contract" }  # TEAM-384: Jobs HTTP API contract
 futures = "0.3"
 async-stream = "0.3"
 

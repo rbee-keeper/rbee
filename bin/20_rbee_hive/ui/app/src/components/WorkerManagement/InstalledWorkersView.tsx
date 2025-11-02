@@ -125,13 +125,23 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
   
   // TEAM-382: Show error state
   if (error) {
+    console.error('[InstalledWorkersView] Error loading workers:', error)
     return (
-      <Card>
+      <Card className="border-destructive">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
             <h3 className="text-lg font-semibold mb-2">Failed to Load Workers</h3>
-            <p className="text-sm text-muted-foreground">{error.message}</p>
+            <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+            <div className="text-xs text-muted-foreground bg-muted p-4 rounded max-w-2xl">
+              <p className="font-semibold mb-2">Troubleshooting:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Check if rbee-hive is running on port 7835</li>
+                <li>Check browser console for detailed error logs</li>
+                <li>Try refreshing the page</li>
+                <li>Check if the worker catalog is initialized</li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>

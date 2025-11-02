@@ -45,14 +45,8 @@ pub struct JobState {
     pub hive_registry: Arc<queen_rbee_telemetry_registry::TelemetryRegistry>, // TEAM-374
 }
 
-/// Response from job creation
-#[derive(Debug, serde::Serialize)]
-pub struct JobResponse {
-    /// Unique job identifier
-    pub job_id: String,
-    /// SSE stream URL for job events
-    pub sse_url: String,
-}
+// TEAM-384: Use JobResponse from contract (removed local definition)
+pub use jobs_contract::JobResponse;
 
 /// Create a new job and store its payload
 ///

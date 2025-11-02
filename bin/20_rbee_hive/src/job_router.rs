@@ -44,12 +44,8 @@ pub struct JobState {
     pub worker_catalog: Arc<WorkerCatalog>, // TEAM-274: Worker catalog
 }
 
-/// Response from job creation
-#[derive(Debug, serde::Serialize)]
-pub struct JobResponse {
-    pub job_id: String,
-    pub sse_url: String,
-}
+// TEAM-384: Use JobResponse from contract (removed local definition)
+pub use jobs_contract::JobResponse;
 
 /// Create a new job and store its payload
 ///
@@ -440,6 +436,8 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
             let json = serde_json::to_string(&models)
                 .unwrap_or_else(|_| "[]".to_string());
             n!("model_list_json", "{}", json);
+            
+            n!("model_list_complete", "✅ Model list operation complete");
         }
 
         Operation::ModelGet(request) => {

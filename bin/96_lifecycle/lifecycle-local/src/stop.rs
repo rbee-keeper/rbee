@@ -99,11 +99,24 @@ pub async fn stop_daemon(stop_config: StopConfig) -> Result<()> {
 
     match client.post(shutdown_url).send().await {
         Ok(response) if response.status().is_success() => {
-            // TEAM-384: Trust HTTP shutdown - no polling needed
-            // If daemon doesn't stop, start.rs will fail (which is correct behavior)
-            n!("http_success", "✅ HTTP shutdown accepted, daemon will stop gracefully");
-            n!("stop_complete", "🎉 {} stopped successfully", daemon_name);
-            return Ok(());
+            n!("http_success", "✅ HTTP shutdown accepted, waiting for process to exit...");
+            
+            // TEAM-384: Wait for the process to actually exit (500ms delay + buffer)
+            // The shutdown endpoint spawns a task that waits 500ms before exit
+            tokio::time::sleep(Duration::from_millis(1000)).await;
+            
+            // Verify it's actually down
+            match client.get(health_url).send().await {
+                Err(_) => {
+                    // Connection refused = process is dead (expected)
+                    n!("stop_complete", "🎉 {} stopped successfully", daemon_name);
+                    return Ok(());
+                }
+                Ok(_) => {
+                    // Still responding = process didn't exit
+                    n!("http_timeout", "⚠️  Process still alive after shutdown, falling back to SIGKILL");
+                }
+            }
         }
         Ok(response) => {
             n!(

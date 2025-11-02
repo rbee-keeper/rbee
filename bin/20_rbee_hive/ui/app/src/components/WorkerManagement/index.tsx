@@ -31,7 +31,7 @@ export function WorkerManagement() {
   // TEAM-384: Parse SSE messages for better formatting
   const [installProgress, setInstallProgress] = useState<string[]>([])
   
-  const { spawnWorker, installWorker, isPending, isSuccess, isError, error: installError, reset } = useWorkerOperations({
+  const { spawnWorker, installWorker, terminateWorker, isPending, isSuccess, isError, error: installError, reset } = useWorkerOperations({
     onSSEMessage: (line: string) => {
       // TEAM-384: Parse the line to extract just the message
       const parsed = parseNarrationLine(line)
@@ -70,6 +70,12 @@ export function WorkerManagement() {
     // TODO: Call hive backend to remove worker
     console.log('Removing worker:', workerId)
     // DELETE /v1/workers/{workerId}
+  }
+  
+  // TEAM-384: Handle worker termination (stop running worker)
+  const handleTerminateWorker = (pid: number) => {
+    console.log('[WorkerManagement] 🛑 Terminating worker PID:', pid)
+    terminateWorker(pid)
   }
 
   return (
@@ -140,6 +146,7 @@ export function WorkerManagement() {
               workers={workers}
               loading={loading}
               error={error}
+              onTerminate={handleTerminateWorker}
             />
           </TabsContent>
 

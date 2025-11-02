@@ -21,7 +21,8 @@ build() {
 
 package() {
     cd "$srcdir/llama-orch"
-    install -Dm755 "bin/30_llm_worker_rbee/target/release/llm-worker-rbee" \
+    # TEAM-384: Use workspace-level target directory (Cargo workspace outputs to root target/)
+    install -Dm755 "target/release/llm-worker-rbee" \
         "$pkgdir/usr/local/bin/$pkgname"
 }
 

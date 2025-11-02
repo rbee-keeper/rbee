@@ -10,4 +10,5 @@ publish = false
 [dependencies]
 tokio = { workspace = true, features = ["sync"] }
 serde_json = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 chrono = "0.4"

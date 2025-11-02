@@ -71,11 +71,15 @@ impl<T: Artifact> FilesystemCatalog<T> {
     /// Save metadata to disk
     fn save_metadata(&self, id: &str, metadata: &ArtifactMetadata<T>) -> Result<()> {
         let dir = self.catalog_dir.join(id);
+        eprintln!("[FilesystemCatalog::save_metadata] Creating directory: {}", dir.display());
         std::fs::create_dir_all(&dir)?;
 
         let path = self.metadata_path(id);
         let contents = serde_json::to_string_pretty(metadata)?;
+        eprintln!("[FilesystemCatalog::save_metadata] Writing to: {} ({} bytes)", path.display(), contents.len());
         std::fs::write(&path, contents)?;
+        
+        eprintln!("[FilesystemCatalog::save_metadata] ✓ File written successfully");
 
         Ok(())
     }
@@ -101,17 +105,25 @@ impl<T: Artifact> FilesystemCatalog<T> {
 impl<T: Artifact> ArtifactCatalog<T> for FilesystemCatalog<T> {
     fn add(&self, artifact: T) -> Result<()> {
         let id = artifact.id().to_string();
+        
+        // TEAM-384: Debug logging for catalog operations
+        eprintln!("[FilesystemCatalog::add] Adding artifact: id={}", id);
+        eprintln!("[FilesystemCatalog::add] Catalog dir: {}", self.catalog_dir.display());
 
         // Check if already exists
         if self.contains(&id) {
+            eprintln!("[FilesystemCatalog::add] ERROR: Artifact already exists!");
             return Err(anyhow!("Artifact '{}' already exists in catalog", id));
         }
 
         // Create metadata
         let metadata = ArtifactMetadata::new(artifact);
+        eprintln!("[FilesystemCatalog::add] Metadata created, saving to disk...");
 
         // Save to disk
         self.save_metadata(&id, &metadata)?;
+        
+        eprintln!("[FilesystemCatalog::add] ✓ Metadata saved successfully to {}", self.metadata_path(&id).display());
 
         Ok(())
     }
@@ -127,14 +139,27 @@ impl<T: Artifact> ArtifactCatalog<T> for FilesystemCatalog<T> {
     }
 
     fn list(&self) -> Vec<T> {
+        // TEAM-384: Debug logging for list operations
+        eprintln!("[FilesystemCatalog::list] Listing from: {}", self.catalog_dir.display());
+        
+        let ids = self.list_ids();
+        eprintln!("[FilesystemCatalog::list] Found {} subdirectories: {:?}", ids.len(), ids);
+        
         let mut artifacts = Vec::new();
 
-        for id in self.list_ids() {
-            if let Ok(metadata) = self.load_metadata(&id) {
-                artifacts.push(metadata.artifact);
+        for id in ids {
+            match self.load_metadata(&id) {
+                Ok(metadata) => {
+                    eprintln!("[FilesystemCatalog::list] ✓ Loaded: {}", id);
+                    artifacts.push(metadata.artifact);
+                }
+                Err(e) => {
+                    eprintln!("[FilesystemCatalog::list] ✗ Failed to load {}: {}", id, e);
+                }
             }
         }
-
+        
+        eprintln!("[FilesystemCatalog::list] Returning {} artifacts", artifacts.len());
         artifacts
     }
 

@@ -78,6 +78,9 @@ This directory contains a complete architectural overview split into 10 parts:
 
 **Read this third** to understand shared infrastructure.
 
+**Also see:**
+- **[COMMUNICATION_CONTRACTS.md](COMMUNICATION_CONTRACTS.md)** - **CANONICAL REFERENCE** for ALL inter-component connections
+
 ---
 
 ### [Part 4: Data Flow & Protocols](03_DATA_FLOW_PART_4.md)

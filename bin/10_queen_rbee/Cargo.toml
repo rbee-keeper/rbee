@@ -58,6 +58,7 @@ worker-contract = { path = "../97_contracts/worker-contract" }  # TEAM-270/284: 
 queen-rbee-scheduler = { path = "../15_queen_rbee_crates/scheduler" }  # TEAM-275: Job scheduler (stub for M2 Rhai)
 # TEAM-284: DELETED daemon-sync, ssh-client, and rbee-heartbeat (replaced by contracts)
 operations-contract = { path = "../97_contracts/operations-contract" }  # TEAM-186/284: Operations contract
+jobs-contract = { path = "../97_contracts/jobs-contract" }  # TEAM-384: Jobs HTTP API contract
 job-client = { path = "../99_shared_crates/job-client" }  # TEAM-259: Shared job submission client
 timeout-enforcer = { path = "../99_shared_crates/timeout-enforcer" }  # TEAM-207: Timeout enforcement
 ssh-config-parser = { path = "../99_shared_crates/ssh-config-parser" }  # TEAM-365: SSH config parser for hive discovery

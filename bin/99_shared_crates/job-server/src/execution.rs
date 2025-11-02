@@ -137,6 +137,10 @@ where
                     n!("failed", "Job {} failed: {}", job_id_clone, error_msg);
                 }
             }
+            
+            // TEAM-384: Drop SSE sender to signal completion
+            // This closes the channel, allowing the stream handler to send [DONE]
+            observability_narration_core::sse_sink::remove_job_channel(&job_id_clone);
         });
     } else {
         n!("no_payload", "Warning: No payload found for job {}", job_id);

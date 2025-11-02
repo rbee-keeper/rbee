@@ -12,6 +12,7 @@ reqwest = { version = "0.12", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 operations-contract = { path = "../../97_contracts/operations-contract" }
+jobs-contract = { path = "../../97_contracts/jobs-contract" } # TEAM-384: Shared API contract
 
 # TEAM-286: Native-only dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -254,8 +254,16 @@ export pkgdir="{pkgdir}"
             let reader = BufReader::new(stderr);
             let mut lines = reader.lines();
             
+            // TEAM-384: Don't prefix normal cargo output with "ERROR:"
+            // Cargo uses stderr for progress output, not just errors
             while let Ok(Some(line)) = lines.next_line().await {
-                let _ = tx_stderr.send(format!("ERROR: {}", line));
+                // Only prefix actual error lines (contain "error:" or "failed")
+                if line.to_lowercase().contains("error:") || line.to_lowercase().contains("failed") {
+                    let _ = tx_stderr.send(format!("ERROR: {}", line));
+                } else {
+                    // Normal cargo output (e.g., "Compiling X")
+                    let _ = tx_stderr.send(line);
+                }
             }
         });
         

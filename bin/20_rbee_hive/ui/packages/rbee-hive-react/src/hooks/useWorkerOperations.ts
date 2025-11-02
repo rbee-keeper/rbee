@@ -52,6 +52,7 @@ export interface UseWorkerOperationsOptions {
 export interface UseWorkerOperationsResult {
   installWorker: (workerId: string) => void
   spawnWorker: (params: SpawnWorkerParams) => void
+  terminateWorker: (pid: number) => void
   isPending: boolean
   isSuccess: boolean
   isError: boolean
@@ -67,6 +68,7 @@ export interface UseWorkerOperationsResult {
  * 
  * - installWorker: Download PKGBUILD, build, and install worker binary
  * - spawnWorker: Start a worker process with a model
+ * - terminateWorker: Terminate a running worker process by PID
  * 
  * @param options - Optional configuration
  * @param options.onSSEMessage - Callback for SSE messages (for narration UI)
@@ -122,6 +124,44 @@ export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWo
         }
       })
       
+      // TEAM-384: Check for errors in SSE stream before returning success
+      // Error markers: ❌, ✗, "failed:", "Error details:", "ERROR:"
+      // BUT ignore normal cargo output like "ERROR: Compiling X"
+      const hasErrors = lines.some(line => {
+        // Ignore normal cargo compilation progress
+        if (line.includes('Compiling ') || line.includes('Downloading ') || line.includes('Building ')) {
+          return false
+        }
+        
+        return (
+          line.includes('❌') ||
+          line.includes('✗') ||
+          line.includes('failed:') ||
+          line.includes('Error details:') ||
+          line.toLowerCase().includes('error:')
+        )
+      })
+      
+      if (hasErrors) {
+        console.error('[useWorkerOperations] ❌ Errors detected in installation stream')
+        
+        // Extract the most relevant error message
+        const errorLine = lines.find(line => 
+          line.includes('failed:') || 
+          line.includes('Error details:')
+        )
+        
+        // Extract just the error message (remove ANSI codes and narration metadata)
+        let errorMessage = errorLine || 'Installation failed - check logs'
+        errorMessage = errorMessage
+          .replace(/\x1b\[[0-9;]*m/g, '') // Remove ANSI escape codes
+          .replace(/^.*?\s{2,}/, '')      // Remove narration prefix (module name + spaces)
+          .trim()
+        
+        console.error('[useWorkerOperations] Error message:', errorMessage)
+        throw new Error(errorMessage)
+      }
+      
       console.log('[useWorkerOperations] ✅ Installation complete! Total messages:', lines.length)
       return { success: true, workerId }
     },
@@ -153,16 +193,44 @@ export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWo
     retryDelay: 1000,
   })
 
+  // TEAM-384: Worker terminate mutation
+  const terminateMutation = useMutation<any, Error, number>({
+    mutationFn: async (pid: number) => {
+      console.log('[useWorkerOperations] 🛑 Terminating worker PID:', pid)
+      
+      await ensureWasmInit()
+      const hiveId = client.hiveId
+      
+      // TEAM-384: workerDelete(hive_id, pid)
+      const op = OperationBuilder.workerDelete(hiveId, pid)
+      const lines: string[] = []
+      
+      await client.submitAndStream(op, (line: string) => {
+        if (line !== '[DONE]') {
+          lines.push(line)
+          console.log('[useWorkerOperations] Worker terminate:', line)
+        }
+      })
+      
+      console.log('[useWorkerOperations] ✓ Worker terminated')
+      return { success: true, pid }
+    },
+    retry: 0, // Don't retry termination
+    retryDelay: 0,
+  })
+
   return {
     installWorker: installMutation.mutate,
     spawnWorker: spawnMutation.mutate,
-    isPending: installMutation.isPending || spawnMutation.isPending,
-    isSuccess: installMutation.isSuccess || spawnMutation.isSuccess,
-    isError: installMutation.isError || spawnMutation.isError,
-    error: installMutation.error || spawnMutation.error,
+    terminateWorker: terminateMutation.mutate,
+    isPending: installMutation.isPending || spawnMutation.isPending || terminateMutation.isPending,
+    isSuccess: installMutation.isSuccess || spawnMutation.isSuccess || terminateMutation.isSuccess,
+    isError: installMutation.isError || spawnMutation.isError || terminateMutation.isError,
+    error: installMutation.error || spawnMutation.error || terminateMutation.error,
     reset: () => {
       installMutation.reset()
       spawnMutation.reset()
+      terminateMutation.reset()
     },
   }
 }

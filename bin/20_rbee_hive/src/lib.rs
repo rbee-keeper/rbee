@@ -14,6 +14,14 @@
 pub mod heartbeat; // TEAM-284: Hive heartbeat to queen
 pub mod hive_check; // TEAM-313: Hive narration check (tests SSE streaming)
 
+/// TEAM-388: Operation handlers (split from job_router.rs)
+///
+/// Contains focused modules for different operation types:
+/// - hive: Hive management operations
+/// - worker: Worker catalog and process operations
+/// - model: Model catalog and provisioning operations
+pub mod operations;
+
 /// PKGBUILD parser for worker installation
 ///
 /// Parses Arch Linux PKGBUILD format to extract build instructions.

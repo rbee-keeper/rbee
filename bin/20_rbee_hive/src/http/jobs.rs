@@ -4,6 +4,7 @@
 //!
 //! This module is a thin HTTP wrapper that delegates to job_router for business logic.
 
+use crate::job_router::JobResponse;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -56,10 +57,9 @@ pub async fn handle_create_job(
     Json(payload): Json<serde_json::Value>,
 ) -> Result<Json<crate::job_router::JobResponse>, (StatusCode, String)> {
     // Delegate to router
-    crate::job_router::create_job(state.into(), payload)
-        .await
-        .map(Json)
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
+    let job_id = crate::job_router::create_job(state.registry.clone(), payload);
+    let sse_url = format!("/v1/jobs/{}/stream", job_id);
+    Ok(Json(JobResponse { job_id, sse_url }))
 }
 
 /// DELETE /v1/jobs/{job_id} - Cancel a job

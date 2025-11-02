@@ -1,72 +1,84 @@
 //! Job routing and operation dispatch for rbee-hive
 //!
 //! TEAM-261: Mirrors queen-rbee pattern for consistency
+//! TEAM-388: Refactored to use modular operation handlers
 //!
 //! This module handles:
 //! - Parsing operation payloads into typed Operation enum
-//! - Routing operations to appropriate handlers
+//! - Routing operations to appropriate handlers (operations module)
 //! - Job lifecycle management (create, register, execute)
-//!
-//! # Architecture
-//!
-//! ```text
-//! POST /v1/jobs (JSON payload from queen-rbee)
-//!     ↓
-//! job_router::route_job()
-//!     ↓
-//! Parse into Operation enum
-//!     ↓
-//! Match and dispatch to handler
-//!     ↓
-//! Execute async in background
-//!     ↓
-//! Stream results via SSE back to queen
-//! ```
 
 use anyhow::Result;
 use job_server::JobRegistry;
-use observability_narration_core::n; // TEAM-385: Only n! macro needed, context from job-server
-use operations_contract::Operation; // TEAM-284: Renamed from rbee_operations
-use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, ArtifactProvisioner}; // TEAM-273: Traits for catalog methods
-use rbee_hive_model_catalog::ModelCatalog; // TEAM-268: Model catalog
-use rbee_hive_model_provisioner::ModelProvisioner; // Model provisioner for downloads
-use rbee_hive_worker_catalog::WorkerCatalog; // TEAM-274: Worker catalog
+use observability_narration_core::n;
+use operations_contract::Operation;
+use rbee_hive_artifact_catalog::{ArtifactCatalog, ArtifactProvisioner};
+use rbee_hive_model_catalog::ModelCatalog;
+use rbee_hive_model_provisioner::ModelProvisioner;
+use rbee_hive_worker_catalog::WorkerCatalog;
 use std::sync::Arc;
-
-// TEAM-314: All narration migrated to n!() macro
 
 /// State required for job routing and execution
 #[derive(Clone)]
 pub struct JobState {
     pub registry: Arc<JobRegistry<String>>,
-    pub model_catalog: Arc<ModelCatalog>, // TEAM-268: Model catalog
-    pub model_provisioner: Arc<ModelProvisioner>, // Model provisioner for downloads
-    pub worker_catalog: Arc<WorkerCatalog>, // TEAM-274: Worker catalog
+    pub model_catalog: Arc<ModelCatalog>,
+    pub model_provisioner: Arc<ModelProvisioner>,
+    pub worker_catalog: Arc<WorkerCatalog>,
 }
 
-// TEAM-384: Use JobResponse from contract (removed local definition)
 pub use jobs_contract::JobResponse;
 
 /// Create a new job and store its payload
 ///
-/// TEAM-261: Mirrors queen-rbee pattern
-/// Called by HTTP layer to create jobs.
-pub async fn create_job(state: JobState, payload: serde_json::Value) -> Result<JobResponse> {
-    let job_id = state.registry.create_job();
-    let sse_url = format!("/v1/jobs/{}/stream", job_id);
-
-    state.registry.set_payload(&job_id, payload);
-
-    // Create job-specific SSE channel for isolation
-    // TEAM-378: Increased buffer for high-volume operations (cargo build produces many messages)
+/// TEAM-261: Server generates job_id, stores payload for deferred execution
+pub fn create_job(registry: Arc<JobRegistry<String>>, payload: serde_json::Value) -> String {
+    // ============================================================
+    // BUG FIX: TEAM-389 | Missing SSE channel creation
+    // ============================================================
+    // SUSPICION:
+    // - TEAM-388 mentioned "Job channel not found" error
+    // - Suspected it was pre-existing, but refactoring changed create_job()
+    //
+    // INVESTIGATION:
+    // - Compared job_router_old.rs (line 62) with new job_router.rs
+    // - Found sse_sink::create_job_channel() call was DELETED
+    // - Old version: Lines 54-67 had channel creation
+    // - New version: Lines 35-39 missing channel creation
+    // - Checked queen-rbee/src/job_router.rs - it DOES create channels (line 62)
+    //
+    // ROOT CAUSE:
+    // - TEAM-388 refactoring simplified create_job() signature
+    // - Changed from async fn returning Result<JobResponse> to sync fn returning String
+    // - Accidentally deleted the sse_sink::create_job_channel() call (line 62 old version)
+    // - Without channel creation, sse_sink::take_job_receiver() returns None
+    // - This triggers "Job channel not found" error in http/jobs.rs line 130
+    //
+    // FIX:
+    // - Restored the missing sse_sink::create_job_channel() call
+    // - Used 10000 buffer size (TEAM-378 increased for high-volume ops like cargo build)
+    // - Placed AFTER set_payload() to match original order
+    //
+    // TESTING:
+    // - cargo build --bin rbee-hive (compilation check)
+    // - ./rbee model ls (should show models, not "Job channel not found")
+    // - ./rbee model remove (should work without SSE errors)
+    // - ./rbee worker install --name llama-cli (high-volume narration test)
+    // ============================================================
+    
+    let job_id = registry.create_job();
+    registry.set_payload(&job_id, payload);
+    
+    // TEAM-389: Restore SSE channel creation (accidentally removed by TEAM-388)
+    // TEAM-378: 10000 buffer for high-volume operations (cargo build produces many messages)
     observability_narration_core::sse_sink::create_job_channel(job_id.clone(), 10000);
-
+    
     n!("job_create", "Job {} created, waiting for client connection", job_id);
-
-    Ok(JobResponse { job_id, sse_url })
+    
+    job_id
 }
 
-/// Execute a job by retrieving its payload and streaming results
+/// Execute a job and stream results via SSE
 ///
 /// TEAM-261: Mirrors queen-rbee pattern
 /// Called by HTTP layer when client connects to SSE stream.
@@ -75,9 +87,8 @@ pub async fn execute_job(
     state: JobState,
 ) -> impl futures::stream::Stream<Item = String> {
     let registry = state.registry.clone();
-    let state_clone = state.clone(); // TEAM-268: Clone full state for closure
+    let state_clone = state.clone();
 
-    // TEAM-312: Pass None for timeout (no timeout needed for hive operations)
     job_server::execute_and_stream(
         job_id,
         registry.clone(),
@@ -91,14 +102,12 @@ pub async fn execute_job(
 ///
 /// TEAM-261: Parse payload and dispatch to worker/model handlers
 /// TEAM-385: Context now injected by job-server, no manual setup needed!
+/// TEAM-388: Delegates to modular operation handlers
 async fn route_operation(
     job_id: String,
     payload: serde_json::Value,
-    state: JobState, // TEAM-268: Changed from _registry to full state
+    state: JobState,
 ) -> Result<()> {
-    // TEAM-385: NO context setup needed! job-server already set it!
-    // Context propagates from job-server::execute_and_stream() via task-local storage
-    
     // Parse payload into typed Operation enum
     let operation: Operation = serde_json::from_value(payload)
         .map_err(|e| anyhow::anyhow!("Failed to parse operation: {}", e))?;
@@ -110,573 +119,63 @@ async fn route_operation(
     execute_operation(operation, operation_name, job_id, state).await
 }
 
-/// TEAM-381: Execute the actual operation logic (extracted for cleaner context wrapping)
-async fn execute_operation(operation: Operation, operation_name: String, job_id: String, state: JobState) -> Result<()> {
-
+/// TEAM-388: Execute the actual operation logic (delegates to operation modules)
+async fn execute_operation(
+    operation: Operation,
+    operation_name: String,
+    job_id: String,
+    state: JobState,
+) -> Result<()> {
     // ============================================================================
     // OPERATION ROUTING
     // ============================================================================
     //
-    // Hive handles Worker and Model operations
-    // (Hive operations like HiveStart/HiveStop are handled by queen-rbee)
+    // TEAM-388: Operations are now handled by focused modules:
+    // - operations::hive - Hive management operations
+    // - operations::worker - Worker catalog and process operations
+    // - operations::model - Model catalog and provisioning operations
     //
-    match operation {
-        // TEAM-313: HiveCheck - narration test through hive SSE
-        // TEAM-314: Migrated to n!() macro
-        // TEAM-381: Narration context now set at router level, no need to set here
+    match &operation {
+        // Hive operations
         Operation::HiveCheck { .. } => {
-            n!("hive_check_start", "🔍 Starting hive narration check");
-            rbee_hive::hive_check::handle_hive_check().await?;
-            n!("hive_check_complete", "✅ Hive narration check complete");
+            rbee_hive::operations::handle_hive_operation(&operation).await?;
         }
 
-        // ========================================================================
-        // WORKER OPERATIONS
-        // ========================================================================
-        //
-        // TEAM-334: Worker lifecycle uses daemon-lifecycle directly
-        // TEAM-378: Worker binary installation via PKGBUILD
-        //
-        // Worker operations:
-        // - WorkerInstall: Download PKGBUILD from catalog, build, and install binary
-        // - WorkerSpawn: Start a worker process (assumes binary exists in catalog)
-        // - WorkerProcessList/Get/Delete: Manage running processes (ps/kill)
-        //
-        Operation::WorkerCatalogList(request) => {
-            // TEAM-388: List available workers from Hono catalog server
-            let hive_id = request.hive_id.clone();
-            n!("worker_catalog_list_start", "📋 Listing available workers from catalog (hive '{}')", hive_id);
-            
-            // Query Hono catalog server
-            let catalog_url = "http://localhost:8787/workers";
-            n!("worker_catalog_query", "🌐 Querying Hono catalog at {}", catalog_url);
-            
-            match reqwest::get(catalog_url).await {
-                Ok(response) => {
-                    match response.json::<serde_json::Value>().await {
-                        Ok(catalog_data) => {
-                            let empty_vec = vec![];
-                            let workers = catalog_data["workers"]
-                                .as_array()
-                                .unwrap_or(&empty_vec);
-                            
-                            n!("worker_catalog_list_ok", "✅ Listed {} available workers from catalog", workers.len());
-                            
-                            // TEAM-388: Create simplified, user-friendly table with only essential info
-                            let simplified: Vec<serde_json::Value> = workers.iter().map(|w| {
-                                serde_json::json!({
-                                    "id": w["id"],
-                                    "name": w["name"],
-                                    "type": w["worker_type"],
-                                    "platforms": w["platforms"]
-                                        .as_array()
-                                        .map(|arr| arr.iter()
-                                            .filter_map(|v| v.as_str())
-                                            .collect::<Vec<_>>()
-                                            .join(", "))
-                                        .unwrap_or_else(|| "unknown".to_string()),
-                                    "description": w["description"]
-                                })
-                            }).collect();
-                            
-                            n!("worker_catalog_list_table", table: &simplified);
-                        }
-                        Err(e) => {
-                            n!("worker_catalog_list_parse_error", "❌ Failed to parse catalog response: {}", e);
-                            return Err(anyhow::anyhow!("Failed to parse catalog response: {}", e));
-                        }
-                    }
-                }
-                Err(e) => {
-                    n!("worker_catalog_list_error", "❌ Failed to query Hono catalog: {}", e);
-                    n!("worker_catalog_list_hint", "💡 Make sure Hono catalog server is running on port 8787");
-                    return Err(anyhow::anyhow!("Failed to query Hono catalog at {}: {}", catalog_url, e));
-                }
-            }
-        }
-
-        Operation::WorkerCatalogGet(request) => {
-            // TEAM-388: Get worker details from Hono catalog server
-            let hive_id = request.hive_id.clone();
-            let worker_id = request.worker_id.clone();
-            n!("worker_catalog_get_start", "🔍 Getting worker '{}' from catalog (hive '{}')", worker_id, hive_id);
-            
-            // Query Hono catalog server for specific worker
-            let catalog_url = format!("http://localhost:8787/workers/{}", worker_id);
-            n!("worker_catalog_get_query", "🌐 Querying Hono catalog at {}", catalog_url);
-            
-            match reqwest::get(&catalog_url).await {
-                Ok(response) => {
-                    if response.status().is_success() {
-                        match response.json::<serde_json::Value>().await {
-                            Ok(worker_data) => {
-                                n!("worker_catalog_get_ok", "✅ Found worker '{}' in catalog", worker_id);
-                                n!("worker_catalog_get_json", "{}", worker_data.to_string());
-                            }
-                            Err(e) => {
-                                n!("worker_catalog_get_parse_error", "❌ Failed to parse worker data: {}", e);
-                                return Err(anyhow::anyhow!("Failed to parse worker data: {}", e));
-                            }
-                        }
-                    } else if response.status().as_u16() == 404 {
-                        n!("worker_catalog_get_not_found", "❌ Worker '{}' not found in catalog", worker_id);
-                        return Err(anyhow::anyhow!("Worker '{}' not found in catalog", worker_id));
-                    } else {
-                        n!("worker_catalog_get_error", "❌ Catalog server returned status: {}", response.status());
-                        return Err(anyhow::anyhow!("Catalog server returned status: {}", response.status()));
-                    }
-                }
-                Err(e) => {
-                    n!("worker_catalog_get_error", "❌ Failed to query Hono catalog: {}", e);
-                    n!("worker_catalog_get_hint", "💡 Make sure Hono catalog server is running on port 8787");
-                    return Err(anyhow::anyhow!("Failed to query Hono catalog at {}: {}", catalog_url, e));
-                }
-            }
-        }
-
-        Operation::WorkerInstalledGet(request) => {
-            // TEAM-388: Get installed worker details from catalog
-            let hive_id = request.hive_id.clone();
-            let worker_id = request.worker_id.clone();
-            n!("worker_installed_get_start", "🔍 Getting installed worker '{}' (hive '{}')", worker_id, hive_id);
-            
-            // Find worker in catalog
-            let workers = state.worker_catalog.list();
-            let worker = workers.iter().find(|w| w.id() == worker_id)
-                .ok_or_else(|| anyhow::anyhow!("Worker '{}' not found in catalog", worker_id))?;
-            
-            let response = serde_json::json!({
-                "id": worker.id(),
-                "name": worker.name(),
-                "worker_type": format!("{:?}", worker.worker_type()),
-                "platform": format!("{:?}", worker.platform()),
-                "version": worker.version(),
-                "size": worker.size(),
-                "path": worker.path().display().to_string(),
-                "added_at": worker.added_at().to_rfc3339(),
-            });
-            
-            n!("worker_installed_get_ok", "✅ Found installed worker '{}'", worker_id);
-            n!("worker_installed_get_json", "{}", response.to_string());
-        }
-
-        Operation::WorkerInstall(request) => {
-            // TEAM-378: Worker binary installation from catalog
-            // TEAM-388: Added cancellation support (especially for cargo build)
-            n!(
-                "worker_install_start",
-                "📦 Installing worker '{}' on hive '{}'",
-                request.worker_id,
-                request.hive_id
-            );
-
-            // TEAM-388: Get cancellation token from job registry
-            // This allows the cancel endpoint to actually cancel the build
-            let cancel_token = state.registry
-                .get_cancellation_token(&job_id)
-                .ok_or_else(|| anyhow::anyhow!("Job not found in registry"))?;
-
-            rbee_hive::worker_install::handle_worker_install(
-                request.worker_id.clone(),
+        // Worker catalog operations
+        Operation::WorkerCatalogList(_)
+        | Operation::WorkerCatalogGet(_)
+        | Operation::WorkerInstalledGet(_)
+        | Operation::WorkerInstall(_)
+        | Operation::WorkerRemove(_)
+        | Operation::WorkerListInstalled(_)
+        | Operation::WorkerSpawn(_)
+        | Operation::WorkerProcessList(_)
+        | Operation::WorkerProcessGet(_)
+        | Operation::WorkerProcessDelete(_) => {
+            rbee_hive::operations::handle_worker_operation(
+                &operation,
                 state.worker_catalog.clone(),
-                cancel_token,
+                &job_id,
+                || state.registry.get_cancellation_token(&job_id),
             )
             .await?;
-
-            n!(
-                "worker_install_complete",
-                "✅ Worker '{}' installation complete",
-                request.worker_id
-            );
-        }
-
-        Operation::WorkerRemove(request) => {
-            // TEAM-388: Remove installed worker binary
-            let hive_id = request.hive_id.clone();
-            let worker_id = request.worker_id.clone();
-            n!("worker_remove_start", "🗑️  Removing worker '{}' from hive '{}'", worker_id, hive_id);
-            
-            // Check if worker exists before attempting removal
-            if !state.worker_catalog.contains(&worker_id) {
-                n!("worker_remove_not_found", "❌ Worker '{}' not found in catalog", worker_id);
-                return Err(anyhow::anyhow!("Worker '{}' not found in catalog", worker_id));
-            }
-            
-            // Remove from catalog
-            state.worker_catalog.remove(&worker_id)?;
-            
-            n!("worker_remove_ok", "✅ Worker '{}' removed from catalog", worker_id);
-        }
-
-        Operation::WorkerListInstalled(request) => {
-            // TEAM-382: List installed worker binaries from catalog
-            let hive_id = request.hive_id.clone();
-            n!("worker_list_installed_start", "📋 Listing installed workers on hive '{}'", hive_id);
-            
-            // List all installed workers from catalog
-            let workers = state.worker_catalog.list();
-            
-            n!("worker_list_installed_count", "Found {} installed workers", workers.len());
-            
-            // Convert to JSON response for frontend
-            let response = serde_json::json!({
-                "workers": workers.iter().map(|w| {
-                    serde_json::json!({
-                        "id": w.id(),
-                        "name": w.name(),
-                        "worker_type": format!("{:?}", w.worker_type()),
-                        "platform": format!("{:?}", w.platform()),
-                        "version": w.version(),
-                        "size": w.size(),
-                        "path": w.path().display().to_string(),
-                        "added_at": w.added_at().to_rfc3339(),
-                    })
-                }).collect::<Vec<_>>()
-            });
-            
-            n!("worker_list_installed_ok", "✅ Listed {} installed workers", workers.len());
-            
-            // Emit JSON response as final narration line
-            n!("worker_list_installed_json", "{}", response.to_string());
-        }
-
-        Operation::WorkerSpawn(request) => {
-            use lifecycle_local::{start_daemon, HttpDaemonConfig, StartConfig};
-            use rbee_hive_worker_catalog::{Platform, WorkerType};
-
-            n!(
-                "worker_spawn_start",
-                "🚀 Spawning worker '{}' with model '{}' on device {}",
-                request.worker,
-                request.model,
-                request.device
-            );
-
-            // Determine worker type from worker string (e.g., "cpu", "cuda")
-            // NOTE: This assumes the worker binary is already in the catalog!
-            // Worker installation is handled by worker-catalog, not hive.
-            let worker_type = match request.worker.as_str() {
-                "cuda" => WorkerType::CudaLlm,
-                "cpu" => WorkerType::CpuLlm,
-                "metal" => WorkerType::MetalLlm,
-                _ => return Err(anyhow::anyhow!("Unsupported worker type: {}", request.worker)),
-            };
-
-            // Find worker binary in catalog
-            // NOTE: If binary not found, it means worker-catalog needs to install it first!
-            // Hive does NOT install worker binaries - that's worker-catalog's job.
-            let _worker_binary = state
-                .worker_catalog
-                .find_by_type_and_platform(worker_type, Platform::current())
-                .ok_or_else(|| {
-                    anyhow::anyhow!(
-                        "Worker binary not found for {:?}. \
-                     Worker binaries must be installed via worker-catalog first!",
-                        worker_type
-                    )
-                })?;
-
-            // Allocate port
-            let port = 9000 + (rand::random::<u16>() % 1000);
-            let queen_url = "http://localhost:7833".to_string();
-            let worker_id = format!("worker-{}-{}", request.worker, port);
-
-            // Build worker arguments
-            let args = vec![
-                "--worker-id".to_string(),
-                worker_id.clone(),
-                "--model".to_string(),
-                request.model.clone(),
-                "--device".to_string(),
-                request.device.to_string(),
-                "--port".to_string(),
-                port.to_string(),
-                "--queen-url".to_string(),
-                queen_url.clone(),
-            ];
-
-            // TEAM-359: Start worker with monitoring (cgroup on Linux)
-            // TEAM-372: Fixed API - use with_monitor_group + with_monitor_instance
-            let base_url = format!("http://localhost:{}", port);
-            let daemon_config = HttpDaemonConfig::new(&worker_id, &base_url)
-                .with_args(args)
-                .with_monitor_group("llm")
-                .with_monitor_instance(port.to_string());
-            
-            let config = StartConfig {
-                daemon_config,
-                job_id: Some(job_id.clone()),
-            };
-
-            let pid = start_daemon(config).await?;
-
-            n!(
-                "worker_spawn_complete",
-                "✅ Worker '{}' spawned (PID: {}, port: {})",
-                worker_id,
-                pid,
-                port
-            );
-        }
-
-        // ========================================================================
-        // WORKER BINARY MANAGEMENT - NOT IMPLEMENTED HERE
-        // ========================================================================
-        //
-        // Worker binary installation/uninstallation is the responsibility of:
-        // - worker-catalog (manages the catalog of available worker binaries)
-        // - queen-rbee's PackageSync (distributes binaries to hives)
-        //
-        // Hive ONLY manages worker PROCESSES, not binaries!
-        //
-        // There are unlimited types of workers:
-        // - cpu-llm-worker-rbee
-        // - cuda-llm-worker-rbee
-        // - metal-llm-worker-rbee
-        // - vulkan-llm-worker-rbee (future)
-        // - rocm-llm-worker-rbee (future)
-        // - etc.
-        //
-        // Each worker type is a separate binary that must be:
-        // 1. Built (cargo build)
-        // 2. Added to worker-catalog
-        // 3. Distributed to hives (via PackageSync)
-        //
-        // TEAM-278: DELETED WorkerBinaryList, WorkerBinaryGet, WorkerBinaryDelete (~110 LOC)
-        //
-        // ========================================================================
-
-        // TEAM-334: Worker process operations using ps command
-        Operation::WorkerProcessList(request) => {
-            let hive_id = request.hive_id.clone();
-
-            n!("worker_proc_list_start", "📋 Listing worker processes on hive '{}'", hive_id);
-
-            // Use ps to list worker processes
-            let output = tokio::process::Command::new("ps")
-                .args(&["aux"])
-                .output()
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to run ps: {}", e))?;
-
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let worker_lines: Vec<_> = stdout
-                .lines()
-                .filter(|line| line.contains("llm-worker") || line.contains("worker-rbee"))
-                .collect();
-
-            n!("worker_proc_list_result", "Found {} worker process(es)", worker_lines.len());
-
-            if worker_lines.is_empty() {
-                n!("worker_proc_list_empty", "No worker processes found");
-            } else {
-                for line in worker_lines {
-                    n!("worker_proc_list_entry", "  {}", line);
-                }
-            }
-        }
-
-        Operation::WorkerProcessGet(request) => {
-            let hive_id = request.hive_id.clone();
-            let pid = request.pid;
-
-            n!(
-                "worker_proc_get_start",
-                "🔍 Getting worker process PID {} on hive '{}'",
-                pid,
-                hive_id
-            );
-
-            // Use ps to get specific process
-            let output = tokio::process::Command::new("ps")
-                .args(&["-p", &pid.to_string(), "-o", "pid,command"])
-                .output()
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to run ps: {}", e))?;
-
-            if !output.status.success() {
-                return Err(anyhow::anyhow!("Process {} not found", pid));
-            }
-
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            n!("worker_proc_get_found", "✅ PID {}: {}", pid, stdout.trim());
-        }
-
-        Operation::WorkerProcessDelete(request) => {
-            let hive_id = request.hive_id.clone();
-            let pid = request.pid;
-
-            n!(
-                "worker_proc_del_start",
-                "🗑️  Deleting worker process PID {} on hive '{}'",
-                pid,
-                hive_id
-            );
-
-            // Kill process using SIGTERM
-            #[cfg(unix)]
-            {
-                use nix::sys::signal::{kill, Signal};
-                use nix::unistd::Pid;
-
-                let pid_nix = Pid::from_raw(pid as i32);
-                match kill(pid_nix, Signal::SIGTERM) {
-                    Ok(_) => {
-                        n!("worker_proc_del_sigterm", "Sent SIGTERM to PID {}", pid);
-                        // Wait briefly for graceful shutdown
-                        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-                        // Try SIGKILL if still alive
-                        let _ = kill(pid_nix, Signal::SIGKILL);
-                    }
-                    Err(_) => {
-                        n!("worker_proc_del_already_dead", "Process {} may already be dead", pid);
-                    }
-                }
-            }
-
-            #[cfg(not(unix))]
-            {
-                return Err(anyhow::anyhow!("Process killing not supported on this platform"));
-            }
-
-            n!("worker_proc_del_ok", "✅ Worker process PID {} deleted successfully", pid);
         }
 
         // Model operations
-        Operation::ModelDownload(request) => {
-            let hive_id = request.hive_id.clone();
-            let model = request.model.clone();
-            n!("model_download_start", "📥 Downloading model '{}' on hive '{}'", model, hive_id);
-
-            // Check if model already exists
-            if state.model_catalog.contains(&model) {
-                n!("model_download_exists", "⚠️  Model '{}' already exists in catalog", model);
-                return Err(anyhow::anyhow!("Model '{}' already exists", model));
-            }
-
-            // TEAM-379: Get cancellation token from job registry
-            // This allows the cancel endpoint to actually cancel the download
-            let cancel_token = state.registry
-                .get_cancellation_token(&job_id)
-                .ok_or_else(|| anyhow::anyhow!("Job not found in registry"))?;
-            
-            let model_entry = state.model_provisioner.provision(&model, &job_id, cancel_token).await?;
-
-            // Add to catalog
-            state.model_catalog.add(model_entry)?;
-
-            n!("model_download_complete", "✅ Model '{}' downloaded and added to catalog", model);
-        }
-
-        Operation::ModelList(request) => {
-            let hive_id = request.hive_id.clone();
-            // TEAM-268: Implemented model list
-            n!("model_list_start", "📋 Listing models on hive '{}'", hive_id);
-
-            let models = state.model_catalog.list();
-
-            n!("model_list_result", "Found {} model(s)", models.len());
-
-            // TEAM-384: Convert to JSON for both table display and UI consumption
-            use rbee_hive_artifact_catalog::Artifact;
-            let models_json: Vec<serde_json::Value> = models.iter().map(|m| {
-                serde_json::json!({
-                    "id": m.id(),
-                    "name": m.name(),
-                    "size": m.size(),
-                    "path": m.path().display().to_string(),
-                    "loaded": false, // TEAM-384: UI expects this field
-                })
-            }).collect();
-
-            if models.is_empty() {
-                n!("model_list_empty", "No models found. Download a model with: ./rbee model download <model-id>");
-            } else {
-                // TEAM-384: Emit table for CLI users (human-readable)
-                n!("model_list_table", table: &models_json);
-            }
-            
-            // TEAM-384: Emit structured data for UI (separate channel from narration)
-            // This uses the new dual-channel SSE system - data events don't appear in CLI
-            observability_narration_core::sse_sink::emit_data(
+        Operation::ModelDownload(_)
+        | Operation::ModelList(_)
+        | Operation::ModelGet(_)
+        | Operation::ModelDelete(_)
+        | Operation::ModelLoad(_)
+        | Operation::ModelUnload(_) => {
+            rbee_hive::operations::handle_model_operation(
+                &operation,
+                state.model_catalog.clone(),
+                state.model_provisioner.clone(),
                 &job_id,
-                "model_list",
-                serde_json::json!({"models": models_json})
-            );
-            
-            n!("model_list_complete", "✅ Model list operation complete");
-        }
-
-        Operation::ModelGet(request) => {
-            let hive_id = request.hive_id.clone();
-            let id = request.id.clone();
-            // TEAM-268: Implemented model get
-            n!("model_get_start", "🔍 Getting model '{}' on hive '{}'", id, hive_id);
-
-            match state.model_catalog.get(&id) {
-                Ok(model) => {
-                    n!(
-                        "model_get_found",
-                        "✅ Model: {} | Name: {} | Path: {}",
-                        model.id(),
-                        model.name(),
-                        model.path().display()
-                    );
-
-                    // Emit model details as JSON
-                    let json = serde_json::to_string_pretty(&model)
-                        .unwrap_or_else(|_| "Failed to serialize".to_string());
-
-                    n!("model_get_details", "{}", json);
-                }
-                Err(e) => {
-                    n!("model_get_error", "❌ Model '{}' not found: {}", id, e);
-                    return Err(e);
-                }
-            }
-        }
-
-        Operation::ModelDelete(request) => {
-            let hive_id = request.hive_id.clone();
-            let id = request.id.clone();
-            // TEAM-268: Implemented model delete
-            n!("model_delete_start", "🗑️  Deleting model '{}' on hive '{}'", id, hive_id);
-
-            match state.model_catalog.remove(&id) {
-                Ok(()) => {
-                    n!("model_delete_complete", "✅ Model '{}' deleted successfully", id);
-                }
-                Err(e) => {
-                    n!("model_delete_error", "❌ Failed to delete model '{}': {}", id, e);
-                    return Err(e);
-                }
-            }
-        }
-
-        Operation::ModelLoad(request) => {
-            let _hive_id = request.hive_id.clone();
-            let id = request.id.clone();
-            let device = request.device.clone();
-            n!("model_load_start", "🚀 Loading model '{}' to RAM on device '{}'", id, device);
-
-            // TODO: Implement actual model loading to RAM
-            // This will spawn a worker with the model loaded
-            // For now, just narrate the intent
-            n!("model_load_progress", "📦 Allocating memory for model '{}'", id);
-            n!("model_load_progress", "🔄 Loading model weights into VRAM/RAM");
-            n!("model_load_complete", "✅ Model '{}' loaded to RAM on device '{}'", id, device);
-        }
-
-        Operation::ModelUnload(request) => {
-            let _hive_id = request.hive_id.clone();
-            let id = request.id.clone();
-            n!("model_unload_start", "🔽 Unloading model '{}' from RAM", id);
-
-            // TODO: Implement actual model unloading
-            // This will kill the worker process
-            // For now, just narrate the intent
-            n!("model_unload_progress", "🧹 Freeing memory for model '{}'", id);
-            n!("model_unload_complete", "✅ Model '{}' unloaded from RAM", id);
+                || state.registry.get_cancellation_token(&job_id),
+            )
+            .await?;
         }
 
         // ========================================================================

@@ -20,6 +20,7 @@ path = "src/lib.rs"
 # TEAM-189: Added HTTP server with /health endpoint
 axum = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+tokio-util = "0.7" # TEAM-379: For CancellationToken in model downloads
 tower-http = { version = "0.6", features = ["cors"] } # TEAM-374: CORS support for web UI
 rust-embed = "8.5" # TEAM-378: Embed static files in binary for distribution
 mime_guess = "2.0" # TEAM-378: MIME type detection for embedded assets

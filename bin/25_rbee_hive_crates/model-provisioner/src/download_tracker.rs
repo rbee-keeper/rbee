@@ -39,7 +39,16 @@ pub struct DownloadProgress {
 
 impl DownloadTracker {
     /// Create a new download tracker
-    pub fn new(job_id: String, total_size: Option<u64>) -> (Self, watch::Receiver<DownloadProgress>) {
+    ///
+    /// # Arguments
+    /// * `job_id` - Job ID for narration routing
+    /// * `total_size` - Expected total size (if known)
+    /// * `cancel_token` - Cancellation token from job registry
+    pub fn new(
+        job_id: String,
+        total_size: Option<u64>,
+        cancel_token: CancellationToken,
+    ) -> (Self, watch::Receiver<DownloadProgress>) {
         let (progress_tx, progress_rx) = watch::channel(DownloadProgress {
             bytes_downloaded: 0,
             total_size,
@@ -49,7 +58,7 @@ impl DownloadTracker {
         let tracker = Self {
             bytes_downloaded: Arc::new(AtomicU64::new(0)),
             total_size,
-            cancel_token: CancellationToken::new(),
+            cancel_token,
             progress_tx,
             job_id,
         };
@@ -117,43 +126,43 @@ impl DownloadTracker {
         let job_id = self.job_id.clone();
 
         tokio::spawn(async move {
-            let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(10));
-            interval.tick().await; // Skip first immediate tick
+            // CRITICAL: Set up narration context for spawned task
+            use observability_narration_core::context;
+            let ctx = context::NarrationContext::new().with_job_id(&job_id);
+            context::with_narration_context(ctx, async move {
+                let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(10));
+                interval.tick().await; // Skip first immediate tick
 
-            loop {
-                tokio::select! {
-                    _ = cancel_token.cancelled() => {
-                        break;
-                    }
-                    _ = interval.tick() => {
-                        let progress = tracker.current_progress();
-                        
-                        // CRITICAL: Narration in spawned tasks needs explicit job_id
-                        // The n! macro will use the job_id from the current context
-                        // For spawned tasks, we need to set up the context properly
-                        
-                        if let Some(pct) = progress.percentage {
-                            n!(
-                                "download_progress",
-                                "⏳ Still downloading {} ({:.1}% - {:.2} MB / {:.2} MB)...",
-                                artifact_name,
-                                pct,
-                                progress.bytes_downloaded as f64 / 1_000_000.0,
-                                progress.total_size.unwrap_or(0) as f64 / 1_000_000.0
-                            );
-                        } else {
-                            n!(
-                                "download_progress",
-                                "⏳ Still downloading {} ({:.2} MB downloaded)...",
-                                artifact_name,
-                                progress.bytes_downloaded as f64 / 1_000_000.0
-                            );
+                loop {
+                    tokio::select! {
+                        _ = cancel_token.cancelled() => {
+                            n!("download_cancelled", "❌ Download cancelled");
+                            break;
+                        }
+                        _ = interval.tick() => {
+                            let progress = tracker.current_progress();
+                            
+                            if let Some(pct) = progress.percentage {
+                                n!(
+                                    "download_progress",
+                                    "⏳ Still downloading {} ({:.1}% - {:.2} MB / {:.2} MB)...",
+                                    artifact_name,
+                                    pct,
+                                    progress.bytes_downloaded as f64 / 1_000_000.0,
+                                    progress.total_size.unwrap_or(0) as f64 / 1_000_000.0
+                                );
+                            } else {
+                                n!(
+                                    "download_progress",
+                                    "⏳ Still downloading {} ({:.2} MB downloaded)...",
+                                    artifact_name,
+                                    progress.bytes_downloaded as f64 / 1_000_000.0
+                                );
+                            }
                         }
                     }
                 }
-            }
-
-            n!("download_heartbeat_stopped", "Heartbeat stopped for {}", artifact_name);
+            }).await
         })
     }
 
@@ -174,7 +183,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_progress_tracking() {
-        let (tracker, mut rx) = DownloadTracker::new("job-123".to_string(), Some(1000));
+        let cancel_token = CancellationToken::new();
+        let (tracker, mut rx) = DownloadTracker::new("job-123".to_string(), Some(1000), cancel_token);
 
         tracker.update_progress(500);
         let progress = rx.borrow_and_update().clone();
@@ -186,7 +196,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_cancellation() {
-        let (tracker, _rx) = DownloadTracker::new("job-123".to_string(), None);
+        let cancel_token = CancellationToken::new();
+        let (tracker, _rx) = DownloadTracker::new("job-123".to_string(), None, cancel_token);
 
         assert!(!tracker.is_cancelled());
         tracker.cancel();
@@ -195,7 +206,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_increment_progress() {
-        let (tracker, mut rx) = DownloadTracker::new("job-123".to_string(), Some(1000));
+        let cancel_token = CancellationToken::new();
+        let (tracker, mut rx) = DownloadTracker::new("job-123".to_string(), Some(1000), cancel_token);
 
         tracker.increment_progress(300);
         tracker.increment_progress(200);

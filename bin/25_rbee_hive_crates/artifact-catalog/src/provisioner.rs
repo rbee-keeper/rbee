@@ -48,10 +48,20 @@ pub trait ArtifactProvisioner<T: Artifact>: Send + Sync {
     /// # Arguments
     /// * `id` - Artifact identifier
     /// * `job_id` - Job ID for narration routing
+    /// * `cancel_token` - Cancellation token to abort provisioning
     ///
     /// # Returns
     /// Provisioned artifact
-    async fn provision(&self, id: &str, job_id: &str) -> Result<T>;
+    ///
+    /// # Errors
+    ///
+    /// Returns error if provisioning fails or is cancelled.
+    async fn provision(
+        &self,
+        id: &str,
+        job_id: &str,
+        cancel_token: CancellationToken,
+    ) -> Result<T>;
 
     /// Check if any vendor supports this artifact
     fn supports(&self, id: &str) -> bool;
@@ -79,7 +89,12 @@ impl<T: Artifact + Send + Sync> MultiVendorProvisioner<T> {
 
 #[async_trait::async_trait]
 impl<T: Artifact + Send + Sync> ArtifactProvisioner<T> for MultiVendorProvisioner<T> {
-    async fn provision(&self, id: &str, _job_id: &str) -> Result<T> {
+    async fn provision(
+        &self,
+        id: &str,
+        _job_id: &str,
+        _cancel_token: CancellationToken,
+    ) -> Result<T> {
         let _vendor = self
             .find_vendor(id)
             .ok_or_else(|| anyhow::anyhow!("No vendor supports artifact '{}'", id))?;

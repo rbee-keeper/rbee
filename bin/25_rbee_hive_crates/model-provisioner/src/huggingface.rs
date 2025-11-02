@@ -75,8 +75,9 @@ impl HuggingFaceVendor {
     /// It uses HF_HOME environment variable instead.
     /// For now, this just uses the default cache.
     pub fn with_cache_dir(_cache_dir: impl AsRef<Path>) -> Result<Self> {
-        let api = Api::new()?;
-        Ok(Self { api })
+        // TODO: hf-hub 0.3 doesn't support custom cache directories via API
+        // For now, just use default
+        Self::new()
     }
 
     /// Find GGUF file in repository
@@ -149,43 +150,18 @@ impl VendorSource for HuggingFaceVendor {
 
         n!("hf_download_file", "📥 Downloading file: {}", filename);
 
-        // Create download tracker (unused for now, but ready for future progress tracking)
-        let (_tracker, _progress_rx) = DownloadTracker::new(job_id.to_string(), None);
+        // TEAM-379: Create download tracker and start heartbeat
+        let (tracker, _progress_rx) = DownloadTracker::new(
+            job_id.to_string(),
+            None,  // Total size unknown until download starts
+            cancel_token.clone(),
+        );
+        let heartbeat_handle = tracker.start_heartbeat(filename.clone());
 
-        // Start heartbeat task with proper narration context
-        let heartbeat_handle = {
-            let job_id_clone = job_id.to_string();
-            let filename_clone = filename.clone();
-            let cancel_token_clone = cancel_token.clone();
-
-            tokio::spawn(async move {
-                // CRITICAL: Set up narration context for spawned task
-                let ctx = context::NarrationContext::new().with_job_id(&job_id_clone);
-                context::with_narration_context(ctx, async move {
-                    let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(10));
-                    interval.tick().await; // Skip first immediate tick
-
-                    loop {
-                        tokio::select! {
-                            _ = cancel_token_clone.cancelled() => {
-                                n!("hf_download_cancelled", "❌ Download cancelled");
-                                break;
-                            }
-                            _ = interval.tick() => {
-                                n!(
-                                    "hf_download_heartbeat",
-                                    "⏳ Still downloading {} from HuggingFace...",
-                                    filename_clone
-                                );
-                            }
-                        }
-                    }
-                })
-                .await
-            })
-        };
-
-        // Download the file with cancellation support
+        // Download with cancellation support
+        // NOTE: hf-hub 0.4 has download_with_progress but only for sync API
+        // The tokio async API doesn't expose progress callbacks yet
+        // So we use heartbeat messages for now
         let download_result = tokio::select! {
             _ = cancel_token.cancelled() => {
                 Err(anyhow::anyhow!("Download cancelled by user"))

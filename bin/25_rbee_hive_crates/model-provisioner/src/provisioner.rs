@@ -20,12 +20,15 @@ use crate::HuggingFaceVendor;
 /// ```rust,no_run
 /// use rbee_hive_model_provisioner::ModelProvisioner;
 /// use rbee_hive_artifact_catalog::ArtifactProvisioner;
+/// use tokio_util::sync::CancellationToken;
 ///
 /// # async fn example() -> anyhow::Result<()> {
 /// let provisioner = ModelProvisioner::new()?;
+/// let cancel_token = CancellationToken::new();
 /// let model = provisioner.provision(
 ///     "TheBloke/Llama-2-7B-Chat-GGUF",
-///     "job-123"
+///     "job-123",
+///     cancel_token
 /// ).await?;
 /// # Ok(())
 /// # }
@@ -90,7 +93,12 @@ impl Default for ModelProvisioner {
 
 #[async_trait::async_trait]
 impl ArtifactProvisioner<ModelEntry> for ModelProvisioner {
-    async fn provision(&self, id: &str, job_id: &str) -> Result<ModelEntry> {
+    async fn provision(
+        &self,
+        id: &str,
+        job_id: &str,
+        cancel_token: CancellationToken,
+    ) -> Result<ModelEntry> {
         n!("model_provision_start", "🚀 Provisioning model '{}'", id);
 
         // Check if vendor supports this ID
@@ -104,8 +112,7 @@ impl ArtifactProvisioner<ModelEntry> for ModelProvisioner {
         // Determine destination path
         let dest_path = self.model_file_path(id);
 
-        // Download model (create cancel token - TODO: expose to caller)
-        let cancel_token = CancellationToken::new();
+        // TEAM-379: Use cancel_token from caller instead of creating new one
         let size = self.vendor.download(id, &dest_path, job_id, cancel_token).await?;
 
         // Extract model name from ID

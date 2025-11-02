@@ -92,6 +92,11 @@ pub async fn handle_worker_install(
     let temp_dir = create_temp_directories(&worker_id)?;
     n!("create_temp_ok", "✓ Temp directory: {}", temp_dir.display());
 
+    // TEAM-388: Preflight check - determine install directory before building
+    n!("preflight_check", "🔍 Checking installation permissions...");
+    let install_dir = determine_install_directory()?;
+    n!("preflight_ok", "✓ Will install to: {}", install_dir.display());
+
     // 6.5. Fetch sources (git clone, etc.)
     n!("fetch_sources", "📦 Fetching sources from PKGBUILD...");
     let srcdir = temp_dir.join("src");
@@ -143,7 +148,7 @@ pub async fn handle_worker_install(
 
     // 9. Install binary
     n!("install_binary", "💾 Installing binary...");
-    let binary_path = install_binary(&temp_dir, &pkgbuild)?;
+    let binary_path = install_binary(&temp_dir, &pkgbuild, &install_dir)?;
     n!("install_binary_ok", "✓ Binary installed to: {}", binary_path.display());
 
     // 10. Add to worker catalog
@@ -304,8 +309,46 @@ fn create_temp_directories(worker_id: &str) -> Result<PathBuf> {
     Ok(temp_base)
 }
 
-/// Install binary to system
-fn install_binary(temp_dir: &PathBuf, pkgbuild: &crate::pkgbuild_parser::PkgBuild) -> Result<PathBuf> {
+/// Determine where to install the binary
+/// 
+/// TEAM-388: Try /usr/local/bin first, fall back to ~/.local/bin
+fn determine_install_directory() -> Result<PathBuf> {
+    let system_dir = PathBuf::from("/usr/local/bin");
+    
+    // Check if we can write to /usr/local/bin
+    if system_dir.exists() {
+        // Try to create a test file
+        let test_file = system_dir.join(".rbee-write-test");
+        if std::fs::write(&test_file, b"test").is_ok() {
+            let _ = std::fs::remove_file(&test_file);
+            return Ok(system_dir);
+        }
+    }
+    
+    // Fall back to user-local directory
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .context("Could not determine home directory")?;
+    
+    let user_dir = PathBuf::from(home).join(".local").join("bin");
+    
+    // Create if it doesn't exist
+    if !user_dir.exists() {
+        std::fs::create_dir_all(&user_dir)
+            .context(format!("Failed to create {}", user_dir.display()))?;
+    }
+    
+    Ok(user_dir)
+}
+
+/// Install binary to determined directory
+/// 
+/// TEAM-388: Install to user-provided directory (from preflight check)
+fn install_binary(
+    temp_dir: &PathBuf, 
+    pkgbuild: &crate::pkgbuild_parser::PkgBuild,
+    install_dir: &PathBuf,
+) -> Result<PathBuf> {
     let pkg_dir = temp_dir.join("pkg");
     let binary_name = &pkgbuild.pkgname;
 
@@ -323,18 +366,11 @@ fn install_binary(temp_dir: &PathBuf, pkgbuild: &crate::pkgbuild_parser::PkgBuil
         );
     }
 
-    // Install to /usr/local/bin (requires root or user has write access)
-    let install_dir = PathBuf::from("/usr/local/bin");
     let binary_dest = install_dir.join(binary_name);
-
-    // Check if install directory is writable
-    if !install_dir.exists() {
-        std::fs::create_dir_all(&install_dir)?;
-    }
 
     // Copy binary
     std::fs::copy(&binary_src, &binary_dest).context(format!(
-        "Failed to install binary to {}. You may need elevated permissions.",
+        "Failed to install binary to {}",
         binary_dest.display()
     ))?;
 

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import FeaturesPage from './FeaturesPage'
 
 const meta: Meta<typeof FeaturesPage> = {

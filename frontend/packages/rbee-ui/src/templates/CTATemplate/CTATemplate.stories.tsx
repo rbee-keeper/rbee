@@ -3,7 +3,7 @@ import { communityCTAContainerProps, communityCTAProps } from '@rbee/ui/pages/Co
 import { educationCTAContainerProps, educationCTAProps } from '@rbee/ui/pages/EducationPage'
 import { ctaTemplateProps } from '@rbee/ui/pages/HomePage'
 import { securityCTAContainerProps, securityCTAProps } from '@rbee/ui/pages/SecurityPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { CTATemplate } from './CTATemplate'
 
 const meta = {

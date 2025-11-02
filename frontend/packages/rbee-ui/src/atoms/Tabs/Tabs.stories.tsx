@@ -1,5 +1,5 @@
 // Created by: TEAM-007
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs'
 
 const meta: Meta<typeof Tabs> = {

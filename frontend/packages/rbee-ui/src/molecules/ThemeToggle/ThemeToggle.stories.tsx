@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ThemeToggle } from './ThemeToggle'
 
 const meta: Meta<typeof ThemeToggle> = {
@@ -75,16 +75,20 @@ export const DarkMode: Story = {
       </div>
     </div>
   ),
+
   parameters: {
     docs: {
       description: {
         story: 'ThemeToggle in dark mode, showing sun icon.',
       },
-    },
-    backgrounds: {
-      default: 'dark',
-    },
+    }
   },
+
+  globals: {
+    backgrounds: {
+      value: "dark"
+    }
+  }
 }
 
 export const InNavigationContext: Story = {

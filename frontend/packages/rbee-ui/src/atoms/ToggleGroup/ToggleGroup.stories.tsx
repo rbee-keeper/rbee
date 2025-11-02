@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { AlignCenter, AlignLeft, AlignRight, Bold, Italic, Underline } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from './ToggleGroup'
 

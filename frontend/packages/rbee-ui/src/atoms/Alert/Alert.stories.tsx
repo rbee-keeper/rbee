@@ -1,5 +1,5 @@
 // Created by: TEAM-011
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { AlertCircle, CheckCircle2, Info, Terminal } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from './Alert'
 

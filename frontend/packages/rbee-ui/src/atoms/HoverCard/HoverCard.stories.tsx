@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@rbee/ui/atoms/Avatar'
 import { Button } from '@rbee/ui/atoms/Button'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { CalendarIcon } from 'lucide-react'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './HoverCard'
 

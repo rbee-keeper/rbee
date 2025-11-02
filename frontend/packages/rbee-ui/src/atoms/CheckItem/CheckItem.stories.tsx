@@ -1,7 +1,7 @@
 // Created by: TEAM-011
 
 import { BulletListItem } from '@rbee/ui/molecules'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { CheckItem } from './CheckItem'
 
 const meta: Meta<typeof CheckItem> = {

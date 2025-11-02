@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import HomelabPage from './HomelabPage'
 
 const meta = {
@@ -64,10 +64,11 @@ export const Tablet: Story = {
  * Tests dark mode compatibility across all templates.
  */
 export const DarkMode: Story = {
-  parameters: {
-    backgrounds: { default: 'dark' },
-  },
   globals: {
     theme: 'dark',
-  },
+
+    backgrounds: {
+      value: "dark"
+    }
+  }
 }

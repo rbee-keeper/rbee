@@ -1,5 +1,5 @@
 // Created by: TEAM-011
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { AspectRatio } from './AspectRatio'
 
 const meta: Meta<typeof AspectRatio> = {

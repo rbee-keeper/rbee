@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { SearchIcon, XIcon } from 'lucide-react'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText } from './InputGroup'
 

@@ -1,5 +1,5 @@
 // Created by: TEAM-007
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Button } from '../Button/Button'
 import { Tooltip, TooltipContent, TooltipTrigger } from './Tooltip'
 

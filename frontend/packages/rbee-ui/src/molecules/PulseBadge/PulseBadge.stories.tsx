@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { PulseBadge } from './PulseBadge'
 
 const meta: Meta<typeof PulseBadge> = {

@@ -1,5 +1,5 @@
 // Dark Mode Polish Showcase for Button (Links & States)
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ExternalLink } from 'lucide-react'
 import { Button } from './Button'
 

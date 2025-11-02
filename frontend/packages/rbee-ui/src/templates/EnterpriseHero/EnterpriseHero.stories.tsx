@@ -1,5 +1,5 @@
 import { enterpriseHeroProps } from '@rbee/ui/pages/EnterprisePage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { EnterpriseHero } from './EnterpriseHero'
 
 const meta = {

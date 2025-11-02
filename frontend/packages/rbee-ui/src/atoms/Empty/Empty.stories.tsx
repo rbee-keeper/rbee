@@ -1,5 +1,5 @@
 import { Button } from '@rbee/ui/atoms/Button'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { FileIcon, InboxIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from './Empty'
 

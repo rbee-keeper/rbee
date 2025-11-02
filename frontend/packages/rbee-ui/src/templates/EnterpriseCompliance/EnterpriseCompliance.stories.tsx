@@ -1,6 +1,6 @@
 import { TemplateContainer } from '@rbee/ui/molecules'
 import { enterpriseComplianceContainerProps, enterpriseComplianceProps } from '@rbee/ui/pages/EnterprisePage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { EnterpriseCompliance } from './EnterpriseCompliance'
 
 const meta = {

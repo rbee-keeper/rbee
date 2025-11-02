@@ -1,6 +1,6 @@
 import { Button } from '@rbee/ui/atoms/Button'
 import { useToast } from '@rbee/ui/hooks/use-toast'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Toaster } from './Toaster'
 
 const meta: Meta<typeof Toaster> = {

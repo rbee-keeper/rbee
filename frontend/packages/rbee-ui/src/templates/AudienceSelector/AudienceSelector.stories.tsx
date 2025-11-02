@@ -1,6 +1,6 @@
 import { TemplateContainer } from '@rbee/ui/molecules'
 import { audienceSelectorContainerProps, audienceSelectorProps } from '@rbee/ui/pages/HomePage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { AudienceSelector } from './AudienceSelector'
 
 const meta = {

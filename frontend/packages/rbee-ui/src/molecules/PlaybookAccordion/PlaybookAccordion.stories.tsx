@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Activity, AlertTriangle, Network, Server } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { PlaybookHeader, PlaybookItem } from './PlaybookAccordion'

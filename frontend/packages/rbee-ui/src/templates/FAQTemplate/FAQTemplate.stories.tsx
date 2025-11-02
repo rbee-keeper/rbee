@@ -7,7 +7,7 @@ import { faqTemplateContainerProps, faqTemplateProps } from '@rbee/ui/pages/Home
 import { pricingFaqContainerProps, pricingFaqProps } from '@rbee/ui/pages/PricingPage'
 import { faqContainerProps, faqProps } from '@rbee/ui/pages/ResearchPage'
 import { securityFAQsContainerProps, securityFAQsProps } from '@rbee/ui/pages/SecurityPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { FAQTemplate } from './FAQTemplate'
 
 const meta = {

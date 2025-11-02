@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Cpu, Gamepad2, Monitor, Server } from 'lucide-react'
 import { ProvidersCaseCard } from './ProvidersCaseCard'
 

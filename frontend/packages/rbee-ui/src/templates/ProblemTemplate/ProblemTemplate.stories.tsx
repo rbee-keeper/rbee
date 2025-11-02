@@ -11,7 +11,7 @@ import { problemTemplateProps as homeProblemTemplateProps } from '@rbee/ui/pages
 import { providersProblemContainerProps, providersProblemProps } from '@rbee/ui/pages/ProvidersPage'
 import { problemContainerProps, problemProps } from '@rbee/ui/pages/ResearchPage'
 import { securityThreatModelContainerProps, securityThreatModelProps } from '@rbee/ui/pages/SecurityPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ProblemTemplate } from './ProblemTemplate'
 
 const meta = {

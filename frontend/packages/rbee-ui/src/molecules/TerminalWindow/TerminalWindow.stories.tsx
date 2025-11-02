@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { TerminalWindow } from './TerminalWindow'
 
 const meta: Meta<typeof TerminalWindow> = {

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Activity, CheckCircle, Clock, TrendingUp } from 'lucide-react'
 import { StatusKPI } from './StatusKPI'
 

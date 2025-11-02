@@ -2,7 +2,7 @@ import { TemplateContainer } from '@rbee/ui/molecules'
 import { featuredContributorsContainerProps, featuredContributorsProps } from '@rbee/ui/pages/CommunityPage'
 import { educationTestimonialsContainerProps, educationTestimonialsData } from '@rbee/ui/pages/EducationPage'
 import { testimonialsTemplateContainerProps, testimonialsTemplateProps } from '@rbee/ui/pages/HomePage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { TestimonialsTemplate } from './TestimonialsTemplate'
 
 const meta = {

@@ -3,7 +3,7 @@ import { contributionTypesContainerProps, contributionTypesProps } from '@rbee/u
 import { educationStudentTypesContainerProps, educationStudentTypesProps } from '@rbee/ui/pages/EducationPage'
 import { useCasesTemplateContainerProps, useCasesTemplateProps } from '@rbee/ui/pages/HomePage'
 import { useCasesContainerProps, useCasesProps } from '@rbee/ui/pages/ResearchPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { UseCasesTemplate } from './UseCasesTemplate'
 
 const meta = {

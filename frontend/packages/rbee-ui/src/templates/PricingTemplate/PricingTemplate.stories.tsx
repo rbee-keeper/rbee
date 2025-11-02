@@ -5,7 +5,7 @@ import {
   pricingTemplateProps as homePricingTemplateProps,
 } from '@rbee/ui/pages/HomePage'
 import { pricingTemplateContainerProps, pricingTemplateProps } from '@rbee/ui/pages/PricingPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { PricingTemplate } from './PricingTemplate'
 
 const meta = {

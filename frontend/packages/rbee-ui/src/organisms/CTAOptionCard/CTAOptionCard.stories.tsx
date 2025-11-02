@@ -1,5 +1,5 @@
 import { Button } from '@rbee/ui/atoms/Button'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Building2, Users } from 'lucide-react'
 import { CTAOptionCard } from './CTAOptionCard'
 

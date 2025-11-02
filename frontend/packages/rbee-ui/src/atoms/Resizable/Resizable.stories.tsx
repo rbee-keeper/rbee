@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './Resizable'
 
 const meta: Meta<typeof ResizablePanelGroup> = {

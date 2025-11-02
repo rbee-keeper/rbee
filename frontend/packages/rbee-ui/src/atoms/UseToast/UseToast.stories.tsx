@@ -1,6 +1,6 @@
 import { Button } from '@rbee/ui/atoms/Button'
 import { Toaster } from '@rbee/ui/atoms/Toaster'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { useToast } from './UseToast'
 
 function UseToastDemo() {

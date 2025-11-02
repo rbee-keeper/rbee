@@ -1,5 +1,5 @@
 import { cn } from '@rbee/ui/utils'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Star } from 'lucide-react'
 import { useState } from 'react'
 import { RatingStars } from './RatingStars'

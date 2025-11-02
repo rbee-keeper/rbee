@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@rbee/ui/atoms/Card'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ButtonCardFooter } from './ButtonCardFooter'
 
 const meta = {

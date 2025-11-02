@@ -1,5 +1,5 @@
 // Dark Mode Showcase for Card component
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Database, Globe, Server, Shield } from 'lucide-react'
 import { IconCardHeader } from '../../molecules/IconCardHeader/IconCardHeader'
 import { Button } from '../Button/Button'

@@ -3,7 +3,7 @@ import { coreFeatureTabsContainerProps, coreFeatureTabsProps } from '@rbee/ui/pa
 import { featuresFeaturesTabsContainerProps, featuresFeaturesTabsProps } from '@rbee/ui/pages/FeaturesPage'
 import { featuresTabsContainerProps, featuresTabsProps } from '@rbee/ui/pages/HomePage'
 import { providersFeaturesContainerProps, providersFeaturesProps } from '@rbee/ui/pages/ProvidersPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { FeaturesTabs } from './FeaturesTabs'
 
 const meta = {

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { RibbonBanner } from './RibbonBanner'
 
 const meta: Meta<typeof RibbonBanner> = {

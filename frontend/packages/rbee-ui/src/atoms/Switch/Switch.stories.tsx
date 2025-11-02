@@ -1,5 +1,5 @@
 import { Label } from '@rbee/ui/atoms/Label'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Switch } from './Switch'
 
 const meta: Meta<typeof Switch> = {

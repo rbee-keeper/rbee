@@ -1,5 +1,5 @@
 import { withThemeByClassName } from '@storybook/addon-themes'
-import type { Preview } from '@storybook/react'
+import type { Preview } from '@storybook/nextjs'
 // ✅ TAILWIND V4 + STORYBOOK: Import SOURCE CSS, not pre-built dist
 // The @tailwindcss/vite plugin in main.ts handles JIT compilation
 // This enables arbitrary values like translate-y-[100px] to work in Storybook
@@ -14,7 +14,7 @@ const preview: Preview = {
       },
     },
     backgrounds: {
-      disable: true, // Disable default Storybook backgrounds
+      disabled: true,
     },
   },
   decorators: [

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { DollarSign, Lock, Shield, Zap } from 'lucide-react'
 import { FeatureInfoCard } from './FeatureInfoCard'
 

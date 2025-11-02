@@ -14,7 +14,7 @@ import {
 } from '@rbee/ui/pages/ResearchPage'
 import { securityEmailCaptureContainerProps, securityEmailCaptureProps } from '@rbee/ui/pages/SecurityPage'
 import { useCasesEmailCaptureContainerProps, useCasesEmailCaptureProps } from '@rbee/ui/pages/UseCasesPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { EmailCapture } from './EmailCapture'
 
 const meta = {

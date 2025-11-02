@@ -4,7 +4,7 @@ import { devopsSecurityContainerProps, devopsSecurityProps } from '@rbee/ui/page
 import { educationCurriculumContainerProps, educationCurriculumProps } from '@rbee/ui/pages/EducationPage'
 import { enterpriseSecurityContainerProps, enterpriseSecurityProps } from '@rbee/ui/pages/EnterprisePage'
 import { securityCratesContainerProps, securityCratesProps } from '@rbee/ui/pages/SecurityPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { EnterpriseSecurity } from './EnterpriseSecurity'
 
 const meta = {

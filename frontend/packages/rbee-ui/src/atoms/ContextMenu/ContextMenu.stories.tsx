@@ -1,5 +1,5 @@
 // Created by: TEAM-011
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ClipboardPaste, Copy, Download, Scissors, Share } from 'lucide-react'
 
 const meta: Meta = {

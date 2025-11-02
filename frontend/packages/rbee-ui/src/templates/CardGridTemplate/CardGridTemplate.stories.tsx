@@ -7,7 +7,7 @@ import {
   providersUseCasesContainerProps,
   providersUseCasesGridProps,
 } from '@rbee/ui/pages/ProvidersPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { CardGridTemplate } from './CardGridTemplate'
 
 const meta = {

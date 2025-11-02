@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { TimelineStep } from './TimelineStep'
 
 const meta: Meta<typeof TimelineStep> = {

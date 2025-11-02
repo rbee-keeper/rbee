@@ -1,5 +1,5 @@
 import { Tabs, TabsList } from '@rbee/ui/atoms/Tabs'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Code, Cpu, Gauge, Sparkles, Zap } from 'lucide-react'
 import { FeatureTab } from './FeatureTab'
 

@@ -1,7 +1,7 @@
 // Created by: TEAM-011
 
 import { Button } from '@rbee/ui/atoms/Button'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import {
   Drawer,
   DrawerClose,

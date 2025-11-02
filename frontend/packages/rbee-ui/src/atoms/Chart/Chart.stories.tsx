@@ -1,5 +1,5 @@
 // Created by: TEAM-011
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 
 const meta: Meta = {
   title: 'Atoms/Chart',

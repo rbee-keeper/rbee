@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Clock, Shield, Users, Zap } from 'lucide-react'
 import { StatsGrid } from './StatsGrid'
 

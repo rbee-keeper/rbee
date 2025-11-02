@@ -1,5 +1,5 @@
 // Created by: TEAM-008
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ChevronLeft, ChevronRight, Menu, Minus, Plus, Search, Settings, X } from 'lucide-react'
 import { IconButton } from './IconButton'
 

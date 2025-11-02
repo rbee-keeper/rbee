@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { EuLedgerGrid } from './EuLedgerGrid'
 
 const meta = {
@@ -39,11 +39,6 @@ export const Default: Story = {
  * Light theme variant
  */
 export const LightTheme: Story = {
-  parameters: {
-    backgrounds: {
-      default: 'light',
-    },
-  },
   render: () => (
     <div className="relative h-screen w-full bg-white">
       <EuLedgerGrid className="absolute inset-0 opacity-20" />
@@ -55,17 +50,17 @@ export const LightTheme: Story = {
       </div>
     </div>
   ),
+  globals: {
+    backgrounds: {
+      value: "light"
+    }
+  },
 }
 
 /**
  * Dark theme variant
  */
 export const DarkTheme: Story = {
-  parameters: {
-    backgrounds: {
-      default: 'dark',
-    },
-  },
   render: () => (
     <div className="dark relative h-screen w-full bg-slate-950">
       <EuLedgerGrid className="absolute inset-0 opacity-20" />
@@ -77,6 +72,11 @@ export const DarkTheme: Story = {
       </div>
     </div>
   ),
+  globals: {
+    backgrounds: {
+      value: "dark"
+    }
+  },
 }
 
 /**

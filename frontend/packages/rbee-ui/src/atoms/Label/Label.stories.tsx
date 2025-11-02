@@ -1,5 +1,5 @@
 // Created by: TEAM-008
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Info } from 'lucide-react'
 import { Label } from './Label'
 

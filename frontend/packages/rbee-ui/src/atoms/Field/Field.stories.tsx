@@ -1,5 +1,5 @@
 import { Input } from '@rbee/ui/atoms/Input'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from './Field'
 
 const meta: Meta<typeof Field> = {

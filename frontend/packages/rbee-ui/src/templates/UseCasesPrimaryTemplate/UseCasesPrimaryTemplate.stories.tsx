@@ -1,6 +1,6 @@
 import { TemplateContainer } from '@rbee/ui/molecules'
 import { useCasesPrimaryContainerProps, useCasesPrimaryProps } from '@rbee/ui/pages/UseCasesPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { UseCasesPrimaryTemplate } from './UseCasesPrimaryTemplate'
 
 const meta = {

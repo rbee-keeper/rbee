@@ -1,5 +1,5 @@
 // Dark Mode Showcase for Table component
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './Table'
 
 const meta: Meta<typeof Table> = {

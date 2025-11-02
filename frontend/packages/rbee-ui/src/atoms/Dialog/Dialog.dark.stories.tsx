@@ -1,5 +1,5 @@
 // Dark Mode Polish Showcase for Overlays (Dialog/Popover)
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { useState } from 'react'
 import { Button } from '../Button/Button'
 import { Popover, PopoverContent, PopoverTrigger } from '../Popover/Popover'

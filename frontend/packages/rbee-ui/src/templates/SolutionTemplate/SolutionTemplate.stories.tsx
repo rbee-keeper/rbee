@@ -19,7 +19,7 @@ import {
 } from '@rbee/ui/pages/ProvidersPage'
 import { solutionContainerProps, solutionProps } from '@rbee/ui/pages/ResearchPage'
 import { securityDefenseLayersContainerProps, securityDefenseLayersProps } from '@rbee/ui/pages/SecurityPage'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { SolutionTemplate } from './SolutionTemplate'
 
 const meta = {

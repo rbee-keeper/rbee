@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { FileIcon, HomeIcon, SettingsIcon, UserIcon } from 'lucide-react'
 import {
   NavigationMenu,

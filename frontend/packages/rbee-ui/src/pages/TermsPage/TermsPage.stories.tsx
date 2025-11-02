@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import TermsPage from './TermsPage'
 
 const meta = {
@@ -91,9 +91,9 @@ export const Tablet: Story = {
  * - Card backgrounds
  */
 export const DarkMode: Story = {
-  parameters: {
+  globals: {
     backgrounds: {
-      default: 'dark',
-    },
+      value: "dark"
+    }
   },
 }

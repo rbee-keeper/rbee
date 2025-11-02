@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { FloatingKPICard } from './FloatingKPICard'
 
 const meta: Meta<typeof FloatingKPICard> = {

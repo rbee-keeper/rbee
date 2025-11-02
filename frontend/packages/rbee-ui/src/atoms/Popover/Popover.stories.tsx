@@ -1,7 +1,7 @@
 import { Button } from '@rbee/ui/atoms/Button'
 import { Input } from '@rbee/ui/atoms/Input'
 import { Label } from '@rbee/ui/atoms/Label'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Popover, PopoverContent, PopoverTrigger } from './Popover'
 
 const meta: Meta<typeof Popover> = {

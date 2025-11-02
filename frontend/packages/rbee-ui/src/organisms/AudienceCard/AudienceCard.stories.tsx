@@ -1,6 +1,6 @@
 import { Button } from '@rbee/ui/atoms/Button'
 import { cn } from '@rbee/ui/utils'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ArrowRight, Building2, Code, Rocket } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'

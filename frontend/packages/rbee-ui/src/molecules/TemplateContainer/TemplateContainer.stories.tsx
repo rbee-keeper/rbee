@@ -1,5 +1,5 @@
 import { Button } from '@rbee/ui/atoms'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { TemplateContainer } from './TemplateContainer'
 
 const meta = {

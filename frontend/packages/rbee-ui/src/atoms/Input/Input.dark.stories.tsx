@@ -1,5 +1,5 @@
 // Dark Mode Polish Showcase for Input/Select/Textarea
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Button } from '../Button/Button'
 import { Input } from '../Input/Input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../Select/Select'

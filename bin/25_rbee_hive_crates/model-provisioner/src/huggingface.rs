@@ -124,11 +124,7 @@ impl HuggingFaceVendor {
     }
 }
 
-impl Default for HuggingFaceVendor {
-    fn default() -> Self {
-        Self::new().unwrap_or_else(|e| panic!("Failed to create HuggingFace vendor: {}", e))
-    }
-}
+// TEAM-379: Removed Default impl - construction can fail, so Default is inappropriate
 
 #[async_trait::async_trait]
 impl VendorSource for HuggingFaceVendor {
@@ -178,29 +174,35 @@ impl VendorSource for HuggingFaceVendor {
             let repo = api_clone.model(repo_id_clone);
             
             // TEAM-379: Progress callback checks cancellation and updates tracker
+            // Note: We use Arc<AtomicBool> to signal cancellation since the callback
+            // can't return Result. When cancelled, the download will fail on next chunk.
+            let cancelled_flag = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+            let cancelled_flag_clone = cancelled_flag.clone();
+            
             let callback = callback_builder(move |progress: ProgressEvent| {
-                // Check if cancelled - if so, panic to abort the download
-                // This is caught and converted to an error below
+                // Check if cancelled - set flag to abort download
                 if cancel_token_clone.is_cancelled() {
-                    panic!("Download cancelled by user");
+                    cancelled_flag_clone.store(true, std::sync::atomic::Ordering::Relaxed);
+                    // Return early - download will fail when hf-hub checks
+                    return;
                 }
                 
                 // ProgressEvent has: url, percentage (0.0-1.0), elapsed_time, remaining_time
                 tracker_clone.update_percentage(progress.percentage as f64);
             });
             
-            repo.download_with_progress(&filename_clone, callback)
+            // Perform download
+            let result = repo.download_with_progress(&filename_clone, callback);
+            
+            // If cancelled during download, return cancellation error
+            if cancelled_flag.load(std::sync::atomic::Ordering::Relaxed) {
+                return Err(anyhow::anyhow!("Download cancelled by user"));
+            }
+            
+            result.map_err(|e| anyhow::anyhow!("HuggingFace download failed: {}", e))
         })
         .await
-        .map_err(|e| {
-            // Convert panic from cancellation into proper error
-            if e.is_panic() {
-                anyhow::anyhow!("Download cancelled by user")
-            } else {
-                anyhow::anyhow!("Task join error: {}", e)
-            }
-        })?
-        .map_err(|e| anyhow::anyhow!("HuggingFace download failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Task join error: {}", e))??;
 
         // Stop heartbeat
         heartbeat_handle.abort();

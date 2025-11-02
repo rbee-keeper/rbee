@@ -257,6 +257,23 @@ macro_rules! narration_macro {
 ///     var
 /// );
 /// ```
+///
+/// # TEAM-384: Table formatting:
+/// ```rust,ignore
+/// use serde_json::json;
+///
+/// let models = json!([
+///     {"id": "model1", "size": "7B"},
+///     {"id": "model2", "size": "13B"}
+/// ]);
+///
+/// n!("model_list", table: models.as_array().unwrap());
+/// // Outputs:
+/// // id     │ size
+/// // ───────┼─────
+/// // model1 │ 7B
+/// // model2 │ 13B
+/// ```
 #[macro_export]
 macro_rules! n {
     // Simple: n!("action", "message")
@@ -335,6 +352,12 @@ macro_rules! n {
             env!("CARGO_CRATE_NAME"),
             stdext::function_name!()
         );
+    }};
+
+    // TEAM-384: Table formatting: n!("action", table: &[Value])
+    ($action:expr, table: $table:expr) => {{
+        let formatted_table = $crate::format_array_table($table);
+        $crate::macro_emit($action, &formatted_table, None, None, env!("CARGO_CRATE_NAME"), stdext::function_name!());
     }};
 }
 

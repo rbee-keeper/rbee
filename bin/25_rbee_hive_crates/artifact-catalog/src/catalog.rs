@@ -49,9 +49,29 @@ impl<T: Artifact> FilesystemCatalog<T> {
         Ok(Self { catalog_dir, _phantom: std::marker::PhantomData })
     }
 
+    /// Sanitize artifact ID for filesystem use
+    ///
+    /// Replaces / and : with - to prevent nested directories.
+    /// This ensures each artifact gets a single top-level directory.
+    ///
+    /// # TEAM-384: Critical for catalog listing
+    ///
+    /// Without sanitization, IDs like "org/model:file.gguf" create:
+    /// - catalog_dir/org/model:file.gguf/metadata.json (nested!)
+    ///
+    /// But list_ids() only reads top-level dirs, so it finds "org/"
+    /// and tries to load catalog_dir/org/metadata.json (doesn't exist).
+    ///
+    /// With sanitization, we get:
+    /// - catalog_dir/org-model-file.gguf/metadata.json (flat!)
+    fn sanitize_id(&self, id: &str) -> String {
+        id.replace('/', "-").replace(':', "-")
+    }
+
     /// Get path to artifact's metadata file
     fn metadata_path(&self, id: &str) -> PathBuf {
-        self.catalog_dir.join(id).join("metadata.json")
+        let safe_id = self.sanitize_id(id);
+        self.catalog_dir.join(safe_id).join("metadata.json")
     }
 
     /// Load metadata from disk

@@ -9,4 +9,5 @@ pub mod capture;
 pub mod sse_sink;
 
 pub use capture::{CaptureAdapter, CapturedNarration};
-pub use sse_sink::NarrationEvent;
+// TEAM-384: Export new SSE event types
+pub use sse_sink::{DataEvent, NarrationEvent, SseEvent};

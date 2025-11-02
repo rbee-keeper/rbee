@@ -103,9 +103,42 @@ static SSE_CHANNEL_REGISTRY: once_cell::sync::Lazy<SseChannelRegistry> =
 /// from Job A could leak to subscribers of Job B.
 pub struct SseChannelRegistry {
     /// Per-job senders (keyed by job_id) - for emitting events
-    senders: Arc<Mutex<HashMap<String, mpsc::Sender<NarrationEvent>>>>,
+    /// TEAM-384: Changed to SseEvent to support both narration and data
+    senders: Arc<Mutex<HashMap<String, mpsc::Sender<SseEvent>>>>,
     /// Per-job receivers (keyed by job_id) - taken once by SSE handler
-    receivers: Arc<Mutex<HashMap<String, mpsc::Receiver<NarrationEvent>>>>,
+    /// TEAM-384: Changed to SseEvent to support both narration and data
+    receivers: Arc<Mutex<HashMap<String, mpsc::Receiver<SseEvent>>>>,
+}
+
+/// TEAM-384: SSE event types - supports both narration and structured data
+///
+/// This enum allows the same SSE channel to carry:
+/// 1. Narration events (human-readable messages for CLI/UI logs)
+/// 2. Data events (structured JSON for UI state updates)
+///
+/// # Example SSE Stream
+/// ```text
+/// event: narration
+/// data: {"formatted":"📋 Listing models..."}
+///
+/// event: narration  
+/// data: {"formatted":"Found 1 model(s)"}
+///
+/// event: data
+/// data: {"models":[{"id":"...","name":"..."}]}
+///
+/// event: done
+/// data: {}
+/// ```
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum SseEvent {
+    /// Human-readable narration message
+    Narration(NarrationEvent),
+    /// Structured data for UI consumption
+    Data(DataEvent),
+    /// Job completion marker
+    Done,
 }
 
 /// Narration event formatted for SSE transport.
@@ -136,6 +169,32 @@ pub struct NarrationEvent {
     pub emitted_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub emitted_at_ms: Option<u64>,
+}
+
+/// TEAM-384: Structured data event for UI state updates
+///
+/// This carries JSON data that the UI can parse and use to update its state.
+/// Unlike narration (which is for display), this is for programmatic consumption.
+///
+/// # Example
+/// ```rust,ignore
+/// use serde_json::json;
+///
+/// let data = DataEvent {
+///     action: "model_list".to_string(),
+///     payload: json!({
+///         "models": [
+///             {"id": "model1", "name": "Model 1", "size": 1024}
+///         ]
+///     }),
+/// };
+/// ```
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct DataEvent {
+    /// Action this data relates to (e.g., "model_list", "worker_list")
+    pub action: String,
+    /// Structured JSON payload
+    pub payload: serde_json::Value,
 }
 
 impl From<NarrationFields> for NarrationEvent {
@@ -214,6 +273,7 @@ impl SseChannelRegistry {
     /// Better to lose narration than leak it to wrong subscribers.
     ///
     /// TEAM-205: SIMPLIFIED - Use MPSC try_send (works in both sync and async contexts).
+    /// TEAM-384: Wraps NarrationEvent in SseEvent::Narration
     ///
     /// # Behavior
     ///
@@ -225,9 +285,8 @@ impl SseChannelRegistry {
     pub fn send_to_job(&self, job_id: &str, event: NarrationEvent) {
         let senders = self.senders.lock().unwrap();
         if let Some(tx) = senders.get(job_id) {
-            // TEAM-276: try_send works in both sync and async contexts
-            // Failures (full/closed) are intentionally ignored
-            let _ = tx.try_send(event);
+            // TEAM-384: Wrap in SseEvent::Narration
+            let _ = tx.try_send(SseEvent::Narration(event));
         }
         // TEAM-276: If channel doesn't exist, DROP THE EVENT (fail-fast)
         // This is intentional - better to lose narration than leak sensitive data
@@ -268,8 +327,10 @@ impl SseChannelRegistry {
     pub fn try_send_to_job(&self, job_id: &str, event: NarrationEvent) -> bool {
         let senders = self.senders.lock().unwrap();
         if let Some(tx) = senders.get(job_id) {
+            // TEAM-384: Wrap in SseEvent::Narration
+            let sse_event = SseEvent::Narration(event);
             // Try to send, return true only if successful
-            tx.try_send(event).is_ok()
+            tx.try_send(sse_event).is_ok()
         } else {
             // Channel doesn't exist - not an error, stdout has the narration
             false
@@ -280,10 +341,32 @@ impl SseChannelRegistry {
     ///
     /// TEAM-200: Keeper calls this with job_id to get isolated stream.
     /// TEAM-205: SIMPLIFIED - Take receiver (can only be called once per job).
+    /// TEAM-384: Returns SseEvent (supports both narration and data)
     ///
     /// This can only be called once per job - the receiver is moved out.
-    pub fn take_job_receiver(&self, job_id: &str) -> Option<mpsc::Receiver<NarrationEvent>> {
+    pub fn take_job_receiver(&self, job_id: &str) -> Option<mpsc::Receiver<SseEvent>> {
         self.receivers.lock().unwrap().remove(job_id)
+    }
+
+    /// TEAM-384: Send structured data to a specific job's SSE stream.
+    ///
+    /// This is for UI state updates (models, workers, etc.), not narration.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use serde_json::json;
+    ///
+    /// let data = DataEvent {
+    ///     action: "model_list".to_string(),
+    ///     payload: json!({"models": [...]}),
+    /// };
+    /// registry.send_data_to_job("job-123", data);
+    /// ```
+    pub fn send_data_to_job(&self, job_id: &str, data: DataEvent) {
+        let senders = self.senders.lock().unwrap();
+        if let Some(tx) = senders.get(job_id) {
+            let _ = tx.try_send(SseEvent::Data(data));
+        }
     }
 
     /// Check if a job channel exists.
@@ -357,6 +440,29 @@ pub fn send(fields: &NarrationFields) {
     SSE_CHANNEL_REGISTRY.send_to_job(job_id, event);
 }
 
+/// TEAM-384: Emit structured data to a job's SSE stream.
+///
+/// This sends JSON data for UI consumption, separate from narration.
+///
+/// # Example
+/// ```rust,ignore
+/// use observability_narration_core::sse_sink;
+/// use serde_json::json;
+///
+/// sse_sink::emit_data(
+///     "job-123",
+///     "model_list",
+///     json!({"models": [{"id": "model1", "name": "Model 1"}]})
+/// );
+/// ```
+pub fn emit_data(job_id: &str, action: impl Into<String>, payload: serde_json::Value) {
+    let data = DataEvent {
+        action: action.into(),
+        payload,
+    };
+    SSE_CHANNEL_REGISTRY.send_data_to_job(job_id, data);
+}
+
 /// Try to send a narration event to job-specific channel (returns success/failure).
 ///
 /// TEAM-298: Phase 1 - Opportunistic SSE delivery
@@ -421,7 +527,7 @@ pub fn try_send(fields: &NarrationFields) -> bool {
 ///     println!("{}", event.formatted);
 /// }
 /// ```
-pub fn take_job_receiver(job_id: &str) -> Option<mpsc::Receiver<NarrationEvent>> {
+pub fn take_job_receiver(job_id: &str) -> Option<mpsc::Receiver<SseEvent>> {
     SSE_CHANNEL_REGISTRY.take_job_receiver(job_id)
 }
 

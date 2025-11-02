@@ -119,7 +119,8 @@ pub use context::{with_narration_context, NarrationContext};
 pub use mode::{get_narration_mode, set_narration_mode, NarrationMode};
 
 // Output
-pub use output::{CaptureAdapter, CapturedNarration, NarrationEvent};
+// TEAM-384: Added SseEvent and DataEvent for dual-channel SSE
+pub use output::{CaptureAdapter, CapturedNarration, DataEvent, NarrationEvent, SseEvent};
 
 // Taxonomy
 pub use taxonomy::*;

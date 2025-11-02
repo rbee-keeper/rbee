@@ -89,7 +89,9 @@ export function useModels() {
       const client = await getClient() // TEAM-381: Lazy client initialization
       const hiveId = client.hiveId // TEAM-353: Get hive_id from client
       const op = sdk.OperationBuilder.modelList(hiveId)
-      const lines: string[] = []
+      
+      // TEAM-384: Capture data events from dual-channel SSE
+      let modelsData: any = null
       
       // TEAM-381: Add timeout to prevent infinite hanging if backend doesn't respond
       const timeoutPromise = new Promise((_, reject) => {
@@ -97,21 +99,32 @@ export function useModels() {
       })
       
       const streamPromise = client.submitAndStream(op, (line: string) => {
-        if (line !== '[DONE]') {
-          lines.push(line)
+        if (line === '[DONE]') return
+        
+        // TEAM-384: Check if this is a data event (starts with "event: data")
+        // SSE format: "event: data\n{json}"
+        if (line.startsWith('event: data')) {
+          // Next line will be the JSON payload - we'll get it on next callback
+          return
+        }
+        
+        // TEAM-384: Parse data event payload
+        if (line.startsWith('{') && line.includes('"action"')) {
+          try {
+            const dataEvent = JSON.parse(line)
+            if (dataEvent.action === 'model_list' && dataEvent.payload) {
+              modelsData = dataEvent.payload.models
+            }
+          } catch (e) {
+            // Not a data event, ignore
+          }
         }
       })
       
       await Promise.race([streamPromise, timeoutPromise])
       
-      // Find the JSON line (starts with '[' or '{')
-      // Backend emits narration lines first, then JSON on last line
-      const jsonLine = lines.reverse().find(line => {
-        const trimmed = line.trim()
-        return trimmed.startsWith('[') || trimmed.startsWith('{')
-      })
-      
-      return jsonLine ? JSON.parse(jsonLine) : []
+      // TEAM-384: Return models from data event, or empty array
+      return modelsData || []
     },
     staleTime: 30000, // Models change less frequently (30 seconds)
     retry: 2, // TEAM-381: Reduced from 3 to fail faster

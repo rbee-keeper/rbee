@@ -433,24 +433,32 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
 
             n!("model_list_result", "Found {} model(s)", models.len());
 
-            // TEAM-384: Use table formatting for cleaner output
+            // TEAM-384: Convert to JSON for both table display and UI consumption
+            use rbee_hive_artifact_catalog::Artifact;
+            let models_json: Vec<serde_json::Value> = models.iter().map(|m| {
+                serde_json::json!({
+                    "id": m.id(),
+                    "name": m.name(),
+                    "size": m.size(),
+                    "path": m.path().display().to_string(),
+                    "loaded": false, // TEAM-384: UI expects this field
+                })
+            }).collect();
+
             if models.is_empty() {
                 n!("model_list_empty", "No models found. Download a model with: ./rbee model download <model-id>");
             } else {
-                use rbee_hive_artifact_catalog::Artifact;
-                
-                // Convert models to JSON array for table formatting
-                let models_json: Vec<serde_json::Value> = models.iter().map(|m| {
-                    serde_json::json!({
-                        "id": m.id(),
-                        "name": m.name(),
-                        "size_gb": format!("{:.2}", m.size() as f64 / 1_000_000_000.0),
-                        "path": m.path().display().to_string(),
-                    })
-                }).collect();
-                
+                // TEAM-384: Emit table for CLI users (human-readable)
                 n!("model_list_table", table: &models_json);
             }
+            
+            // TEAM-384: Emit structured data for UI (separate channel from narration)
+            // This uses the new dual-channel SSE system - data events don't appear in CLI
+            observability_narration_core::sse_sink::emit_data(
+                &job_id,
+                "model_list",
+                serde_json::json!({"models": models_json})
+            );
             
             n!("model_list_complete", "✅ Model list operation complete");
         }

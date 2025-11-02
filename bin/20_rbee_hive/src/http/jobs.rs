@@ -127,12 +127,26 @@ pub async fn handle_stream_job(
             return;
         };
 
-        // TEAM-384: Stream ALL narration events from SSE channel
+        // TEAM-384: Stream ALL SSE events (narration + data) from channel
         // When channel closes, check job state and send appropriate completion signal
         
+        use observability_narration_core::SseEvent;
         while let Some(event) = sse_rx.recv().await {
-            // Use pre-formatted text from narration-core
-            yield Ok(Event::default().data(&event.formatted));
+            match event {
+                SseEvent::Narration(n) => {
+                    // Send narration as plain text (backward compatible)
+                    yield Ok(Event::default().data(&n.formatted));
+                }
+                SseEvent::Data(d) => {
+                    // Send data as JSON with event type marker
+                    let json = serde_json::to_string(&d).unwrap_or_else(|_| "{}".to_string());
+                    yield Ok(Event::default().event("data").data(&json));
+                }
+                SseEvent::Done => {
+                    // Job marked as done
+                    break;
+                }
+            }
         }
         
         // TEAM-384: SSE channel closed - job completed!

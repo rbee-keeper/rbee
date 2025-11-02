@@ -66,7 +66,8 @@ impl QueenClient {
         let callback = on_line.clone();
 
         // TEAM-286: Use existing job-client!
-        let job_id = self.inner
+        // TEAM-387: RULE ZERO - API changed to return (job_id, stream_future)
+        let (job_id, stream_future) = self.inner
             .submit_and_stream(op, move |line| {
                 // Call JavaScript callback
                 let this = JsValue::null();
@@ -79,6 +80,9 @@ impl QueenClient {
             })
             .await
             .map_err(error_to_js)?;
+
+        // TEAM-387: Await the stream future
+        stream_future.await.map_err(error_to_js)?;
 
         Ok(job_id)
     }

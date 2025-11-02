@@ -11,7 +11,9 @@ name = "rbee_hive_download_tracker"
 path = "src/lib.rs"
 
 [dependencies]
-# Add dependencies as needed
+# TEAM-385: Added narration for progress updates
+observability-narration-core = { path = "../../99_shared_crates/narration-core" }
+stdext = "0.3"  # Required for n!() macro (function_name!())
 
 [dev-dependencies]
 # Add dev dependencies as needed

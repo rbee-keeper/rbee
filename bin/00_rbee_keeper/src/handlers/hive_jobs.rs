@@ -88,14 +88,18 @@ pub enum HiveJobsAction {
 /// 2. Connect to SSE stream
 /// 3. Print narration events to stdout
 /// 4. Wait for [DONE] marker
+// TEAM-387: RULE ZERO - Updated to use new API
 pub async fn submit_hive_job(operation: Operation, hive_url: &str) -> Result<()> {
     let client = JobClient::new(hive_url);
     
-    client.submit_and_stream(operation, |line| {
+    let (_job_id, stream_future) = client.submit_and_stream(operation, |line| {
         // Print narration events to stdout
         println!("{}", line);
         Ok(())
     }).await?;
+    
+    // Await the stream future
+    stream_future.await?;
     
     Ok(())
 }

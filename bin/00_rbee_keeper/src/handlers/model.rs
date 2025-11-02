@@ -45,17 +45,25 @@ pub enum ModelAction {
     List,
     
     /// Show details of a specific model
+    /// 
+    /// If no model is specified, shows details for the default test model (TinyLlama-1.1B-Chat-v1.0).
     #[command(visible_alias = "show")]
     Get {
         /// Model ID
-        id: String,
+        /// 
+        /// Defaults to TinyLlama-1.1B-Chat-v1.0 (Q4_K_M) if not specified.
+        id: Option<String>,
     },
     
     /// Remove a downloaded model
+    /// 
+    /// If no model is specified, deletes the default test model (TinyLlama-1.1B-Chat-v1.0).
     #[command(visible_alias = "rm")]
     Delete {
         /// Model ID to delete
-        id: String,
+        /// 
+        /// Defaults to TinyLlama-1.1B-Chat-v1.0 (Q4_K_M) if not specified.
+        id: Option<String>,
     },
     
     /// Preload a model into RAM (for faster VRAM loading)
@@ -90,15 +98,19 @@ pub async fn handle_model(hive_id: String, action: ModelAction) -> Result<()> {
             Operation::ModelList(ModelListRequest { hive_id: hive_id.clone() })
         }
         ModelAction::Get { id } => {
+            // TEAM-385: Use default test model if none specified
+            let model_id = id.as_deref().unwrap_or(DEFAULT_TEST_MODEL);
             Operation::ModelGet(ModelGetRequest { 
                 hive_id: hive_id.clone(), 
-                id: id.clone() 
+                id: model_id.to_string() 
             })
         }
         ModelAction::Delete { id } => {
+            // TEAM-385: Use default test model if none specified
+            let model_id = id.as_deref().unwrap_or(DEFAULT_TEST_MODEL);
             Operation::ModelDelete(ModelDeleteRequest { 
                 hive_id: hive_id.clone(), 
-                id: id.clone() 
+                id: model_id.to_string() 
             })
         }
         ModelAction::Preload { id } => {

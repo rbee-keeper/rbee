@@ -16,6 +16,7 @@ hf-hub = { version = "0.3", features = ["tokio"] }
 # Shared crates
 rbee-hive-artifact-catalog = { path = "../artifact-catalog" }
 rbee-hive-model-catalog = { path = "../model-catalog" }
+rbee-hive-download-tracker = { path = "../download-tracker" }  # TEAM-385: Progress tracking
 observability-narration-core = { path = "../../99_shared_crates/narration-core" }
 stdext = "0.3"  # Required for n!() macro (function_name!())
 

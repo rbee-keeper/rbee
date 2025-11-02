@@ -62,10 +62,10 @@ pub fn run_rbee_keeper(args: Vec<String>) -> Result<()> {
         .context("Failed to get workspace root")?
         .to_path_buf();
 
-    // Check if rebuild is needed
-    if needs_rebuild(&workspace_root)? {
-        build_rbee_keeper(&workspace_root)?;
-    }
+    // // Check if rebuild is needed
+    // if needs_rebuild(&workspace_root)? {
+    //     build_rbee_keeper(&workspace_root)?;
+    // }
 
     // Forward command to rbee-keeper
     let binary_path = workspace_root.join(TARGET_BINARY);

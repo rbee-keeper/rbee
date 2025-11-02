@@ -5,7 +5,7 @@
 
 use anyhow::Result;
 use hf_hub::api::tokio::Api;
-use observability_narration_core::n;
+use observability_narration_core::{n, context};
 use rbee_hive_artifact_catalog::VendorSource;
 use std::path::Path;
 
@@ -139,12 +139,33 @@ impl VendorSource for HuggingFaceVendor {
         };
         
         n!("hf_download_file", "📥 Downloading file: {}", filename);
+        n!("hf_download_progress", "⏳ Downloading from HuggingFace... (this may take several minutes)");
+        
+        // Download the file with periodic heartbeat messages
+        // hf-hub's repo.get() is a blocking operation that doesn't expose progress callbacks
+        // So we spawn a heartbeat task to show the user we're still working
+        // TEAM-385: Create new context for spawned task with job_id
+        let heartbeat_filename = filename.clone();
+        let job_id_clone = _job_id.to_string();
+        let heartbeat_task = tokio::spawn(async move {
+            let ctx = context::NarrationContext::new().with_job_id(&job_id_clone);
+            context::with_narration_context(ctx, async move {
+                let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(10));
+                interval.tick().await; // Skip first immediate tick
+                loop {
+                    interval.tick().await;
+                    n!("hf_download_heartbeat", "⏳ Still downloading {} from HuggingFace...", heartbeat_filename);
+                }
+            }).await
+        });
         
         // Download the file
-        // hf-hub automatically caches in ~/.cache/huggingface/
         let cached_path = repo.get(&filename).await?;
         
-        n!("hf_download_cached", "✅ File cached at: {}", cached_path.display());
+        // Stop heartbeat
+        heartbeat_task.abort();
+        
+        n!("hf_download_cached", "✅ File downloaded and cached at: {}", cached_path.display());
         
         // Copy to destination
         let metadata = tokio::fs::metadata(&cached_path).await?;
@@ -156,11 +177,12 @@ impl VendorSource for HuggingFaceVendor {
         }
         
         // Copy file to destination
+        n!("hf_copy_start", "📋 Copying to model cache... ({:.2} GB)", size as f64 / 1_000_000_000.0);
         tokio::fs::copy(&cached_path, dest).await?;
         
         n!(
             "hf_download_complete",
-            "✅ Model downloaded: {} ({:.2} GB)",
+            "✅ Model ready: {} ({:.2} GB)",
             filename,
             size as f64 / 1_000_000_000.0
         );

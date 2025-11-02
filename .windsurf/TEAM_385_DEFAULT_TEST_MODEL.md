@@ -50,12 +50,14 @@ TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF:tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
 # List downloaded models
 ./rbee model list
 
-# Get model details
-./rbee model get TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF:tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
+# Get model details (no arguments needed!)
+./rbee model get
 
-# Delete model
-./rbee model delete TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF:tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
+# Delete model (no arguments needed!)
+./rbee model delete
 ```
+
+**All three operations (download/get/delete) default to TinyLlama - zero typing required!**
 
 ### Download Different Model
 

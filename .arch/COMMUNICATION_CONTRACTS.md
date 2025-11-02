@@ -322,22 +322,35 @@ Body: { "WorkerSpawn": {...} }
 
 ---
 
-## Exception: Worker Telemetry
+## No Exceptions!
 
-**ONLY exception to job-client/job-server pattern:**
+**There are ZERO exceptions to the job-client/job-server pattern.**
 
-Workers send telemetry directly to queen via SSE POST:
+### What About Worker Telemetry?
+
+**Q:** Don't workers need to push telemetry to queen/hive?  
+**A:** NO! Workers don't push anything.
+
+**How Telemetry Works:**
 
 ```
-llm-worker-rbee                      queen-rbee
-===============                      ==========
-POST /v1/telemetry/worker      →     Receives telemetry
-  Body: { gpu_util, model, ... }     Updates registry
+rbee-hive (Passive Monitor)          llm-worker-rbee (In cgroup)
+==========================           ===========================
+Spawns worker in cgroup              Runs inference
+Takes cgroup snapshots        ←      Uses GPU/CPU/Memory
+Reads metrics from cgroup            (Passive - no reporting)
+Reports to queen as needed
 ```
 
-**Why?** Telemetry is push-based (worker → queen), not request/response.
+**Method:**
+1. Hive spawns workers in **cgroups** (Linux control groups)
+2. Hive takes **snapshots** of cgroup metrics (GPU util, memory, CPU)
+3. Worker does NOTHING - just runs inference
+4. Hive owns telemetry collection (passive monitoring)
 
-**Everything else:** Uses job-client/job-server.
+**Result:** Even telemetry follows the pattern! When queen needs worker stats, it asks hive via job-client/job-server.
+
+**Everything:** Uses job-client/job-server. **No exceptions.**
 
 ---
 
@@ -416,12 +429,12 @@ For ANY inter-component communication:
 
 **There is ONE way components talk to each other: job-client → job-server.**
 
-No exceptions (except worker telemetry push).  
+No exceptions.  
 No custom patterns.  
 No special cases.  
 No shortcuts.
 
-**ONE PATTERN. ALWAYS.**
+**ONE PATTERN. ALWAYS. ZERO EXCEPTIONS.**
 
 ---
 

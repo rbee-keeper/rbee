@@ -102,14 +102,37 @@ pub async fn submit_hive_job(operation: Operation, hive_url: &str) -> Result<()>
 
 /// Helper to get hive URL from alias
 ///
-/// TEAM-380: For now, only localhost is supported
-/// Future: Read from hives.conf or SSH config
+/// TEAM-380: Resolves hive alias to HTTP URL
+/// TEAM-384: Now uses SSH config resolver for remote hives
+///
+/// # Behavior
+/// - "localhost" → `http://localhost:7835`
+/// - Other aliases → Parse `~/.ssh/config` for host entry, use hostname
+///
+/// # Example
+/// ```rust,ignore
+/// // Localhost
+/// let url = get_hive_url("localhost");
+/// // → "http://localhost:7835"
+///
+/// // Remote (from ~/.ssh/config)
+/// let url = get_hive_url("workstation");
+/// // → "http://192.168.1.100:7835"
+/// ```
 pub fn get_hive_url(alias: &str) -> String {
+    use crate::ssh_resolver::resolve_ssh_config;
+    
     if alias == "localhost" {
-        "http://localhost:7835".to_string()
-    } else {
-        // TODO: Read from hives.conf or SSH config
-        format!("http://{}:7835", alias)
+        return "http://localhost:7835".to_string();
+    }
+    
+    // TEAM-384: Resolve via SSH config
+    match resolve_ssh_config(alias) {
+        Ok(ssh) => format!("http://{}:7835", ssh.hostname),
+        Err(_) => {
+            // Fallback: assume alias is hostname
+            format!("http://{}:7835", alias)
+        }
     }
 }
 

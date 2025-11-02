@@ -17,9 +17,11 @@
 
 ### The Golden Rule
 
-**EVERY connection between components uses the job-client/job-server pattern.**
+```
+EVERY connection between components uses 
+the job-client/job-server pattern.
 
-Period. No exceptions (except worker telemetry push).
+Period. NO EXCEPTIONS.
 
 ---
 
@@ -223,12 +225,12 @@ Clear examples of what NOT to do:
 
 > **There is ONE way components talk to each other: job-client → job-server.**
 > 
-> No exceptions (except worker telemetry push).  
+> No exceptions.  
 > No custom patterns.  
 > No special cases.  
 > No shortcuts.
 > 
-> **ONE PATTERN. ALWAYS.**
+> **ONE PATTERN. ALWAYS. ZERO EXCEPTIONS.**
 
 ---
 

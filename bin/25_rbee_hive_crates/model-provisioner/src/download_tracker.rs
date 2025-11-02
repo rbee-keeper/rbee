@@ -15,12 +15,14 @@ use tokio_util::sync::CancellationToken;
 /// - Heartbeat messages (periodic "still downloading...")
 /// - Cancellation support
 /// - Narration with proper job_id context
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DownloadTracker {
     /// Total bytes downloaded
     bytes_downloaded: Arc<AtomicU64>,
     /// Expected total size (if known)
     total_size: Option<u64>,
+    /// TEAM-379: Percentage (stored as 0-10000 for 0.00%-100.00%)
+    percentage: Arc<AtomicU64>,
     /// Cancellation token
     cancel_token: CancellationToken,
     /// Progress sender
@@ -32,8 +34,11 @@ pub struct DownloadTracker {
 /// Download progress snapshot
 #[derive(Debug, Clone, Copy)]
 pub struct DownloadProgress {
+    /// Bytes downloaded so far
     pub bytes_downloaded: u64,
+    /// Total size if known
     pub total_size: Option<u64>,
+    /// Percentage complete (0.0-100.0)
     pub percentage: Option<f64>,
 }
 
@@ -58,6 +63,7 @@ impl DownloadTracker {
         let tracker = Self {
             bytes_downloaded: Arc::new(AtomicU64::new(0)),
             total_size,
+            percentage: Arc::new(AtomicU64::new(0)),  // TEAM-379: Start at 0%
             cancel_token,
             progress_tx,
             job_id,
@@ -98,16 +104,34 @@ impl DownloadTracker {
         self.update_progress(new_total);
     }
 
+    /// TEAM-379: Update percentage from progress callback
+    ///
+    /// # Arguments
+    /// * `pct` - Percentage as 0.0-1.0 (e.g., 0.365 = 36.5%)
+    pub fn update_percentage(&self, pct: f64) {
+        // Store as 0-10000 for precision (36.5% = 3650)
+        let pct_int = (pct * 10000.0) as u64;
+        self.percentage.store(pct_int, Ordering::Relaxed);
+    }
+
     /// Get current progress
     pub fn current_progress(&self) -> DownloadProgress {
         let bytes = self.bytes_downloaded.load(Ordering::Relaxed);
-        let percentage = self.total_size.map(|total| {
-            if total > 0 {
-                (bytes as f64 / total as f64) * 100.0
-            } else {
-                0.0
-            }
-        });
+        
+        // TEAM-379: Use percentage from callback if available
+        let pct_int = self.percentage.load(Ordering::Relaxed);
+        let percentage = if pct_int > 0 {
+            Some(pct_int as f64 / 100.0)  // Convert 3650 -> 36.50%
+        } else {
+            // Fallback to calculating from bytes if we have total_size
+            self.total_size.map(|total| {
+                if total > 0 {
+                    (bytes as f64 / total as f64) * 100.0
+                } else {
+                    0.0
+                }
+            })
+        };
 
         DownloadProgress {
             bytes_downloaded: bytes,
@@ -142,21 +166,19 @@ impl DownloadTracker {
                         _ = interval.tick() => {
                             let progress = tracker.current_progress();
                             
+                            // TEAM-379: Show percentage if available from progress callback
                             if let Some(pct) = progress.percentage {
                                 n!(
                                     "download_progress",
-                                    "⏳ Still downloading {} ({:.1}% - {:.2} MB / {:.2} MB)...",
+                                    "⏳ Still downloading {} ({:.1}% complete)...",
                                     artifact_name,
-                                    pct,
-                                    progress.bytes_downloaded as f64 / 1_000_000.0,
-                                    progress.total_size.unwrap_or(0) as f64 / 1_000_000.0
+                                    pct
                                 );
                             } else {
                                 n!(
                                     "download_progress",
-                                    "⏳ Still downloading {} ({:.2} MB downloaded)...",
-                                    artifact_name,
-                                    progress.bytes_downloaded as f64 / 1_000_000.0
+                                    "⏳ Still downloading {}...",
+                                    artifact_name
                                 );
                             }
                         }

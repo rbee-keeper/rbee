@@ -12,9 +12,9 @@ tokio = { version = "1.0", features = ["fs", "io-util", "sync"] }
 tokio-util = "0.7"
 
 # HuggingFace Hub client (official Rust crate)
-hf-hub = { version = "0.4", features = ["tokio"] }
-# NOTE: hf-hub-simple-progress only works with sync API, not tokio async
-# For now we use heartbeat messages for progress indication
+# TEAM-379: Using sync API for real progress tracking via hf-hub-simple-progress
+hf-hub = "0.4"  # Sync API (no tokio feature)
+hf-hub-simple-progress = "0.1.2"  # Real-time download progress callbacks
 
 # Shared crates
 rbee-hive-artifact-catalog = { path = "../artifact-catalog" }

@@ -7,10 +7,12 @@
 
 use crate::download_tracker::DownloadTracker;
 use anyhow::Result;
-use hf_hub::api::tokio::Api;
-use observability_narration_core::{context, n};
+use hf_hub::api::sync::{Api, ApiBuilder};
+use hf_hub_simple_progress::{sync::callback_builder, ProgressEvent};
+use observability_narration_core::n;
 use rbee_hive_artifact_catalog::VendorSource;
 use std::path::Path;
+use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 
 /// HuggingFace vendor for downloading models
@@ -41,7 +43,7 @@ use tokio_util::sync::CancellationToken;
 /// # }
 /// ```
 pub struct HuggingFaceVendor {
-    api: Api,
+    api: Arc<Api>,  // TEAM-379: Arc for clone in spawn_blocking
 }
 
 impl std::fmt::Debug for HuggingFaceVendor {
@@ -59,8 +61,8 @@ impl HuggingFaceVendor {
     ///
     /// Returns error if HuggingFace API initialization fails.
     pub fn new() -> Result<Self> {
-        let api = Api::new()?;
-        Ok(Self { api })
+        let api = ApiBuilder::new().build()?;
+        Ok(Self { api: Arc::new(api) })
     }
 
     /// Create vendor with custom cache directory
@@ -84,32 +86,41 @@ impl HuggingFaceVendor {
     ///
     /// Tries common GGUF quantizations in order of popularity.
     async fn find_gguf_file(&self, repo_id: &str, cancel_token: &CancellationToken) -> Result<String> {
-        let repo = self.api.model(repo_id.to_string());
+        let api_clone = self.api.clone();
+        let repo_id_clone = repo_id.to_string();
+        let cancel_token_clone = cancel_token.clone();
+        
+        // TEAM-379: Use spawn_blocking for sync API
+        tokio::task::spawn_blocking(move || {
+            let repo = api_clone.model(repo_id_clone.clone());
 
-        // Common GGUF quantizations (from most to least common)
-        let common_quants = ["Q4_K_M", "Q5_K_M", "Q4_0", "Q5_0", "Q8_0", "F16"];
+            // Common GGUF quantizations (from most to least common)
+            let common_quants = ["Q4_K_M", "Q5_K_M", "Q4_0", "Q5_0", "Q8_0", "F16"];
 
-        let base_name = repo_id.split('/').next_back().unwrap_or(repo_id);
+            let base_name = repo_id_clone.split('/').next_back().unwrap_or(&repo_id_clone);
 
-        for quant in &common_quants {
-            // Check for cancellation before each attempt
-            if cancel_token.is_cancelled() {
-                return Err(anyhow::anyhow!("Download cancelled"));
+            for quant in &common_quants {
+                // Check for cancellation before each attempt
+                if cancel_token_clone.is_cancelled() {
+                    return Err(anyhow::anyhow!("Download cancelled"));
+                }
+
+                let filename = format!("{}-{}.gguf", base_name, quant);
+                match repo.get(&filename) {
+                    Ok(_) => return Ok(filename),
+                    Err(_) => continue,
+                }
             }
 
-            let filename = format!("{}-{}.gguf", base_name, quant);
-            match repo.get(&filename).await {
-                Ok(_) => return Ok(filename),
-                Err(_) => continue,
-            }
-        }
-
-        // If no common quant found, return error with helpful message
-        Err(anyhow::anyhow!(
-            "Could not find GGUF file in repository '{}'. \
-             Please specify the exact filename (e.g., 'repo/model:file-Q4_K_M.gguf')",
-            repo_id
-        ))
+            // If no common quant found, return error with helpful message
+            Err(anyhow::anyhow!(
+                "Could not find GGUF file in repository '{}'. \
+                 Please specify the exact filename (e.g., 'repo/model:file-Q4_K_M.gguf')",
+                repo_id_clone
+            ))
+        })
+        .await
+        .map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
     }
 }
 
@@ -138,8 +149,6 @@ impl VendorSource for HuggingFaceVendor {
         };
 
         // Get the repository
-        let repo = self.api.model(repo_id.to_string());
-
         // Determine filename
         let filename = if let Some(f) = filename {
             f
@@ -158,23 +167,43 @@ impl VendorSource for HuggingFaceVendor {
         );
         let heartbeat_handle = tracker.start_heartbeat(filename.clone());
 
-        // Download with cancellation support
-        // NOTE: hf-hub 0.4 has download_with_progress but only for sync API
-        // The tokio async API doesn't expose progress callbacks yet
-        // So we use heartbeat messages for now
-        let download_result = tokio::select! {
-            _ = cancel_token.cancelled() => {
-                Err(anyhow::anyhow!("Download cancelled by user"))
+        // TEAM-379: Download with real-time progress callback
+        let api_clone = self.api.clone();
+        let repo_id_clone = repo_id.to_string();
+        let filename_clone = filename.clone();
+        let tracker_clone = tracker.clone();
+        let cancel_token_clone = cancel_token.clone();
+        
+        let cached_path = tokio::task::spawn_blocking(move || {
+            let repo = api_clone.model(repo_id_clone);
+            
+            // TEAM-379: Progress callback checks cancellation and updates tracker
+            let callback = callback_builder(move |progress: ProgressEvent| {
+                // Check if cancelled - if so, panic to abort the download
+                // This is caught and converted to an error below
+                if cancel_token_clone.is_cancelled() {
+                    panic!("Download cancelled by user");
+                }
+                
+                // ProgressEvent has: url, percentage (0.0-1.0), elapsed_time, remaining_time
+                tracker_clone.update_percentage(progress.percentage as f64);
+            });
+            
+            repo.download_with_progress(&filename_clone, callback)
+        })
+        .await
+        .map_err(|e| {
+            // Convert panic from cancellation into proper error
+            if e.is_panic() {
+                anyhow::anyhow!("Download cancelled by user")
+            } else {
+                anyhow::anyhow!("Task join error: {}", e)
             }
-            result = repo.get(&filename) => {
-                result.map_err(|e| anyhow::anyhow!("HuggingFace download failed: {}", e))
-            }
-        };
+        })?
+        .map_err(|e| anyhow::anyhow!("HuggingFace download failed: {}", e))?;
 
         // Stop heartbeat
         heartbeat_handle.abort();
-
-        let cached_path = download_result?;
 
         n!("hf_download_cached", "✅ File downloaded and cached at: {}", cached_path.display());
 

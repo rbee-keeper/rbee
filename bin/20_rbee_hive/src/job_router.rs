@@ -28,7 +28,6 @@ use job_server::JobRegistry;
 use observability_narration_core::n; // TEAM-385: Only n! macro needed, context from job-server
 use operations_contract::Operation; // TEAM-284: Renamed from rbee_operations
 use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, ArtifactProvisioner}; // TEAM-273: Traits for catalog methods
-use tokio_util::sync::CancellationToken; // TEAM-379: For cancellable model downloads
 use rbee_hive_model_catalog::ModelCatalog; // TEAM-268: Model catalog
 use rbee_hive_model_provisioner::ModelProvisioner; // Model provisioner for downloads
 use rbee_hive_worker_catalog::WorkerCatalog; // TEAM-274: Worker catalog

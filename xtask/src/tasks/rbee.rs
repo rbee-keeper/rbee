@@ -13,47 +13,47 @@
 // - See: DESKTOP_ENTRY.md for debugging info
 
 use anyhow::{Context, Result};
-use auto_update::AutoUpdater;
+// use auto_update::AutoUpdater;
 use std::path::PathBuf;
 use std::process::Command;
 
-const RBEE_KEEPER_BIN: &str = "bin/00_rbee_keeper";
+// const RBEE_KEEPER_BIN: &str = "bin/00_rbee_keeper";
 const TARGET_BINARY: &str = "target/debug/rbee-keeper";
 
 /// Check if rbee-keeper binary needs rebuilding
 /// TEAM-193: Now uses AutoUpdater to check ALL dependencies (including shared crates)
-fn needs_rebuild(_workspace_root: &PathBuf) -> Result<bool> {
-    // TEAM-193: Use auto-update crate for dependency-aware rebuild detection
-    // This checks:
-    // 1. bin/00_rbee_keeper/ (source)
-    // 2. ALL Cargo.toml dependencies (daemon-lifecycle, narration-core, etc.)
-    // 3. Transitive dependencies (dependencies of dependencies)
-    let updater = AutoUpdater::new("rbee-keeper", RBEE_KEEPER_BIN)?;
-    updater.needs_rebuild()
-}
+// fn needs_rebuild(_workspace_root: &PathBuf) -> Result<bool> {
+//     // TEAM-193: Use auto-update crate for dependency-aware rebuild detection
+//     // This checks:
+//     // 1. bin/00_rbee_keeper/ (source)
+//     // 2. ALL Cargo.toml dependencies (daemon-lifecycle, narration-core, etc.)
+//     // 3. Transitive dependencies (dependencies of dependencies)
+//     let updater = AutoUpdater::new("rbee-keeper", RBEE_KEEPER_BIN)?;
+//     updater.needs_rebuild()
+// }
 
-// TEAM-193: Removed check_dir_newer() - now handled by AutoUpdater
-// AutoUpdater parses Cargo.toml and checks ALL dependencies recursively
+// // TEAM-193: Removed check_dir_newer() - now handled by AutoUpdater
+// // AutoUpdater parses Cargo.toml and checks ALL dependencies recursively
 
-/// Build rbee-keeper binary
-fn build_rbee_keeper(workspace_root: &PathBuf) -> Result<()> {
-    println!("🔨 Building rbee-keeper...");
+// /// Build rbee-keeper binary
+// fn build_rbee_keeper(workspace_root: &PathBuf) -> Result<()> {
+//     println!("🔨 Building rbee-keeper...");
 
-    let status = Command::new("cargo")
-        .arg("build")
-        .arg("--bin")
-        .arg("rbee-keeper")
-        .current_dir(workspace_root)
-        .status()
-        .context("Failed to run cargo build")?;
+//     let status = Command::new("cargo")
+//         .arg("build")
+//         .arg("--bin")
+//         .arg("rbee-keeper")
+//         .current_dir(workspace_root)
+//         .status()
+//         .context("Failed to run cargo build")?;
 
-    if !status.success() {
-        anyhow::bail!("Failed to build rbee-keeper");
-    }
+//     if !status.success() {
+//         anyhow::bail!("Failed to build rbee-keeper");
+//     }
 
-    println!("✅ Build complete\n");
-    Ok(())
-}
+//     println!("✅ Build complete\n");
+//     Ok(())
+// }
 
 /// Main entry point: check build status, rebuild if needed, then forward to rbee-keeper
 pub fn run_rbee_keeper(args: Vec<String>) -> Result<()> {

@@ -7,6 +7,7 @@ use observability_narration_core::n;
 use rbee_hive_artifact_catalog::{ArtifactProvisioner, VendorSource};
 use rbee_hive_model_catalog::ModelEntry;
 use std::path::PathBuf;
+use tokio_util::sync::CancellationToken;
 
 use crate::HuggingFaceVendor;
 
@@ -103,8 +104,9 @@ impl ArtifactProvisioner<ModelEntry> for ModelProvisioner {
         // Determine destination path
         let dest_path = self.model_file_path(id);
 
-        // Download model
-        let size = self.vendor.download(id, &dest_path, job_id).await?;
+        // Download model (create cancel token - TODO: expose to caller)
+        let cancel_token = CancellationToken::new();
+        let size = self.vendor.download(id, &dest_path, job_id, cancel_token).await?;
 
         // Extract model name from ID
         let name = id.split('/').last().unwrap_or(id).split(':').next().unwrap_or(id).to_string();

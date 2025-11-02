@@ -2,6 +2,7 @@
 use crate::types::Artifact;
 use anyhow::Result;
 use std::path::Path;
+use tokio_util::sync::CancellationToken;
 
 /// Vendor source trait
 ///
@@ -14,10 +15,21 @@ pub trait VendorSource: Send + Sync {
     /// * `id` - Artifact identifier (e.g., "meta-llama/Llama-2-7b", "v0.1.0")
     /// * `dest` - Destination path
     /// * `job_id` - Job ID for narration routing
+    /// * `cancel_token` - Cancellation token to abort download
     ///
     /// # Returns
     /// Size in bytes
-    async fn download(&self, id: &str, dest: &Path, job_id: &str) -> Result<u64>;
+    ///
+    /// # Errors
+    ///
+    /// Returns error if download fails or is cancelled.
+    async fn download(
+        &self,
+        id: &str,
+        dest: &Path,
+        job_id: &str,
+        cancel_token: CancellationToken,
+    ) -> Result<u64>;
 
     /// Check if this vendor supports the given artifact ID
     fn supports(&self, id: &str) -> bool;
@@ -129,7 +141,13 @@ mod tests {
 
     #[async_trait::async_trait]
     impl VendorSource for MockVendor {
-        async fn download(&self, _id: &str, _dest: &Path, _job_id: &str) -> Result<u64> {
+        async fn download(
+            &self,
+            _id: &str,
+            _dest: &Path,
+            _job_id: &str,
+            _cancel_token: CancellationToken,
+        ) -> Result<u64> {
             Ok(1024)
         }
 

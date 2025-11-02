@@ -12,14 +12,18 @@
 //!     ↓
 //! hf-hub crate (official HuggingFace Rust client)
 //!     ↓
-//! Downloads to ~/.cache/rbee/models/{model_id}/
+//! Model provisioning for rbee-hive
+//!
+//! Downloads models from various sources (HuggingFace, GitHub, local builds).
 //! ```
 
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 
+mod download_tracker;
 mod huggingface;
 mod provisioner;
 
+pub use download_tracker::{DownloadProgress, DownloadTracker};
 pub use huggingface::HuggingFaceVendor;
 pub use provisioner::ModelProvisioner;

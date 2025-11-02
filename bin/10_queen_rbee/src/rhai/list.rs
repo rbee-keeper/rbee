@@ -4,18 +4,16 @@
 
 use anyhow::Result;
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+// TEAM-385: No macro needed! Context injected by job-server
 use super::RhaiListConfig;
 
 /// Execute RHAI script list operation
 ///
 /// # Arguments
-/// * `list_config` - Config containing job_id
+/// * `list_config` - Config (currently unused)
 ///
-/// TEAM-350: Uses #[with_job_id] macro for automatic context wrapping
-/// TEAM-380: list_config used by macro for job_id extraction
-#[with_job_id(config_param = "list_config")]
-#[allow(unused_variables)] // TEAM-380: Used by macro, not in function body
+/// TEAM-385: Context injected by job-server, no macro needed!
+#[allow(unused_variables)]
 pub async fn execute_rhai_script_list(list_config: RhaiListConfig) -> Result<()> {
     n!("rhai_list_start", "📋 Listing all RHAI scripts");
 

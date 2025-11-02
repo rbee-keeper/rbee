@@ -17,7 +17,7 @@ specta = { version = "2.0.0-rc", optional = true }
 anyhow = "1.0"
 tokio = { version = "1.0", features = ["full"] }
 observability-narration-core = { path = "../../99_shared_crates/narration-core" }
-observability-narration-macros = { path = "../../99_shared_crates/narration-macros" } # TEAM-330: #[with_job_id] macro
+# TEAM-385: narration-macros removed (context injected by job-server)
 # TEAM-330: Removed daemon-lifecycle dependency - now self-contained
 timeout-enforcer = { path = "../../99_shared_crates/timeout-enforcer" } # TEAM-330: Timeout enforcement
 reqwest = { version = "0.11", features = ["rustls-tls"], default-features = false } # TEAM-330: HTTP client

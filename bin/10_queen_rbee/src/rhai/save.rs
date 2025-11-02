@@ -4,16 +4,15 @@
 
 use anyhow::Result;
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+// TEAM-385: No macro needed! Context injected by job-server
 use super::RhaiSaveConfig;
 
 /// Execute RHAI script save operation
 ///
 /// # Arguments
-/// * `save_config` - Config containing job_id, name, content, and optional id
+/// * `save_config` - Config containing name, content, and optional id
 ///
-/// TEAM-350: Uses #[with_job_id] macro for automatic context wrapping
-#[with_job_id(config_param = "save_config")]
+/// TEAM-385: Context injected by job-server, no macro needed!
 pub async fn execute_rhai_script_save(save_config: RhaiSaveConfig) -> Result<()> {
     n!("rhai_save_start", "💾 Saving RHAI script: {}", save_config.name);
 

@@ -58,7 +58,8 @@
 use crate::utils::local::local_exec;
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 
 // TEAM-367: Import shared types and utilities
 // TEAM-378: Removed find_binary_command (moved to lifecycle-ssh)
@@ -103,7 +104,6 @@ pub struct StartConfig {
 /// };
 /// start_daemon(config).await?;
 /// ```
-#[with_job_id(config_param = "start_config")]
 #[with_timeout(secs = 120, label = "Start daemon")]
 pub async fn start_daemon(start_config: StartConfig) -> Result<u32> {
     let daemon_config = &start_config.daemon_config;

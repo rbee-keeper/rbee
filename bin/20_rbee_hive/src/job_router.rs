@@ -25,7 +25,7 @@
 
 use anyhow::Result;
 use job_server::JobRegistry;
-use observability_narration_core::n;
+use observability_narration_core::n; // TEAM-385: Only n! macro needed, context from job-server
 use operations_contract::Operation; // TEAM-284: Renamed from rbee_operations
 use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, ArtifactProvisioner}; // TEAM-273: Traits for catalog methods
 use rbee_hive_model_catalog::ModelCatalog; // TEAM-268: Model catalog
@@ -90,28 +90,24 @@ pub async fn execute_job(
 /// Internal: Route operation to appropriate handler
 ///
 /// TEAM-261: Parse payload and dispatch to worker/model handlers
-/// TEAM-381: Set narration context once for ALL operations (not just HiveCheck)
+/// TEAM-385: Context now injected by job-server, no manual setup needed!
 async fn route_operation(
     job_id: String,
     payload: serde_json::Value,
     state: JobState, // TEAM-268: Changed from _registry to full state
 ) -> Result<()> {
-    use observability_narration_core::{with_narration_context, NarrationContext};
+    // TEAM-385: NO context setup needed! job-server already set it!
+    // Context propagates from job-server::execute_and_stream() via task-local storage
     
-    // TEAM-381: Set narration context for ALL operations so n!() calls route to SSE
-    let ctx = NarrationContext::new().with_job_id(&job_id);
+    // Parse payload into typed Operation enum
+    let operation: Operation = serde_json::from_value(payload)
+        .map_err(|e| anyhow::anyhow!("Failed to parse operation: {}", e))?;
+
+    let operation_name = operation.name().to_string();
+
+    n!("route_job", "Executing operation: {}", operation_name);
     
-    with_narration_context(ctx, async move {
-        // Parse payload into typed Operation enum
-        let operation: Operation = serde_json::from_value(payload)
-            .map_err(|e| anyhow::anyhow!("Failed to parse operation: {}", e))?;
-
-        let operation_name = operation.name().to_string();
-
-        n!("route_job", "Executing operation: {}", operation_name);
-        
-        execute_operation(operation, operation_name, job_id, state).await
-    }).await
+    execute_operation(operation, operation_name, job_id, state).await
 }
 
 /// TEAM-381: Execute the actual operation logic (extracted for cleaner context wrapping)
@@ -432,10 +428,16 @@ async fn execute_operation(operation: Operation, operation_name: String, job_id:
 
             n!("model_list_result", "Found {} model(s)", models.len());
 
-            // Emit JSON response for frontend consumption
-            let json = serde_json::to_string(&models)
-                .unwrap_or_else(|_| "[]".to_string());
-            n!("model_list_json", "{}", json);
+            // TEAM-385: Format model list for user-friendly output
+            if models.is_empty() {
+                n!("model_list_empty", "No models found. Download a model with: ./rbee model download <model-id>");
+            } else {
+                n!("model_list_header", "\n📦 Models:");
+                for model in &models {
+                    use rbee_hive_artifact_catalog::Artifact;
+                    n!("model_list_entry", "  • {} ({})", model.id(), model.path().display());
+                }
+            }
             
             n!("model_list_complete", "✅ Model list operation complete");
         }

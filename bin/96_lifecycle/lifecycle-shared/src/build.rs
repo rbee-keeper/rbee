@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result};
 use observability_narration_core::{n, process_capture::ProcessNarrationCapture};
-use observability_narration_macros::with_job_id;
+
 use std::path::PathBuf;
 use tokio::process::Command;
 
@@ -85,7 +85,6 @@ impl BuildConfig {
 /// 
 /// let binary_path = build_daemon(config).await?;
 /// ```
-#[with_job_id(config_param = "build_config")]
 pub async fn build_daemon(build_config: BuildConfig) -> Result<PathBuf> {
     let daemon_name = &build_config.daemon_name;
     let target = build_config.target.as_deref();

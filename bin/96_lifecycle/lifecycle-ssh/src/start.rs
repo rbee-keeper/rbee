@@ -60,7 +60,8 @@ use crate::utils::ssh::ssh_exec;
 use crate::SshConfig;
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 
 // TEAM-367: Import shared types and utilities
 pub use lifecycle_shared::{build_start_command, HttpDaemonConfig};
@@ -135,7 +136,6 @@ pub struct StartConfig {
 /// };
 /// start_daemon(config).await?;
 /// ```
-#[with_job_id(config_param = "start_config")]
 #[with_timeout(secs = 120, label = "Start daemon")]
 pub async fn start_daemon(start_config: StartConfig) -> Result<u32> {
     let ssh_config = &start_config.ssh_config;

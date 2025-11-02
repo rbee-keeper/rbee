@@ -57,7 +57,7 @@ members = [
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
     "bin/99_shared_crates/narration-core",
-    "bin/99_shared_crates/narration-macros",
+    # TEAM-385: narration-macros removed (context injected by job-server)
     # TEAM-135: New shared crates for consolidation
     # TEAM-330: daemon-lifecycle split into 96_lifecycle category (RULE ZERO - focused crates)
     "bin/99_shared_crates/heartbeat-registry",  # TEAM-285: Generic heartbeat registry

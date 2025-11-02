@@ -74,6 +74,10 @@ async fn main() -> anyhow::Result<()> {
         std::process::exit(0);
     }
 
+    // TEAM-385: Tracing subscriber initialization removed
+    // The narration system handles its own output formatting
+    // We don't need to suppress tracing since narration uses its own channels
+
     // TEAM-202: Use narration instead of println!()
     // This automatically goes through job-scoped SSE (if in job context)
     // and uses centralized formatting (TEAM-201)

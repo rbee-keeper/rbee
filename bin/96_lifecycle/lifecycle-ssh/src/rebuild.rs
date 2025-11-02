@@ -64,7 +64,8 @@ use crate::stop::{stop_daemon, StopConfig};
 use crate::SshConfig;
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 
 /// Configuration for rebuilding daemon on remote machine
 ///
@@ -134,7 +135,6 @@ pub struct RebuildConfig {
 ///
 /// The #[with_job_id] macro automatically wraps the function in NarrationContext,
 /// routing ALL narration (including timeout countdown) through SSE!
-#[with_job_id(config_param = "rebuild_config")]
 #[with_timeout(secs = 600, label = "Rebuild daemon")]
 pub async fn rebuild_daemon(rebuild_config: RebuildConfig) -> Result<()> {
     let daemon_name = &rebuild_config.daemon_name;

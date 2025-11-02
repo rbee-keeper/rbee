@@ -4,16 +4,15 @@
 
 use anyhow::Result;
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+// TEAM-385: No macro needed! Context injected by job-server
 use super::RhaiGetConfig;
 
 /// Execute RHAI script get operation
 ///
 /// # Arguments
-/// * `get_config` - Config containing job_id and script id
+/// * `get_config` - Config containing script id
 ///
-/// TEAM-350: Uses #[with_job_id] macro for automatic context wrapping
-#[with_job_id(config_param = "get_config")]
+/// TEAM-385: Context injected by job-server, no macro needed!
 pub async fn execute_rhai_script_get(get_config: RhaiGetConfig) -> Result<()> {
     n!("rhai_get_start", "📖 Fetching RHAI script: {}", get_config.id);
 

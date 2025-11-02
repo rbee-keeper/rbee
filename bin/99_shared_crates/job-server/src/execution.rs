@@ -79,68 +79,76 @@ where
         let registry_clone = registry.clone();
 
         tokio::spawn(async move {
-            n!("execute", "Executing job {}", job_id_clone);
+            // TEAM-385: Inject narration context ONCE for entire job execution
+            // ALL n!() calls in executor and nested functions will have job_id!
+            // This eliminates the need for #[with_job_id] macro and manual context setup.
+            let ctx = observability_narration_core::NarrationContext::new()
+                .with_job_id(&job_id_clone);
+            
+            observability_narration_core::with_narration_context(ctx, async move {
+                n!("execute", "Executing job {}", job_id_clone);
 
-            // Execute with timeout and cancellation support using JobError
-            let execution_future = executor(job_id_clone.clone(), payload);
+                // Execute with timeout and cancellation support using JobError
+                let execution_future = executor(job_id_clone.clone(), payload);
 
-            let result: Result<(), JobError> = if let Some(cancellation_token) = cancellation_token
-            {
-                // With cancellation support
-                if let Some(timeout_duration) = timeout {
-                    // With both timeout and cancellation
-                    tokio::select! {
-                        result = execution_future => result.map_err(JobError::from),
-                        _ = cancellation_token.cancelled() => {
-                            Err(JobError::Cancelled)
+                let result: Result<(), JobError> = if let Some(cancellation_token) = cancellation_token
+                {
+                    // With cancellation support
+                    if let Some(timeout_duration) = timeout {
+                        // With both timeout and cancellation
+                        tokio::select! {
+                            result = execution_future => result.map_err(JobError::from),
+                            _ = cancellation_token.cancelled() => {
+                                Err(JobError::Cancelled)
+                            }
+                            _ = tokio::time::sleep(timeout_duration) => {
+                                Err(JobError::Timeout(timeout_duration))
+                            }
                         }
-                        _ = tokio::time::sleep(timeout_duration) => {
-                            Err(JobError::Timeout(timeout_duration))
+                    } else {
+                        // With cancellation only
+                        tokio::select! {
+                            result = execution_future => result.map_err(JobError::from),
+                            _ = cancellation_token.cancelled() => {
+                                Err(JobError::Cancelled)
+                            }
                         }
+                    }
+                } else if let Some(timeout_duration) = timeout {
+                    // With timeout only
+                    match tokio::time::timeout(timeout_duration, execution_future).await {
+                        Ok(result) => result.map_err(JobError::from),
+                        Err(_) => Err(JobError::Timeout(timeout_duration)),
                     }
                 } else {
-                    // With cancellation only
-                    tokio::select! {
-                        result = execution_future => result.map_err(JobError::from),
-                        _ = cancellation_token.cancelled() => {
-                            Err(JobError::Cancelled)
-                        }
+                    // No timeout or cancellation
+                    execution_future.await.map_err(JobError::from)
+                };
+
+                // Update state based on JobError type
+                match result {
+                    Ok(_) => {
+                        registry_clone.update_state(&job_id_clone, JobState::Completed);
+                    }
+                    Err(JobError::Cancelled) => {
+                        registry_clone.update_state(&job_id_clone, JobState::Cancelled);
+                        n!("cancelled", "Job {} cancelled", job_id_clone);
+                    }
+                    Err(JobError::Timeout(duration)) => {
+                        let error_msg = format!("Timeout after {:?}", duration);
+                        registry_clone.update_state(&job_id_clone, JobState::Failed(error_msg.clone()));
+                        n!("timeout", "Job {} timed out: {}", job_id_clone, error_msg);
+                    }
+                    Err(JobError::ExecutionFailed(error_msg)) => {
+                        registry_clone.update_state(&job_id_clone, JobState::Failed(error_msg.clone()));
+                        n!("failed", "Job {} failed: {}", job_id_clone, error_msg);
                     }
                 }
-            } else if let Some(timeout_duration) = timeout {
-                // With timeout only
-                match tokio::time::timeout(timeout_duration, execution_future).await {
-                    Ok(result) => result.map_err(JobError::from),
-                    Err(_) => Err(JobError::Timeout(timeout_duration)),
-                }
-            } else {
-                // No timeout or cancellation
-                execution_future.await.map_err(JobError::from)
-            };
-
-            // Update state based on JobError type
-            match result {
-                Ok(_) => {
-                    registry_clone.update_state(&job_id_clone, JobState::Completed);
-                }
-                Err(JobError::Cancelled) => {
-                    registry_clone.update_state(&job_id_clone, JobState::Cancelled);
-                    n!("cancelled", "Job {} cancelled", job_id_clone);
-                }
-                Err(JobError::Timeout(duration)) => {
-                    let error_msg = format!("Timeout after {:?}", duration);
-                    registry_clone.update_state(&job_id_clone, JobState::Failed(error_msg.clone()));
-                    n!("timeout", "Job {} timed out: {}", job_id_clone, error_msg);
-                }
-                Err(JobError::ExecutionFailed(error_msg)) => {
-                    registry_clone.update_state(&job_id_clone, JobState::Failed(error_msg.clone()));
-                    n!("failed", "Job {} failed: {}", job_id_clone, error_msg);
-                }
-            }
-            
-            // TEAM-384: Drop SSE sender to signal completion
-            // This closes the channel, allowing the stream handler to send [DONE]
-            observability_narration_core::sse_sink::remove_job_channel(&job_id_clone);
+                
+                // TEAM-384: Drop SSE sender to signal completion
+                // This closes the channel, allowing the stream handler to send [DONE]
+                observability_narration_core::sse_sink::remove_job_channel(&job_id_clone);
+            }).await
         });
     } else {
         n!("no_payload", "Warning: No payload found for job {}", job_id);

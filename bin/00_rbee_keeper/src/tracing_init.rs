@@ -26,17 +26,13 @@ pub struct NarrationEvent {
 }
 
 /// Initialize tracing for CLI mode (stderr only)
+/// TEAM-385: Use custom StderrNarrationLayer for formatted output
 pub fn init_cli_tracing() {
-    fmt()
-        .with_writer(std::io::stderr)
-        .with_ansi(true)
-        .with_line_number(false)
-        .with_file(false)
-        .with_target(false)
-        // TEAM-335: NO .compact() - it buffers! Use default formatter for immediate output
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
-        )
+    let stderr_layer = StderrNarrationLayer;
+    
+    tracing_subscriber::registry()
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
+        .with(stderr_layer)
         .init();
 }
 

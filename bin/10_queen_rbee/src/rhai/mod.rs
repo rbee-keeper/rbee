@@ -21,8 +21,8 @@ pub use get::execute_rhai_script_get;
 pub use list::execute_rhai_script_list;
 pub use delete::execute_rhai_script_delete;
 
-// TEAM-350: Config structs for #[with_job_id] macro
-// The macro expects a config parameter with job_id: Option<String>
+// TEAM-385: Config structs for RHAI operations
+// job_id is now injected by job-server, no longer needed in config
 
 /// Config for RHAI test operation
 pub struct RhaiTestConfig {

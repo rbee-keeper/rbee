@@ -79,10 +79,8 @@
 //! ```
 
 use anyhow::Result;
-use job_client::JobClient;
-use observability_narration_core::{n, with_narration_context, NarrationContext}; // TEAM-380: Migrated to n!() macro
-// TEAM-285: DELETED execute_hive_start, HiveStartRequest (localhost-only, no lifecycle management)
-// TEAM-290: DELETED rbee_config import (file-based config deprecated)
+use job_client::JobClient; // TEAM-259: Shared job submission and streaming
+use observability_narration_core::n; // TEAM-385: Only n! macro needed, context from job-server
 use operations_contract::Operation; // TEAM-284: Renamed from rbee_operations
                                     // TEAM-290: DELETED Duration import (not needed anymore)
 
@@ -126,12 +124,11 @@ use operations_contract::Operation; // TEAM-284: Renamed from rbee_operations
 /// - HTTP communication failure
 ///
 /// TEAM-290: Localhost-only mode (rbee-config removed)
-/// TEAM-380: Migrated to n!() macro (manual context - no config parameter)
+/// TEAM-385: Context injected by job-server, no manual setup needed!
 pub async fn forward_to_hive(job_id: &str, operation: Operation) -> Result<()> {
-    // TEAM-380: Manual context setup
-    let ctx = NarrationContext::new().with_job_id(job_id);
+    // TEAM-385: NO context setup needed! job-server already set it!
+    // Context propagates from job-server::execute_and_stream() via task-local storage
     
-    with_narration_context(ctx, async move {
     // Extract metadata before moving operation
     let operation_name = operation.name();
     let hive_id = operation
@@ -149,7 +146,6 @@ pub async fn forward_to_hive(job_id: &str, operation: Operation) -> Result<()> {
         );
     }
 
-    // TEAM-380: Migrated to n!() macro
     n!("forward_start", "Forwarding {} operation to localhost hive", operation_name);
 
     // TEAM-290: Hardcoded localhost URL (no config needed)
@@ -157,17 +153,14 @@ pub async fn forward_to_hive(job_id: &str, operation: Operation) -> Result<()> {
 
     // TEAM-290: Skip ensure_hive_running (no lifecycle management in localhost-only mode)
 
-    // TEAM-380: Migrated to n!() macro
     n!("forward_connect", "Connecting to hive at {}", hive_url);
 
     // Forward to hive and stream responses
     stream_from_hive(job_id, &hive_url, operation).await?;
 
-    // TEAM-380: Migrated to n!() macro
     n!("forward_complete", "Operation completed on hive '{}'", hive_id);
 
     Ok(())
-    }).await // TEAM-380: Close with_narration_context
 }
 
 /// Stream responses from hive back to client

@@ -50,7 +50,8 @@
 use anyhow::{Context, Result};
 use lifecycle_shared::normalize_health_url;
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 
 /// Configuration for remote daemon uninstallation
 ///
@@ -117,7 +118,6 @@ pub struct UninstallConfig {
 ///
 /// The #[with_job_id] macro automatically wraps the function in NarrationContext,
 /// routing ALL narration (including timeout countdown) through SSE!
-#[with_job_id(config_param = "uninstall_config")]
 #[with_timeout(secs = 60, label = "Uninstall daemon")]
 pub async fn uninstall_daemon(uninstall_config: UninstallConfig) -> Result<()> {
     let daemon_name = &uninstall_config.daemon_name;

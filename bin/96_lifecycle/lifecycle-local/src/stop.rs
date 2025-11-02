@@ -45,7 +45,8 @@
 use crate::shutdown::{shutdown_daemon, ShutdownConfig};
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 use std::time::Duration;
 
 /// Configuration for stopping daemon LOCALLY
@@ -83,7 +84,6 @@ pub struct StopConfig {
 ///
 /// # Job ID Support
 /// When called with job_id in StopConfig, all narration routes through SSE
-#[with_job_id(config_param = "stop_config")]
 #[with_timeout(secs = 20, label = "Stop daemon")]
 pub async fn stop_daemon(stop_config: StopConfig) -> Result<()> {
     let daemon_name = &stop_config.daemon_name;

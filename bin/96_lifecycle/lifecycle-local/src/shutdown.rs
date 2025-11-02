@@ -55,7 +55,8 @@
 
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -97,7 +98,6 @@ pub struct ShutdownConfig {
 ///
 /// # Note
 /// This is called as a fallback from stop_daemon() when HTTP shutdown fails
-#[with_job_id(config_param = "shutdown_config")]
 #[with_timeout(secs = 15, label = "SSH shutdown")]
 pub async fn shutdown_daemon(shutdown_config: ShutdownConfig) -> Result<()> {
     let daemon_name = &shutdown_config.daemon_name;

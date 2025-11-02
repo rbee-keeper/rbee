@@ -25,6 +25,8 @@
 //! - Completion markers - [DONE], [ERROR], [CANCELLED]
 //! - Endpoint paths - Standardized URL paths
 
+// TEAM-385: tokio only available on native (not WASM)
+#[cfg(not(target_arch = "wasm32"))]
 use tokio::sync::mpsc::UnboundedReceiver;
 
 /// Job state in the registry
@@ -51,6 +53,9 @@ pub enum JobState {
 ///
 /// This trait defines the minimal interface needed by test binaries.
 /// The full implementation lives in job-server crate.
+///
+/// TEAM-385: Only available on native (not WASM) because it uses tokio::sync::mpsc
+#[cfg(not(target_arch = "wasm32"))]
 pub trait JobRegistryInterface<T>: Send + Sync {
     /// Create a new job and return job_id
     fn create_job(&self) -> String;

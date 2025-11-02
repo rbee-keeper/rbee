@@ -57,7 +57,8 @@ use crate::utils::ssh::{scp_upload, ssh_exec};
 use crate::SshConfig;
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 use std::path::PathBuf;
 
 /// Configuration for remote daemon installation
@@ -133,7 +134,6 @@ pub struct InstallConfig {
 ///
 /// The #[with_job_id] macro automatically wraps the function in NarrationContext,
 /// routing ALL narration (including timeout countdown) through SSE!
-#[with_job_id(config_param = "install_config")]
 #[with_timeout(secs = 300, label = "Install daemon")]
 pub async fn install_daemon(install_config: InstallConfig) -> Result<()> {
     let daemon_name = &install_config.daemon_name;

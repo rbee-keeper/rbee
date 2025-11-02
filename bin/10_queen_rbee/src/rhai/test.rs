@@ -4,16 +4,15 @@
 
 use anyhow::Result;
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+// TEAM-385: No macro needed! Context injected by job-server
 use super::RhaiTestConfig;
 
 /// Execute RHAI script test operation
 ///
 /// # Arguments
-/// * `test_config` - Config containing job_id and script content
+/// * `test_config` - Config containing script content
 ///
-/// TEAM-350: Uses #[with_job_id] macro for automatic context wrapping
-#[with_job_id(config_param = "test_config")]
+/// TEAM-385: Context injected by job-server, no macro needed!
 pub async fn execute_rhai_script_test(test_config: RhaiTestConfig) -> Result<()> {
     n!("rhai_test_start", "🧪 Testing RHAI script");
 

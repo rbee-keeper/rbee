@@ -61,7 +61,8 @@ use crate::utils::{check_binary_exists, CheckMode};
 use crate::utils::local::local_copy;
 use anyhow::{Context, Result};
 use observability_narration_core::n;
-use observability_narration_macros::with_job_id;
+use timeout_enforcer::with_timeout;
+
 use std::path::PathBuf;
 
 /// Configuration for LOCAL daemon installation
@@ -108,7 +109,6 @@ pub struct InstallConfig {
 ///
 /// # Job ID Support
 /// When called with job_id, narration routes through SSE
-#[with_job_id(config_param = "install_config")]
 #[with_timeout(secs = 300, label = "Install daemon")]
 pub async fn install_daemon(install_config: InstallConfig) -> Result<()> {
     let daemon_name = &install_config.daemon_name;

@@ -1,4 +1,4 @@
-// TEAM-XXX: Extracted from llm-worker-rbee/src/device.rs
+// TEAM-390: Extracted from llm-worker-rbee/src/device.rs
 // Original: TEAM-109 Audited 2025-10-18 - ✅ CLEAN - Multi-backend device initialization
 //
 //! Device initialization and management

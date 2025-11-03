@@ -1,4 +1,4 @@
-// TEAM-XXX: Metal binary for SD worker
+// TEAM-390: Metal binary for SD worker
 //
 // Stable Diffusion worker using Metal backend (macOS only).
 

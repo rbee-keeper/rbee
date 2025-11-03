@@ -1,4 +1,4 @@
-// TEAM-XXX: Narration utilities for SD worker
+// TEAM-390: Narration utilities for SD worker
 //
 // Provides structured logging and progress reporting.
 

@@ -1,4 +1,4 @@
-// TEAM-XXX: Stable Diffusion worker library
+// TEAM-390: Stable Diffusion worker library
 //
 // This crate provides a Candle-based Stable Diffusion inference worker
 // with support for CPU, CUDA, and Metal backends.

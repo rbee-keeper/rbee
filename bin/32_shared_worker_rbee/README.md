@@ -2,7 +2,7 @@
 
 **Shared utilities for all worker types (LLM, SD, etc.)**
 
-Created by: **TEAM-XXX**
+Created by: **TEAM-390**
 
 ---
 

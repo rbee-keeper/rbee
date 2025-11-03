@@ -1,4 +1,4 @@
-// TEAM-XXX: Error types for SD worker
+// TEAM-390: Error types for SD worker
 
 use thiserror::Error;
 

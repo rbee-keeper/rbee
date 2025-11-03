@@ -1,11 +1,14 @@
-// TEAM-XXX: Stable Diffusion backend implementations
+// TEAM-390: Stable Diffusion backend implementations
 //
-// This module will contain the Candle-based SD inference backend.
-// Placeholder for future implementation.
+// Backend modules for SD inference using Candle.
+
+pub mod model_loader;
+pub mod models;
 
 use crate::error::Result;
 use crate::job_router::{GenerationResponse, ImageToImageRequest, InpaintRequest, TextToImageRequest};
 use candle_core::Device;
+use models::ModelComponents;
 
 /// Stable Diffusion backend trait
 pub trait SDBackend: Send + Sync {
@@ -24,32 +27,40 @@ pub trait SDBackend: Send + Sync {
 
 /// Candle-based Stable Diffusion backend
 pub struct CandleSDBackend {
+    model: ModelComponents,
     device: Device,
-    // TODO: Add SD model components (CLIP, UNet, VAE, scheduler)
 }
 
 impl CandleSDBackend {
-    /// Create a new Candle SD backend
-    pub fn new(device: Device) -> Result<Self> {
-        // TODO: Load SD model components
-        Ok(Self { device })
+    /// Create a new backend with loaded model
+    pub fn new(model: ModelComponents, device: Device) -> Self {
+        Self { model, device }
+    }
+
+    /// Get the model version
+    pub fn version(&self) -> models::SDVersion {
+        self.model.version
     }
 }
 
 impl SDBackend for CandleSDBackend {
     fn text_to_image(&self, _request: TextToImageRequest) -> Result<GenerationResponse> {
-        // TODO: Implement text-to-image pipeline
-        todo!("Text-to-image not yet implemented")
+        // TODO: Implement text-to-image generation
+        // 1. Encode prompt with CLIP
+        // 2. Run diffusion loop
+        // 3. Decode latents with VAE
+        // 4. Convert to base64 image
+        todo!("text_to_image not yet implemented")
     }
 
     fn image_to_image(&self, _request: ImageToImageRequest) -> Result<GenerationResponse> {
-        // TODO: Implement image-to-image pipeline
-        todo!("Image-to-image not yet implemented")
+        // TODO: Implement image-to-image transformation
+        todo!("image_to_image not yet implemented")
     }
 
     fn inpaint(&self, _request: InpaintRequest) -> Result<GenerationResponse> {
-        // TODO: Implement inpainting pipeline
-        todo!("Inpainting not yet implemented")
+        // TODO: Implement inpainting
+        todo!("inpaint not yet implemented")
     }
 
     fn device_name(&self) -> String {

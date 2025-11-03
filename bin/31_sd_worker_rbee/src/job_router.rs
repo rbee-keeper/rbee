@@ -1,4 +1,4 @@
-// TEAM-XXX: Job routing for SD worker
+// TEAM-390: Job routing for SD worker
 //
 // Routes incoming generation requests to the appropriate backend.
 // Placeholder for future implementation.

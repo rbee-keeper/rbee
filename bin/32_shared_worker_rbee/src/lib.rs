@@ -1,4 +1,4 @@
-// TEAM-XXX: Shared worker utilities
+// TEAM-390: Shared worker utilities
 //
 // This crate provides common infrastructure for all worker types (LLM, SD, etc.)
 

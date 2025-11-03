@@ -2,7 +2,7 @@
 
 **Candle-based Stable Diffusion inference worker daemon**
 
-Created by: **TEAM-XXX** (Foundation)
+Created by: **TEAM-390** (Foundation)
 
 ---
 
@@ -463,7 +463,7 @@ Fill masked regions with AI-generated content.
 
 ## Team
 
-**TEAM-XXX** (Foundation)
+**TEAM-390** (Foundation)
 - Mission: Build production-ready Stable Diffusion worker
 - Focus: Candle integration, worker pattern reuse, UI development
 - Motto: "Images speak louder than words"
@@ -479,7 +479,7 @@ GPL-3.0-or-later
 ## Contributing
 
 1. Follow worker pattern from `llm-worker-rbee`
-2. Add TEAM-XXX signatures to code changes
+2. Add TEAM-390 signatures to code changes
 3. Validate with reference Candle examples
 4. Keep CPU path working (CUDA/Metal optional)
 5. Update documentation when adding features

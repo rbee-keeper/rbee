@@ -1,4 +1,4 @@
-// TEAM-XXX: HTTP server for SD worker
+// TEAM-390: HTTP server for SD worker
 //
 // Provides REST API endpoints for image generation.
 // Placeholder for future implementation.

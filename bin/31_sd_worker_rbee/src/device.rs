@@ -1,4 +1,4 @@
-// TEAM-XXX: Device management for SD worker
+// TEAM-390: Device management for SD worker
 //
 // Re-exports device management from shared-worker-rbee.
 // All workers use the same device initialization logic.

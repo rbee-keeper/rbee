@@ -1,4 +1,4 @@
-// TEAM-XXX: CUDA binary for SD worker
+// TEAM-390: CUDA binary for SD worker
 //
 // Stable Diffusion worker using CUDA backend.
 

@@ -1,4 +1,4 @@
-// TEAM-XXX: CPU binary for SD worker
+// TEAM-390: CPU binary for SD worker
 //
 // Stable Diffusion worker using CPU backend.
 

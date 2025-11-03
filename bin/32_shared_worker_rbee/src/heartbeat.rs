@@ -1,4 +1,4 @@
-// TEAM-XXX: Extracted from llm-worker-rbee/src/heartbeat.rs
+// TEAM-390: Extracted from llm-worker-rbee/src/heartbeat.rs
 // Original: TEAM-164, TEAM-261, TEAM-380
 //
 //! Worker heartbeat handling

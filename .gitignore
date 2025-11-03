@@ -138,3 +138,7 @@ __pycache__
 .bdd-progress.json
 
 /dist/
+
+# Private submodules (tracked in .gitmodules but ignored from main repo commits)
+# Note: Submodule reference is tracked, but contents are not
+# /frontend/apps/commercial/

@@ -12,6 +12,11 @@ pub mod scheduler;
 pub mod sampling;
 pub mod inference;
 
+// TEAM-393: Generation engine modules
+pub mod request_queue;
+pub mod image_utils;
+pub mod generation_engine;
+
 use crate::error::Result;
 use crate::job_router::{GenerationResponse, ImageToImageRequest, InpaintRequest, TextToImageRequest};
 use candle_core::Device;

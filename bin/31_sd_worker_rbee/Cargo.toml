@@ -1,0 +1,215 @@
+[package]
+name = "sd-worker-rbee"
+version = "0.1.0"
+edition = "2021"
+authors = ["TEAM-XXX Foundation"]
+description = "Candle-based Stable Diffusion inference worker daemon with CUDA/Metal/CPU acceleration"
+license = "GPL-3.0-or-later"
+build = "build.rs"
+
+# Stable Diffusion Worker daemon (HTTP server)
+# Binary names: `sd-worker-cpu`, `sd-worker-cuda`, `sd-worker-metal`
+# Purpose: Loads SD model, generates images, streams progress via SSE
+# Protocol: HTTP (listens on assigned port)
+# Spawned by: `rbee-hive` (pool manager)
+
+[lints.clippy]
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CLIPPY LINTS — Strict quality enforcement for inference engine
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Correctness (deny - these are bugs)
+correctness = "deny"
+
+# Suspicious patterns (deny - likely bugs)
+suspicious = "deny"
+
+# Complexity (warn - code smell)
+complexity = "warn"
+
+# Performance (warn - optimization opportunities)
+perf = "warn"
+
+# Style (warn - consistency)
+style = "warn"
+
+# Pedantic (warn - best practices)
+pedantic = "warn"
+
+# Nursery (allow - experimental lints)
+nursery = "allow"
+
+# Cargo (warn - manifest issues)
+cargo = "warn"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SPECIFIC LINTS — Fine-tuned for ML/inference workloads
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Deny unsafe without explicit justification
+undocumented_unsafe_blocks = "deny"
+
+# Allow some common patterns in ML code
+cast_possible_truncation = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+similar_names = "allow"
+module_name_repetitions = "allow"
+too_many_lines = "allow"
+
+[dependencies]
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CANDLE — ML framework (feature-gated for CPU/CUDA/Metal)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+candle-core = { git = "https://github.com/huggingface/candle.git", default-features = false }
+candle-nn = { git = "https://github.com/huggingface/candle.git", default-features = false }
+candle-transformers = { git = "https://github.com/huggingface/candle.git", default-features = false }
+
+# Flash attention (optional, CUDA only, requires Ampere/Ada/Hopper GPU)
+candle-flash-attn = { git = "https://github.com/huggingface/candle.git", optional = true }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WORKER INFRASTRUCTURE — Shared with llm-worker-rbee
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+shared-worker-rbee = { path = "../32_shared_worker_rbee" }
+observability-narration-core = { path = "../99_shared_crates/narration-core" }
+stdext = "0.3"  # Required by n!() macro
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# IMAGE PROCESSING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+base64 = "0.22"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# HUGGINGFACE ECOSYSTEM
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+hf-hub = { version = "0.3", features = ["tokio"] }
+tokenizers = { version = "0.20", default-features = false, features = ["onig"] }
+safetensors = "0.4"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# HTTP SERVER
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+axum = { version = "0.7", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ASYNC RUNTIME
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tokio = { version = "1.48", features = ["rt", "macros", "sync", "time"] }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SERIALIZATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CLI & LOGGING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+clap = { version = "4.5", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ERROR HANDLING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+anyhow = "1.0"
+thiserror = "2.0"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# UTILITIES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+rand = "0.8"
+
+[build-dependencies]
+shadow-rs = "0.35"
+
+[dev-dependencies]
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TESTING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tokio-test = "0.4"
+tempfile = "3.14"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# FEATURES — Backend selection (mutually exclusive at build time)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[features]
+default = []
+
+# CPU backend (pure Rust, no GPU) - CPU is default for candle
+cpu = [
+    "shared-worker-rbee/cpu",
+]
+
+# CUDA backend (NVIDIA GPU)
+cuda = [
+    "candle-core/cuda",
+    "candle-nn/cuda",
+    "candle-transformers/cuda",
+    "shared-worker-rbee/cuda",
+]
+
+# cuDNN acceleration (NVIDIA GPU, requires CUDA)
+cudnn = [
+    "cuda",
+    "candle-core/cudnn",
+    "candle-nn/cudnn",
+    "candle-transformers/cudnn",
+    "shared-worker-rbee/cudnn",
+]
+
+# Flash attention (CUDA only, Ampere/Ada/Hopper GPUs)
+flash-attn = [
+    "cuda",
+    "candle-transformers/flash-attn",
+    "dep:candle-flash-attn",
+]
+
+# Metal backend (Apple Silicon GPU)
+metal = [
+    "candle-core/metal",
+    "candle-nn/metal",
+    "candle-transformers/metal",
+    "shared-worker-rbee/metal",
+]
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# BINARIES — Three feature-gated binaries
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# CPU binary
+[[bin]]
+name = "sd-worker-cpu"
+path = "src/bin/cpu.rs"
+required-features = ["cpu"]
+
+# CUDA binary
+[[bin]]
+name = "sd-worker-cuda"
+path = "src/bin/cuda.rs"
+required-features = ["cuda"]
+
+# Metal binary (macOS only)
+[[bin]]
+name = "sd-worker-metal"
+path = "src/bin/metal.rs"
+required-features = ["metal"]
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PROFILE CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true

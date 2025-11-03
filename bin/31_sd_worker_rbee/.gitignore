@@ -1,0 +1,13 @@
+# Rust
+target/
+Cargo.lock
+
+# Test models
+.test-models/
+*.safetensors
+*.gguf
+
+# Generated images
+*.png
+*.jpg
+output/

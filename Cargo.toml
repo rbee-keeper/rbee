@@ -12,6 +12,8 @@ members = [
     "bin/10_queen_rbee",          # Daemon for managing rbee-hive instances (job-based arch, no BDD)
     "bin/20_rbee_hive",           # Daemon for managing LLM worker instances
     "bin/30_llm_worker_rbee",     # LLM inference worker daemon
+    "bin/31_sd_worker_rbee",      # Stable Diffusion inference worker daemon
+    "bin/32_shared_worker_rbee",  # Shared utilities for all worker types (LLM, SD, etc.)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # RBEE-KEEPER CRATES — CLI tool crates

@@ -1,0 +1,58 @@
+[package]
+name = "shared-worker-rbee"
+version = "0.1.0"
+edition = "2021"
+authors = ["TEAM-XXX"]
+description = "Shared utilities for LLM and SD worker daemons"
+license = "GPL-3.0-or-later"
+
+# Shared worker infrastructure for all worker types (LLM, SD, etc.)
+# Provides common device management, heartbeat, and worker patterns
+
+[dependencies]
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CANDLE — ML framework (feature-gated for CPU/CUDA/Metal)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+candle-core = { git = "https://github.com/huggingface/candle.git", default-features = false }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# OBSERVABILITY
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+observability-narration-core = { path = "../99_shared_crates/narration-core" }
+tracing = "0.1"
+stdext = "0.3"  # Required by n!() macro
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WORKER CONTRACTS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+worker-contract = { path = "../97_contracts/worker-contract" }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ASYNC RUNTIME
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tokio = { version = "1.48", features = ["time"] }
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ERROR HANDLING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+anyhow = "1.0"
+thiserror = "2.0"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# FEATURES — Backend selection (mutually exclusive at build time)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[features]
+default = []
+
+# CPU backend (pure Rust, no GPU) - CPU is the default, no feature needed
+cpu = []
+
+# CUDA backend (NVIDIA GPU)
+cuda = ["candle-core/cuda"]
+
+# cuDNN acceleration (NVIDIA GPU, requires CUDA)
+cudnn = ["cuda", "candle-core/cudnn"]
+
+# Metal backend (Apple Silicon GPU)
+metal = ["candle-core/metal"]

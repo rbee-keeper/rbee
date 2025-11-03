@@ -1,0 +1,25 @@
+{
+  "name": "@rbee/sd-worker-react",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@rbee/sd-worker-sdk": "workspace:*",
+    "@tanstack/react-query": "^5.62.14"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.16",
+    "typescript": "^5.2.2"
+  }
+}

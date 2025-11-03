@@ -155,26 +155,20 @@ impl ModelFile {
 }
 
 /// Model components loaded into memory
+/// TEAM-397: RULE ZERO - Direct Candle types, NO wrappers
 pub struct ModelComponents {
     pub version: SDVersion,
     pub device: Device,
-    pub use_f16: bool,
-    // Components will be added as we implement them
-    // pub clip: ClipTextTransformer,
-    // pub unet: UNet2DConditionModel,
-    // pub vae: AutoEncoderKL,
-    // pub scheduler: Scheduler,
-}
-
-impl ModelComponents {
-    /// Create placeholder (will be implemented in model_loader.rs)
-    pub fn new(version: SDVersion, device: Device, use_f16: bool) -> Self {
-        Self {
-            version,
-            device,
-            use_f16,
-        }
-    }
+    pub dtype: candle_core::DType,
+    
+    // ✅ Direct Candle types (no wrappers)
+    pub tokenizer: tokenizers::Tokenizer,
+    pub clip_config: candle_transformers::models::stable_diffusion::clip::Config,
+    pub clip_weights: std::path::PathBuf,
+    pub unet: candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModel,
+    pub vae: candle_transformers::models::stable_diffusion::vae::AutoEncoderKL,
+    pub scheduler: crate::backend::scheduler::DDIMScheduler,  // TEAM-397: Use our scheduler
+    pub vae_scale: f64,
 }
 
 #[cfg(test)]

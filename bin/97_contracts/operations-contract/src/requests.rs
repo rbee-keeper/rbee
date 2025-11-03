@@ -195,6 +195,110 @@ fn default_stream() -> bool {
     true
 }
 
+// ============================================================================
+// Image Generation Requests (TEAM-397)
+// ============================================================================
+
+/// Request to generate image from text prompt (Stable Diffusion)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ImageGenerationRequest {
+    /// Hive ID (for routing)
+    pub hive_id: String,
+    /// Model to use (e.g., "stable-diffusion-v1-5")
+    pub model: String,
+    /// Text prompt
+    pub prompt: String,
+    /// Negative prompt (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub negative_prompt: Option<String>,
+    /// Number of inference steps
+    #[serde(default = "default_steps")]
+    pub steps: usize,
+    /// Guidance scale
+    #[serde(default = "default_guidance")]
+    pub guidance_scale: f64,
+    /// Image width
+    #[serde(default = "default_width")]
+    pub width: usize,
+    /// Image height
+    #[serde(default = "default_height")]
+    pub height: usize,
+    /// Random seed (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seed: Option<u64>,
+    /// Specific worker ID (optional, for direct routing)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub worker_id: Option<String>,
+}
+
+fn default_steps() -> usize { 20 }
+fn default_guidance() -> f64 { 7.5 }
+fn default_width() -> usize { 512 }
+fn default_height() -> usize { 512 }
+
+/// Request to transform image (img2img)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ImageTransformRequest {
+    /// Hive ID (for routing)
+    pub hive_id: String,
+    /// Model to use
+    pub model: String,
+    /// Text prompt
+    pub prompt: String,
+    /// Negative prompt (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub negative_prompt: Option<String>,
+    /// Base64-encoded input image
+    pub init_image: String,
+    /// Strength of transformation (0.0-1.0)
+    #[serde(default = "default_strength")]
+    pub strength: f64,
+    /// Number of inference steps
+    #[serde(default = "default_steps")]
+    pub steps: usize,
+    /// Guidance scale
+    #[serde(default = "default_guidance")]
+    pub guidance_scale: f64,
+    /// Random seed (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seed: Option<u64>,
+    /// Specific worker ID (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub worker_id: Option<String>,
+}
+
+fn default_strength() -> f64 { 0.8 }
+
+/// Request to inpaint image
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ImageInpaintRequest {
+    /// Hive ID (for routing)
+    pub hive_id: String,
+    /// Model to use
+    pub model: String,
+    /// Text prompt
+    pub prompt: String,
+    /// Negative prompt (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub negative_prompt: Option<String>,
+    /// Base64-encoded input image
+    pub init_image: String,
+    /// Base64-encoded mask (white = inpaint, black = keep)
+    pub mask_image: String,
+    /// Number of inference steps
+    #[serde(default = "default_steps")]
+    pub steps: usize,
+    /// Guidance scale
+    #[serde(default = "default_guidance")]
+    pub guidance_scale: f64,
+    /// Random seed (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seed: Option<u64>,
+    /// Specific worker ID (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub worker_id: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -236,5 +340,89 @@ mod tests {
 
         // top_k should be omitted
         assert!(!json.contains("\"top_k\""));
+    }
+
+    // TEAM-397/398: Tests for image generation requests
+    #[test]
+    fn test_image_generation_request_serialization() {
+        let request = ImageGenerationRequest {
+            hive_id: "localhost".to_string(),
+            model: "stable-diffusion-v1-5".to_string(),
+            prompt: "a beautiful sunset".to_string(),
+            negative_prompt: Some("ugly, blurry".to_string()),
+            steps: 20,
+            guidance_scale: 7.5,
+            width: 512,
+            height: 512,
+            seed: Some(42),
+            worker_id: None,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        let deserialized: ImageGenerationRequest = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(request, deserialized);
+        assert!(json.contains("\"prompt\":\"a beautiful sunset\""));
+        assert!(json.contains("\"negative_prompt\":\"ugly, blurry\""));
+    }
+
+    #[test]
+    fn test_image_generation_request_defaults() {
+        let json = r#"{
+            "hive_id": "localhost",
+            "model": "stable-diffusion-v1-5",
+            "prompt": "test"
+        }"#;
+
+        let request: ImageGenerationRequest = serde_json::from_str(json).unwrap();
+
+        assert_eq!(request.steps, 20); // default
+        assert_eq!(request.guidance_scale, 7.5); // default
+        assert_eq!(request.width, 512); // default
+        assert_eq!(request.height, 512); // default
+    }
+
+    #[test]
+    fn test_image_transform_request_serialization() {
+        let request = ImageTransformRequest {
+            hive_id: "localhost".to_string(),
+            model: "stable-diffusion-v1-5".to_string(),
+            prompt: "make it artistic".to_string(),
+            negative_prompt: None,
+            init_image: "base64encodedimage".to_string(),
+            strength: 0.8,
+            steps: 20,
+            guidance_scale: 7.5,
+            seed: None,
+            worker_id: None,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        let deserialized: ImageTransformRequest = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(request, deserialized);
+        assert!(json.contains("\"strength\":0.8"));
+    }
+
+    #[test]
+    fn test_image_inpaint_request_serialization() {
+        let request = ImageInpaintRequest {
+            hive_id: "localhost".to_string(),
+            model: "stable-diffusion-v1-5".to_string(),
+            prompt: "a red car".to_string(),
+            negative_prompt: None,
+            init_image: "base64encodedimage".to_string(),
+            mask_image: "base64encodedmask".to_string(),
+            steps: 20,
+            guidance_scale: 7.5,
+            seed: None,
+            worker_id: None,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        let deserialized: ImageInpaintRequest = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(request, deserialized);
+        assert!(json.contains("\"mask_image\":\"base64encodedmask\""));
     }
 }

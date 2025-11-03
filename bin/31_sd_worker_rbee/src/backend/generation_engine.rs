@@ -10,20 +10,22 @@
 // 6. Matches bin/30_llm_worker_rbee/src/backend/generation_engine.rs
 
 use crate::backend::{
-    inference::InferencePipeline,
+    generation,  // TEAM-397: Direct Candle functions
+    models::ModelComponents,  // TEAM-397: Direct Candle types
     request_queue::{GenerationRequest, GenerationResponse},
     image_utils::image_to_base64,
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 /// Generation engine that processes inference requests
 ///
 /// TEAM-396: Fixed to match LLM worker pattern
+/// TEAM-397: RULE ZERO - Uses direct Candle functions, not InferencePipeline wrapper
 /// This runs in `spawn_blocking` to avoid blocking the async runtime.
 /// It pulls requests from the queue and generates images one by one.
 pub struct GenerationEngine {
-    pipeline: Arc<Mutex<InferencePipeline>>,
+    models: Arc<ModelComponents>,  // TEAM-397: Direct Candle types
     request_rx: mpsc::UnboundedReceiver<GenerationRequest>,
 }
 
@@ -31,15 +33,16 @@ impl GenerationEngine {
     /// Create a new generation engine
     ///
     /// # Arguments
-    /// * `pipeline` - The inference pipeline (shared, locked)
+    /// * `models` - The loaded model components (direct Candle types)
     /// * `request_rx` - Receiver for generation requests from HTTP handlers
     ///
     /// TEAM-396: Takes rx as parameter (dependency injection)
+    /// TEAM-397: Takes ModelComponents instead of InferencePipeline
     pub fn new(
-        pipeline: Arc<Mutex<InferencePipeline>>,
+        models: Arc<ModelComponents>,
         request_rx: mpsc::UnboundedReceiver<GenerationRequest>,
     ) -> Self {
-        Self { pipeline, request_rx }
+        Self { models, request_rx }
     }
 
     /// Start the generation engine loop
@@ -74,21 +77,17 @@ impl GenerationEngine {
                     "Processing generation request"
                 );
 
-                // Lock pipeline for this request only
-                // CRITICAL: Lock is held only during generation, not while waiting
-                let mut pipeline = self.pipeline.lock().unwrap();
-
-                // Generate and send through channel
-                Self::generate_image(
-                    &mut pipeline,
+                // TEAM-397: Call Candle generation function directly
+                // No lock needed - ModelComponents is immutable
+                Self::generate_and_send(
+                    &self.models,
                     &request.config,
                     request.response_tx,
                 );
 
-                // Lock is released here, next request can proceed
                 tracing::debug!(
                     request_id = %request.request_id,
-                    "Request completed, pipeline lock released"
+                    "Request completed"
                 );
             }
 
@@ -99,8 +98,9 @@ impl GenerationEngine {
     /// Generate image and send responses through channel
     ///
     /// TEAM-396: Simplified - response_tx is in the request
-    fn generate_image(
-        pipeline: &mut InferencePipeline,
+    /// TEAM-397: RULE ZERO - Calls generation::generate_image() directly
+    fn generate_and_send(
+        models: &ModelComponents,
         config: &crate::backend::sampling::SamplingConfig,
         response_tx: mpsc::UnboundedSender<GenerationResponse>,
     ) {
@@ -110,8 +110,8 @@ impl GenerationEngine {
             let _ = progress_tx.send(GenerationResponse::Progress { step, total });
         };
 
-        // Generate image
-        match pipeline.text_to_image(config, progress_callback) {
+        // TEAM-397: Call Candle generation function (not struct method)
+        match generation::generate_image(config, models, progress_callback) {
             Ok(image) => {
                 // Send complete response with image
                 let _ = response_tx.send(GenerationResponse::Complete { image });
@@ -119,7 +119,7 @@ impl GenerationEngine {
             Err(e) => {
                 tracing::error!(error = %e, "Generation failed");
                 let _ = response_tx.send(GenerationResponse::Error {
-                    message: format!("Generation failed: {}", e),
+                    message: e.to_string(),
                 });
             }
         }

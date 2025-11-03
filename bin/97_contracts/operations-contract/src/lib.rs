@@ -98,6 +98,15 @@ pub enum Operation {
     /// Schedule inference and route to worker
     Infer(InferRequest),
     
+    // Image Generation Operations (TEAM-397)
+    // ───────────────────────────────────────────────────────────────────────
+    /// Generate image from text prompt (Stable Diffusion)
+    ImageGeneration(ImageGenerationRequest),
+    /// Transform image (img2img)
+    ImageTransform(ImageTransformRequest),
+    /// Inpaint image with mask
+    ImageInpaint(ImageInpaintRequest),
+    
     // RHAI Script Management
     // ───────────────────────────────────────────────────────────────────────
     /// Save a RHAI script
@@ -269,5 +278,112 @@ mod tests {
 
         let op = Operation::Status;
         assert_eq!(op.hive_id(), None);
+    }
+
+    // TEAM-397/398: Tests for image generation operations
+    #[test]
+    fn test_serialize_image_generation() {
+        let op = Operation::ImageGeneration(ImageGenerationRequest {
+            hive_id: "localhost".to_string(),
+            model: "stable-diffusion-v1-5".to_string(),
+            prompt: "test prompt".to_string(),
+            negative_prompt: None,
+            steps: 20,
+            guidance_scale: 7.5,
+            width: 512,
+            height: 512,
+            seed: None,
+            worker_id: None,
+        });
+        let json = serde_json::to_string(&op).unwrap();
+        assert!(json.contains(r#""operation":"image_generation"#));
+        assert!(json.contains(r#""prompt":"test prompt"#));
+    }
+
+    #[test]
+    fn test_deserialize_image_generation() {
+        let json = r#"{
+            "operation": "image_generation",
+            "hive_id": "localhost",
+            "model": "stable-diffusion-v1-5",
+            "prompt": "test",
+            "steps": 20,
+            "guidance_scale": 7.5,
+            "width": 512,
+            "height": 512
+        }"#;
+        let op: Operation = serde_json::from_str(json).unwrap();
+        match op {
+            Operation::ImageGeneration(req) => {
+                assert_eq!(req.hive_id, "localhost");
+                assert_eq!(req.prompt, "test");
+                assert_eq!(req.steps, 20);
+            }
+            _ => panic!("Wrong operation type"),
+        }
+    }
+
+    #[test]
+    fn test_image_operation_names() {
+        let op1 = Operation::ImageGeneration(ImageGenerationRequest {
+            hive_id: "localhost".to_string(),
+            model: "sd".to_string(),
+            prompt: "test".to_string(),
+            negative_prompt: None,
+            steps: 20,
+            guidance_scale: 7.5,
+            width: 512,
+            height: 512,
+            seed: None,
+            worker_id: None,
+        });
+        assert_eq!(op1.name(), "image_generation");
+
+        let op2 = Operation::ImageTransform(ImageTransformRequest {
+            hive_id: "localhost".to_string(),
+            model: "sd".to_string(),
+            prompt: "test".to_string(),
+            negative_prompt: None,
+            init_image: "base64".to_string(),
+            strength: 0.8,
+            steps: 20,
+            guidance_scale: 7.5,
+            seed: None,
+            worker_id: None,
+        });
+        assert_eq!(op2.name(), "image_transform");
+
+        let op3 = Operation::ImageInpaint(ImageInpaintRequest {
+            hive_id: "localhost".to_string(),
+            model: "sd".to_string(),
+            prompt: "test".to_string(),
+            negative_prompt: None,
+            init_image: "base64".to_string(),
+            mask_image: "mask".to_string(),
+            steps: 20,
+            guidance_scale: 7.5,
+            seed: None,
+            worker_id: None,
+        });
+        assert_eq!(op3.name(), "image_inpaint");
+    }
+
+    #[test]
+    fn test_image_operation_target_server() {
+        use crate::operation_impl::TargetServer;
+        
+        let op = Operation::ImageGeneration(ImageGenerationRequest {
+            hive_id: "localhost".to_string(),
+            model: "sd".to_string(),
+            prompt: "test".to_string(),
+            negative_prompt: None,
+            steps: 20,
+            guidance_scale: 7.5,
+            width: 512,
+            height: 512,
+            seed: None,
+            worker_id: None,
+        });
+        assert_eq!(op.target_server(), TargetServer::Queen);
     }
 }

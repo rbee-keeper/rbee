@@ -43,58 +43,71 @@ pub async fn create_job(state: JobState, payload: serde_json::Value) -> Result<J
         .map_err(|e| anyhow!("Failed to parse operation: {}", e))?;
 
     // Route to appropriate handler
+    // TEAM-397: Image operations now in operations-contract
     match operation {
-        // TODO TEAM-397: Add Operation::ImageGeneration to operations-contract first!
-        // Operation::ImageGeneration(req) => execute_image_generation(state, req).await,
-        // Operation::ImageTransform(req) => execute_image_transform(state, req).await,
-        // Operation::ImageInpaint(req) => execute_inpaint(state, req).await,
+        Operation::ImageGeneration(req) => execute_image_generation(state, req).await,
+        Operation::ImageTransform(req) => execute_image_transform(state, req).await,
+        Operation::ImageInpaint(req) => execute_inpaint(state, req).await,
         _ => Err(anyhow!(
-            "Unsupported operation for SD worker: {:?}\n\n\
-            TEAM-397 TODO:\n\
-            1. Add Operation::ImageGeneration to operations-contract\n\
-            2. Add Operation::ImageTransform to operations-contract\n\
-            3. Add Operation::ImageInpaint to operations-contract\n\
-            4. Implement handlers in this file\n\n\
-            See: OPERATIONS_CONTRACT_ANALYSIS.md and CORRECT_IMPLEMENTATION_PLAN.md",
+            "Unsupported operation for SD worker: {:?}",
             operation
         )),
     }
 }
 
-// TODO TEAM-397: Implement these handlers after adding operations to contract
-//
-// /// Execute image generation operation
-// async fn execute_image_generation(
-//     state: JobState,
-//     req: operations_contract::ImageGenerationRequest,
-// ) -> Result<JobResponse> {
-//     let job_id = state.registry.create_job();
-//     sse_sink::create_job_channel(job_id.clone(), 1000);
-//     
-//     let (response_tx, response_rx) = tokio::sync::mpsc::unbounded_channel();
-//     state.registry.set_token_receiver(&job_id, response_rx);
-//     
-//     let config = SamplingConfig {
-//         prompt: req.prompt,
-//         negative_prompt: req.negative_prompt,
-//         steps: req.steps,
-//         guidance_scale: req.guidance_scale,
-//         width: req.width,
-//         height: req.height,
-//         seed: req.seed,
-//         ..Default::default()
-//     };
-//     
-//     let request = GenerationRequest {
-//         request_id: job_id.clone(),
-//         config,
-//         response_tx,
-//     };
-//     
-//     state.queue.add_request(request)?;
-//     
-//     Ok(JobResponse {
-//         job_id: job_id.clone(),
-//         sse_url: format!("/v1/jobs/{}/stream", job_id),
-//     })
-// }
+// TEAM-397: Image generation handlers
+
+/// Execute image generation operation
+async fn execute_image_generation(
+    state: JobState,
+    req: operations_contract::ImageGenerationRequest,
+) -> Result<JobResponse> {
+    let job_id = state.registry.create_job();
+    sse_sink::create_job_channel(job_id.clone(), 1000);
+    
+    let (response_tx, response_rx) = tokio::sync::mpsc::unbounded_channel();
+    state.registry.set_token_receiver(&job_id, response_rx);
+    
+    let config = SamplingConfig {
+        prompt: req.prompt,
+        negative_prompt: req.negative_prompt,
+        steps: req.steps,
+        guidance_scale: req.guidance_scale,
+        width: req.width,
+        height: req.height,
+        seed: req.seed,
+        ..Default::default()
+    };
+    
+    let request = GenerationRequest {
+        request_id: job_id.clone(),
+        config,
+        response_tx,
+    };
+    
+    state.queue.add_request(request)
+        .map_err(|e| anyhow!("Failed to add request to queue: {}", e))?;
+    
+    Ok(JobResponse {
+        job_id: job_id.clone(),
+        sse_url: format!("/v1/jobs/{}/stream", job_id),
+    })
+}
+
+/// Execute image transform operation (img2img)
+/// TEAM-397: Basic implementation, can be enhanced later
+async fn execute_image_transform(
+    _state: JobState,
+    _req: operations_contract::ImageTransformRequest,
+) -> Result<JobResponse> {
+    Err(anyhow!("ImageTransform not yet implemented - requires img2img pipeline"))
+}
+
+/// Execute inpaint operation
+/// TEAM-397: Basic implementation, can be enhanced later
+async fn execute_inpaint(
+    _state: JobState,
+    _req: operations_contract::ImageInpaintRequest,
+) -> Result<JobResponse> {
+    Err(anyhow!("ImageInpaint not yet implemented - requires inpainting pipeline"))
+}

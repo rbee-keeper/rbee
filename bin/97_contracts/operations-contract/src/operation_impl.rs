@@ -23,6 +23,11 @@ impl Operation {
             Operation::Status => "status",
             Operation::Infer { .. } => "infer",
             
+            // Image generation operations (TEAM-397)
+            Operation::ImageGeneration { .. } => "image_generation",
+            Operation::ImageTransform { .. } => "image_transform",
+            Operation::ImageInpaint { .. } => "image_inpaint",
+            
             // Hive operations - Worker lifecycle
             Operation::WorkerCatalogList { .. } => "worker_catalog_list", // TEAM-388: List available workers from catalog
             Operation::WorkerCatalogGet { .. } => "worker_catalog_get", // TEAM-388: Get worker from catalog
@@ -78,6 +83,11 @@ impl Operation {
             Operation::ModelUnload(req) => Some(&req.hive_id),
             Operation::Infer(req) => Some(&req.hive_id),
             
+            // Image generation operations (TEAM-397)
+            Operation::ImageGeneration(req) => Some(&req.hive_id),
+            Operation::ImageTransform(req) => Some(&req.hive_id),
+            Operation::ImageInpaint(req) => Some(&req.hive_id),
+            
             // Operations with alias field
             Operation::HiveCheck { alias } => Some(alias),
             
@@ -114,7 +124,11 @@ impl Operation {
     pub fn target_server(&self) -> TargetServer {
         match self {
             // Queen operations (orchestration)
-            Operation::Status | Operation::Infer(_) => TargetServer::Queen,
+            Operation::Status 
+                | Operation::Infer(_)
+                | Operation::ImageGeneration(_) // TEAM-397: Image operations route through Queen
+                | Operation::ImageTransform(_)
+                | Operation::ImageInpaint(_) => TargetServer::Queen,
             
             // Hive operations (worker/model lifecycle)
             Operation::WorkerCatalogList(_) // TEAM-388: List available workers from catalog

@@ -5,6 +5,13 @@
 pub mod model_loader;
 pub mod models;
 
+// TEAM-392: Inference pipeline modules
+pub mod clip;
+pub mod vae;
+pub mod scheduler;
+pub mod sampling;
+pub mod inference;
+
 use crate::error::Result;
 use crate::job_router::{GenerationResponse, ImageToImageRequest, InpaintRequest, TextToImageRequest};
 use candle_core::Device;

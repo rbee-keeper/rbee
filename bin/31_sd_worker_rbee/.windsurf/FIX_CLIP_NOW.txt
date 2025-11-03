@@ -1,0 +1,20 @@
+================================================================================
+FIX clip.rs - ONE CHANGE ONLY
+================================================================================
+
+File: src/backend/clip.rs
+Line: 27
+
+CURRENT (BACKWARDS):
+    let pad_token = pad_with.unwrap_or(">|txetfodne|<");
+
+CHANGE TO (REVERSED):
+    Just reverse the string ">|txetfodne|<" to get the correct token
+
+The correct token is: < pipe endoftext pipe >
+(but without spaces and pipes touching the angle brackets)
+
+================================================================================
+After fixing, run:
+    cargo check -p sd-worker-rbee --features cpu
+================================================================================

@@ -3,6 +3,9 @@ target
 /target/
 **/target/
 
+# Timeline
+.timeline
+
 # Cargo
 Cargo.lock
 

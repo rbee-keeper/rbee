@@ -6,6 +6,7 @@ import Link from 'next/link'
 export interface PricingTierProps {
   title: string
   price?: string | number
+  priceMonthly?: string | number
   priceYearly?: string | number
   currency?: 'USD' | 'EUR' | 'GBP' | 'CUSTOM'
   period?: string
@@ -19,11 +20,13 @@ export interface PricingTierProps {
   className?: string
   isYearly?: boolean
   saveBadge?: string
+  saveBadgeMonthly?: string
 }
 
 export function PricingTier({
   title,
   price,
+  priceMonthly,
   priceYearly,
   period,
   features,
@@ -36,9 +39,12 @@ export function PricingTier({
   className,
   isYearly = false,
   saveBadge,
+  saveBadgeMonthly,
 }: PricingTierProps) {
-  const displayPrice = isYearly && priceYearly ? priceYearly : price
-  const displayPeriod = isYearly && priceYearly ? '/year' : period
+  // Show monthly/yearly price when toggled (for comparison)
+  const comparisonPrice = isYearly ? priceYearly : priceMonthly
+  const comparisonPeriod = isYearly ? '/year' : '/month'
+  const currentSaveBadge = isYearly ? saveBadge : saveBadgeMonthly
 
   const titleId = `pricing-${title.toLowerCase().replace(/\s+/g, '-')}`
 
@@ -68,12 +74,27 @@ export function PricingTier({
           {title}
         </h3>
         <div className="mt-3">
-          <span className="text-4xl font-extrabold text-foreground">{displayPrice}</span>
-          {displayPeriod && <span className="text-sm text-muted-foreground ml-2">{displayPeriod}</span>}
-          {isYearly && saveBadge && (
-            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-chart-3/15 text-chart-3 font-medium">
-              {saveBadge}
-            </span>
+          {/* Show comparison price above when toggled to monthly/yearly */}
+          {comparisonPrice && (priceMonthly || priceYearly) && (
+            <div className="mb-2">
+              <span className="text-lg text-muted-foreground line-through">
+                {comparisonPrice}
+              </span>
+              <span className="text-xs text-muted-foreground ml-2">{comparisonPeriod}</span>
+            </div>
+          )}
+          {/* Lifetime price - always shown prominently */}
+          <div>
+            <span className="text-4xl font-extrabold text-foreground">{price}</span>
+            {period && <span className="text-sm text-muted-foreground ml-2">{period}</span>}
+          </div>
+          {/* Savings badge when comparison is shown */}
+          {currentSaveBadge && comparisonPrice && (
+            <div className="mt-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] bg-chart-3/15 text-chart-3 font-medium">
+                {currentSaveBadge}
+              </span>
+            </div>
           )}
         </div>
       </div>

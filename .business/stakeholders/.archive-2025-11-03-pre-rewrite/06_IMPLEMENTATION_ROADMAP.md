@@ -1,14 +1,13 @@
 # rbee: Implementation Roadmap
 
 **Audience:** Technical leaders, project managers, investors  
-**Date:** November 3, 2025  
-**Version:** 3.0
+**Date:** November 2, 2025
 
 ---
 
 ## Current Status
 
-**Progress:** M0 in progress (text inference working)
+**Development Progress:** 68% complete (42/62 BDD scenarios passing)
 
 **What's Working Now:**
 - ✅ Multi-machine orchestration (SSH-based)
@@ -19,9 +18,9 @@
 - ✅ Worker spawning and lifecycle
 - ✅ Basic job routing
 
-**In Progress:**
+**What's In Progress:**
 - 🚧 Lifecycle management (daemon start/stop/status)
-- 🚧 Cascading shutdown (queen → hives → workers)
+- 🚧 Cascading shutdown
 - 🚧 Worker cancellation endpoint
 
 ---
@@ -30,22 +29,20 @@
 
 | Milestone | Target | Status | Focus |
 |-----------|--------|--------|-------|
-| **M0** | Q4 2025 | 🚧 In Progress | Core orchestration (text) |
+| **M0** | Q4 2025 | 🚧 68% | Core orchestration |
 | **M1** | Q1 2026 | 📋 Planned | Production-ready |
-| **M2** | Q2 2026 | 📋 Planned | RHAI + Web UI + **Premium Launch** 🐝 |
-| **M3** | **Q1 2026** | 📋 Planned | Multi-modal (moved up!) |
+| **M2** | Q2 2026 | 📋 Planned | Rhai scheduler + Web UI |
+| **M3** | Q3 2026 | 📋 Planned | Multi-modal support |
 | **M4** | Q4 2026 | 📋 Planned | Multi-GPU & distributed |
 | **M5** | 2027 | 🔮 Future | GPU marketplace |
-
-**Note:** M3 (multi-modal) moved from Q3 → Q1 2026 for faster delivery
 
 ---
 
 ## M0: Core Orchestration (Q4 2025)
 
-**Goal:** Complete core orchestration for single-modality (text) inference
+**Goal:** Complete core orchestration features for single-modality (text) inference
 
-**Status:** 🚧 In Progress
+**Status:** 🚧 68% complete (42/62 BDD scenarios passing)
 
 ### Features
 
@@ -66,9 +63,10 @@
 - Cascading shutdown (queen → hives → workers)
 - SSH configuration management
 - Worker cancellation endpoint
+- Remaining BDD scenarios (20 scenarios)
 
 **📋 Not Started:**
-- Basic web UI (dashboard)
+- Web UI (basic dashboard)
 - Monitoring (Prometheus metrics)
 
 ### Timeline
@@ -80,6 +78,7 @@
 
 **Week 3-4 (Nov 17-30):**
 - ✅ Complete worker cancellation
+- ✅ Pass remaining BDD scenarios (62/62)
 - ✅ Basic monitoring (Prometheus)
 
 **Week 5-6 (Dec 1-14):**
@@ -145,16 +144,11 @@
 
 **Target:** March 31, 2026
 
-**Success Criteria:**
-- ✅ 99.9% uptime (SLA)
-- ✅ 50 production deployments
-- ✅ 10 business customers
-
 ---
 
-## M2: RHAI Scheduler + Web UI + Premium Launch (Q2 2026) 🐝
+## M2: Rhai Scheduler + Web UI (Q2 2026)
 
-**Goal:** Intelligent orchestration with user-scriptable routing + Premium products launch
+**Goal:** Intelligent orchestration with user-scriptable routing
 
 **Status:** 📋 Planned
 
@@ -182,14 +176,6 @@
 - Billing integration (usage export)
 - Webhook support (job completion, failures)
 
-**Premium Products Launch:** 🐝
-- Premium Queen (€129)
-- Premium Worker (€179 - bundle only)
-- GDPR Auditing (€249)
-- Queen + Worker Bundle (€279)
-- Queen + Audit Bundle (€349)
-- Complete Bundle (€499)
-
 **Examples & Templates:**
 - Rhai script templates (multi-tenancy, cost optimization)
 - Deployment examples (single-machine, multi-machine)
@@ -207,25 +193,17 @@
 
 **June 2026:**
 - Week 1-2: API enhancements
-- Week 3-4: **Premium products launch** 🐝 + Testing
+- Week 3-4: Testing and release
 
 **Target:** June 30, 2026
 
-**Success Criteria:**
-- ✅ 100 production deployments
-- ✅ 50 business customers
-- ✅ 10 Rhai script templates
-- ✅ **100 premium sales (Year 1 goal)**
-
 ---
 
-## M3: Multi-Modal Support (Q1 2026) ⚠️ MOVED UP
+## M3: Multi-Modal Support (Q3 2026)
 
 **Goal:** Support text, images, audio, and video generation
 
 **Status:** 📋 Planned
-
-**NOTE:** Moved from Q3 → Q1 2026 for faster delivery
 
 ### Features
 
@@ -259,24 +237,19 @@
 
 ### Timeline
 
-**January 2026:**
+**July 2026:**
 - Week 1-2: Image generation workers (Stable Diffusion)
-- Week 3-4: OpenAI compatibility (images)
+- Week 3-4: Audio workers (TTS, Whisper)
 
-**February 2026:**
-- Week 1-2: Audio workers (TTS, Whisper)
+**August 2026:**
+- Week 1-2: Video generation workers
 - Week 3-4: Multi-modal routing
 
-**March 2026:**
-- Week 1-2: Video generation workers (basic)
+**September 2026:**
+- Week 1-2: OpenAI compatibility (images, audio)
 - Week 3-4: Testing and release
 
-**Target:** March 31, 2026 (same as M1)
-
-**Success Criteria:**
-- ✅ Text + images + audio support
-- ✅ OpenAI-compatible endpoints
-- ✅ 500 production deployments
+**Target:** September 30, 2026
 
 ---
 
@@ -327,11 +300,6 @@
 
 **Target:** December 31, 2026
 
-**Success Criteria:**
-- ✅ 405B model support
-- ✅ 1,000 production deployments
-- ✅ 200 business customers
-
 ---
 
 ## M5: GPU Marketplace (2027)
@@ -369,62 +337,39 @@
 
 ### Timeline
 
-**Q1 2027:** Provider registration + Platform infrastructure  
-**Q2 2027:** Customer platform + Billing integration  
-**Q3 2027:** SLA enforcement + Dashboards  
-**Q4 2027:** Launch and scaling
+**Q1 2027:**
+- Provider registration and verification
+- Platform infrastructure
+
+**Q2 2027:**
+- Customer platform and API
+- Billing integration
+
+**Q3 2027:**
+- SLA enforcement and monitoring
+- Provider/customer dashboards
+
+**Q4 2027:**
+- Launch and scaling
 
 **Target:** December 31, 2027
-
----
-
-## Premium Products Development (Parallel Track) 🐝
-
-**Timeline:** Parallel with M0-M2 (Q4 2025 - Q2 2026)
-
-### Development Plan
-
-**Week 1-8 (Nov-Dec 2025):**
-- Define trait interfaces (MIT license)
-- Create private repos for premium
-- Implement basic Premium Queen
-- Implement basic Premium Worker
-- Implement basic GDPR Auditing
-
-**Week 9-20 (Jan-Mar 2026):**
-- Complete Premium Queen (advanced RHAI)
-- Complete Premium Worker (deep telemetry)
-- Premium Queen + Worker integration
-- Start GDPR Auditing (audit trails)
-
-**Week 21-26 (Apr-Jun 2026):**
-- Complete GDPR Auditing (full compliance)
-- Testing and integration
-- Binary distribution setup
-- **Launch premium products (June 2026)** 🐝
-
-### Success Metrics
-- ✅ 100 premium sales (Year 1)
-- ✅ €33K revenue (Year 1)
-- ✅ >90% customer satisfaction
-- ✅ <5% refund rate
 
 ---
 
 ## Feature Dependency Graph
 
 ```
-M0 (Core Orchestration) ← Foundation
+M0 (Core Orchestration)
   ↓
-M1 (Production-Ready) ← Required for business
+M1 (Production-Ready)
   ↓
-M2 (RHAI + Premium) ← Revenue generation starts here 🐝
+M2 (Rhai Scheduler + Web UI)
   ↓
-M3 (Multi-Modal) ← Competitive advantage (can run parallel with M1)
+M3 (Multi-Modal)
   ↓
-M4 (Multi-GPU) ← Advanced features
+M4 (Multi-GPU & Distributed)
   ↓
-M5 (Marketplace) ← Long-term vision
+M5 (GPU Marketplace)
 ```
 
 **Critical path:** M0 → M1 → M2 (everything else depends on these)
@@ -443,7 +388,7 @@ M5 (Marketplace) ← Long-term vision
 - **Time:** 3 months
 - **Cost:** ~$30K-60K (labor)
 
-### M2 (RHAI + Premium)
+### M2 (Rhai Scheduler + Web UI)
 - **Team:** 2-3 developers (1 backend, 1-2 frontend)
 - **Time:** 3 months
 - **Cost:** ~$60K-90K (labor)
@@ -453,12 +398,12 @@ M5 (Marketplace) ← Long-term vision
 - **Time:** 3 months
 - **Cost:** ~$60K-90K (labor)
 
-### M4 (Multi-GPU)
+### M4 (Multi-GPU & Distributed)
 - **Team:** 2-3 developers (distributed systems)
 - **Time:** 3 months
 - **Cost:** ~$60K-90K (labor)
 
-### M5 (Marketplace)
+### M5 (GPU Marketplace)
 - **Team:** 5-10 developers (full-stack, platform)
 - **Time:** 12 months
 - **Cost:** ~$500K-1M (labor + infrastructure)
@@ -485,72 +430,57 @@ M5 (Marketplace) ← Long-term vision
 |------|-------------|--------|------------|
 | **Low adoption (consumer)** | Medium | Medium | Focus on business use case |
 | **Competition (Ollama)** | High | Medium | Differentiate on multi-machine |
-| **Premium pricing resistance** | Medium | High | Start with free, upsell later |
+| **GPL license concerns** | Low | High | Offer commercial license option |
 | **Market timing** | Medium | High | Ship M1 by Q1 2026 |
+
+### Operational Risks
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| **Developer burnout** | Medium | High | Hire additional developers |
+| **Scope creep** | High | Medium | Strict milestone boundaries |
+| **Documentation lag** | High | Low | Document as you build |
+| **Community support** | Medium | Medium | Build community early |
 
 ---
 
 ## Success Metrics
 
 ### M0 (Core Orchestration)
-- ✅ Text inference working
-- ✅ Multi-machine orchestration working
+- ✅ 62/62 BDD scenarios passing
+- ✅ 100 GitHub stars
 - ✅ 10 community contributors
 - ✅ 5 production deployments
 
 ### M1 (Production-Ready)
 - ✅ 99.9% uptime (SLA)
+- ✅ 500 GitHub stars
 - ✅ 50 production deployments
 - ✅ 10 business customers
 
-### M2 (RHAI + Premium)
+### M2 (Rhai Scheduler + Web UI)
+- ✅ 1,000 GitHub stars
 - ✅ 100 production deployments
 - ✅ 50 business customers
 - ✅ 10 Rhai script templates
-- ✅ **100 premium sales** 🐝
 
 ### M3 (Multi-Modal)
-- ✅ Text + images + audio support
+- ✅ 2,000 GitHub stars
 - ✅ 500 production deployments
 - ✅ 100 business customers
+- ✅ Text + images + audio support
 
-### M4 (Multi-GPU)
-- ✅ 405B model support
+### M4 (Multi-GPU & Distributed)
+- ✅ 5,000 GitHub stars
 - ✅ 1,000 production deployments
 - ✅ 200 business customers
+- ✅ 405B model support
 
-### M5 (Marketplace)
+### M5 (GPU Marketplace)
+- ✅ 10,000 GitHub stars
 - ✅ 50 GPU providers
 - ✅ 1,000 marketplace customers
 - ✅ $1M+ annual platform revenue
-
----
-
-## Key Decisions
-
-### Decision 1: Multi-Modal Timeline (MOVED UP)
-**Decision:** Move M3 from Q3 → Q1 2026
-
-**Rationale:**
-- ✅ Competitive advantage (vs Ollama text-only)
-- ✅ Can run parallel with M1
-- ✅ Faster time-to-market
-
-### Decision 2: Premium Launch with M2
-**Decision:** Launch premium products with M2 (Q2 2026)
-
-**Rationale:**
-- ✅ RHAI scheduler needed for Premium Queen
-- ✅ Revenue generation starts sooner
-- ✅ Validates business model
-
-### Decision 3: Rhai vs Lua
-**Decision:** Rhai (Rust-native, type-safe)
-
-**Rationale:**
-- ✅ Rust-native (no FFI overhead)
-- ✅ Type-safe (fewer runtime errors)
-- ✅ Smaller attack surface
 
 ---
 
@@ -561,41 +491,120 @@ M5 (Marketplace) ← Long-term vision
 - **Channels:** GitHub, Reddit, Hacker News
 - **Goal:** 1,000 users, 100 GitHub stars
 
-### M2: Business + Premium Launch (Q2 2026) 🐝
-- **Focus:** Business customers + Premium products
+### M2: Business Launch (Q2 2026)
+- **Focus:** Business customers (self-hosted)
 - **Channels:** LinkedIn, tech conferences, direct sales
-- **Goal:** 50 business customers, 100 premium sales
+- **Goal:** 50 business customers, $50K MRR
 
-### M3: Multi-Modal Launch (Q1 2026)
+### M3: Multi-Modal Launch (Q3 2026)
 - **Focus:** Content creators, AI platforms
 - **Channels:** Product Hunt, tech blogs, partnerships
-- **Goal:** 500 deployments, differentiate from Ollama
+- **Goal:** 100 business customers, $100K MRR
 
 ### M4: Enterprise Launch (Q4 2026)
 - **Focus:** Enterprise customers, large deployments
 - **Channels:** Enterprise sales, partnerships
-- **Goal:** 200 business customers
+- **Goal:** 200 business customers, $200K MRR
+
+### M5: Marketplace Launch (2027)
+- **Focus:** GPU providers and customers
+- **Channels:** PR, partnerships, conferences
+- **Goal:** 50 providers, 1,000 customers, $200K MRR
+
+---
+
+## Key Decisions
+
+### Decision 1: Rhai vs Lua (M2)
+**Options:**
+- Rhai (Rust-native, type-safe)
+- Lua (mature, widely known)
+
+**Recommendation:** Rhai
+- ✅ Rust-native (no FFI overhead)
+- ✅ Type-safe (fewer runtime errors)
+- ✅ Smaller attack surface
+
+### Decision 2: Web UI Framework (M2)
+**Options:**
+- React (mature, large ecosystem)
+- Vue (simpler, faster)
+- Svelte (fastest, smallest)
+
+**Recommendation:** React
+- ✅ Already using React in current UI
+- ✅ Largest ecosystem
+- ✅ Best TypeScript support
+
+### Decision 3: Distributed Inference (M4)
+**Options:**
+- Tensor parallelism (split model)
+- Pipeline parallelism (split layers)
+- Both
+
+**Recommendation:** Both
+- ✅ Tensor parallelism for large models (405B)
+- ✅ Pipeline parallelism for throughput
+- ✅ Candle supports both
+
+### Decision 4: Marketplace Platform (M5)
+**Options:**
+- Build from scratch
+- Use existing platform (Stripe, etc.)
+
+**Recommendation:** Build from scratch
+- ✅ Full control over features
+- ✅ Custom billing logic
+- ✅ Better margins
+
+---
+
+## Next Steps
+
+### Immediate (This Week)
+1. Complete lifecycle management
+2. Complete cascading shutdown
+3. Pass 50/62 BDD scenarios
+
+### Short-Term (This Month)
+1. Complete M0 (62/62 scenarios)
+2. Release M0 (December 15, 2025)
+3. Start M1 planning
+
+### Medium-Term (Next Quarter)
+1. Complete M1 (production-ready)
+2. Launch business use case
+3. Get first 10 business customers
+
+### Long-Term (Next Year)
+1. Complete M2 (Rhai scheduler)
+2. Complete M3 (multi-modal)
+3. Complete M4 (multi-GPU)
+4. Plan M5 (marketplace)
 
 ---
 
 ## Conclusion
 
-rbee has a clear roadmap from current state (M0) to production-ready platform (M1) to premium revenue (M2) to multi-modal competitive advantage (M3).
+rbee has a clear roadmap from current state (68% complete) to production-ready platform (M1) to multi-modal marketplace (M5).
 
 **Key milestones:**
 - **M0 (Q4 2025):** Core orchestration complete
 - **M1 (Q1 2026):** Production-ready
-- **M2 (Q2 2026):** RHAI + Web UI + **Premium Launch** 🐝
-- **M3 (Q1 2026):** Multi-modal (MOVED UP!)
+- **M2 (Q2 2026):** Rhai scheduler + Web UI
+- **M3 (Q3 2026):** Multi-modal support
 - **M4 (Q4 2026):** Multi-GPU & distributed
 - **M5 (2027):** GPU marketplace
 
 **Total timeline:** 30 months (2.5 years)  
 **Total cost:** $720K-1.34M  
-**Expected revenue (Year 3):** €291K
+**Expected revenue (Year 3):** $2.4M+
 
 **ROI:** Positive by Year 2
 
 ---
 
-**🐝 Turn your GPU farm into a thriving hive!**
+**Read the use cases:**
+- [Consumer Use Case](02_CONSUMER_USE_CASE.md)
+- [Business Use Case](03_BUSINESS_USE_CASE.md)
+- [Revenue Models](05_REVENUE_MODELS.md)

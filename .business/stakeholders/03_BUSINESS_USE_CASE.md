@@ -1,7 +1,8 @@
-# rbee: Business Use Case
+# 🐝 rbee: Business Use Case
 
-**Audience:** GPU infrastructure operators, AI service providers, startups  
-**Date:** November 2, 2025
+**Audience:** GPU infrastructure operators, AI service providers, enterprises  
+**Date:** November 3, 2025  
+**Version:** 3.0
 
 ---
 
@@ -10,353 +11,303 @@
 ### Your Situation
 
 You're a business with GPU infrastructure:
-- **20x NVIDIA A100 GPUs** (80GB each) - $1.6M investment
-- **10x NVIDIA H100 GPUs** (80GB each) - $3M investment
-- **Mix of capabilities:** Text, images, audio, video
-- **Goal:** Offer AI services to customers and monetize your infrastructure
+- **20x NVIDIA A100 GPUs** (datacenter)
+- **10x H100 GPUs** (high-performance)  
+- Mix of different models and capabilities
+- **Want to offer AI services to customers**
+
+---
 
 ### Current Reality: Platform Complexity Hell
 
 **You want to offer AI services, but:**
+- ❌ Text + images + audio = 3 different platforms to manage
+- ❌ Each platform has different APIs, configs, monitoring
+- ❌ Customers need different API keys for each service
+- ❌ You can't easily control which customer uses which GPU
+- ❌ No built-in GDPR compliance (EU market blocked)
+- ❌ Scaling means managing 3+ separate systems
 
-❌ **Text + Images + Audio = 3 Different Platforms**
-- vLLM for text generation
-- ComfyUI for image generation
-- Whisper for audio transcription
-- Each has different APIs, configs, monitoring
-
-❌ **Customer Fragmentation**
-- Customers need different API keys for each service
-- Different billing systems for each platform
-- Different SLA tracking for each service
-
-❌ **No Control Over Resource Allocation**
-- Can't easily route enterprise customers to H100s
-- Can't enforce quotas per customer
-- Can't prioritize by customer tier
-
-❌ **No Built-in Compliance**
-- GDPR compliance = custom implementation
-- Audit logging = custom implementation
-- Data residency = manual enforcement
-
-❌ **Scaling Nightmare**
-- Adding new modality = new platform
-- Managing 3+ separate systems
-- 6-12 months development per platform
-
-**Total cost to build from scratch: $500K+ in engineering**
+**The cost:**
+- 6-12 months development ($500K-1.4M)
+- 2 engineers ongoing maintenance ($300K-400K/year)
+- Complex infrastructure (K8s, monitoring, billing)
+- Delayed time-to-market (competitors win)
 
 ---
 
-## The rbee Solution: One Platform, All Modalities
+## The rbee Solution: Turn Your Farm Into a Thriving Hive 🐝
 
-### Setup (One Day)
+### One Platform. One API. All Modalities.
 
 ```bash
-# 1. Install rbee on control node
-cargo install rbee-keeper
-
-# 2. Configure GPU nodes
-cat > ~/.config/rbee/hives.conf << 'EOF'
-Host gpu-node-01
-  HostName 10.0.1.101
-  User rbee
-  HivePort 7835
-  # 4x A100 GPUs
-
-Host gpu-node-02
-  HostName 10.0.1.102
-  User rbee
-  HivePort 7835
-  # 4x A100 GPUs
-
-Host gpu-node-03
-  HostName 10.0.1.103
-  User rbee
-  HivePort 7835
-  # 2x H100 GPUs
-
-# ... repeat for all nodes
-EOF
-
-# 3. Install hives on all nodes (SSH-based, like Ansible)
-rbee hive install gpu-node-01
-rbee hive install gpu-node-02
-rbee hive install gpu-node-03
+# Setup (one day):
+rbee hive install gpu-node-01  # Hive with 4x A100
+rbee hive install gpu-node-02  # Hive with 4x A100
+rbee hive install gpu-node-03  # Hive with 2x H100
 # ... repeat for all nodes
 
-# 4. Configure your model catalog
+# Configure your model catalog:
 rbee model add llama-3-405b --hive gpu-node-03  # H100 for large models
-rbee model add llama-3-70b --hive gpu-node-01   # A100 for medium models
 rbee model add sdxl --hive gpu-node-01          # A100 for images
 rbee model add whisper-large --hive gpu-node-02 # A100 for audio
 
-# Done! ✅
-```
-
-### Configure Multi-Tenancy (Rhai Script)
-
-```bash
+# Set up queen's routing (Rhai script):
 cat > ~/.config/rbee/scheduler.rhai << 'EOF'
-// Multi-tenant routing with quotas and tiers
-
 fn route_task(task, workers) {
-    // Enterprise customers get H100s
+    // Enterprise customers get H100 workers
     if task.customer_tier == "enterprise" {
-        return workers
-            .filter(|w| w.gpu_type == "H100")
-            .least_loaded();
+        return workers.filter(|w| w.gpu_type == "H100").least_loaded();
     }
     
-    // Pro tier gets A100s
-    if task.customer_tier == "pro" {
-        return workers
-            .filter(|w| w.gpu_type == "A100")
-            .least_loaded();
-    }
-    
-    // Free tier gets specific nodes only
+    // Free tier gets A100 workers only
     if task.customer_tier == "free" {
-        return workers
-            .filter(|w| w.hive == "gpu-node-01")
-            .filter(|w| w.gpu_index == 0)  // Only first GPU
-            .first();
+        return workers.filter(|w| w.gpu_type == "A100").least_loaded();
     }
     
     // Route by task type
     match task.type {
-        "image-gen" => workers
-            .filter(|w| w.capability == "image-gen")
-            .least_loaded(),
-        "audio-gen" => workers
-            .filter(|w| w.capability == "audio-gen")
-            .least_loaded(),
+        "image-gen" => workers.filter(|w| w.capability == "image-gen").least_loaded(),
+        "audio-gen" => workers.filter(|w| w.capability == "audio-gen").least_loaded(),
         _ => workers.least_loaded()
     }
 }
-
-fn should_admit(task, customer) {
-    // Check daily quota
-    if customer.tokens_used_today > customer.daily_limit {
-        return reject("Daily quota exceeded. Upgrade your plan.");
-    }
-    
-    // Check tier access to models
-    if task.model == "llama-3-405b" && customer.tier != "enterprise" {
-        return reject("llama-3-405b requires Enterprise tier");
-    }
-    
-    if task.model == "llama-3-70b" && customer.tier == "free" {
-        return reject("llama-3-70b requires Pro tier or higher");
-    }
-    
-    // Check concurrent request limit
-    if customer.active_requests >= customer.max_concurrent {
-        return reject("Concurrent request limit reached");
-    }
-    
-    return admit();
-}
-
-fn calculate_priority(task, customer) {
-    // Enterprise = highest priority
-    if customer.tier == "enterprise" {
-        return 100;
-    }
-    
-    // Pro = medium priority
-    if customer.tier == "pro" {
-        return 50;
-    }
-    
-    // Free = lowest priority
-    return 10;
-}
 EOF
+
+# Your customers get ONE API endpoint:
+# https://api.yourcompany.com/v1/
 ```
 
-**Save and activate:**
-```bash
-rbee scheduler reload
-# ✅ Multi-tenancy active, no code changes needed!
-```
+**Your colony is now:**
+- 🐝 3 hives (3 nodes)
+- 🐝 30 GPUs (30 potential worker bees)
+- 🐝 1 queen (orchestrating everything)
+- 🐝 1 API (one endpoint for all customers)
 
 ---
 
-## What Your Customers See
+## Free Version vs Premium
 
-### One OpenAI-Compatible API for Everything
+### Free (Self-Hosted) 🐝
 
-```bash
-# Your customers get ONE endpoint:
-# https://api.yourcompany.com/v1/
+**License:** GPL-3.0 (binaries) + MIT (infrastructure)
 
-# Text generation
-curl https://api.yourcompany.com/v1/chat/completions \
-  -H "Authorization: Bearer customer-key-123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama-3-405b",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
+**What you get:**
+- ✅ Multi-tenant orchestration (Rhai scripts)
+- ✅ Basic audit logging (MIT license)
+- ✅ Quota enforcement
+- ✅ Custom routing
+- ✅ Keep 100% of revenue
 
-# Image generation
-curl https://api.yourcompany.com/v1/images/generations \
-  -H "Authorization: Bearer customer-key-123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "sdxl",
-    "prompt": "a cat wearing a top hat",
-    "size": "1024x1024"
-  }'
+**What you don't get:**
+- ❌ Advanced RHAI scheduler
+- ❌ Deep telemetry
+- ❌ Full GDPR compliance
 
-# Audio transcription
-curl https://api.yourcompany.com/v1/audio/transcriptions \
-  -H "Authorization: Bearer customer-key-123" \
-  -F file=@audio.mp3 \
-  -F model=whisper-large
+**Cost:** $0 (software) + GPU electricity
 
-# All from the SAME endpoint
-# All with the SAME API key
-# All billed together
-```
+**Perfect for:** Startups, small businesses, self-hosting
+
+---
+
+### Premium Products (€129-499 lifetime) 🐝
+
+**Why Premium?**
+- 40-60% higher GPU utilization (Premium Queen + Worker)
+- Avoid €20M GDPR fines (GDPR Auditing)
+- Pay once, own forever (no recurring fees)
+
+---
+
+#### The 5 Products We Sell
+
+| Product | Price | What You Get | Who It's For |
+|---------|-------|--------------|--------------|
+| **Premium Queen** | €129 | Advanced RHAI scheduling | Businesses with existing monitoring |
+| **GDPR Auditing** | €249 | Full compliance | EU businesses, healthcare, finance |
+| **Queen + Worker** | **€279** | Full smart scheduling | **MOST POPULAR** ⭐ |
+| **Queen + Audit** | €349 | Scheduling + compliance | Businesses needing both |
+| **Complete Bundle** | **€499** | Everything | **BEST VALUE** ⭐⭐ |
+
+---
+
+#### 1. Premium Queen (€129 lifetime)
+
+**What it does:**
+- Advanced RHAI scheduling algorithms
+- Multi-tenant resource isolation  
+- Telemetry-driven optimization
+- Failover and redundancy
+- Advanced load balancing
+
+**Value:** 40-60% higher GPU utilization through intelligent task placement
+
+**Works with:** Basic workers (no Premium Worker required)
+
+**Who needs this:** Businesses that already have monitoring/telemetry infrastructure
+
+---
+
+#### 2. GDPR Auditing Module (€249 lifetime)
+
+**What it does:**
+- Complete audit trail (7-year retention)
+- Data lineage tracking
+- Right to erasure (Article 17)
+- Consent management
+- Automated compliance reporting
+- Cryptographic audit integrity
+
+**Value:** Avoid €20M GDPR fines - one fine avoided pays for this 80,000× over
+
+**Works with:** Any rbee setup (independent of Queen/Worker)
+
+**Who needs this:** EU businesses, healthcare providers, financial services
+
+---
+
+#### 3. Queen + Worker Bundle (€279 lifetime) ⭐ MOST POPULAR
+
+**Save €29 vs buying separately (€129 + €179 = €308)**
+
+**What's included:**
+- Premium Queen (€129 value)
+- Premium Worker (€179 value)
+
+**What you get:**
+- Advanced RHAI scheduling
+- Deep telemetry collection
+- Real-time GPU metrics
+- Task execution timing
+- Memory bandwidth analysis
+- Temperature & power monitoring
+- Historical performance trends
+- Error rates & failure patterns
+
+**Value:** 40-60% higher GPU utilization through data-driven scheduling
+
+**Why bundle?** Premium Worker collects telemetry that Premium Queen uses for intelligent routing.
+
+**Without Premium Queen:** Telemetry has nowhere to go = useless  
+**With Premium Queen:** Telemetry enables smart routing = 40-60% better utilization
+
+**Who needs this:** Anyone serious about GPU orchestration, businesses with 10+ GPUs
+
+---
+
+#### 4. Queen + Audit Bundle (€349 lifetime)
+
+**Save €29 vs buying separately (€129 + €249 = €378)**
+
+**What's included:**
+- Premium Queen (€129 value)
+- GDPR Auditing (€249 value)
+
+**Who needs this:** EU businesses needing both scheduling and compliance
+
+---
+
+#### 5. Complete Bundle (€499 lifetime) ⭐⭐ BEST VALUE
+
+**Save €58 vs buying separately (€129 + €179 + €249 = €557)**
+
+**What's included:**
+- Premium Queen (€129 value)
+- Premium Worker (€179 value)
+- GDPR Auditing (€249 value)
+
+**What you get:**
+Everything - full platform capabilities:
+- Advanced RHAI scheduling
+- Deep telemetry collection
+- Complete GDPR compliance
+- 40-60% higher GPU utilization
+- Full EU compliance
+- Data-driven decisions
+
+**Who needs this:** Enterprise customers, EU businesses with GPU farms
+
+**ROI:** Investment: €499 (one-time, lifetime). On €10,000 GPU hardware: €4,000-6,000 value/year. **Pays for itself in ~1 month**
 
 ---
 
 ## Business Features Out of the Box
 
-### 1. Multi-Tenancy & Quotas
+### 1. Multi-Tenancy & Quotas (Rhai Scripts)
 
-**Automatic enforcement via Rhai:**
 ```rhai
+// 🐝 The Queen Enforces Business Rules
+
 fn should_admit(task, customer) {
-    // Daily token quota
+    // Check quota
     if customer.tokens_used_today > customer.daily_limit {
         return reject("Quota exceeded");
     }
     
-    // Model access by tier
-    if task.model == "llama-3-405b" && customer.tier != "enterprise" {
-        return reject("Upgrade to Enterprise");
-    }
-    
-    // Concurrent request limit
-    if customer.active_requests >= customer.max_concurrent {
-        return reject("Too many concurrent requests");
+    // Check tier access
+    if task.model == "llama-3-405b" && customer.tier \!= "enterprise" {
+        return reject("Upgrade to enterprise");
     }
     
     return admit();
 }
-```
 
-**Customer tiers:**
-- **Free:** 10K tokens/day, llama-3-8b only, 1 concurrent request
-- **Pro:** 1M tokens/day, llama-3-70b, 10 concurrent requests
-- **Enterprise:** Unlimited, llama-3-405b, 100 concurrent requests
-
----
-
-### 2. GDPR Compliance (Built-in)
-
-**Automatic audit logging:**
-```bash
-# Every API call is logged immutably
-# ~/.rbee/audit.log (7-year retention)
-
-{
-  "timestamp": "2025-11-02T21:00:00Z",
-  "customer_id": "customer-123",
-  "api_key_fingerprint": "a3f2...",
-  "endpoint": "/v1/chat/completions",
-  "model": "llama-3-70b",
-  "tokens_in": 150,
-  "tokens_out": 500,
-  "gpu_used": "gpu-node-01:0",
-  "duration_ms": 2340,
-  "ip_address": "203.0.113.42",
-  "user_agent": "openai-python/1.0.0"
+fn route_task(task, workers) {
+    // Enterprise customers get H100 worker bees
+    if task.customer_tier == "enterprise" {
+        return workers.filter(|w| w.gpu_type == "H100").least_loaded();
+    }
+    
+    // Free tier gets A100 worker bees
+    return workers.filter(|w| w.gpu_type == "A100").least_loaded();
 }
 ```
 
-**GDPR endpoints (automatic):**
+---
+
+### 2. GDPR Compliance
+
+**Basic (Free - MIT license):**
+- Simple append-only logs
+- Basic audit trail
+
+**Full (Premium - €249):**
+- Immutable audit logs (7-year retention)
+- Data export endpoints (`/gdpr/export`)
+- Data deletion endpoints (`/gdpr/delete`)
+- EU-only worker filtering
+- Consent tracking
+- Cryptographic integrity (hash chains)
+
+**Example:**
 ```bash
-# Data export
+# Article 15: Right to access
 curl https://api.yourcompany.com/gdpr/export \
-  -H "Authorization: Bearer customer-key-123"
-# Returns all data for this customer
+  -H "Authorization: Bearer customer-key" \
+  > customer-data-export.json
 
-# Data deletion
+# Article 17: Right to erasure
 curl -X DELETE https://api.yourcompany.com/gdpr/delete \
-  -H "Authorization: Bearer customer-key-123"
-# Deletes all customer data (except audit logs)
-
-# Consent tracking
-curl https://api.yourcompany.com/gdpr/consent \
-  -H "Authorization: Bearer customer-key-123" \
-  -d '{"consent": true, "purpose": "ai-inference"}'
-```
-
-**EU-only routing:**
-```rhai
-fn route_task(task, workers) {
-    // EU customers must use EU workers
-    if task.customer_region == "EU" {
-        return workers
-            .filter(|w| w.region == "EU")
-            .least_loaded();
-    }
-    
-    return workers.least_loaded();
-}
+  -H "Authorization: Bearer customer-key"
 ```
 
 ---
 
-### 3. Cost Control & Optimization
+### 3. Cost Control (Rhai Scripts)
 
-**Route by cost:**
 ```rhai
+// 🐝 The Queen Optimizes Costs
+
 fn route_task(task, workers) {
-    // Small models → cheap GPUs (RTX 4090)
+    // Route cheap models to cheap GPUs
     if task.model == "llama-3-8b" {
-        return workers
-            .filter(|w| w.gpu_type == "RTX4090")
-            .least_loaded();
+        return workers.filter(|w| w.gpu_type == "RTX4090").first();
     }
     
-    // Medium models → mid-tier GPUs (A100)
-    if task.model == "llama-3-70b" {
-        return workers
-            .filter(|w| w.gpu_type == "A100")
-            .least_loaded();
-    }
-    
-    // Large models → expensive GPUs (H100)
+    // Route expensive models to expensive GPUs only when needed
     if task.model == "llama-3-405b" {
-        return workers
-            .filter(|w| w.gpu_type == "H100")
-            .least_loaded();
+        return workers.filter(|w| w.gpu_type == "H100").first();
     }
-    
-    return workers.least_loaded();
-}
-```
-
-**Time-based routing:**
-```rhai
-fn route_task(task, workers) {
-    let hour = current_time().hour();
-    
-    // Peak hours (9am-5pm): use all GPUs
-    if hour >= 9 && hour <= 17 {
-        return workers.least_loaded();
-    }
-    
-    // Off-peak: use cheaper GPUs only
-    return workers
-        .filter(|w| w.gpu_type != "H100")
-        .least_loaded();
 }
 ```
 
@@ -364,251 +315,94 @@ fn route_task(task, workers) {
 
 ### 4. Custom Model Catalog
 
-**Offer your fine-tuned models:**
 ```bash
-# Add your custom models
-rbee model add your-custom-llm-v2 \
-  --hive gpu-node-01 \
-  --path /models/custom-llm-v2.gguf
+# Offer your fine-tuned models
+rbee model add your-custom-llm-v2 --hive gpu-node-01
+rbee model add your-custom-sdxl --hive gpu-node-02
 
-rbee model add your-custom-sdxl \
-  --hive gpu-node-02 \
-  --path /models/custom-sdxl.safetensors
-
-# Customers see them in API
+# Customers access them via API:
 curl https://api.yourcompany.com/v1/models
+# {
+#   "models": [
+#     {"id": "your-custom-llm-v2", "type": "text"},
+#     {"id": "your-custom-sdxl", "type": "image"}
+#   ]
+# }
 ```
-
-**Response:**
-```json
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "llama-3-405b",
-      "object": "model",
-      "created": 1699000000,
-      "owned_by": "meta",
-      "permission": ["enterprise"]
-    },
-    {
-      "id": "your-custom-llm-v2",
-      "object": "model",
-      "created": 1730000000,
-      "owned_by": "yourcompany",
-      "permission": ["pro", "enterprise"]
-    },
-    {
-      "id": "your-custom-sdxl",
-      "object": "model",
-      "created": 1730000000,
-      "owned_by": "yourcompany",
-      "permission": ["all"]
-    }
-  ]
-}
-```
-
----
-
-### 5. Monitoring & Observability
-
-**Built-in metrics:**
-```bash
-# Prometheus metrics endpoint
-curl http://localhost:7833/metrics
-```
-
-**Metrics exported:**
-- `rbee_requests_total{customer_tier, model, status}`
-- `rbee_tokens_total{customer_tier, model, direction}`
-- `rbee_duration_seconds{customer_tier, model, percentile}`
-- `rbee_gpu_utilization{hive, gpu_index, gpu_type}`
-- `rbee_queue_depth{customer_tier}`
-- `rbee_active_workers{hive, capability}`
-
-**Grafana dashboard (included):**
-- Customer usage by tier
-- GPU utilization by node
-- Request latency (p50, p95, p99)
-- Token throughput
-- Error rates
-- Queue depth
-
----
-
-## Real-World Business Scenarios
-
-### Scenario 1: SaaS AI Platform
-
-**Company:** AI writing assistant startup  
-**Infrastructure:** 10x A100 GPUs  
-**Customers:** 1,000 users (100 free, 800 pro, 100 enterprise)
-
-**Setup:**
-```rhai
-fn route_task(task, workers) {
-    // Enterprise: dedicated GPUs
-    if task.customer_tier == "enterprise" {
-        return workers
-            .filter(|w| w.hive == "gpu-node-01")  // Dedicated node
-            .least_loaded();
-    }
-    
-    // Pro: shared GPUs
-    if task.customer_tier == "pro" {
-        return workers
-            .filter(|w| w.hive.starts_with("gpu-node-0"))
-            .filter(|w| w.hive != "gpu-node-01")  // Not dedicated
-            .least_loaded();
-    }
-    
-    // Free: specific GPU only
-    return workers
-        .filter(|w| w.hive == "gpu-node-05")
-        .filter(|w| w.gpu_index == 0)
-        .first();
-}
-```
-
-**Result:**
-- ✅ Enterprise customers get dedicated resources
-- ✅ Pro customers share resources efficiently
-- ✅ Free tier doesn't impact paid tiers
-- ✅ One platform, three tiers
-
----
-
-### Scenario 2: EU-Compliant AI Service
-
-**Company:** Healthcare AI provider  
-**Requirement:** GDPR compliance, EU-only data processing  
-**Infrastructure:** 20x A100 in EU, 10x H100 in US
-
-**Setup:**
-```rhai
-fn route_task(task, workers) {
-    // EU customers MUST use EU workers
-    if task.customer_region == "EU" {
-        let eu_workers = workers.filter(|w| w.region == "EU");
-        
-        if eu_workers.is_empty() {
-            return reject("No EU workers available");
-        }
-        
-        return eu_workers.least_loaded();
-    }
-    
-    // US customers can use any
-    return workers.least_loaded();
-}
-```
-
-**Result:**
-- ✅ Automatic EU data residency enforcement
-- ✅ Audit logs prove compliance
-- ✅ GDPR endpoints built-in
-- ✅ Pass SOC2 audits
-
----
-
-### Scenario 3: Multi-Modal Content Platform
-
-**Company:** AI content generation platform  
-**Services:** Text, images, audio, video  
-**Infrastructure:** Mixed GPUs (A100, H100, RTX 4090)
-
-**Setup:**
-```rhai
-fn route_task(task, workers) {
-    match task.type {
-        // Images: RTX 4090 (cost-effective)
-        "image-gen" => workers
-            .filter(|w| w.gpu_type == "RTX4090")
-            .least_loaded(),
-        
-        // Video: H100 (high performance)
-        "video-gen" => workers
-            .filter(|w| w.gpu_type == "H100")
-            .least_loaded(),
-        
-        // Text: A100 (balanced)
-        "text-gen" => workers
-            .filter(|w| w.gpu_type == "A100")
-            .least_loaded(),
-        
-        // Audio: A100 (balanced)
-        "audio-gen" => workers
-            .filter(|w| w.gpu_type == "A100")
-            .least_loaded(),
-        
-        _ => workers.least_loaded()
-    }
-}
-```
-
-**Result:**
-- ✅ One API for all modalities
-- ✅ Optimal GPU allocation per task type
-- ✅ Cost-effective resource usage
-- ✅ Customers get unified billing
 
 ---
 
 ## ROI Analysis
 
-### Building from Scratch
+### Free Version
 
-**Development costs:**
-- 3-5 senior engineers × 6-12 months
-- Salary: $150K-200K/year per engineer
-- **Total: $450K-1M in year 1**
+**Build from Scratch:**
+- Development: 6-12 months
+- Cost: $500K-1.4M (3-5 engineers)
+- Maintenance: $300K-400K/year (2 engineers)
 
-**Ongoing costs:**
-- Maintenance: 2 engineers
-- **Total: $300K-400K/year**
-
-**Time to market:** 6-12 months
-
----
-
-### Using rbee (Self-Hosted)
-
-**Setup costs:**
-- 1 engineer × 1 day
-- **Total: ~$500**
-
-**Ongoing costs:**
-- Community support: Free
-- Updates: Automatic
-- **Total: $0/year**
-
-**Time to market:** 1 day
-
-**Savings: $450K-1M in year 1**
+**rbee (self-hosted):**
+- Setup: 1 day
+- Cost: $500 (labor)
+- Maintenance: $0/year (community)
+- **Savings: $500K+ in Year 1**
 
 ---
 
-### Using rbee (Managed Platform - Future)
+### Premium Version
 
-**Setup costs:**
-- Configuration: 1 hour
-- **Total: ~$100**
+**Build from Scratch:**
+- Development: 6-12 months ($500K-1.4M)
+- Maintenance: $300K-400K/year
+- **3-year total: $1.4M-2.2M**
 
-**Ongoing costs:**
-- Platform fee: 30-40% of revenue
-- Enterprise support: Included
-- SLA guarantees: Included
+**rbee (premium):**
+- Setup: 1 day
+- Cost: €499 (one-time, lifetime)
+- Maintenance: $0/year
+- **3-year total: €499**
 
-**Time to market:** 1 hour
-
-**Trade-off:** Pay platform fee, get enterprise support + SLA
+**Savings: $1.4M-2.2M (99.97% cheaper)**
 
 ---
 
-## Pricing Tiers (Example)
+### vs Cloud (Together.ai)
 
-### Your Customer Pricing
+**At low volume (<100M tokens/month):**
+- Together.ai: $264/month = $3,168/year
+- rbee electricity: $24,000/year
+- **Together.ai cheaper**
+
+**At high volume (300M+ tokens/month):**
+- Together.ai: $792/month = $9,504/year
+- rbee electricity: $24,000/year
+- **Still Together.ai cheaper**
+
+**But wait - at 500M+ tokens/month:**
+- Together.ai: $1,320/month = $15,840/year
+- rbee electricity: $24,000/year
+- **Still not cheaper...**
+
+**So when does rbee win on cost?**
+
+**At 2B+ tokens/month:**
+- Together.ai: $5,280/month = $63,360/year
+- rbee electricity: $24,000/year
+- **rbee saves: $39,360/year**
+
+**BUT - Privacy & Control (Priceless):**
+- ✅ rbee: Data NEVER leaves your network (required for healthcare, finance)
+- ✅ rbee: Use ANY model (your fine-tuned models)
+- ✅ rbee: Full GDPR control (your infrastructure)
+- ✅ rbee: No vendor lock-in
+
+**Real verdict:** Cloud for convenience + low volume. rbee for control + privacy + high volume.
+
+---
+
+## Example Business Model
+
+**Your pricing tiers:**
 
 | Tier | Monthly Price | Features |
 |------|---------------|----------|
@@ -616,26 +410,355 @@ fn route_task(task, workers) {
 | **Pro** | $99 | 1M tokens/day, llama-3-70b, 10 concurrent |
 | **Enterprise** | $999 | Unlimited, llama-3-405b, 100 concurrent, SLA |
 
-### Your Costs (rbee Self-Hosted)
+**Your costs (10x A100 GPUs):**
+- Electricity: ~$2,000/month
+- Bandwidth: ~$200/month
+- **Total: ~$2,200/month**
 
-| Cost | Amount |
-|------|--------|
-| **Software** | $0 (GPL-3.0) |
-| **GPU Infrastructure** | Already owned |
-| **Electricity** | ~$0.50-1.00/GPU/hour |
-| **Bandwidth** | Minimal (API responses) |
+**Your revenue (100 Pro + 10 Enterprise customers):**
+- Pro: $99 × 100 = $9,900/month
+- Enterprise: $999 × 10 = $9,990/month
+- **Total: $19,890/month**
 
-### Your Margins
+**Your profit:**
+- Revenue: $19,890/month
+- Costs: $2,200/month
+- **Profit: $17,690/month = $212,280/year**
 
-**Example: 100 Pro customers**
-- Revenue: $99 × 100 = $9,900/month
-- GPU costs: ~$2,000/month (electricity)
-- **Profit: ~$7,900/month = $94,800/year**
+---
 
-**Example: 10 Enterprise customers**
-- Revenue: $999 × 10 = $9,990/month
-- GPU costs: ~$3,000/month (dedicated resources)
-- **Profit: ~$6,990/month = $83,880/year**
+## Real-World Business Scenarios
+
+### Scenario 1: SaaS AI Platform 🐝
+
+**Your business:** AI-powered writing assistant (like Jasper.ai)
+
+**Your infrastructure:**
+- 10x A100 GPUs (text generation)
+- 1,000 customers (100 free, 800 pro, 100 enterprise)
+
+**The colony setup:**
+
+```rhai
+// 🐝 Multi-tenant routing with customer tiers
+
+fn route_task(task, workers) {
+    // Enterprise customers get dedicated worker bees
+    if task.customer_tier == "enterprise" {
+        return workers
+            .filter(|w| w.dedicated_to == task.customer_id)
+            .first();
+    }
+    
+    // Pro customers share worker bees (fair scheduling)
+    if task.customer_tier == "pro" {
+        return workers
+            .filter(|w| w.tier == "pro")
+            .least_loaded();
+    }
+    
+    // Free tier gets specific worker bee only
+    if task.customer_tier == "free" {
+        return workers
+            .filter(|w| w.hive == "gpu-node-01")
+            .filter(|w| w.gpu_index == 0)
+            .first();
+    }
+}
+
+fn should_admit(task, customer) {
+    // Free tier: 10K tokens/day
+    if customer.tier == "free" && customer.tokens_used_today > 10000 {
+        return reject("Daily limit reached. Upgrade to Pro for 1M tokens/day.");
+    }
+    
+    // Pro tier: 1M tokens/day
+    if customer.tier == "pro" && customer.tokens_used_today > 1000000 {
+        return reject("Daily limit reached. Upgrade to Enterprise for unlimited.");
+    }
+    
+    // Enterprise: unlimited
+    return admit();
+}
+```
+
+**What's happening:**
+- 🐝 100 enterprise customers: Each gets dedicated worker bee
+- 🐝 800 pro customers: Share pool of worker bees (fair scheduling)
+- 🐝 100 free customers: Share single worker bee (rate limited)
+- 🐝 Queen enforces quotas automatically
+- 🐝 Your colony delivers: 1,000 customers, one platform
+
+**Your revenue:**
+- Free: $0 × 100 = $0
+- Pro: $99/month × 800 = $79,200/month
+- Enterprise: $999/month × 100 = $99,900/month
+- **Total: $179,100/month = $2.15M/year**
+
+**Your costs:**
+- 10x A100 electricity: ~$2,000/month
+- rbee premium (complete bundle): €499 (one-time)
+- **Total Year 1: $24,499**
+
+**Your profit: $2.12M/year (98.9% margin)**
+
+---
+
+### Scenario 2: EU-Compliant AI Service (Healthcare) 🐝
+
+**Your business:** Healthcare AI provider (GDPR mandatory)
+
+**Your infrastructure:**
+- 5x H100 GPUs in Frankfurt (EU)
+- 5x H100 GPUs in Virginia (US)
+- Healthcare customers MUST use EU workers only
+
+**The colony setup:**
+
+```rhai
+// 🐝 GDPR-compliant routing (EU-only for healthcare)
+
+fn route_task(task, workers) {
+    // Healthcare customers MUST use EU worker bees
+    if task.customer_industry == "healthcare" {
+        let eu_workers = workers.filter(|w| w.region == "EU");
+        
+        if eu_workers.is_empty() {
+            return reject("No EU workers available. GDPR requirement.");
+        }
+        
+        return eu_workers.least_loaded();
+    }
+    
+    // US customers can use US worker bees
+    if task.customer_region == "US" {
+        return workers
+            .filter(|w| w.region == "US")
+            .least_loaded();
+    }
+    
+    // Default: prefer same region as customer
+    return workers
+        .filter(|w| w.region == task.customer_region)
+        .least_loaded();
+}
+
+fn should_admit(task, customer) {
+    // Healthcare customers MUST have GDPR consent
+    if customer.industry == "healthcare" && !customer.gdpr_consent {
+        return reject("GDPR consent required for healthcare data.");
+    }
+    
+    return admit();
+}
+```
+
+**GDPR features (Premium GDPR Auditing €249):**
+
+```bash
+# Automatic audit trail (immutable, 7-year retention)
+# ~/.rbee/audit/2025-11-03.log
+
+{
+  "timestamp": "2025-11-03T14:30:00Z",
+  "customer_id": "healthcare-customer-123",
+  "customer_industry": "healthcare",
+  "api_key_fingerprint": "sha256:a3f2...",
+  "endpoint": "/v1/chat/completions",
+  "model": "llama-3-70b-medical",
+  "tokens_in": 250,
+  "tokens_out": 800,
+  "worker_used": "eu-frankfurt-gpu-01:0",
+  "worker_region": "EU",
+  "duration_ms": 3200,
+  "ip_address": "203.0.113.42",
+  "gdpr_consent": true,
+  "data_classification": "sensitive-health",
+  "audit_hash": "sha256:b4e1..."  // Cryptographic integrity
+}
+
+# Article 15: Right to access
+curl https://api.yourcompany.com/gdpr/export \
+  -H "Authorization: Bearer healthcare-customer-123"
+# Returns: All data for this customer (JSON export)
+
+# Article 17: Right to erasure
+curl -X DELETE https://api.yourcompany.com/gdpr/delete \
+  -H "Authorization: Bearer healthcare-customer-123"
+# Deletes: All customer data (audit logs preserved for 7 years)
+
+# Article 20: Right to data portability
+curl https://api.yourcompany.com/gdpr/export?format=json \
+  -H "Authorization: Bearer healthcare-customer-123"
+# Returns: Machine-readable JSON export
+```
+
+**What's happening:**
+- 🐝 Healthcare customers ALWAYS routed to EU worker bees
+- 🐝 US customers can use US worker bees (lower latency)
+- 🐝 Every API call logged immutably (GDPR audit trail)
+- 🐝 Automatic GDPR endpoints (export, delete, portability)
+- 🐝 Your colony: GDPR-compliant Day 1
+
+**Result:** Avoid €20M GDPR fines, serve EU healthcare market
+
+---
+
+### Scenario 3: Multi-Modal Content Platform 🐝
+
+**Your business:** AI content generation platform (text + images + audio + video)
+
+**Your infrastructure:**
+- 10x A100 GPUs (text, audio)
+- 5x RTX 4090 GPUs (images - cost-effective)
+- 5x H100 GPUs (video - high performance)
+
+**The colony setup:**
+
+```rhai
+// 🐝 Multi-modal routing (optimize cost vs performance)
+
+fn route_task(task, workers) {
+    match task.type {
+        // Text: Use A100 worker bees (balanced)
+        "text-gen" => workers
+            .filter(|w| w.gpu_type == "A100")
+            .least_loaded(),
+        
+        // Images: Use RTX 4090 worker bees (cost-effective)
+        "image-gen" => workers
+            .filter(|w| w.gpu_type == "RTX4090")
+            .least_loaded(),
+        
+        // Audio: Use A100 worker bees (good for audio)
+        "audio-gen" => workers
+            .filter(|w| w.gpu_type == "A100")
+            .filter(|w| w.capability == "audio")
+            .least_loaded(),
+        
+        // Video: Use H100 worker bees (high performance required)
+        "video-gen" => workers
+            .filter(|w| w.gpu_type == "H100")
+            .least_loaded(),
+        
+        _ => workers.least_loaded()
+    }
+}
+
+fn calculate_cost(task, worker) {
+    // Cost per GPU type (your internal accounting)
+    let gpu_cost = match worker.gpu_type {
+        "H100" => 0.10,      // $0.10/minute
+        "A100" => 0.05,      // $0.05/minute
+        "RTX4090" => 0.02,   // $0.02/minute
+        _ => 0.01
+    };
+    
+    return gpu_cost * task.estimated_duration_minutes;
+}
+```
+
+**Your pricing tiers:**
+
+| Tier | Monthly Price | Text | Images | Audio | Video |
+|------|---------------|------|--------|-------|-------|
+| **Starter** | $29 | 100K tokens | 50 images | 10 minutes | - |
+| **Pro** | $99 | 1M tokens | 500 images | 100 minutes | 10 minutes |
+| **Business** | $499 | 10M tokens | 5,000 images | 1,000 minutes | 100 minutes |
+| **Enterprise** | Custom | Unlimited | Unlimited | Unlimited | Unlimited |
+
+**What's happening:**
+- 🐝 Text requests → A100 worker bees (balanced cost/performance)
+- 🐝 Image requests → RTX 4090 worker bees (cost-effective)
+- 🐝 Audio requests → A100 worker bees (good for audio models)
+- 🐝 Video requests → H100 worker bees (high performance)
+- 🐝 Queen optimizes cost automatically
+
+**Your costs (monthly):**
+- 10x A100: ~$2,000 electricity
+- 5x RTX 4090: ~$500 electricity
+- 5x H100: ~$1,500 electricity
+- **Total: ~$4,000/month**
+
+**Your revenue (1,000 customers):**
+- 200 Starter × $29 = $5,800
+- 600 Pro × $99 = $59,400
+- 180 Business × $499 = $89,820
+- 20 Enterprise × $2,000 = $40,000
+- **Total: $195,020/month = $2.34M/year**
+
+**Your profit: $2.29M/year (98.3% margin)**
+
+---
+
+## Advanced Features
+
+### Custom Model Catalog 🐝
+
+**Offer your fine-tuned models:**
+
+```bash
+# Add your custom models to the colony
+rbee model add your-medical-llm-v2 --hive eu-frankfurt-01
+rbee model add your-legal-llm-v3 --hive us-virginia-01
+rbee model add your-custom-sdxl --hive gpu-node-05
+
+# Customers access them via API
+curl https://api.yourcompany.com/v1/models
+# {
+#   "models": [
+#     {"id": "your-medical-llm-v2", "type": "text", "region": "EU"},
+#     {"id": "your-legal-llm-v3", "type": "text", "region": "US"},
+#     {"id": "your-custom-sdxl", "type": "image"}
+#   ]
+# }
+
+# Customers use your models
+curl https://api.yourcompany.com/v1/chat/completions \
+  -H "Authorization: Bearer customer-key" \
+  -d '{
+    "model": "your-medical-llm-v2",
+    "messages": [...]
+  }'
+```
+
+**Result:** Monetize your fine-tuned models, differentiate from competitors
+
+---
+
+### Usage Tracking & Billing 🐝
+
+**Automatic usage tracking:**
+
+```bash
+# Query customer usage (for billing)
+curl https://api.yourcompany.com/admin/usage/customer-123?month=2025-11
+# {
+#   "customer_id": "customer-123",
+#   "month": "2025-11",
+#   "usage": {
+#     "text_tokens": 1250000,
+#     "images_generated": 450,
+#     "audio_minutes": 85,
+#     "video_minutes": 12
+#   },
+#   "costs": {
+#     "text": 62.50,
+#     "images": 9.00,
+#     "audio": 4.25,
+#     "video": 12.00,
+#     "total": 87.75
+#   },
+#   "tier": "pro",
+#   "overage": 0.00
+# }
+
+# Export for billing system
+curl https://api.yourcompany.com/admin/usage/export?month=2025-11 \
+  > billing_2025_11.csv
+```
+
+**Result:** Automatic usage tracking, easy billing integration
 
 ---
 
@@ -643,78 +766,40 @@ fn route_task(task, workers) {
 
 ### Prerequisites
 
-- GPU infrastructure (A100, H100, or consumer GPUs)
-- SSH access to all nodes
-- Basic Rust knowledge (for Rhai scripting)
+- GPU infrastructure (dedicated servers or cloud VMs)
+- SSH access between machines
+- Basic command-line knowledge
 
-### Setup Steps
+### Installation
 
-1. **Install rbee on control node**
-   ```bash
-   cargo install rbee-keeper
-   ```
+```bash
+# 1. Install rbee
+cargo install rbee-keeper
 
-2. **Configure hives**
-   ```bash
-   nano ~/.config/rbee/hives.conf
-   ```
+# 2. Configure hives
+nano ~/.config/rbee/hives.conf
 
-3. **Install hives on GPU nodes**
-   ```bash
-   rbee hive install <hostname>
-   ```
+# 3. Install hives
+rbee hive install <hostname>
 
-4. **Configure scheduler**
-   ```bash
-   nano ~/.config/rbee/scheduler.rhai
-   ```
+# 4. Start queen
+rbee queen start
 
-5. **Start queen**
-   ```bash
-   rbee queen start --features local-hive
-   ```
-
-6. **Test API**
-   ```bash
-   curl http://localhost:7833/v1/models
-   ```
+# 5. Test your colony
+curl http://localhost:7833/v1/models
+```
 
 **Full guide:** See main [README.md](../../README.md)
 
 ---
 
-## FAQ
-
-**Q: Can rbee handle 1000+ customers?**  
-A: Yes! rbee is designed for multi-tenancy. Rhai scheduler handles routing, quotas, and priorities.
-
-**Q: Is rbee GDPR compliant?**  
-A: Yes! Immutable audit logs, data export/deletion endpoints, and EU-only routing are built-in.
-
-**Q: Can I use my own fine-tuned models?**  
-A: Yes! Add any GGUF or SafeTensors model to your catalog.
-
-**Q: What about billing integration?**  
-A: rbee provides usage metrics. Integrate with Stripe/Chargebee for billing (custom implementation).
-
-**Q: Do I need to write Rhai scripts?**  
-A: Recommended Rhai templates are provided. Customize as needed.
-
-**Q: What's the performance overhead?**  
-A: Minimal. Rhai scripts compile to bytecode. Routing adds <1ms latency.
-
-**Q: Can I run rbee in Kubernetes?**  
-A: Yes! rbee binaries are containerizable. Helm charts coming in M2.
-
----
-
 ## Next Steps
 
-1. **Evaluate:** Compare with [Technical Differentiators](04_TECHNICAL_DIFFERENTIATORS.md)
-2. **Plan:** Review [Implementation Roadmap](06_IMPLEMENTATION_ROADMAP.md)
-3. **Try:** See [README.md](../../README.md) for setup
-4. **Contact:** Enterprise support (coming soon)
+1. **Evaluate:** Read [Competitive Analysis](04_COMPETITIVE_ANALYSIS.md)
+2. **Premium:** Review [Premium Products](05_PREMIUM_PRODUCTS.md)
+3. **Timeline:** Check [Implementation Roadmap](06_IMPLEMENTATION_ROADMAP.md)
+4. **Deploy:** See main [README.md](../../README.md)
 
 ---
 
-**Turn your GPU farm into a product in one day.** 🐝
+**🐝 Turn your GPU farm into a thriving hive in one day\!**

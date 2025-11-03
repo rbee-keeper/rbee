@@ -190,8 +190,8 @@ This directory contains comprehensive analysis of the llama-orch (rbee) reposito
 | Binary | Port | Runtime | HTTP Server |
 |--------|------|---------|-------------|
 | `rbee-keeper` | N/A | Multi-threaded | ❌ No |
-| `queen-rbee` | 7833 | Multi-threaded | ✅ Axum |
-| `rbee-hive` | 7835 | Multi-threaded | ✅ Axum |
+| `queen-rbee` | 7833 (default) | Multi-threaded | ✅ Axum |
+| `rbee-hive` | 7835 (default) | Multi-threaded | ✅ Axum |
 | `llm-worker-rbee` | 9300+ | **Single-threaded** | ✅ Axum |
 
 ### Shared Crates (by usage)
@@ -380,6 +380,6 @@ cat pnpm-workspace.yaml
 ---
 
 **Document Status:** ✅ COMPLETE  
-**Last Updated:** November 2, 2025  
+**Last Updated:** November 3, 2025  
 **Maintainer:** TEAM-385+  
 **Next Review:** After 20 TEAM handoffs or major architectural changes

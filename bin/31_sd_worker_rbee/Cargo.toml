@@ -93,18 +93,24 @@ safetensors = "0.4"
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 axum = { version = "0.7", features = ["macros"] }
 tower = "0.5"
-tower-http = { version = "0.6", features = ["cors", "trace"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "timeout"] }  # TEAM-394: Added timeout feature
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # ASYNC RUNTIME
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-tokio = { version = "1.48", features = ["rt", "macros", "sync", "time"] }
+tokio = { workspace = true, features = ["full"] }
+futures = "0.3"
+async-stream = "0.3"  # TEAM-396: For SSE streaming
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SERIALIZATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# TEAM-396: Operations contract integration
+operations-contract = { path = "../97_contracts/operations-contract" }
+job-server = { path = "../99_shared_crates/job-server" }
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CLI & LOGGING
@@ -116,13 +122,15 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # ERROR HANDLING
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-anyhow = "1.0"
+anyhow = { workspace = true }  # TEAM-396: For job_router errors
 thiserror = "2.0"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # UTILITIES
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 rand = "0.8"
+chrono = "0.4"  # TEAM-394: Timestamps for health/ready endpoints
+uuid = { version = "1.11", features = ["v4", "serde"] }  # TEAM-395: Job IDs
 
 [build-dependencies]
 shadow-rs = "0.35"

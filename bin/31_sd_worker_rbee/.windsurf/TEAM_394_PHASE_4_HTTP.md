@@ -8,6 +8,25 @@
 
 ---
 
+## 🚨 CRITICAL: Read TEAM-393's Knowledge Transfer FIRST!
+
+**Before starting, read this file:**
+📄 `.windsurf/TEAM_393_TO_394_KNOWLEDGE_TRANSFER.md`
+
+**It contains:**
+- ✅ Complete reading list (prioritized)
+- ✅ Integration patterns for GenerationEngine
+- ✅ Critical lessons learned
+- ✅ Common pitfalls to avoid
+- ✅ Specific implementation advice
+- ✅ Testing strategy
+- ✅ Success checklist
+
+**Estimated reading time:** 1.5 hours  
+**This will save you 10+ hours of debugging!**
+
+---
+
 ## 🎯 Mission
 
 Build the HTTP server infrastructure: AppState, route configuration, health/ready endpoints, and CORS middleware. Create the foundation for all HTTP endpoints.
@@ -226,32 +245,45 @@ async fn test_http_server_lifecycle() {
 
 ## 🔧 Implementation Notes
 
-### AppState Pattern
+### AppState Pattern (UPDATED FOR TEAM-393 INTEGRATION)
 
 ```rust
+use crate::backend::generation_engine::GenerationEngine;
+use crate::backend::inference::InferencePipeline;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
 #[derive(Clone)]
 pub struct AppState {
     config: Arc<Config>,
-    backend: Arc<dyn InferenceBackend>,
     generation_engine: Arc<GenerationEngine>,
+    model_loaded: Arc<AtomicBool>,
 }
 
 impl AppState {
-    pub fn new(config: Config, backend: impl InferenceBackend + 'static) -> Self {
+    pub fn new(config: Config, pipeline: Arc<InferencePipeline>) -> Self {
+        // CRITICAL: Start engine BEFORE wrapping in Arc!
+        let mut engine = GenerationEngine::new(10); // Queue capacity
+        engine.start(pipeline);
+        
         Self {
             config: Arc::new(config),
-            backend: Arc::new(backend),
-            generation_engine: Arc::new(GenerationEngine::new(backend)),
+            generation_engine: Arc::new(engine),
+            model_loaded: Arc::new(AtomicBool::new(true)),
         }
     }
-}
-
-#[async_trait]
-pub trait InferenceBackend: Send + Sync {
-    async fn is_ready(&self) -> bool;
-    async fn health_check(&self) -> Result<()>;
+    
+    pub fn is_ready(&self) -> bool {
+        self.model_loaded.load(Ordering::Relaxed)
+    }
 }
 ```
+
+**Key Changes from Original Plan:**
+- ✅ Uses TEAM-393's GenerationEngine (not a trait)
+- ✅ Starts engine before Arc wrapping
+- ✅ Tracks model loading with AtomicBool
+- ✅ Simpler than original InferenceBackend trait approach
 
 ### Server Pattern
 
@@ -328,17 +360,26 @@ pub async fn health_check(State(state): State<AppState>) -> impl IntoResponse {
 }
 ```
 
-### Ready Endpoint
+### Ready Endpoint (UPDATED)
 
 ```rust
 pub async fn readiness_check(State(state): State<AppState>) -> impl IntoResponse {
-    if state.backend.is_ready().await {
-        (StatusCode::OK, Json(json!({ "ready": true })))
+    if state.is_ready() {
+        (StatusCode::OK, Json(json!({ 
+            "ready": true,
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        })))
     } else {
-        (StatusCode::SERVICE_UNAVAILABLE, Json(json!({ "ready": false, "reason": "model not loaded" })))
+        (StatusCode::SERVICE_UNAVAILABLE, Json(json!({ 
+            "ready": false, 
+            "reason": "model loading",
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        })))
     }
 }
 ```
+
+**Note:** Uses `state.is_ready()` method from AppState (checks AtomicBool)
 
 ---
 

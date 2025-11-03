@@ -1,14 +1,14 @@
 // Created by: TEAM-392
 // TEAM-392: CLIP text encoder for Stable Diffusion
 
-use crate::error::{Error, Result};
-use candle_core::{DType, Device, Tensor};
-use candle_transformers::models::stable_diffusion;
+use crate::error::{Error, Result};  // TEAM-394: Added Error
+use candle_core::{DType, Device, Module, Tensor};  // TEAM-394: Added Module trait
+use candle_transformers::models::stable_diffusion::clip;
 use tokenizers::Tokenizer;
 
 /// CLIP text encoder for converting prompts to embeddings
 pub struct ClipTextEncoder {
-    model: stable_diffusion::clip::ClipTextTransformer,
+    model: clip::ClipTextTransformer,
     tokenizer: Tokenizer,
     max_position_embeddings: usize,
     pad_id: u32,
@@ -17,7 +17,7 @@ pub struct ClipTextEncoder {
 impl ClipTextEncoder {
     /// Create a new CLIP text encoder
     pub fn new(
-        model: stable_diffusion::clip::ClipTextTransformer,
+        model: clip::ClipTextTransformer,  // TEAM-394: Fixed - was stable_diffusion::clip
         tokenizer: Tokenizer,
         max_position_embeddings: usize,
         pad_with: Option<&str>,

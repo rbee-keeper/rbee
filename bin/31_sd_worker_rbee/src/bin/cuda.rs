@@ -75,8 +75,11 @@ async fn main() -> anyhow::Result<()> {
     // TODO: Initialize backend with flash-attn/fp16 options
     // TODO: Register with hive
 
-    // Create HTTP router
-    let app = create_router();
+    // TEAM-394: create_router() now requires AppState parameter
+    // This will be implemented by TEAM-395 when they add the full pipeline
+    // For now, we can't create a router without a model loaded
+    tracing::error!("Cannot start server: AppState requires loaded model (TEAM-395 will implement)");
+    anyhow::bail!("Model loading not yet implemented - see TEAM_394_HANDOFF.md");
 
     // Start server
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", args.port)).await?;

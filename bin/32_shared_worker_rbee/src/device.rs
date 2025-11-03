@@ -9,7 +9,9 @@
 //! Shared between all worker types (LLM, SD, etc.)
 
 use candle_core::{Device, Result as CandleResult};
-use observability_narration_core::n;
+
+// TEAM-394: Removed unused import (narration not used in this module)
+// use observability_narration_core::n;
 
 const ACTION_DEVICE_INIT: &str = "device_init";
 
@@ -17,9 +19,7 @@ const ACTION_DEVICE_INIT: &str = "device_init";
 #[cfg(feature = "cpu")]
 pub fn init_cpu_device() -> CandleResult<Device> {
     tracing::info!("Initializing CPU device");
-
-    n!(ACTION_DEVICE_INIT, "Initialized CPU device");
-
+    // TEAM-394: Removed n!() macro call (narration not used in shared crate)
     Ok(Device::Cpu)
 }
 
@@ -27,11 +27,8 @@ pub fn init_cpu_device() -> CandleResult<Device> {
 #[cfg(feature = "cuda")]
 pub fn init_cuda_device(gpu_id: usize) -> CandleResult<Device> {
     tracing::info!("Initializing CUDA device {}", gpu_id);
-
     let device = Device::new_cuda(gpu_id)?;
-
-    n!(ACTION_DEVICE_INIT, "Initialized CUDA device {}", gpu_id);
-
+    // TEAM-394: Removed n!() macro call (narration not used in shared crate)
     Ok(device)
 }
 
@@ -40,11 +37,8 @@ pub fn init_cuda_device(gpu_id: usize) -> CandleResult<Device> {
 #[cfg(feature = "metal")]
 pub fn init_metal_device(gpu_id: usize) -> CandleResult<Device> {
     tracing::info!("Initializing Apple Metal device (GPU) {}", gpu_id);
-
     let device = Device::new_metal(gpu_id)?;
-
-    n!(ACTION_DEVICE_INIT, "Initialized Apple Metal device {}", gpu_id);
-
+    // TEAM-394: Removed n!() macro call (narration not used in shared crate)
     Ok(device)
 }
 

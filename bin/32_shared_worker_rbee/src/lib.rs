@@ -12,7 +12,11 @@
 pub mod device;
 pub mod heartbeat;
 
-pub use device::{init_cpu_device, verify_device};
+// TEAM-394: Fixed feature gate - init_cpu_device is behind cpu feature
+pub use device::verify_device;
+
+#[cfg(feature = "cpu")]
+pub use device::init_cpu_device;
 
 #[cfg(feature = "cuda")]
 pub use device::init_cuda_device;

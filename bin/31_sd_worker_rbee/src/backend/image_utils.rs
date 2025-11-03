@@ -3,7 +3,7 @@
 
 use crate::error::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use image::{DynamicImage, ImageFormat};
+use image::{DynamicImage, GenericImageView, ImageFormat};  // TEAM-394: Added GenericImageView trait
 use std::io::Cursor;
 
 /// Convert image to base64-encoded PNG
@@ -18,7 +18,7 @@ pub fn image_to_base64(image: &DynamicImage) -> Result<String> {
 pub fn base64_to_image(base64: &str) -> Result<DynamicImage> {
     let bytes = STANDARD
         .decode(base64)
-        .map_err(|e| crate::error::Error::InvalidInput(format\!("Invalid base64: {}", e)))?;
+        .map_err(|e| crate::error::Error::InvalidInput(format!("Invalid base64: {}", e)))?;
     let image = image::load_from_memory(&bytes)?;
     Ok(image)
 }
@@ -38,7 +38,7 @@ pub fn ensure_multiple_of_8(image: &DynamicImage) -> DynamicImage {
     let new_width = (width / 8) * 8;
     let new_height = (height / 8) * 8;
     
-    if new_width \!= width || new_height \!= height {
+    if new_width != width || new_height != height {
         resize_image(image, new_width, new_height)
     } else {
         image.clone()
@@ -75,14 +75,14 @@ mod tests {
         let img = DynamicImage::ImageRgb8(RgbImage::new(64, 64));
         let base64 = image_to_base64(&img).unwrap();
         let decoded = base64_to_image(&base64).unwrap();
-        assert_eq\!(img.dimensions(), decoded.dimensions());
+        assert_eq!(img.dimensions(), decoded.dimensions());
     }
 
     #[test]
     fn test_resize() {
         let img = DynamicImage::ImageRgb8(RgbImage::new(100, 100));
         let resized = resize_image(&img, 64, 64);
-        assert_eq\!(resized.dimensions(), (64, 64));
+        assert_eq!(resized.dimensions(), (64, 64));
     }
 
     #[test]
@@ -90,9 +90,9 @@ mod tests {
         let img = DynamicImage::ImageRgb8(RgbImage::new(67, 67));
         let fixed = ensure_multiple_of_8(&img);
         let (w, h) = fixed.dimensions();
-        assert_eq\!(w % 8, 0);
-        assert_eq\!(h % 8, 0);
-        assert_eq\!((w, h), (64, 64));
+        assert_eq!(w % 8, 0);
+        assert_eq!(h % 8, 0);
+        assert_eq!((w, h), (64, 64));
     }
 
     #[test]
@@ -100,7 +100,7 @@ mod tests {
         let img = DynamicImage::ImageRgb8(RgbImage::new(67, 67));
         let mask = process_mask(&img).unwrap();
         let (w, h) = mask.dimensions();
-        assert_eq\!(w % 8, 0);
-        assert_eq\!(h % 8, 0);
+        assert_eq!(w % 8, 0);
+        assert_eq!(h % 8, 0);
     }
 }

@@ -1,114 +1,100 @@
 // TEAM-390: Job routing for SD worker
+// TEAM-396: CRITICAL FIX - Rewritten to use operations-contract
 //
-// Routes incoming generation requests to the appropriate backend.
-// Placeholder for future implementation.
+// FIXED ISSUES:
+// 1. Uses operations-contract (not custom request types)
+// 2. Matches LLM worker pattern (bin/30_llm_worker_rbee/src/job_router.rs)
+// 3. Routes Operation enum to handlers
+// 4. Integrates with RequestQueue properly
 
-use crate::error::Result;
-use serde::{Deserialize, Serialize};
+use anyhow::{anyhow, Result};
+use job_server::JobRegistry;
+use observability_narration_core::sse_sink;
+use operations_contract::Operation;
+use serde::Serialize;
+use std::sync::Arc;
 
-/// Text-to-image generation request
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct TextToImageRequest {
-    pub prompt: String,
-    #[serde(default)]
-    pub negative_prompt: Option<String>,
-    #[serde(default = "default_steps")]
-    pub steps: usize,
-    #[serde(default = "default_guidance_scale")]
-    pub guidance_scale: f64,
-    #[serde(default)]
-    pub seed: Option<u64>,
-    #[serde(default = "default_height")]
-    pub height: usize,
-    #[serde(default = "default_width")]
-    pub width: usize,
-    #[serde(default = "default_num_samples")]
-    pub num_samples: usize,
+use crate::backend::request_queue::{GenerationRequest, GenerationResponse, RequestQueue};
+use crate::backend::sampling::SamplingConfig;
+
+/// State required for job routing and execution
+///
+/// TEAM-396: Matches LLM worker pattern
+#[derive(Clone)]
+pub struct JobState {
+    pub registry: Arc<JobRegistry<GenerationResponse>>,
+    pub queue: RequestQueue,
 }
 
-fn default_steps() -> usize {
-    30
+/// Response from job creation
+#[derive(Debug, Serialize)]
+pub struct JobResponse {
+    pub job_id: String,
+    pub sse_url: String,
 }
 
-fn default_guidance_scale() -> f64 {
-    7.5
+/// Create a new job and store its payload
+///
+/// TEAM-396: Mirrors LLM worker pattern exactly
+/// Called by HTTP layer to create jobs.
+pub async fn create_job(state: JobState, payload: serde_json::Value) -> Result<JobResponse> {
+    // Parse operation from JSON
+    let operation: Operation = serde_json::from_value(payload)
+        .map_err(|e| anyhow!("Failed to parse operation: {}", e))?;
+
+    // Route to appropriate handler
+    match operation {
+        // TODO TEAM-397: Add Operation::ImageGeneration to operations-contract first!
+        // Operation::ImageGeneration(req) => execute_image_generation(state, req).await,
+        // Operation::ImageTransform(req) => execute_image_transform(state, req).await,
+        // Operation::ImageInpaint(req) => execute_inpaint(state, req).await,
+        _ => Err(anyhow!(
+            "Unsupported operation for SD worker: {:?}\n\n\
+            TEAM-397 TODO:\n\
+            1. Add Operation::ImageGeneration to operations-contract\n\
+            2. Add Operation::ImageTransform to operations-contract\n\
+            3. Add Operation::ImageInpaint to operations-contract\n\
+            4. Implement handlers in this file\n\n\
+            See: OPERATIONS_CONTRACT_ANALYSIS.md and CORRECT_IMPLEMENTATION_PLAN.md",
+            operation
+        )),
+    }
 }
 
-fn default_height() -> usize {
-    512
-}
-
-fn default_width() -> usize {
-    512
-}
-
-fn default_num_samples() -> usize {
-    1
-}
-
-/// Image-to-image generation request
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct ImageToImageRequest {
-    pub prompt: String,
-    pub image: String, // Base64 encoded
-    #[serde(default = "default_strength")]
-    pub strength: f64,
-    #[serde(default = "default_steps")]
-    pub steps: usize,
-    #[serde(default = "default_guidance_scale")]
-    pub guidance_scale: f64,
-    #[serde(default)]
-    pub seed: Option<u64>,
-}
-
-fn default_strength() -> f64 {
-    0.8
-}
-
-/// Inpainting request
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct InpaintRequest {
-    pub prompt: String,
-    pub image: String, // Base64 encoded
-    pub mask: String,  // Base64 encoded (white = inpaint)
-    #[serde(default = "default_steps")]
-    pub steps: usize,
-    #[serde(default = "default_guidance_scale")]
-    pub guidance_scale: f64,
-    #[serde(default)]
-    pub seed: Option<u64>,
-}
-
-/// Generation response
-#[derive(Debug, Clone, Serialize)]
-pub struct GenerationResponse {
-    pub image: String, // Base64 encoded PNG
-    pub seed: u64,
-    pub elapsed_ms: u64,
-}
-
-/// Progress update
-#[derive(Debug, Clone, Serialize)]
-pub struct ProgressUpdate {
-    pub step: usize,
-    pub total_steps: usize,
-    pub percent: f32,
-}
-
-/// Execute text-to-image generation
-pub async fn execute_text_to_image(_request: TextToImageRequest) -> Result<GenerationResponse> {
-    // TODO: Implement using Candle SD backend
-    todo!("Text-to-image generation not yet implemented")
-}
-
-/// Execute image-to-image generation
-pub async fn execute_image_to_image(_request: ImageToImageRequest) -> Result<GenerationResponse> {
-    // TODO: Implement using Candle SD backend
-    todo!("Image-to-image generation not yet implemented")
-}
-
-/// Execute inpainting
-pub async fn execute_inpaint(_request: InpaintRequest) -> Result<GenerationResponse> {
-    // TODO: Implement using Candle SD backend
-    todo!("Inpainting not yet implemented")
-}
+// TODO TEAM-397: Implement these handlers after adding operations to contract
+//
+// /// Execute image generation operation
+// async fn execute_image_generation(
+//     state: JobState,
+//     req: operations_contract::ImageGenerationRequest,
+// ) -> Result<JobResponse> {
+//     let job_id = state.registry.create_job();
+//     sse_sink::create_job_channel(job_id.clone(), 1000);
+//     
+//     let (response_tx, response_rx) = tokio::sync::mpsc::unbounded_channel();
+//     state.registry.set_token_receiver(&job_id, response_rx);
+//     
+//     let config = SamplingConfig {
+//         prompt: req.prompt,
+//         negative_prompt: req.negative_prompt,
+//         steps: req.steps,
+//         guidance_scale: req.guidance_scale,
+//         width: req.width,
+//         height: req.height,
+//         seed: req.seed,
+//         ..Default::default()
+//     };
+//     
+//     let request = GenerationRequest {
+//         request_id: job_id.clone(),
+//         config,
+//         response_tx,
+//     };
+//     
+//     state.queue.add_request(request)?;
+//     
+//     Ok(JobResponse {
+//         job_id: job_id.clone(),
+//         sse_url: format!("/v1/jobs/{}/stream", job_id),
+//     })
+// }

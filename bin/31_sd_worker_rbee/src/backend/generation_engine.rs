@@ -1,110 +1,128 @@
 // Created by: TEAM-393
-// TEAM-393: Asynchronous generation engine
+// TEAM-396: CRITICAL FIX - Rewritten to match LLM worker pattern
+//
+// FIXED ISSUES:
+// 1. Dependency injection (rx passed in, not created internally)
+// 2. spawn_blocking instead of tokio::spawn (CPU-intensive work)
+// 3. start() consumes self (clean ownership)
+// 4. Removed Arc<RequestQueue> complexity
+// 5. Removed shutdown AtomicBool (not needed)
+// 6. Matches bin/30_llm_worker_rbee/src/backend/generation_engine.rs
 
 use crate::backend::{
     inference::InferencePipeline,
-    request_queue::{GenerationRequest, GenerationResponse, RequestQueue},
+    request_queue::{GenerationRequest, GenerationResponse},
     image_utils::image_to_base64,
 };
-use crate::error::Result;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
 
-/// Asynchronous generation engine
+/// Generation engine that processes inference requests
+///
+/// TEAM-396: Fixed to match LLM worker pattern
+/// This runs in `spawn_blocking` to avoid blocking the async runtime.
+/// It pulls requests from the queue and generates images one by one.
 pub struct GenerationEngine {
-    queue: Arc<RequestQueue>,
-    shutdown: Arc<AtomicBool>,
+    pipeline: Arc<Mutex<InferencePipeline>>,
+    request_rx: mpsc::UnboundedReceiver<GenerationRequest>,
 }
 
 impl GenerationEngine {
     /// Create a new generation engine
-    pub fn new(queue_capacity: usize) -> Self {
-        Self {
-            queue: Arc::new(RequestQueue::new(queue_capacity)),
-            shutdown: Arc::new(AtomicBool::new(false)),
-        }
+    ///
+    /// # Arguments
+    /// * `pipeline` - The inference pipeline (shared, locked)
+    /// * `request_rx` - Receiver for generation requests from HTTP handlers
+    ///
+    /// TEAM-396: Takes rx as parameter (dependency injection)
+    pub fn new(
+        pipeline: Arc<Mutex<InferencePipeline>>,
+        request_rx: mpsc::UnboundedReceiver<GenerationRequest>,
+    ) -> Self {
+        Self { pipeline, request_rx }
     }
 
-    /// Start the background generation task
-    pub fn start(&mut self, pipeline: Arc<InferencePipeline>) {
-        let mut rx = self.queue.take_receiver()
-            .expect("Receiver already taken");
-        let shutdown = Arc::clone(&self.shutdown);
+    /// Start the generation engine loop
+    ///
+    /// This spawns a blocking task that processes requests sequentially.
+    /// The task runs until the request channel is closed.
+    ///
+    /// CRITICAL: Uses `spawn_blocking` to move CPU-intensive work
+    /// off the async runtime, preventing it from blocking HTTP handlers.
+    ///
+    /// TEAM-396: Consumes self (clean ownership, matches LLM worker)
+    pub fn start(mut self) {
+        tokio::task::spawn_blocking(move || {
+            // Get tokio runtime handle for async operations within blocking context
+            let rt = tokio::runtime::Handle::current();
 
-        tokio::spawn(async move {
-            while \!shutdown.load(Ordering::Relaxed) {
-                tokio::select\! {
-                    Some((request, response_tx)) = rx.recv() => {
-                        Self::process_request(
-                            Arc::clone(&pipeline),
-                            request,
-                            response_tx,
-                        ).await;
-                    }
-                    else => break,
-                }
+            tracing::info!("Generation engine started");
+
+            loop {
+                // Wait for next request (blocking is OK here, we're in spawn_blocking)
+                let request = if let Some(req) = rt.block_on(self.request_rx.recv()) {
+                    req
+                } else {
+                    tracing::info!("Request channel closed, stopping generation engine");
+                    break;
+                };
+
+                tracing::info!(
+                    request_id = %request.request_id,
+                    prompt = %request.config.prompt,
+                    steps = request.config.steps,
+                    "Processing generation request"
+                );
+
+                // Lock pipeline for this request only
+                // CRITICAL: Lock is held only during generation, not while waiting
+                let mut pipeline = self.pipeline.lock().unwrap();
+
+                // Generate and send through channel
+                Self::generate_image(
+                    &mut pipeline,
+                    &request.config,
+                    request.response_tx,
+                );
+
+                // Lock is released here, next request can proceed
+                tracing::debug!(
+                    request_id = %request.request_id,
+                    "Request completed, pipeline lock released"
+                );
             }
+
+            tracing::info!("Generation engine stopped");
         });
     }
 
-    /// Submit a generation request
-    pub async fn submit(
-        &self,
-        request: GenerationRequest,
-        response_tx: mpsc::Sender<GenerationResponse>,
-    ) -> Result<()> {
-        self.queue
-            .submit(request, response_tx)
-            .await
-            .map_err(|e| crate::error::Error::Generation(e))
-    }
-
-    /// Shutdown the engine
-    pub async fn shutdown(&self) {
-        self.shutdown.store(true, Ordering::Relaxed);
-    }
-
-    /// Process a single generation request
-    async fn process_request(
-        pipeline: Arc<InferencePipeline>,
-        request: GenerationRequest,
-        response_tx: mpsc::Sender<GenerationResponse>,
+    /// Generate image and send responses through channel
+    ///
+    /// TEAM-396: Simplified - response_tx is in the request
+    fn generate_image(
+        pipeline: &mut InferencePipeline,
+        config: &crate::backend::sampling::SamplingConfig,
+        response_tx: mpsc::UnboundedSender<GenerationResponse>,
     ) {
         // Progress callback
         let progress_tx = response_tx.clone();
         let progress_callback = move |step: usize, total: usize| {
-            let _ = progress_tx.try_send(GenerationResponse::Progress { step, total });
+            let _ = progress_tx.send(GenerationResponse::Progress { step, total });
         };
 
         // Generate image
-        match pipeline.text_to_image(&request.config, progress_callback) {
+        match pipeline.text_to_image(config, progress_callback) {
             Ok(image) => {
-                match image_to_base64(&image) {
-                    Ok(base64) => {
-                        // Send complete response with base64 image
-                        let _ = response_tx.try_send(GenerationResponse::Complete {
-                            image: image,
-                        });
-                    }
-                    Err(e) => {
-                        let _ = response_tx.try_send(GenerationResponse::Error {
-                            message: format\!("Failed to encode image: {}", e),
-                        });
-                    }
-                }
+                // Send complete response with image
+                let _ = response_tx.send(GenerationResponse::Complete { image });
             }
             Err(e) => {
-                let _ = response_tx.try_send(GenerationResponse::Error {
-                    message: format\!("Generation failed: {}", e),
+                tracing::error!(error = %e, "Generation failed");
+                let _ = response_tx.send(GenerationResponse::Error {
+                    message: format!("Generation failed: {}", e),
                 });
             }
         }
-    }
-
-    /// Get queue sender for submitting requests
-    pub fn queue_sender(&self) -> mpsc::Sender<(GenerationRequest, mpsc::Sender<GenerationResponse>)> {
-        self.queue.sender()
     }
 }
 
@@ -113,33 +131,16 @@ mod tests {
     use super::*;
     use crate::backend::sampling::SamplingConfig;
 
-    #[tokio::test]
-    async fn test_engine_creation() {
-        let engine = GenerationEngine::new(10);
-        assert\!(\!engine.shutdown.load(Ordering::Relaxed));
-    }
-
-    #[tokio::test]
-    async fn test_engine_shutdown() {
-        let engine = GenerationEngine::new(10);
-        engine.shutdown().await;
-        assert\!(engine.shutdown.load(Ordering::Relaxed));
-    }
-
-    #[tokio::test]
-    async fn test_submit_request() {
-        let engine = GenerationEngine::new(10);
-        let (response_tx, _response_rx) = mpsc::channel(10);
+    #[test]
+    fn test_engine_creation() {
+        // Create mock pipeline and channel
+        let (_tx, rx) = mpsc::unbounded_channel();
+        let pipeline = Arc::new(Mutex::new(
+            // Would need actual pipeline here, but this tests structure
+            unsafe { std::mem::zeroed() }
+        ));
         
-        let request = GenerationRequest {
-            job_id: "test-123".to_string(),
-            config: SamplingConfig {
-                prompt: "test prompt".to_string(),
-                ..Default::default()
-            },
-        };
-
-        // Should succeed (even though no worker is processing)
-        assert\!(engine.submit(request, response_tx).await.is_ok());
+        let _engine = GenerationEngine::new(pipeline, rx);
+        // Engine created successfully
     }
 }

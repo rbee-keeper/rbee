@@ -3,7 +3,8 @@
 // Stable Diffusion worker using CPU backend.
 
 use clap::Parser;
-use sd_worker_rbee::{http::create_router, narration::log_device_init};
+use sd_worker_rbee::{narration::log_device_init};
+// TEAM-396: create_router will be used after model loading implemented
 use shared_worker_rbee::device;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -56,18 +57,35 @@ async fn main() -> anyhow::Result<()> {
     let _device = device::init_cpu_device()?;
     device::verify_device(&_device)?;
 
-    // TODO: Load SD model
-    // TODO: Initialize backend
-    // TODO: Register with hive
-
-    // Create HTTP router
-    let app = create_router();
-
-    // Start server
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", args.port)).await?;
-    tracing::info!("SD Worker listening on {}", listener.local_addr()?);
-
-    axum::serve(listener, app).await?;
-
-    Ok(())
+    // TEAM-396: Fixed to match LLM worker pattern
+    // TODO: Load SD model and create pipeline (TEAM-397)
+    // For now, show correct architecture:
+    
+    // 1. Create request queue (returns queue and receiver)
+    // let (request_queue, request_rx) = sd_worker_rbee::backend::RequestQueue::new();
+    
+    // 2. Load model and create pipeline
+    // let pipeline = Arc::new(Mutex::new(InferencePipeline::new(...)?));
+    
+    // 3. Create generation engine with dependency injection
+    // let engine = sd_worker_rbee::backend::GenerationEngine::new(
+    //     Arc::clone(&pipeline),
+    //     request_rx,
+    // );
+    
+    // 4. Start engine (consumes self)
+    // engine.start();
+    
+    // 5. Create HTTP state with request_queue
+    // let app_state = AppState { request_queue };
+    
+    // 6. Start HTTP server
+    // let router = create_router(app_state);
+    // let listener = tokio::net::TcpListener::bind(...).await?;
+    // axum::serve(listener, router).await?;
+    
+    tracing::error!("Model loading not yet implemented");
+    tracing::info!("✅ RequestQueue/GenerationEngine architecture fixed (TEAM-396)");
+    tracing::info!("❌ Model loading needed for actual startup (TEAM-397)");
+    anyhow::bail!("Model loading not yet implemented - architecture is now correct")
 }

@@ -55,7 +55,11 @@ python scripts/dependency-graph.py
 Generate `.dot` file for visualization with GraphViz tools:
 
 ```bash
+# Dark mode (default) - better for dark backgrounds
 python scripts/dependency-graph.py --format dot --output deps.dot
+
+# Light mode - for light backgrounds
+python scripts/dependency-graph.py --format dot --light-mode --output deps.dot
 
 # Render to PNG (requires graphviz installed)
 dot -Tpng deps.dot -o deps.png
@@ -68,8 +72,16 @@ xdot deps.dot
 ```
 
 **Features:**
-- Cargo crates: light blue boxes
-- pnpm packages: light green boxes
+- **Dark mode (default):** Dark background with bright colors
+  - Cargo crates: bright blue (`#4a9eff`)
+  - pnpm packages: bright green (`#66bb6a`)
+  - WASM bridges: bright yellow (`#ffd54f`)
+  - Background: `#1e1e1e`
+- **Light mode:** White background with pastel colors
+  - Cargo crates: light blue
+  - pnpm packages: light green
+  - WASM bridges: light yellow
+- **Arrow direction:** FROM dependent TO dependency (library it uses)
 - Solid arrows: regular dependencies
 - Dashed arrows: dev dependencies
 

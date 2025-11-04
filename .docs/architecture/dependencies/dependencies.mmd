@@ -1,0 +1,281 @@
+graph LR
+  %% Cargo crates (blue)
+  rbee_keeper["rbee-keeper"]
+  style rbee_keeper fill:#add8e6
+  queen_rbee["queen-rbee"]
+  style queen_rbee fill:#add8e6
+  rbee_hive["rbee-hive"]
+  style rbee_hive fill:#add8e6
+  llm_worker_rbee["llm-worker-rbee"]
+  style llm_worker_rbee fill:#add8e6
+  sd_worker_rbee["sd-worker-rbee"]
+  style sd_worker_rbee fill:#add8e6
+  shared_worker_rbee["shared-worker-rbee"]
+  style shared_worker_rbee fill:#add8e6
+  queen_rbee_telemetry_registry["queen-rbee-telemetry-registry"]
+  style queen_rbee_telemetry_registry fill:#add8e6
+  rbee_hive_artifact_catalog["rbee-hive-artifact-catalog"]
+  style rbee_hive_artifact_catalog fill:#add8e6
+  rbee_hive_model_catalog["rbee-hive-model-catalog"]
+  style rbee_hive_model_catalog fill:#add8e6
+  rbee_hive_model_provisioner["rbee-hive-model-provisioner"]
+  style rbee_hive_model_provisioner fill:#add8e6
+  rbee_hive_monitor["rbee-hive-monitor"]
+  style rbee_hive_monitor fill:#add8e6
+  rbee_hive_device_detection["rbee-hive-device-detection"]
+  style rbee_hive_device_detection fill:#add8e6
+  rbee_hive_vram_checker["rbee-hive-vram-checker"]
+  style rbee_hive_vram_checker fill:#add8e6
+  rbee_hive_worker_catalog["rbee-hive-worker-catalog"]
+  style rbee_hive_worker_catalog fill:#add8e6
+  rbee_hive_worker_provisioner["rbee-hive-worker-provisioner"]
+  style rbee_hive_worker_provisioner fill:#add8e6
+  audit_logging["audit-logging"]
+  style audit_logging fill:#add8e6
+  auth_min["auth-min"]
+  style auth_min fill:#add8e6
+  deadline_propagation["deadline-propagation"]
+  style deadline_propagation fill:#add8e6
+  input_validation["input-validation"]
+  style input_validation fill:#add8e6
+  jwt_guardian["jwt-guardian"]
+  style jwt_guardian fill:#add8e6
+  secrets_management["secrets-management"]
+  style secrets_management fill:#add8e6
+  health_poll["health-poll"]
+  style health_poll fill:#add8e6
+  lifecycle_shared["lifecycle-shared"]
+  style lifecycle_shared fill:#add8e6
+  lifecycle_local["lifecycle-local"]
+  style lifecycle_local fill:#add8e6
+  lifecycle_ssh["lifecycle-ssh"]
+  style lifecycle_ssh fill:#add8e6
+  observability_narration_core["observability-narration-core"]
+  style observability_narration_core fill:#add8e6
+  heartbeat_registry["heartbeat-registry"]
+  style heartbeat_registry fill:#add8e6
+  job_server["job-server"]
+  style job_server fill:#add8e6
+  timeout_enforcer["timeout-enforcer"]
+  style timeout_enforcer fill:#add8e6
+  auto_update["auto-update"]
+  style auto_update fill:#add8e6
+  job_client["job-client"]
+  style job_client fill:#add8e6
+  ssh_config_parser["ssh-config-parser"]
+  style ssh_config_parser fill:#add8e6
+  artifacts_contract["artifacts-contract"]
+  style artifacts_contract fill:#add8e6
+  shared_contract["shared-contract"]
+  style shared_contract fill:#add8e6
+  worker_contract["worker-contract"]
+  style worker_contract fill:#add8e6
+  hive_contract["hive-contract"]
+  style hive_contract fill:#add8e6
+  operations_contract["operations-contract"]
+  style operations_contract fill:#add8e6
+  jobs_contract["jobs-contract"]
+  style jobs_contract fill:#add8e6
+  contracts_api_types["contracts-api-types"]
+  style contracts_api_types fill:#add8e6
+  contracts_config_schema["contracts-config-schema"]
+  style contracts_config_schema fill:#add8e6
+  tools_openapi_client["tools-openapi-client"]
+  style tools_openapi_client fill:#add8e6
+  tools_readme_index["tools-readme-index"]
+  style tools_readme_index fill:#add8e6
+  tools_spec_extract["tools-spec-extract"]
+  style tools_spec_extract fill:#add8e6
+  xtask["xtask"]
+  style xtask fill:#add8e6
+  keeper_config_contract["keeper-config-contract"]
+  style keeper_config_contract fill:#add8e6
+
+  %% pnpm packages (green)
+  rbee_commercial["@rbee/commercial"]
+  style rbee_commercial fill:#90ee90
+  marketplace["marketplace"]
+  style marketplace fill:#90ee90
+  rbee_user_docs["@rbee/user-docs"]
+  style rbee_user_docs fill:#90ee90
+  rbee_ui["@rbee/ui"]
+  style rbee_ui fill:#90ee90
+  repo_tailwind_config["@repo/tailwind-config"]
+  style repo_tailwind_config fill:#90ee90
+  repo_typescript_config["@repo/typescript-config"]
+  style repo_typescript_config fill:#90ee90
+  repo_eslint_config["@repo/eslint-config"]
+  style repo_eslint_config fill:#90ee90
+  repo_vite_config["@repo/vite-config"]
+  style repo_vite_config fill:#90ee90
+  rbee_shared_config["@rbee/shared-config"]
+  style rbee_shared_config fill:#90ee90
+  rbee_narration_client["@rbee/narration-client"]
+  style rbee_narration_client fill:#90ee90
+  rbee_iframe_bridge["@rbee/iframe-bridge"]
+  style rbee_iframe_bridge fill:#90ee90
+  rbee_dev_utils["@rbee/dev-utils"]
+  style rbee_dev_utils fill:#90ee90
+  rbee_sdk_loader["@rbee/sdk-loader"]
+  style rbee_sdk_loader fill:#90ee90
+  rbee_react_hooks["@rbee/react-hooks"]
+  style rbee_react_hooks fill:#90ee90
+  my_v0_project["my-v0-project"]
+  style my_v0_project fill:#90ee90
+  rbee_keeper_ui["@rbee/keeper-ui"]
+  style rbee_keeper_ui fill:#90ee90
+  rbee_queen_rbee_ui["@rbee/queen-rbee-ui"]
+  style rbee_queen_rbee_ui fill:#90ee90
+  rbee_queen_rbee_sdk["@rbee/queen-rbee-sdk 🌉"]
+  style rbee_queen_rbee_sdk fill:#ffffe0
+  rbee_queen_rbee_react["@rbee/queen-rbee-react"]
+  style rbee_queen_rbee_react fill:#90ee90
+  rbee_rbee_hive_ui["@rbee/rbee-hive-ui"]
+  style rbee_rbee_hive_ui fill:#90ee90
+  rbee_rbee_hive_sdk["@rbee/rbee-hive-sdk 🌉"]
+  style rbee_rbee_hive_sdk fill:#ffffe0
+  rbee_rbee_hive_react["@rbee/rbee-hive-react"]
+  style rbee_rbee_hive_react fill:#90ee90
+  rbee_llm_worker_ui["@rbee/llm-worker-ui"]
+  style rbee_llm_worker_ui fill:#90ee90
+  rbee_llm_worker_sdk["@rbee/llm-worker-sdk 🌉"]
+  style rbee_llm_worker_sdk fill:#ffffe0
+  rbee_llm_worker_react["@rbee/llm-worker-react"]
+  style rbee_llm_worker_react fill:#90ee90
+  80_hono_worker_catalog["80-hono-worker-catalog"]
+  style 80_hono_worker_catalog fill:#90ee90
+
+  %% Dependencies
+  rbee_keeper --> job_client
+  rbee_keeper --> timeout_enforcer
+  rbee_keeper --> lifecycle_local
+  rbee_keeper --> keeper_config_contract
+  rbee_keeper --> operations_contract
+  rbee_keeper --> observability_narration_core
+  rbee_keeper --> lifecycle_ssh
+  rbee_keeper --> ssh_config_parser
+  queen_rbee --> rbee_hive_monitor
+  queen_rbee --> hive_contract
+  queen_rbee --> queen_rbee_telemetry_registry
+  queen_rbee --> job_client
+  queen_rbee --> jobs_contract
+  queen_rbee --> timeout_enforcer
+  queen_rbee --> job_server
+  queen_rbee --> operations_contract
+  queen_rbee --> observability_narration_core
+  queen_rbee --> ssh_config_parser
+  queen_rbee --> worker_contract
+  rbee_hive --> rbee_hive_model_catalog
+  rbee_hive --> rbee_hive_monitor
+  rbee_hive --> hive_contract
+  rbee_hive --> rbee_hive_artifact_catalog
+  rbee_hive --> rbee_hive_model_provisioner
+  rbee_hive --> jobs_contract
+  rbee_hive --> rbee_hive_device_detection
+  rbee_hive --> lifecycle_local
+  rbee_hive --> job_server
+  rbee_hive --> operations_contract
+  rbee_hive --> rbee_hive_worker_catalog
+  rbee_hive --> observability_narration_core
+  llm_worker_rbee --> secrets_management
+  llm_worker_rbee --> input_validation
+  llm_worker_rbee --> job_server
+  llm_worker_rbee --> operations_contract
+  llm_worker_rbee --> observability_narration_core
+  llm_worker_rbee --> worker_contract
+  llm_worker_rbee --> auth_min
+  sd_worker_rbee --> job_server
+  sd_worker_rbee --> shared_worker_rbee
+  sd_worker_rbee --> operations_contract
+  sd_worker_rbee --> observability_narration_core
+  shared_worker_rbee --> worker_contract
+  shared_worker_rbee --> observability_narration_core
+  queen_rbee_telemetry_registry --> shared_contract
+  queen_rbee_telemetry_registry --> rbee_hive_monitor
+  queen_rbee_telemetry_registry --> hive_contract
+  queen_rbee_telemetry_registry --> heartbeat_registry
+  rbee_hive_artifact_catalog --> artifacts_contract
+  rbee_hive_artifact_catalog --> observability_narration_core
+  rbee_hive_model_catalog --> artifacts_contract
+  rbee_hive_model_catalog --> rbee_hive_artifact_catalog
+  rbee_hive_model_provisioner --> artifacts_contract
+  rbee_hive_model_provisioner --> observability_narration_core
+  rbee_hive_model_provisioner --> rbee_hive_artifact_catalog
+  rbee_hive_vram_checker --> rbee_hive_device_detection
+  rbee_hive_worker_catalog --> artifacts_contract
+  rbee_hive_worker_catalog --> rbee_hive_artifact_catalog
+  rbee_hive_worker_provisioner --> artifacts_contract
+  rbee_hive_worker_provisioner --> observability_narration_core
+  rbee_hive_worker_provisioner --> rbee_hive_artifact_catalog
+  audit_logging --> input_validation
+  health_poll --> observability_narration_core
+  lifecycle_shared --> timeout_enforcer
+  lifecycle_shared --> observability_narration_core
+  lifecycle_local --> rbee_hive_monitor
+  lifecycle_local --> lifecycle_shared
+  lifecycle_local --> timeout_enforcer
+  lifecycle_local --> observability_narration_core
+  lifecycle_local --> health_poll
+  lifecycle_ssh --> health_poll
+  lifecycle_ssh --> timeout_enforcer
+  lifecycle_ssh --> observability_narration_core
+  lifecycle_ssh --> lifecycle_shared
+  job_server --> jobs_contract
+  job_server --> observability_narration_core
+  timeout_enforcer --> observability_narration_core
+  auto_update --> observability_narration_core
+  job_client --> operations_contract
+  job_client --> jobs_contract
+  worker_contract --> shared_contract
+  worker_contract --> heartbeat_registry
+  hive_contract --> shared_contract
+  hive_contract --> heartbeat_registry
+  tools_openapi_client --> contracts_api_types
+  xtask --> contracts_config_schema
+  xtask --> observability_narration_core
+  xtask --> auto_update
+  xtask --> auth_min
+  rbee_commercial --> rbee_ui
+  rbee_user_docs --> rbee_ui
+  rbee_narration_client --> rbee_shared_config
+  rbee_keeper_ui --> rbee_shared_config
+  rbee_keeper_ui --> rbee_narration_client
+  rbee_keeper_ui --> rbee_iframe_bridge
+  rbee_keeper_ui --> rbee_ui
+  rbee_queen_rbee_ui --> rbee_dev_utils
+  rbee_queen_rbee_ui --> rbee_iframe_bridge
+  rbee_queen_rbee_ui --> rbee_queen_rbee_react
+  rbee_queen_rbee_ui --> rbee_ui
+  rbee_queen_rbee_sdk --> job_client
+  rbee_queen_rbee_sdk --> operations_contract
+  rbee_queen_rbee_sdk --> hive_contract
+  rbee_queen_rbee_react --> rbee_queen_rbee_sdk
+  rbee_queen_rbee_react --> rbee_narration_client
+  rbee_queen_rbee_react --> rbee_react_hooks
+  rbee_queen_rbee_react --> rbee_sdk_loader
+  rbee_rbee_hive_ui --> rbee_dev_utils
+  rbee_rbee_hive_ui --> rbee_rbee_hive_react
+  rbee_rbee_hive_ui --> rbee_shared_config
+  rbee_rbee_hive_ui --> rbee_iframe_bridge
+  rbee_rbee_hive_ui --> rbee_rbee_hive_sdk
+  rbee_rbee_hive_ui --> rbee_ui
+  rbee_rbee_hive_sdk --> job_client
+  rbee_rbee_hive_sdk --> operations_contract
+  rbee_rbee_hive_sdk --> hive_contract
+  rbee_rbee_hive_react --> rbee_narration_client
+  rbee_rbee_hive_react --> rbee_sdk_loader
+  rbee_rbee_hive_react --> rbee_shared_config
+  rbee_rbee_hive_react --> rbee_rbee_hive_sdk
+  rbee_rbee_hive_react --> rbee_react_hooks
+  rbee_llm_worker_ui --> rbee_llm_worker_sdk
+  rbee_llm_worker_ui --> rbee_narration_client
+  rbee_llm_worker_ui --> rbee_sdk_loader
+  rbee_llm_worker_ui --> rbee_llm_worker_react
+  rbee_llm_worker_ui --> rbee_dev_utils
+  rbee_llm_worker_ui --> rbee_shared_config
+  rbee_llm_worker_ui --> rbee_iframe_bridge
+  rbee_llm_worker_ui --> rbee_react_hooks
+  rbee_llm_worker_ui --> rbee_ui
+  rbee_llm_worker_sdk --> job_client
+  rbee_llm_worker_sdk --> operations_contract
+  rbee_llm_worker_react --> rbee_llm_worker_sdk

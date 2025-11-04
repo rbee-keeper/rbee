@@ -1,0 +1,1761 @@
+{
+  "packages": {
+    "rbee-keeper": {
+      "name": "rbee-keeper",
+      "path": "bin/00_rbee_keeper",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "keeper-config-contract",
+        "job-client",
+        "operations-contract",
+        "timeout-enforcer",
+        "lifecycle-local",
+        "lifecycle-ssh",
+        "ssh-config-parser",
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "queen-rbee": {
+      "name": "queen-rbee",
+      "path": "bin/10_queen_rbee",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "job-server",
+        "queen-rbee-telemetry-registry",
+        "job-client",
+        "jobs-contract",
+        "operations-contract",
+        "hive-contract",
+        "timeout-enforcer",
+        "worker-contract",
+        "rbee-hive-monitor",
+        "observability-narration-core",
+        "ssh-config-parser"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive": {
+      "name": "rbee-hive",
+      "path": "bin/20_rbee_hive",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "rbee-hive-worker-catalog",
+        "job-server",
+        "rbee-hive-model-provisioner",
+        "jobs-contract",
+        "operations-contract",
+        "hive-contract",
+        "lifecycle-local",
+        "rbee-hive-device-detection",
+        "rbee-hive-monitor",
+        "observability-narration-core",
+        "rbee-hive-model-catalog",
+        "rbee-hive-artifact-catalog"
+      ],
+      "devDependencies": [
+        "hive-contract"
+      ]
+    },
+    "llm-worker-rbee": {
+      "name": "llm-worker-rbee",
+      "path": "bin/30_llm_worker_rbee",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Candle-based LLM inference worker daemon with CUDA/Metal/CPU acceleration"
+      },
+      "dependencies": [
+        "job-server",
+        "operations-contract",
+        "secrets-management",
+        "auth-min",
+        "worker-contract",
+        "input-validation",
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "sd-worker-rbee": {
+      "name": "sd-worker-rbee",
+      "path": "bin/31_sd_worker_rbee",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Candle-based Stable Diffusion inference worker daemon with CUDA/Metal/CPU acceleration"
+      },
+      "dependencies": [
+        "observability-narration-core",
+        "operations-contract",
+        "job-server",
+        "shared-worker-rbee"
+      ],
+      "devDependencies": []
+    },
+    "shared-worker-rbee": {
+      "name": "shared-worker-rbee",
+      "path": "bin/32_shared_worker_rbee",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Shared utilities for LLM and SD worker daemons"
+      },
+      "dependencies": [
+        "observability-narration-core",
+        "worker-contract"
+      ],
+      "devDependencies": []
+    },
+    "queen-rbee-telemetry-registry": {
+      "name": "queen-rbee-telemetry-registry",
+      "path": "bin/15_queen_rbee_crates/telemetry-registry",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "rbee-hive-monitor",
+        "heartbeat-registry",
+        "shared-contract",
+        "hive-contract"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive-artifact-catalog": {
+      "name": "rbee-hive-artifact-catalog",
+      "path": "bin/25_rbee_hive_crates/artifact-catalog",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "artifacts-contract",
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive-model-catalog": {
+      "name": "rbee-hive-model-catalog",
+      "path": "bin/25_rbee_hive_crates/model-catalog",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "artifacts-contract",
+        "rbee-hive-artifact-catalog"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive-model-provisioner": {
+      "name": "rbee-hive-model-provisioner",
+      "path": "bin/25_rbee_hive_crates/model-provisioner",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "artifacts-contract",
+        "observability-narration-core",
+        "rbee-hive-artifact-catalog"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive-monitor": {
+      "name": "rbee-hive-monitor",
+      "path": "bin/25_rbee_hive_crates/monitor",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": [
+        "rbee-hive-monitor"
+      ]
+    },
+    "rbee-hive-device-detection": {
+      "name": "rbee-hive-device-detection",
+      "path": "bin/25_rbee_hive_crates/device-detection",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "rbee-hive-vram-checker": {
+      "name": "rbee-hive-vram-checker",
+      "path": "bin/25_rbee_hive_crates/vram-checker",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "rbee-hive-device-detection"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive-worker-catalog": {
+      "name": "rbee-hive-worker-catalog",
+      "path": "bin/25_rbee_hive_crates/worker-catalog",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "artifacts-contract",
+        "rbee-hive-artifact-catalog"
+      ],
+      "devDependencies": []
+    },
+    "rbee-hive-worker-provisioner": {
+      "name": "rbee-hive-worker-provisioner",
+      "path": "bin/25_rbee_hive_crates/worker-provisioner",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "artifacts-contract",
+        "observability-narration-core",
+        "rbee-hive-artifact-catalog"
+      ],
+      "devDependencies": []
+    },
+    "audit-logging": {
+      "name": "audit-logging",
+      "path": "bin/98_security_crates/audit-logging",
+      "type": "cargo",
+      "metadata": {
+        "version": {
+          "workspace": true
+        },
+        "description": ""
+      },
+      "dependencies": [
+        "input-validation"
+      ],
+      "devDependencies": []
+    },
+    "auth-min": {
+      "name": "auth-min",
+      "path": "bin/98_security_crates/auth-min",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "deadline-propagation": {
+      "name": "deadline-propagation",
+      "path": "bin/98_security_crates/deadline-propagation",
+      "type": "cargo",
+      "metadata": {
+        "version": {
+          "workspace": true
+        },
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "input-validation": {
+      "name": "input-validation",
+      "path": "bin/98_security_crates/input-validation",
+      "type": "cargo",
+      "metadata": {
+        "version": {
+          "workspace": true
+        },
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "jwt-guardian": {
+      "name": "jwt-guardian",
+      "path": "bin/98_security_crates/jwt-guardian",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "secrets-management": {
+      "name": "secrets-management",
+      "path": "bin/98_security_crates/secrets-management",
+      "type": "cargo",
+      "metadata": {
+        "version": {
+          "workspace": true
+        },
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "health-poll": {
+      "name": "health-poll",
+      "path": "bin/96_lifecycle/health-poll",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "lifecycle-shared": {
+      "name": "lifecycle-shared",
+      "path": "bin/96_lifecycle/lifecycle-shared",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "observability-narration-core",
+        "timeout-enforcer"
+      ],
+      "devDependencies": []
+    },
+    "lifecycle-local": {
+      "name": "lifecycle-local",
+      "path": "bin/96_lifecycle/lifecycle-local",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "lifecycle-shared",
+        "timeout-enforcer",
+        "rbee-hive-monitor",
+        "observability-narration-core",
+        "health-poll"
+      ],
+      "devDependencies": []
+    },
+    "lifecycle-ssh": {
+      "name": "lifecycle-ssh",
+      "path": "bin/96_lifecycle/lifecycle-ssh",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "lifecycle-shared",
+        "health-poll",
+        "timeout-enforcer",
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "observability-narration-core": {
+      "name": "observability-narration-core",
+      "path": "bin/99_shared_crates/narration-core",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.5.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "heartbeat-registry": {
+      "name": "heartbeat-registry",
+      "path": "bin/99_shared_crates/heartbeat-registry",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Generic heartbeat registry for tracking component state"
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "job-server": {
+      "name": "job-server",
+      "path": "bin/99_shared_crates/job-server",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Shared job registry for dual-call inference pattern across worker, queen, and hive"
+      },
+      "dependencies": [
+        "observability-narration-core",
+        "jobs-contract"
+      ],
+      "devDependencies": []
+    },
+    "timeout-enforcer": {
+      "name": "timeout-enforcer",
+      "path": "bin/99_shared_crates/timeout-enforcer",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.2.0",
+        "description": ""
+      },
+      "dependencies": [
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "auto-update": {
+      "name": "auto-update",
+      "path": "bin/99_shared_crates/auto-update",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "job-client": {
+      "name": "job-client",
+      "path": "bin/99_shared_crates/job-client",
+      "type": "cargo",
+      "metadata": {
+        "version": {
+          "workspace": true
+        },
+        "description": ""
+      },
+      "dependencies": [
+        "jobs-contract",
+        "operations-contract"
+      ],
+      "devDependencies": []
+    },
+    "ssh-config-parser": {
+      "name": "ssh-config-parser",
+      "path": "bin/99_shared_crates/ssh-config-parser",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "artifacts-contract": {
+      "name": "artifacts-contract",
+      "path": "bin/97_contracts/artifacts-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "shared-contract": {
+      "name": "shared-contract",
+      "path": "bin/97_contracts/shared-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "worker-contract": {
+      "name": "worker-contract",
+      "path": "bin/97_contracts/worker-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "heartbeat-registry",
+        "shared-contract"
+      ],
+      "devDependencies": []
+    },
+    "hive-contract": {
+      "name": "hive-contract",
+      "path": "bin/97_contracts/hive-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [
+        "heartbeat-registry",
+        "shared-contract"
+      ],
+      "devDependencies": []
+    },
+    "operations-contract": {
+      "name": "operations-contract",
+      "path": "bin/97_contracts/operations-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "jobs-contract": {
+      "name": "jobs-contract",
+      "path": "bin/97_contracts/jobs-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Job registry contract for breaking circular dependency"
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "contracts-api-types": {
+      "name": "contracts-api-types",
+      "path": "contracts/api-types",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "contracts-config-schema": {
+      "name": "contracts-config-schema",
+      "path": "contracts/config-schema",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "tools-openapi-client": {
+      "name": "tools-openapi-client",
+      "path": "tools/openapi-client",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [
+        "contracts-api-types"
+      ],
+      "devDependencies": []
+    },
+    "tools-readme-index": {
+      "name": "tools-readme-index",
+      "path": "tools/readme-index",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "tools-spec-extract": {
+      "name": "tools-spec-extract",
+      "path": "tools/spec-extract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "xtask": {
+      "name": "xtask",
+      "path": "xtask",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.0.0",
+        "description": ""
+      },
+      "dependencies": [
+        "auto-update",
+        "auth-min",
+        "contracts-config-schema",
+        "observability-narration-core"
+      ],
+      "devDependencies": []
+    },
+    "keeper-config-contract": {
+      "name": "keeper-config-contract",
+      "path": "bin/97_contracts/keeper-config-contract",
+      "type": "cargo",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Keeper configuration contract for rbee ecosystem"
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/commercial": {
+      "name": "@rbee/commercial",
+      "path": "frontend/apps/commercial",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [
+        "@rbee/ui"
+      ],
+      "devDependencies": [
+        "@repo/tailwind-config"
+      ]
+    },
+    "marketplace": {
+      "name": "marketplace",
+      "path": "frontend/apps/marketplace",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/user-docs": {
+      "name": "@rbee/user-docs",
+      "path": "frontend/apps/user-docs",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [
+        "@rbee/ui"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/ui": {
+      "name": "@rbee/ui",
+      "path": "frontend/packages/rbee-ui",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": [
+        "@repo/tailwind-config"
+      ]
+    },
+    "@repo/tailwind-config": {
+      "name": "@repo/tailwind-config",
+      "path": "frontend/packages/tailwind-config",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@repo/typescript-config": {
+      "name": "@repo/typescript-config",
+      "path": "frontend/packages/typescript-config",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@repo/eslint-config": {
+      "name": "@repo/eslint-config",
+      "path": "frontend/packages/eslint-config",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@repo/vite-config": {
+      "name": "@repo/vite-config",
+      "path": "frontend/packages/vite-config",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/shared-config": {
+      "name": "@rbee/shared-config",
+      "path": "frontend/packages/shared-config",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/narration-client": {
+      "name": "@rbee/narration-client",
+      "path": "frontend/packages/narration-client",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [
+        "@rbee/shared-config"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/iframe-bridge": {
+      "name": "@rbee/iframe-bridge",
+      "path": "frontend/packages/iframe-bridge",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/dev-utils": {
+      "name": "@rbee/dev-utils",
+      "path": "frontend/packages/dev-utils",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/sdk-loader": {
+      "name": "@rbee/sdk-loader",
+      "path": "frontend/packages/sdk-loader",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/react-hooks": {
+      "name": "@rbee/react-hooks",
+      "path": "frontend/packages/react-hooks",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "my-v0-project": {
+      "name": "my-v0-project",
+      "path": "frontend/reference",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "@rbee/keeper-ui": {
+      "name": "@rbee/keeper-ui",
+      "path": "bin/00_rbee_keeper/ui",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [
+        "@rbee/shared-config",
+        "@rbee/narration-client",
+        "@rbee/ui",
+        "@rbee/iframe-bridge"
+      ],
+      "devDependencies": [
+        "@repo/typescript-config",
+        "@repo/eslint-config",
+        "@repo/tailwind-config"
+      ]
+    },
+    "@rbee/queen-rbee-ui": {
+      "name": "@rbee/queen-rbee-ui",
+      "path": "bin/10_queen_rbee/ui/app",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [
+        "@rbee/ui",
+        "@rbee/dev-utils",
+        "@rbee/queen-rbee-react",
+        "@rbee/iframe-bridge"
+      ],
+      "devDependencies": [
+        "@repo/typescript-config",
+        "@repo/eslint-config",
+        "@repo/tailwind-config"
+      ]
+    },
+    "@rbee/queen-rbee-sdk": {
+      "name": "@rbee/queen-rbee-sdk",
+      "path": "bin/10_queen_rbee/ui/packages/queen-rbee-sdk",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "Rust SDK for queen-rbee that compiles to WASM for browser/Node.js usage",
+        "private": false,
+        "is_wasm_bridge": true
+      },
+      "dependencies": [
+        "job-client",
+        "operations-contract",
+        "hive-contract"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/queen-rbee-react": {
+      "name": "@rbee/queen-rbee-react",
+      "path": "bin/10_queen_rbee/ui/packages/queen-rbee-react",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "React hooks for queen-rbee WASM SDK",
+        "private": false
+      },
+      "dependencies": [
+        "@rbee/sdk-loader",
+        "@rbee/queen-rbee-sdk",
+        "@rbee/narration-client",
+        "@rbee/react-hooks"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/rbee-hive-ui": {
+      "name": "@rbee/rbee-hive-ui",
+      "path": "bin/20_rbee_hive/ui/app",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [
+        "@rbee/rbee-hive-sdk",
+        "@rbee/dev-utils",
+        "@rbee/rbee-hive-react",
+        "@rbee/shared-config",
+        "@rbee/ui",
+        "@rbee/iframe-bridge"
+      ],
+      "devDependencies": [
+        "@repo/tailwind-config"
+      ]
+    },
+    "@rbee/rbee-hive-sdk": {
+      "name": "@rbee/rbee-hive-sdk",
+      "path": "bin/20_rbee_hive/ui/packages/rbee-hive-sdk",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false,
+        "is_wasm_bridge": true
+      },
+      "dependencies": [
+        "job-client",
+        "operations-contract",
+        "hive-contract"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/rbee-hive-react": {
+      "name": "@rbee/rbee-hive-react",
+      "path": "bin/20_rbee_hive/ui/packages/rbee-hive-react",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [
+        "@rbee/sdk-loader",
+        "@rbee/narration-client",
+        "@rbee/react-hooks",
+        "@rbee/shared-config",
+        "@rbee/rbee-hive-sdk"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/llm-worker-ui": {
+      "name": "@rbee/llm-worker-ui",
+      "path": "bin/30_llm_worker_rbee/ui/app",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": true
+      },
+      "dependencies": [
+        "@rbee/sdk-loader",
+        "@rbee/narration-client",
+        "@rbee/llm-worker-react",
+        "@rbee/ui",
+        "@rbee/react-hooks",
+        "@rbee/shared-config",
+        "@rbee/llm-worker-sdk",
+        "@rbee/dev-utils",
+        "@rbee/iframe-bridge"
+      ],
+      "devDependencies": [
+        "@repo/vite-config",
+        "@repo/typescript-config",
+        "@repo/eslint-config",
+        "@repo/tailwind-config"
+      ]
+    },
+    "@rbee/llm-worker-sdk": {
+      "name": "@rbee/llm-worker-sdk",
+      "path": "bin/30_llm_worker_rbee/ui/packages/llm-worker-sdk",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false,
+        "is_wasm_bridge": true
+      },
+      "dependencies": [
+        "job-client",
+        "operations-contract"
+      ],
+      "devDependencies": []
+    },
+    "@rbee/llm-worker-react": {
+      "name": "@rbee/llm-worker-react",
+      "path": "bin/30_llm_worker_rbee/ui/packages/llm-worker-react",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.1.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [
+        "@rbee/llm-worker-sdk"
+      ],
+      "devDependencies": []
+    },
+    "80-hono-worker-catalog": {
+      "name": "80-hono-worker-catalog",
+      "path": "bin/80-hono-worker-catalog",
+      "type": "pnpm",
+      "metadata": {
+        "version": "0.0.0",
+        "description": "",
+        "private": false
+      },
+      "dependencies": [],
+      "devDependencies": []
+    }
+  },
+  "dependencies": [
+    {
+      "from": "rbee-keeper",
+      "to": "keeper-config-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "job-client",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "timeout-enforcer",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "lifecycle-local",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "lifecycle-ssh",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "ssh-config-parser",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-keeper",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "job-server",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "queen-rbee-telemetry-registry",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "job-client",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "jobs-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "hive-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "timeout-enforcer",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "worker-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "rbee-hive-monitor",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee",
+      "to": "ssh-config-parser",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "rbee-hive-worker-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "job-server",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "rbee-hive-model-provisioner",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "jobs-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "hive-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "lifecycle-local",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "rbee-hive-device-detection",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "rbee-hive-monitor",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "rbee-hive-model-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "rbee-hive-artifact-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive",
+      "to": "hive-contract",
+      "type": "devDependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "job-server",
+      "type": "dependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "secrets-management",
+      "type": "dependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "auth-min",
+      "type": "dependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "worker-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "input-validation",
+      "type": "dependency"
+    },
+    {
+      "from": "llm-worker-rbee",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "sd-worker-rbee",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "sd-worker-rbee",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "sd-worker-rbee",
+      "to": "job-server",
+      "type": "dependency"
+    },
+    {
+      "from": "sd-worker-rbee",
+      "to": "shared-worker-rbee",
+      "type": "dependency"
+    },
+    {
+      "from": "shared-worker-rbee",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "shared-worker-rbee",
+      "to": "worker-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee-telemetry-registry",
+      "to": "rbee-hive-monitor",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee-telemetry-registry",
+      "to": "heartbeat-registry",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee-telemetry-registry",
+      "to": "shared-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "queen-rbee-telemetry-registry",
+      "to": "hive-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-artifact-catalog",
+      "to": "artifacts-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-artifact-catalog",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-model-catalog",
+      "to": "artifacts-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-model-catalog",
+      "to": "rbee-hive-artifact-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-model-provisioner",
+      "to": "artifacts-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-model-provisioner",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-model-provisioner",
+      "to": "rbee-hive-artifact-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-monitor",
+      "to": "rbee-hive-monitor",
+      "type": "devDependency"
+    },
+    {
+      "from": "rbee-hive-vram-checker",
+      "to": "rbee-hive-device-detection",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-worker-catalog",
+      "to": "artifacts-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-worker-catalog",
+      "to": "rbee-hive-artifact-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-worker-provisioner",
+      "to": "artifacts-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-worker-provisioner",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "rbee-hive-worker-provisioner",
+      "to": "rbee-hive-artifact-catalog",
+      "type": "dependency"
+    },
+    {
+      "from": "audit-logging",
+      "to": "input-validation",
+      "type": "dependency"
+    },
+    {
+      "from": "health-poll",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-shared",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-shared",
+      "to": "timeout-enforcer",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-local",
+      "to": "lifecycle-shared",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-local",
+      "to": "timeout-enforcer",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-local",
+      "to": "rbee-hive-monitor",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-local",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-local",
+      "to": "health-poll",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-ssh",
+      "to": "lifecycle-shared",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-ssh",
+      "to": "health-poll",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-ssh",
+      "to": "timeout-enforcer",
+      "type": "dependency"
+    },
+    {
+      "from": "lifecycle-ssh",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "job-server",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "job-server",
+      "to": "jobs-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "timeout-enforcer",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "auto-update",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "job-client",
+      "to": "jobs-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "job-client",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "worker-contract",
+      "to": "heartbeat-registry",
+      "type": "dependency"
+    },
+    {
+      "from": "worker-contract",
+      "to": "shared-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "hive-contract",
+      "to": "heartbeat-registry",
+      "type": "dependency"
+    },
+    {
+      "from": "hive-contract",
+      "to": "shared-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "tools-openapi-client",
+      "to": "contracts-api-types",
+      "type": "dependency"
+    },
+    {
+      "from": "xtask",
+      "to": "auto-update",
+      "type": "dependency"
+    },
+    {
+      "from": "xtask",
+      "to": "auth-min",
+      "type": "dependency"
+    },
+    {
+      "from": "xtask",
+      "to": "contracts-config-schema",
+      "type": "dependency"
+    },
+    {
+      "from": "xtask",
+      "to": "observability-narration-core",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/commercial",
+      "to": "@rbee/ui",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/commercial",
+      "to": "@repo/tailwind-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/user-docs",
+      "to": "@rbee/ui",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/ui",
+      "to": "@repo/tailwind-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/narration-client",
+      "to": "@rbee/shared-config",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@rbee/shared-config",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@rbee/narration-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@rbee/ui",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@rbee/iframe-bridge",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@repo/typescript-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@repo/eslint-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/keeper-ui",
+      "to": "@repo/tailwind-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@rbee/ui",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@rbee/dev-utils",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@rbee/queen-rbee-react",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@rbee/iframe-bridge",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@repo/typescript-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@repo/eslint-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-ui",
+      "to": "@repo/tailwind-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-sdk",
+      "to": "job-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-sdk",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-sdk",
+      "to": "hive-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-react",
+      "to": "@rbee/sdk-loader",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-react",
+      "to": "@rbee/queen-rbee-sdk",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-react",
+      "to": "@rbee/narration-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/queen-rbee-react",
+      "to": "@rbee/react-hooks",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@rbee/rbee-hive-sdk",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@rbee/dev-utils",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@rbee/rbee-hive-react",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@rbee/shared-config",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@rbee/ui",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@rbee/iframe-bridge",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-ui",
+      "to": "@repo/tailwind-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-sdk",
+      "to": "job-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-sdk",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-sdk",
+      "to": "hive-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-react",
+      "to": "@rbee/sdk-loader",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-react",
+      "to": "@rbee/narration-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-react",
+      "to": "@rbee/react-hooks",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-react",
+      "to": "@rbee/shared-config",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/rbee-hive-react",
+      "to": "@rbee/rbee-hive-sdk",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/sdk-loader",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/narration-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/llm-worker-react",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/ui",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/react-hooks",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/shared-config",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/llm-worker-sdk",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/dev-utils",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@rbee/iframe-bridge",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@repo/vite-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@repo/typescript-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@repo/eslint-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/llm-worker-ui",
+      "to": "@repo/tailwind-config",
+      "type": "devDependency"
+    },
+    {
+      "from": "@rbee/llm-worker-sdk",
+      "to": "job-client",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-sdk",
+      "to": "operations-contract",
+      "type": "dependency"
+    },
+    {
+      "from": "@rbee/llm-worker-react",
+      "to": "@rbee/llm-worker-sdk",
+      "type": "dependency"
+    }
+  ]
+}

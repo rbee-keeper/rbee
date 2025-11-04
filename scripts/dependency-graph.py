@@ -45,9 +45,17 @@ class DependencyAnalyzer:
         print("🔍 Analyzing pnpm workspace...")
         self.analyze_pnpm_workspace()
         
+        print("🔍 Detecting WASM SDK bridges (Cargo ↔ pnpm)...")
+        self.detect_wasm_bridges()
+        
         print(f"\n✅ Found {len(self.packages)} total packages")
-        print(f"   - Cargo crates: {sum(1 for p in self.packages.values() if p.type == 'cargo')}")
-        print(f"   - pnpm packages: {sum(1 for p in self.packages.values() if p.type == 'pnpm')}")
+        cargo_count = sum(1 for p in self.packages.values() if p.type == 'cargo')
+        pnpm_count = sum(1 for p in self.packages.values() if p.type == 'pnpm')
+        bridge_count = sum(1 for p in self.packages.values() if p.metadata.get('is_wasm_bridge'))
+        print(f"   - Cargo crates: {cargo_count}")
+        print(f"   - pnpm packages: {pnpm_count}")
+        if bridge_count > 0:
+            print(f"   - WASM bridges (Cargo→pnpm): {bridge_count}")
         
     def analyze_cargo_workspace(self):
         """Analyze Cargo.toml workspace"""
@@ -191,7 +199,13 @@ class DependencyAnalyzer:
         """Check if package name is in workspace (for pnpm)"""
         # Check if package.json exists anywhere in workspace
         # This is a heuristic - we'll verify during full analysis
-        return pkg_name.startswith('@rbee/') or pkg_name.startswith('rbee-') or pkg_name in [
+        
+        # Workspace packages use @rbee/ namespace or @repo/ namespace
+        if pkg_name.startswith('@rbee/') or pkg_name.startswith('@repo/'):
+            return True
+            
+        # Also check for specific known packages
+        return pkg_name in [
             'queen-rbee-sdk', 'queen-rbee-react',
             'rbee-hive-sdk', 'rbee-hive-react',
             'llm-worker-sdk', 'llm-worker-react',
@@ -201,35 +215,134 @@ class DependencyAnalyzer:
             'vite-config', 'shared-config'
         ]
         
-    def generate_dot(self) -> str:
+    def detect_wasm_bridges(self):
+        """Detect WASM SDK packages that have both Cargo.toml and package.json"""
+        # These packages bridge Cargo and pnpm worlds
+        wasm_bridges = []
+        
+        # Also check for standalone WASM packages (not in Cargo workspace)
+        for pkg_name, pkg in list(self.packages.items()):
+            if pkg.type == 'pnpm':
+                pkg_path = self.root / pkg.path
+                cargo_toml = pkg_path / "Cargo.toml"
+                
+                if cargo_toml.exists():
+                    # This pnpm package has a Cargo.toml - it's a WASM bridge
+                    pkg.metadata['is_wasm_bridge'] = True
+                    wasm_bridges.append(pkg_name)
+                    
+                    # Parse Cargo.toml to find workspace dependencies
+                    try:
+                        with open(cargo_toml, 'rb') as f:
+                            cargo_data = tomllib.load(f)
+                            
+                        deps = cargo_data.get('dependencies', {})
+                        for dep_name, dep_value in deps.items():
+                            # Check if it's a path dependency (workspace crate)
+                            if isinstance(dep_value, dict) and 'path' in dep_value:
+                                # This is a workspace dependency
+                                if dep_name in self.packages:
+                                    pkg.dependencies.add(dep_name)
+                    except:
+                        pass
+        
+        # Also check packages already in Cargo workspace
+        for pkg_name, pkg in list(self.packages.items()):
+            if pkg.type == 'cargo':
+                pkg_path = self.root / pkg.path
+                package_json = pkg_path / "package.json"
+                
+                if package_json.exists():
+                    # This is a WASM bridge package
+                    pkg.metadata['is_wasm_bridge'] = True
+                    if pkg_name not in wasm_bridges:
+                        wasm_bridges.append(pkg_name)
+                    
+                    # Parse the package.json to get the pnpm package name
+                    try:
+                        with open(package_json) as f:
+                            pnpm_data = json.load(f)
+                            pnpm_name = pnpm_data.get('name')
+                            
+                            if pnpm_name and pnpm_name != pkg_name:
+                                # Create a pnpm package entry that depends on the Cargo crate
+                                if pnpm_name not in self.packages:
+                                    pnpm_pkg = Package(
+                                        name=pnpm_name,
+                                        path=pkg.path,
+                                        type='pnpm',
+                                        metadata={
+                                            'is_wasm_bridge': True,
+                                            'cargo_crate': pkg_name,
+                                            'version': pnpm_data.get('version', '0.0.0'),
+                                        }
+                                    )
+                                    # The pnpm package depends on the Cargo crate
+                                    pnpm_pkg.dependencies.add(pkg_name)
+                                    self.packages[pnpm_name] = pnpm_pkg
+                                    wasm_bridges.append(pnpm_name)
+                    except:
+                        pass
+                        
+        if wasm_bridges:
+            print(f"   Found {len(wasm_bridges)} WASM bridge packages:")
+            for bridge in wasm_bridges:
+                print(f"      - {bridge}")
+        
+    def generate_dot(self, dark_mode: bool = True) -> str:
         """Generate GraphViz DOT format"""
+        # Dark mode colors
+        if dark_mode:
+            bg_color = '#1e1e1e'
+            text_color = '#e0e0e0'
+            edge_color = '#808080'
+            cargo_color = '#4a9eff'  # Brighter blue for dark mode
+            pnpm_color = '#66bb6a'   # Brighter green for dark mode
+            wasm_color = '#ffd54f'   # Brighter yellow for dark mode
+        else:
+            bg_color = 'white'
+            text_color = 'black'
+            edge_color = 'black'
+            cargo_color = 'lightblue'
+            pnpm_color = 'lightgreen'
+            wasm_color = 'lightyellow'
+        
         lines = [
             'digraph Dependencies {',
             '  rankdir=LR;',
-            '  node [shape=box, style=rounded];',
+            f'  bgcolor="{bg_color}";',
+            f'  node [shape=box, style=rounded, fontcolor="{text_color}"];',
+            f'  edge [color="{edge_color}"];',
             '',
-            '  // Cargo crates',
+            '  // Cargo crates (blue)',
         ]
         
         for pkg in self.packages.values():
             if pkg.type == 'cargo':
-                color = 'lightblue'
-                lines.append(f'  "{pkg.name}" [fillcolor={color}, style="rounded,filled"];')
+                # WASM bridges get special color
+                if pkg.metadata.get('is_wasm_bridge'):
+                    lines.append(f'  "{pkg.name}" [fillcolor="{wasm_color}", style="rounded,filled", label="{pkg.name}\\n(WASM)"];')
+                else:
+                    lines.append(f'  "{pkg.name}" [fillcolor="{cargo_color}", style="rounded,filled"];')
                 
         lines.append('')
         lines.append('  // pnpm packages')
         
         for pkg in self.packages.values():
             if pkg.type == 'pnpm':
-                color = 'lightgreen'
-                lines.append(f'  "{pkg.name}" [fillcolor={color}, style="rounded,filled"];')
+                # WASM bridges get special color
+                if pkg.metadata.get('is_wasm_bridge'):
+                    lines.append(f'  "{pkg.name}" [fillcolor="{wasm_color}", style="rounded,filled", label="{pkg.name}\\n(WASM)"];')
+                else:
+                    lines.append(f'  "{pkg.name}" [fillcolor="{pnpm_color}", style="rounded,filled"];')
                 
         lines.append('')
-        lines.append('  // Dependencies')
+        lines.append('  // Dependencies (arrows point FROM dependent TO dependency)')
         
         for pkg in self.packages.values():
             for dep in pkg.dependencies:
                 if dep in self.packages:
+                    # Arrow: dependent -> dependency (library it uses)
                     lines.append(f'  "{pkg.name}" -> "{dep}";')
                     
         lines.append('')
@@ -254,8 +367,12 @@ class DependencyAnalyzer:
         for pkg in self.packages.values():
             if pkg.type == 'cargo':
                 safe_name = pkg.name.replace('-', '_')
-                lines.append(f'  {safe_name}["{pkg.name}"]')
-                lines.append(f'  style {safe_name} fill:#add8e6')
+                if pkg.metadata.get('is_wasm_bridge'):
+                    lines.append(f'  {safe_name}["{pkg.name} 🌉"]')
+                    lines.append(f'  style {safe_name} fill:#ffffe0')
+                else:
+                    lines.append(f'  {safe_name}["{pkg.name}"]')
+                    lines.append(f'  style {safe_name} fill:#add8e6')
                 
         lines.append('')
         lines.append('  %% pnpm packages (green)')
@@ -263,8 +380,12 @@ class DependencyAnalyzer:
         for pkg in self.packages.values():
             if pkg.type == 'pnpm':
                 safe_name = pkg.name.replace('-', '_').replace('/', '_').replace('@', '')
-                lines.append(f'  {safe_name}["{pkg.name}"]')
-                lines.append(f'  style {safe_name} fill:#90ee90')
+                if pkg.metadata.get('is_wasm_bridge'):
+                    lines.append(f'  {safe_name}["{pkg.name} 🌉"]')
+                    lines.append(f'  style {safe_name} fill:#ffffe0')
+                else:
+                    lines.append(f'  {safe_name}["{pkg.name}"]')
+                    lines.append(f'  style {safe_name} fill:#90ee90')
                 
         lines.append('')
         lines.append('  %% Dependencies')
@@ -377,6 +498,11 @@ def main():
         default=Path(__file__).parent.parent,
         help='Root directory of monorepo'
     )
+    parser.add_argument(
+        '--light-mode',
+        action='store_true',
+        help='Use light mode colors for DOT output (default: dark mode)'
+    )
     
     args = parser.parse_args()
     
@@ -387,7 +513,7 @@ def main():
     
     # Generate output
     if args.format == 'dot':
-        output = analyzer.generate_dot()
+        output = analyzer.generate_dot(dark_mode=not args.light_mode)
     elif args.format == 'json':
         output = analyzer.generate_json()
     elif args.format == 'mermaid':

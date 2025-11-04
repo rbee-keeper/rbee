@@ -25,15 +25,15 @@ python3 "$SCRIPT_DIR/dependency-graph.py" --format json --output "$OUTPUT_DIR/de
 echo "🔷 Generating Mermaid diagram..."
 python3 "$SCRIPT_DIR/dependency-graph.py" --format mermaid --output "$OUTPUT_DIR/dependencies.mmd"
 
-echo "🔶 Generating GraphViz DOT..."
+echo "🔶 Generating GraphViz DOT (dark mode)..."
 python3 "$SCRIPT_DIR/dependency-graph.py" --format dot --output "$OUTPUT_DIR/dependencies.dot"
 
 # Try to render DOT to images if graphviz is installed
 if command -v dot &> /dev/null; then
-    echo "🖼️  Rendering PNG..."
+    echo "🖼️  Rendering PNG (dark mode)..."
     dot -Tpng "$OUTPUT_DIR/dependencies.dot" -o "$OUTPUT_DIR/dependencies.png"
     
-    echo "🖼️  Rendering SVG..."
+    echo "🖼️  Rendering SVG (dark mode)..."
     dot -Tsvg "$OUTPUT_DIR/dependencies.dot" -o "$OUTPUT_DIR/dependencies.svg"
     
     echo ""

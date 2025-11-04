@@ -37,12 +37,20 @@
 **Last Completed Task:** Created all marketplace components (TEAM-401)
 
 **Progress:**
-- [x] Week 1: Components + SDK (5/7 days - TEAM-401 in progress)
+- [x] Week 1: Components + SDK (6/7 days - TEAM-401 complete, SDK pending)
 - [ ] Week 2-3: Next.js + Protocol (0/14 days)
 - [ ] Week 4: Keeper UI (0/7 days)
 - [ ] Week 5: Launch (0/7 days)
 
-**Next Task:** Complete testing and verification (Phase 6)
+**TEAM-401 Completed:**
+- ✅ 10 marketplace components (organisms, templates, pages)
+- ✅ Pagination support (reused Pagination atom)
+- ✅ Filter chips support (reused FilterButton molecule)
+- ✅ Comprehensive documentation with examples
+- ✅ TypeScript compilation passes
+- ✅ Package.json exports updated
+
+**Next Task:** Testing (Phase 6) or start Checklist 02 (Marketplace SDK)
 
 ---
 
@@ -53,8 +61,8 @@
 **[CHECKLIST_01_SHARED_COMPONENTS.md](./CHECKLIST_01_SHARED_COMPONENTS.md)** (1 week)
 - **What:** Create marketplace components in `rbee-ui/src/marketplace/`
 - **Deliverables:** 4 organisms, 3 templates, 3 pages
-- **Dependencies:** None (start immediately)
-- **Status:** 📋 NOT STARTED
+- **Dependencies:** None (starts immediately)
+- **Status:** ✅ Complete (TEAM-401) - 10 components, pagination, filter chips
 
 **[CHECKLIST_02_MARKETPLACE_SDK.md](./CHECKLIST_02_MARKETPLACE_SDK.md)** (3 days, parallel)
 - **What:** Create Rust + WASM SDK in `bin/99_shared_crates/marketplace-sdk/`
@@ -153,12 +161,14 @@ cat CHECKLIST_06_LAUNCH_DEMO.md
 - ✅ `bin/00_rbee_keeper/` - Tauri v2 app
 - ✅ `bin/00_rbee_keeper/ui/` - React UI with routing + Zustand
 - ✅ `frontend/packages/rbee-ui/` - Atomic design UI library
-- ✅ `frontend/packages/rbee-ui/src/marketplace/` - Empty, ready for components
+- ✅ `frontend/packages/rbee-ui/src/marketplace/` - Complete with 10 components (TEAM-401 ✅)
+- ✅ `@rbee/ui/atoms/Pagination` - Pagination component (reused by TEAM-401)
+- ✅ `@rbee/ui/molecules/FilterButton` - Filter chips (reused by TEAM-401)
 
 ### These Need to be Created
-- 🆕 `rbee-ui/src/marketplace/organisms/` - ModelCard, WorkerCard, etc.
-- 🆕 `rbee-ui/src/marketplace/templates/` - ModelListTemplate, etc.
-- 🆕 `rbee-ui/src/marketplace/pages/` - ModelsPage, etc.
+- ✅ `rbee-ui/src/marketplace/organisms/` - ModelCard, WorkerCard, MarketplaceGrid, FilterBar (TEAM-401 ✅)
+- ✅ `rbee-ui/src/marketplace/templates/` - ModelListTemplate, ModelDetailTemplate, WorkerListTemplate (TEAM-401 ✅)
+- ✅ `rbee-ui/src/marketplace/pages/` - ModelsPage, ModelDetailPage, WorkersPage (TEAM-401 ✅)
 - 🆕 `bin/99_shared_crates/marketplace-sdk/` - Rust + WASM SDK
 - 🆕 `bin/00_rbee_keeper/src/handlers/protocol.rs` - Protocol handler
 - 🆕 `bin/00_rbee_keeper/ui/src/pages/MarketplacePage.tsx` - Marketplace page

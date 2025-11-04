@@ -1,22 +1,10 @@
 // TEAM-273: Shared artifact types
+// TEAM-402: Re-export types from artifacts-contract and implement Artifact trait
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-/// Artifact status
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum ArtifactStatus {
-    /// Artifact is available and ready to use
-    Available,
-
-    /// Artifact is currently being downloaded/provisioned
-    Downloading,
-
-    /// Artifact download/provisioning failed
-    Failed {
-        /// Error message
-        error: String,
-    },
-}
+// Re-export from artifacts-contract
+pub use artifacts_contract::{ArtifactStatus, ModelEntry, WorkerBinary};
 
 /// Core artifact trait
 ///
@@ -65,5 +53,59 @@ impl<T> ArtifactMetadata<T> {
     /// Update last accessed time
     pub fn touch(&mut self) {
         self.last_accessed = Some(chrono::Utc::now());
+    }
+}
+
+// TEAM-402: Implement Artifact trait for ModelEntry
+impl Artifact for ModelEntry {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn path(&self) -> &Path {
+        &self.path
+    }
+
+    fn size(&self) -> u64 {
+        self.size
+    }
+
+    fn status(&self) -> &ArtifactStatus {
+        &self.status
+    }
+
+    fn set_status(&mut self, status: ArtifactStatus) {
+        self.set_status(status);
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+// TEAM-402: Implement Artifact trait for WorkerBinary
+impl Artifact for WorkerBinary {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn path(&self) -> &Path {
+        &self.path
+    }
+
+    fn size(&self) -> u64 {
+        self.size
+    }
+
+    fn status(&self) -> &ArtifactStatus {
+        &self.status
+    }
+
+    fn set_status(&mut self, status: ArtifactStatus) {
+        self.status = status;
+    }
+
+    fn name(&self) -> &str {
+        &self.id
     }
 }

@@ -5,7 +5,8 @@
 use anyhow::Result;
 use observability_narration_core::n;
 use rbee_hive_artifact_catalog::{ArtifactProvisioner, VendorSource};
-use rbee_hive_model_catalog::ModelEntry;
+// TEAM-402: Import ModelEntry from artifacts-contract instead of model-catalog
+use artifacts_contract::ModelEntry;
 use std::path::PathBuf;
 use tokio_util::sync::CancellationToken;
 

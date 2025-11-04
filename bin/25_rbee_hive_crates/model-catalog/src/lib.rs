@@ -1,4 +1,5 @@
 // TEAM-267: Model catalog using artifact-catalog abstraction
+// TEAM-402: Now uses artifacts-contract for types
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 
@@ -6,14 +7,18 @@
 //!
 //! Model catalog for managing LLM model files.
 //! Built on top of artifact-catalog for consistency.
+//!
+//! TEAM-402: Types now come from artifacts-contract
 
-mod types;
+// TEAM-402: Import types from artifacts-contract
+pub use artifacts_contract::{ArtifactStatus, ModelEntry};
 
-pub use types::{ModelEntry, ModelStatus};
+// Alias for backwards compatibility
+pub type ModelStatus = ArtifactStatus;
 
 use anyhow::Result;
-use rbee_hive_artifact_catalog::{ArtifactCatalog, FilesystemCatalog};
-use std::path::PathBuf;
+use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, FilesystemCatalog};
+use std::path::{Path, PathBuf};
 
 /// Model catalog for managing model files
 pub struct ModelCatalog {
@@ -85,6 +90,8 @@ impl Default for ModelCatalog {
         Self::new().expect("Failed to create model catalog")
     }
 }
+
+// TEAM-402: Artifact trait implementation for ModelEntry is in artifact-catalog
 
 #[cfg(test)]
 mod tests {

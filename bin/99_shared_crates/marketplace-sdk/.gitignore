@@ -1,0 +1,8 @@
+/target
+/pkg
+/node_modules
+Cargo.lock
+*.wasm
+*.js
+*.d.ts
+!build-wasm.sh

@@ -10,6 +10,9 @@ serde_json = "1.0"
 dirs = "5.0"
 chrono = { version = "0.4", features = ["serde"] }
 
+# TEAM-402: Artifact types contract
+artifacts-contract = { path = "../../97_contracts/artifacts-contract" }
+
 # Shared catalog abstraction
 rbee-hive-artifact-catalog = { path = "../artifact-catalog" }
 

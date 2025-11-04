@@ -1,0 +1,18 @@
+# TEAM-402: Artifact types contract
+# Pure data types for models and workers
+# Shared across catalogs, provisioners, marketplace, and UI
+
+[package]
+name = "artifacts-contract"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+tsify = "0.4"
+wasm-bindgen = "0.2"
+
+[lints]
+workspace = true

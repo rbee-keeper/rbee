@@ -176,12 +176,12 @@ async fn handle_worker_installed_get(
     let response = serde_json::json!({
         "id": worker.id(),
         "name": worker.name(),
-        "worker_type": format!("{:?}", worker.worker_type()),
-        "platform": format!("{:?}", worker.platform()),
-        "version": worker.version(),
+        "worker_type": format!("{:?}", worker.worker_type),
+        "platform": format!("{:?}", worker.platform),
+        "version": worker.version,
         "size": worker.size(),
         "path": worker.path().display().to_string(),
-        "added_at": worker.added_at().to_rfc3339(),
+        "added_at": worker.added_at.to_rfc3339(),
     });
     
     n!("worker_installed_get_ok", "✅ Found installed worker '{}'", worker_id);
@@ -260,12 +260,12 @@ async fn handle_worker_list_installed(
             serde_json::json!({
                 "id": w.id(),
                 "name": w.name(),
-                "worker_type": format!("{:?}", w.worker_type()),
-                "platform": format!("{:?}", w.platform()),
-                "version": w.version(),
+                "worker_type": format!("{:?}", w.worker_type),
+                "platform": format!("{:?}", w.platform),
+                "version": w.version,
                 "size": w.size(),
                 "path": w.path().display().to_string(),
-                "added_at": w.added_at().to_rfc3339(),
+                "added_at": w.added_at.to_rfc3339(),
             })
         }).collect::<Vec<_>>()
     });

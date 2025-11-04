@@ -1,4 +1,5 @@
 // TEAM-273: Worker catalog using artifact-catalog abstraction
+// TEAM-402: Now uses artifacts-contract for types
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 
@@ -12,13 +13,19 @@
 //! Worker catalog is READ ONLY from hive's perspective.
 //! Hive discovers workers installed by queen-rbee via SSH.
 //! Hive never installs workers itself - only manages their processes.
+//!
+//! # TEAM-402: Types from artifacts-contract
+//!
+//! WorkerBinary, WorkerType, Platform now come from artifacts-contract
 
-mod types;
+// TEAM-402: Import types from artifacts-contract
+pub use artifacts_contract::{ArtifactStatus, Platform, WorkerBinary, WorkerType};
 
-pub use types::{Platform, WorkerBinary, WorkerStatus, WorkerType};
+// Alias for backwards compatibility
+pub type WorkerStatus = ArtifactStatus;
 
 use anyhow::Result;
-use rbee_hive_artifact_catalog::{ArtifactCatalog, FilesystemCatalog};
+use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, FilesystemCatalog};
 use std::path::PathBuf;
 
 /// Worker catalog for managing worker binaries
@@ -66,7 +73,7 @@ impl WorkerCatalog {
     ) -> Option<WorkerBinary> {
         self.list()
             .into_iter()
-            .find(|w| w.worker_type() == &worker_type && w.platform() == &platform)
+            .find(|w| w.worker_type == worker_type && w.platform == platform)
     }
 
     /// Get hardcoded worker definitions for the 3 worker binaries

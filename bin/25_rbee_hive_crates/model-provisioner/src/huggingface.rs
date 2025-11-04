@@ -81,7 +81,15 @@ impl HuggingFaceVendor {
         // For now, just use default
         Self::new()
     }
+}
 
+impl Default for HuggingFaceVendor {
+    fn default() -> Self {
+        Self::new().expect("Failed to create HuggingFace vendor")
+    }
+}
+
+impl HuggingFaceVendor {
     /// Find GGUF file in repository
     ///
     /// Tries common GGUF quantizations in order of popularity.

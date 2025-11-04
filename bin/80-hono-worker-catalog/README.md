@@ -1,11 +1,29 @@
-# Hono Worker Catalog
+# rbee Worker Catalog
 
 **Port:** 8787 (wrangler dev default)  
-**Purpose:** Hosts PKGBUILD files for rbee worker variants (CPU, CUDA, Metal)
+**Status:** 🚧 Evolving to Hybrid Architecture  
+**Purpose:** Unified marketplace for rbee AI inference workers
 
 ## Overview
 
-This Cloudflare Worker serves as a catalog of build instructions for rbee workers. It provides PKGBUILD files (Arch Linux package format) that rbee-hive can download and execute to build worker binaries from source.
+This Cloudflare Worker serves as the **central catalog** for rbee workers. It provides:
+- **Discovery** - Browse and search available workers
+- **Source Builds** - PKGBUILD files for building from source
+- **Binary Distribution** - Pre-built binaries for fast installation
+- **Premium Support** - Licensed workers with authentication
+
+### Current State (MVP)
+Simple Hono server serving static PKGBUILD files from Git.
+
+### Future State (Hybrid)
+Git-based catalog + Binary registry + Analytics + Premium support.
+
+## 📚 Documentation
+
+- **[HYBRID_ARCHITECTURE.md](./HYBRID_ARCHITECTURE.md)** - Complete architecture design
+- **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - 4-week implementation plan
+- **[VISION.md](./VISION.md)** - Long-term vision (1-2 years)
+- **[WORKER_CATALOG_DESIGN.md](./WORKER_CATALOG_DESIGN.md)** - AUR-style design + premium support
 
 ## API Endpoints
 

@@ -1,0 +1,44 @@
+# TEAM-402: Worker Provisioner - Downloads/builds workers from PKGBUILDs
+# Migrated from rbee-hive (pkgbuild_parser, pkgbuild_executor, source_fetcher, worker_install)
+
+[package]
+name = "rbee-hive-worker-provisioner"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+# Core dependencies
+anyhow = "1.0"
+async-trait = "0.1"
+thiserror = "1.0"
+tokio = { version = "1.0", features = ["fs", "io-util", "sync", "process"] }
+tokio-util = "0.7"
+
+# HTTP client for catalog
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Shared crates
+# TEAM-402: Now uses artifacts-contract for types instead of worker-catalog
+artifacts-contract = { path = "../../97_contracts/artifacts-contract" }
+rbee-hive-artifact-catalog = { path = "../artifact-catalog" }
+observability-narration-core = { path = "../../99_shared_crates/narration-core" }
+stdext = "0.3"  # Required for n!() macro (function_name!())
+
+# Utilities
+chrono = "0.4"
+dirs = "5.0"
+
+# Unix-specific (for process groups, permissions)
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3.0"
+
+[lints]
+workspace = true

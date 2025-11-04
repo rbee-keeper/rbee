@@ -1,0 +1,65 @@
+# TEAM-402: Marketplace SDK for HuggingFace, CivitAI, and Worker Catalog
+
+[package]
+name = "marketplace-sdk"
+version = "0.1.0"
+edition = "2021"
+authors = ["rbee Team"]
+license = "GPL-3.0-or-later"
+description = "Rust SDK for marketplace (HuggingFace, CivitAI, Worker Catalog) that compiles to WASM"
+repository = "https://github.com/veighnsche/rbee"
+keywords = ["rbee", "marketplace", "huggingface", "civitai", "wasm"]
+categories = ["wasm", "api-bindings"]
+readme = "README.md"
+
+# TEAM-402: Not part of workspace - standalone WASM package (like queen-rbee-sdk)
+[workspace]
+
+[lib]
+crate-type = ["cdylib", "rlib"]  # cdylib = WASM, rlib = for tests
+
+[dependencies]
+# TEAM-402: Artifact types contract
+artifacts-contract = { path = "../../97_contracts/artifacts-contract" }
+
+# WASM bindings
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+
+# Serialization (Rust ↔ JavaScript)
+serde = { version = "1.0", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+serde_json = "1.0"
+
+# TypeScript type generation
+tsify = "0.4"
+
+# JavaScript types
+js-sys = "0.3"
+
+# Web APIs
+web-sys = { version = "0.3", features = [
+    "Request", "RequestInit", "RequestMode", "Response", "Headers",
+    "Window", "console"
+] }
+
+# HTTP client (WASM-compatible)
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+
+# Async runtime (WASM-compatible)
+tokio = { version = "1", features = ["sync"], default-features = false }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+# Optimize for small WASM size
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

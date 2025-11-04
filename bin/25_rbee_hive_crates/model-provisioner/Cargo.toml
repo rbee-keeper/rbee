@@ -17,8 +17,9 @@ hf-hub = "0.4"  # Sync API (no tokio feature)
 hf-hub-simple-progress = "0.1.2"  # Real-time download progress callbacks
 
 # Shared crates
+# TEAM-402: Now uses artifacts-contract for types instead of model-catalog
+artifacts-contract = { path = "../../97_contracts/artifacts-contract" }
 rbee-hive-artifact-catalog = { path = "../artifact-catalog" }
-rbee-hive-model-catalog = { path = "../model-catalog" }
 observability-narration-core = { path = "../../99_shared_crates/narration-core" }
 stdext = "0.3"  # Required for n!() macro (function_name!())
 

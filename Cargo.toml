@@ -27,10 +27,12 @@ members = [
     "bin/25_rbee_hive_crates/artifact-catalog",  # TEAM-273: Shared catalog abstraction
     # TEAM-334: worker-lifecycle removed - use daemon-lifecycle directly
     "bin/25_rbee_hive_crates/model-catalog",     # TEAM-267: Uses artifact-catalog
+    "bin/25_rbee_hive_crates/model-provisioner", # TEAM-379: Model provisioning
     "bin/25_rbee_hive_crates/monitor",
     "bin/25_rbee_hive_crates/device-detection",
     "bin/25_rbee_hive_crates/vram-checker",
     "bin/25_rbee_hive_crates/worker-catalog",
+    "bin/25_rbee_hive_crates/worker-provisioner", # TEAM-402: Worker provisioning
     
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -74,6 +76,7 @@ members = [
     # CONTRACT CRATES — Type-safe contracts (TEAM-285: Moved from 99 to 97)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
+    "bin/97_contracts/artifacts-contract",  # TEAM-402: Artifact types (ModelEntry, WorkerBinary)
     "bin/97_contracts/shared-contract",     # TEAM-284: Shared contract types (workers + hives)
     "bin/97_contracts/worker-contract",     # TEAM-270/284: Worker contract types and API spec
     "bin/97_contracts/hive-contract",       # TEAM-284: Hive contract types and API spec

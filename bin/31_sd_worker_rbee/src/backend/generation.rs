@@ -13,7 +13,7 @@ use image::{DynamicImage, RgbImage};
 use tokenizers::Tokenizer;
 
 /// Generate image from text prompt
-/// 
+///
 /// TEAM-397: Candle idiom - function, not struct method
 /// Based on reference/candle/.../stable-diffusion/main.rs lines 531-826
 pub fn generate_image<F>(
@@ -48,14 +48,10 @@ where
     let latent_height = config.height / 8;
     let latent_width = config.width / 8;
     let bsize = 1;
-    
-    let mut latents = Tensor::randn(
-        0f32,
-        1.0,
-        (bsize, 4, latent_height, latent_width),
-        &models.device,
-    )?
-    .to_dtype(models.dtype)?;
+
+    let mut latents =
+        Tensor::randn(0f32, 1.0, (bsize, 4, latent_height, latent_width), &models.device)?
+            .to_dtype(models.dtype)?;
 
     // Diffusion loop (direct Candle calls)
     let timesteps = models.scheduler.timesteps();
@@ -64,16 +60,12 @@ where
     for (step_idx, &timestep) in timesteps.iter().enumerate() {
         progress_callback(step_idx, num_steps);
 
-        let latent_model_input = if use_guide_scale {
-            Tensor::cat(&[&latents, &latents], 0)?
-        } else {
-            latents.clone()
-        };
+        let latent_model_input =
+            if use_guide_scale { Tensor::cat(&[&latents, &latents], 0)? } else { latents.clone() };
 
         // Direct UNet forward call (Candle idiom)
-        let noise_pred = models
-            .unet
-            .forward(&latent_model_input, timestep as f64, &text_embeddings)?;
+        let noise_pred =
+            models.unet.forward(&latent_model_input, timestep as f64, &text_embeddings)?;
 
         let noise_pred = if use_guide_scale {
             let noise_pred = noise_pred.chunk(2, 0)?;
@@ -101,7 +93,7 @@ where
 }
 
 /// Generate text embeddings
-/// 
+///
 /// TEAM-397: Candle idiom - direct from reference example
 /// Based on reference/candle/.../stable-diffusion/main.rs lines 345-433
 fn text_embeddings(
@@ -124,7 +116,7 @@ fn text_embeddings(
             .ok_or_else(|| Error::ModelLoading(format!("Pad token {} not found", padding)))?,
         None => *tokenizer
             .get_vocab(true)
-            .get(">|txetfodne|<") // MANUAL FIX: Reverse this string!
+            .get(">|endoftext|<") // MANUAL FIX: Reverse this string!
             .ok_or_else(|| Error::ModelLoading("Default pad token not found".to_string()))?,
     };
 
@@ -150,12 +142,8 @@ fn text_embeddings(
     let tokens = Tensor::new(tokens.as_slice(), device)?.unsqueeze(0)?;
 
     // Build CLIP model (direct Candle call)
-    let text_model = stable_diffusion::build_clip_transformer(
-        clip_config,
-        clip_weights,
-        device,
-        DType::F32,
-    )?;
+    let text_model =
+        stable_diffusion::build_clip_transformer(clip_config, clip_weights, device, DType::F32)?;
 
     let text_embeddings = text_model.forward(&tokens)?;
 
@@ -191,7 +179,7 @@ fn text_embeddings(
 }
 
 /// Convert tensor to image
-/// 
+///
 /// TEAM-397: From reference example
 /// Based on reference/candle/.../stable-diffusion/main.rs lines 318-342
 fn tensor_to_image(tensor: &Tensor) -> Result<DynamicImage> {
@@ -203,27 +191,17 @@ fn tensor_to_image(tensor: &Tensor) -> Result<DynamicImage> {
 
     // Get dimensions (batch, channel, height, width)
     let (batch, channel, height, width) = tensor.dims4()?;
-    
+
     if batch != 1 {
-        return Err(Error::Generation(format!(
-            "Expected batch size 1, got {}",
-            batch
-        )));
+        return Err(Error::Generation(format!("Expected batch size 1, got {}", batch)));
     }
-    
+
     if channel != 3 {
-        return Err(Error::Generation(format!(
-            "Expected 3 channels, got {}",
-            channel
-        )));
+        return Err(Error::Generation(format!("Expected 3 channels, got {}", channel)));
     }
 
     // Extract first batch, permute to (height, width, channel), flatten
-    let image_data = tensor
-        .i(0)?
-        .permute((1, 2, 0))?
-        .flatten_all()?
-        .to_vec1::<u8>()?;
+    let image_data = tensor.i(0)?.permute((1, 2, 0))?.flatten_all()?.to_vec1::<u8>()?;
 
     let img = RgbImage::from_raw(width as u32, height as u32, image_data)
         .ok_or_else(|| Error::Generation("Failed to create image from tensor".to_string()))?;

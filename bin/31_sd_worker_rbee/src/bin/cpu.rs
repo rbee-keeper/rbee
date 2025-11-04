@@ -74,35 +74,25 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Loading model: {:?}", sd_version);
     
     // Load model components (downloads from HuggingFace if needed)
-    // Note: For now this creates a placeholder - full model loading will be added later
-    let model_components = sd_worker_rbee::backend::model_loader::load_model(
+    tracing::info!("Loading model: {:?}", sd_version);
+    let model_components = model_loader::load_model(
         sd_version,
         &device,
         false, // use_f16 = false for CPU
     )?;
-    
-    // Create inference pipeline
-    // TODO: This is a placeholder - actual pipeline creation needs CLIP, UNet, VAE, Scheduler
-    // For now, we'll create a minimal pipeline to demonstrate the architecture
-    tracing::warn!("Using placeholder pipeline - full model loading not yet implemented");
+    tracing::info!("Model loaded successfully");
     
     // 1. Create request queue (returns queue and receiver)
     let (request_queue, request_rx) = RequestQueue::new();
     
-    // 2. Create pipeline (placeholder for now)
-    // In production, this would be:
-    // let pipeline = Arc::new(Mutex::new(InferencePipeline::new(clip, unet, vae, scheduler, device, dtype)?));
-    // For now, we'll skip this and just show the architecture
+    // 2. Create generation engine with loaded models
+    let engine = GenerationEngine::new(
+        Arc::new(model_components),
+        request_rx,
+    );
     
-    // 3. Create generation engine with dependency injection
-    // Note: Commented out until full pipeline is ready
-    // let engine = GenerationEngine::new(
-    //     Arc::clone(&pipeline),
-    //     request_rx,
-    // );
-    
-    // 4. Start engine (consumes self, spawns blocking task)
-    // engine.start();
+    // 3. Start engine (consumes self, spawns blocking task)
+    engine.start();
     
     // 5. Create HTTP state with request_queue
     let app_state = AppState::new(request_queue);
@@ -113,9 +103,9 @@ async fn main() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind(addr).await?;
     
     tracing::info!("✅ SD Worker (CPU) ready on port {}", args.port);
-    tracing::info!("✅ Architecture: RequestQueue/GenerationEngine pattern (TEAM-396)");
-    tracing::info!("✅ Operations-contract integration complete (TEAM-397)");
-    tracing::warn!("⚠️  Full model loading not yet implemented - using placeholder");
+    tracing::info!("✅ Model: {:?}", sd_version);
+    tracing::info!("✅ Architecture: RequestQueue/GenerationEngine pattern");
+    tracing::info!("✅ Generation engine started and ready for requests");
     
     // Run HTTP server
     axum::serve(listener, router).await?;

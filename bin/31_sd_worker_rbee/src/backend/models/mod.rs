@@ -75,6 +75,130 @@ impl SDVersion {
         matches!(self, Self::XL | Self::XLInpaint | Self::Turbo)
     }
 
+    // TEAM-399: Config methods for model initialization
+    // Based on reference/candle/candle-transformers/src/models/stable_diffusion/mod.rs
+    
+    /// Get CLIP config for this model version
+    pub fn clip_config(&self) -> candle_transformers::models::stable_diffusion::clip::Config {
+        use candle_transformers::models::stable_diffusion::clip::Config;
+        match self {
+            Self::V1_5 | Self::V1_5Inpaint => Config::v1_5(),
+            Self::V2_1 | Self::V2Inpaint => Config::v2_1(),
+            Self::XL | Self::XLInpaint | Self::Turbo => Config::sdxl(),
+        }
+    }
+
+    /// Get UNet config for this model version
+    /// Manually constructed like in StableDiffusionConfig::v1_5()
+    pub fn unet_config(&self) -> candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModelConfig {
+        use candle_transformers::models::stable_diffusion::unet_2d::{BlockConfig, UNet2DConditionModelConfig};
+        
+        let bc = |out_channels, use_cross_attn, attention_head_dim| BlockConfig {
+            out_channels,
+            use_cross_attn,
+            attention_head_dim,
+        };
+        
+        match self {
+            Self::V1_5 | Self::V1_5Inpaint => {
+                // https://huggingface.co/runwayml/stable-diffusion-v1-5/blob/main/unet/config.json
+                UNet2DConditionModelConfig {
+                    blocks: vec![
+                        bc(320, Some(1), 8),
+                        bc(640, Some(1), 8),
+                        bc(1280, Some(1), 8),
+                        bc(1280, None, 8),
+                    ],
+                    center_input_sample: false,
+                    cross_attention_dim: 768,
+                    downsample_padding: 1,
+                    flip_sin_to_cos: true,
+                    freq_shift: 0.,
+                    layers_per_block: 2,
+                    mid_block_scale_factor: 1.,
+                    norm_eps: 1e-5,
+                    norm_num_groups: 32,
+                    sliced_attention_size: None,
+                    use_linear_projection: false,
+                }
+            }
+            Self::V2_1 | Self::V2Inpaint => {
+                // https://huggingface.co/stabilityai/stable-diffusion-2-1/blob/main/unet/config.json
+                UNet2DConditionModelConfig {
+                    blocks: vec![
+                        bc(320, Some(1), 8),
+                        bc(640, Some(1), 8),
+                        bc(1280, Some(1), 8),
+                        bc(1280, None, 8),
+                    ],
+                    center_input_sample: false,
+                    cross_attention_dim: 1024,
+                    downsample_padding: 1,
+                    flip_sin_to_cos: true,
+                    freq_shift: 0.,
+                    layers_per_block: 2,
+                    mid_block_scale_factor: 1.,
+                    norm_eps: 1e-5,
+                    norm_num_groups: 32,
+                    sliced_attention_size: None,
+                    use_linear_projection: true,
+                }
+            }
+            Self::XL | Self::XLInpaint | Self::Turbo => {
+                // https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/unet/config.json
+                UNet2DConditionModelConfig {
+                    blocks: vec![
+                        bc(320, Some(2), 8),
+                        bc(640, Some(2), 8),
+                        bc(1280, Some(10), 8),
+                    ],
+                    center_input_sample: false,
+                    cross_attention_dim: 2048,
+                    downsample_padding: 1,
+                    flip_sin_to_cos: true,
+                    freq_shift: 0.,
+                    layers_per_block: 2,
+                    mid_block_scale_factor: 1.,
+                    norm_eps: 1e-5,
+                    norm_num_groups: 32,
+                    sliced_attention_size: None,
+                    use_linear_projection: true,
+                }
+            }
+        }
+    }
+
+    /// Get VAE config for this model version
+    /// Manually constructed like in StableDiffusionConfig::v1_5()
+    pub fn vae_config(&self) -> candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig {
+        use candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig;
+        
+        match self {
+            Self::V1_5 | Self::V1_5Inpaint | Self::V2_1 | Self::V2Inpaint => {
+                // https://huggingface.co/runwayml/stable-diffusion-v1-5/blob/main/vae/config.json
+                AutoEncoderKLConfig {
+                    block_out_channels: vec![128, 256, 512, 512],
+                    layers_per_block: 2,
+                    latent_channels: 4,
+                    norm_num_groups: 32,
+                    use_quant_conv: true,
+                    use_post_quant_conv: true,
+                }
+            }
+            Self::XL | Self::XLInpaint | Self::Turbo => {
+                // https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/vae/config.json
+                AutoEncoderKLConfig {
+                    block_out_channels: vec![128, 256, 512, 512],
+                    layers_per_block: 2,
+                    latent_channels: 4,
+                    norm_num_groups: 32,
+                    use_quant_conv: true,
+                    use_post_quant_conv: true,
+                }
+            }
+        }
+    }
+
     /// Parse from string (e.g., "v1-5", "xl", "turbo")
     pub fn from_str(s: &str) -> Result<Self> {
         match s.to_lowercase().as_str() {

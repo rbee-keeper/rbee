@@ -1,5 +1,6 @@
 packages:
   - frontend/apps/commercial
+  - frontend/apps/marketplace
   - frontend/apps/user-docs
   - frontend/packages/rbee-ui
   - frontend/packages/tailwind-config

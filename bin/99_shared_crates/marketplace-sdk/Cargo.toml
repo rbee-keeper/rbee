@@ -12,9 +12,6 @@ keywords = ["rbee", "marketplace", "huggingface", "civitai", "wasm"]
 categories = ["wasm", "api-bindings"]
 readme = "README.md"
 
-# TEAM-402: Not part of workspace - standalone WASM package (like queen-rbee-sdk)
-[workspace]
-
 [lib]
 crate-type = ["cdylib", "rlib"]  # cdylib = WASM, rlib = for tests
 

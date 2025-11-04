@@ -2,873 +2,492 @@
 
 **Timeline:** 1 week  
 **Status:** 📋 NOT STARTED  
-**Dependencies:** Checklist 01 (Shared Components), Checklist 02 (SDK)
+**Dependencies:** Checklist 01 (Components), Checklist 02 (SDK)  
+**TEAM-400:** ✅ RULE ZERO - App EXISTS, just add content
 
 ---
 
 ## 🎯 Goal
 
-Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, implement installation-aware buttons.
+Update EXISTING `frontend/apps/marketplace/` to use marketplace components and SDK. Pre-render 1000+ model pages with SSG. Deploy to Cloudflare Pages (already configured).
+
+**TEAM-400:** App is already set up! Just add pages + data fetching.
 
 ---
 
-## 📦 Phase 1: Project Setup (Day 1)
+## 📦 Phase 1: Setup Dependencies (Day 1, Morning)
 
-### 1.1 Hook Up Workspace Packages
+**TEAM-400:** App exists at `frontend/apps/marketplace/` with Next.js 15 + Cloudflare configured.
 
-- [ ] Navigate to marketplace: `cd frontend/apps/marketplace`
-- [ ] Update `package.json` to use workspace packages:
+### 1.1 Add Workspace Packages
+
+- [ ] Navigate to: `cd frontend/apps/marketplace/`
+- [ ] Update `package.json` dependencies:
   ```json
   {
-    "name": "marketplace",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-      "dev": "next dev",
-      "build": "next build",
-      "start": "next start",
-      "lint": "next lint",
-      "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-      "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-      "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
-    },
     "dependencies": {
       "@opennextjs/cloudflare": "^1.3.0",
       "@rbee/ui": "workspace:*",
+      "@rbee/marketplace-sdk": "workspace:*",
       "next": "15.4.6",
       "react": "19.1.0",
       "react-dom": "19.1.0"
-    },
-    "devDependencies": {
-      "@repo/eslint-config": "workspace:*",
-      "@repo/tailwind-config": "workspace:*",
-      "@repo/typescript-config": "workspace:*",
-      "@eslint/eslintrc": "^3",
-      "@tailwindcss/postcss": "^4",
-      "@types/node": "^20.19.24",
-      "@types/react": "^19",
-      "@types/react-dom": "^19",
-      "eslint": "^9",
-      "eslint-config-next": "15.4.6",
-      "tailwindcss": "^4",
-      "typescript": "^5",
-      "wrangler": "^4.45.3"
     }
   }
   ```
-- [ ] Install dependencies: `pnpm install`
-- [ ] Verify dev server works: `pnpm dev`
+- [ ] Install: `pnpm install`
+- [ ] Verify dev server: `pnpm dev`
 
-### 1.2 Configure TypeScript
+### 1.2 Configure Tailwind (if needed)
 
-- [ ] Update `tsconfig.json` to extend workspace config:
-  ```json
-  {
-    "extends": "@repo/typescript-config/react-app.json",
-    "compilerOptions": {
-      "target": "ES2017",
-      "lib": ["dom", "dom.iterable", "esnext"],
-      "allowJs": true,
-      "skipLibCheck": true,
-      "strict": true,
-      "noEmit": true,
-      "esModuleInterop": true,
-      "module": "esnext",
-      "moduleResolution": "bundler",
-      "resolveJsonModule": true,
-      "isolatedModules": true,
-      "jsx": "preserve",
-      "incremental": true,
-      "plugins": [
-        {
-          "name": "next"
-        }
-      ],
-      "paths": {
-        "@/*": ["./*"]
-      }
-    },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-    "exclude": ["node_modules"]
-  }
-  ```
-- [ ] Verify TypeScript works: `pnpm run typecheck` (add script if needed)
-
-### 1.3 Configure Tailwind
-
-- [ ] Create `tailwind.config.ts`:
+- [ ] Check if `tailwind.config.ts` extends `@repo/tailwind-config`
+- [ ] If not, update to use workspace config:
   ```typescript
   import type { Config } from 'tailwindcss'
+  import sharedConfig from '@repo/tailwind-config'
   
   const config: Config = {
+    ...sharedConfig,
     content: [
       './app/**/*.{js,ts,jsx,tsx,mdx}',
       './components/**/*.{js,ts,jsx,tsx,mdx}',
-      '../../packages/rbee-ui/src/**/*.{js,ts,jsx,tsx}'
+      // TEAM-400: Include rbee-ui components
+      '../../packages/rbee-ui/src/**/*.{js,ts,jsx,tsx}',
     ],
-    theme: {
-      extend: {}
-    },
-    plugins: []
   }
-  
   export default config
   ```
-- [ ] Create `postcss.config.mjs`:
-  ```javascript
-  export default {
-    plugins: {
-      '@tailwindcss/postcss': {},
-    },
-  }
-  ```
-- [ ] Update `app/globals.css`:
-  ```css
-  @import "@rbee/ui/globals";
-  @import "tailwindcss";
-  ```
-- [ ] Test styles work: `pnpm dev`
 
-### 1.4 Configure ESLint
+---
 
-- [ ] Create `eslint.config.mjs`:
-  ```javascript
-  import { dirname } from "path";
-  import { fileURLToPath } from "url";
-  import { FlatCompat } from "@eslint/eslintrc";
+## 🏠 Phase 2: Home Page (Day 1, Afternoon)
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+**TEAM-400:** Replace default Next.js content with marketplace home.
 
-  const compat = new FlatCompat({
-    baseDirectory: __dirname,
-  });
+### 2.1 Update Home Page
 
-  const eslintConfig = [
-    ...compat.extends(
-      "next/core-web-vitals",
-      "next/typescript",
-      "@repo/eslint-config/react"
-    ),
-  ];
-
-  export default eslintConfig;
-  ```
-- [ ] Test linting: `pnpm lint`
-
-### 1.5 Configure Next.js
-
-- [ ] Update `next.config.ts`:
-  ```typescript
-  import type { NextConfig } from "next";
-  import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
-
-  if (process.env.NODE_ENV === 'development') {
-    await setupDevPlatform();
-  }
-
-  const nextConfig: NextConfig = {
-    images: {
-      unoptimized: true,
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'huggingface.co',
-        },
-        {
-          protocol: 'https',
-          hostname: 'cdn-lfs.huggingface.co',
-        },
-        {
-          protocol: 'https',
-          hostname: 'image.civitai.com',
-        },
-      ],
-    },
-    transpilePackages: ['@rbee/ui'],
-  };
-
-  export default nextConfig;
-  ```
-- [ ] Test build: `pnpm build`
-- [ ] Verify Cloudflare build works
-
-### 1.6 Create Layout with @rbee/ui Components
-
-- [ ] Update `app/layout.tsx`:
+- [ ] Replace `app/page.tsx`:
   ```tsx
-  import type { Metadata } from 'next'
-  import { GeistSans } from 'geist/font/sans'
-  import { GeistMono } from 'geist/font/mono'
-  import './globals.css'
+  // TEAM-400: Marketplace home page
+  import { ModelsPage, defaultModelsPageProps } from '@rbee/ui/marketplace/pages/ModelsPage'
   
-  export const metadata: Metadata = {
-    title: 'rbee Marketplace - Run AI Models Locally',
-    description: 'Browse and download AI models. Run them locally with rbee. Free, private, unlimited.',
-    keywords: ['AI', 'LLM', 'Stable Diffusion', 'local AI', 'rbee'],
-    openGraph: {
-      title: 'rbee Marketplace',
-      description: 'Run AI models locally. Free, private, unlimited.',
-      url: 'https://marketplace.rbee.dev',
-      siteName: 'rbee Marketplace',
-      type: 'website'
-    }
+  export default function Home() {
+    return <ModelsPage {...defaultModelsPageProps} />
   }
+  ```
+- [ ] Update `app/layout.tsx` metadata:
+  ```tsx
+  export const metadata: Metadata = {
+    title: 'rbee Marketplace - Browse AI Models & Workers',
+    description: 'Discover and download AI models from HuggingFace and CivitAI. Find workers for your rbee cluster.',
+  }
+  ```
+- [ ] Test: `pnpm dev` and visit `http://localhost:3000`
+- [ ] Verify ModelsPage renders correctly
+
+### 2.2 Add Navigation (Optional)
+
+- [ ] Create `app/components/Nav.tsx`:
+  ```tsx
+  // TEAM-400: Simple marketplace navigation
+  import Link from 'next/link'
   
-  export default function RootLayout({
-    children
-  }: {
-    children: React.ReactNode
-  }) {
+  export function Nav() {
     return (
-      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-        <body className="font-sans antialiased">
-          <nav className="border-b">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🐝</span>
-                  <span className="font-bold text-xl">rbee Marketplace</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <a href="/models" className="hover:underline">Models</a>
-                  <a href="/workers" className="hover:underline">Workers</a>
-                  <a href="https://rbee.dev" className="hover:underline">About</a>
-                </div>
-              </div>
-            </div>
-          </nav>
-          <main>{children}</main>
-          <footer className="border-t mt-16">
-            <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-              <p>rbee Marketplace - Run AI models locally. Free, private, unlimited.</p>
-            </div>
-          </footer>
+      <nav className="border-b">
+        <div className="container mx-auto px-4 py-4 flex gap-6">
+          <Link href="/" className="font-bold">rbee Marketplace</Link>
+          <Link href="/models">Models</Link>
+          <Link href="/workers">Workers</Link>
+        </div>
+      </nav>
+    )
+  }
+  ```
+- [ ] Add to `app/layout.tsx`:
+  ```tsx
+  import { Nav } from './components/Nav'
+  
+  export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+      <html lang="en">
+        <body>
+          <Nav />
+          {children}
         </body>
       </html>
     )
   }
   ```
-- [ ] Test layout renders correctly
 
 ---
 
-## 🏠 Phase 2: Home Page (Day 2)
+## 📄 Phase 3: Models Pages (Days 2-3)
 
-### 2.1 Create Home Page
+**TEAM-400:** Create models list + detail pages with SSG.
 
-- [ ] Update `app/page.tsx`:
-  ```tsx
-  export default function HomePage() {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-5xl font-bold mb-6">
-            Run AI Models Locally
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Browse thousands of AI models. Download and run them on your own hardware.
-            Free, private, unlimited.
-          </p>
-          
-          <div className="flex gap-4 justify-center">
-            <a 
-              href="/models"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Browse Models
-            </a>
-            <a 
-              href="/workers"
-              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Browse Workers
-            </a>
-          </div>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-8 mt-16">
-          <div className="text-center">
-            <div className="text-4xl mb-4">🤗</div>
-            <h3 className="font-bold mb-2">HuggingFace Models</h3>
-            <p className="text-gray-600">
-              Browse thousands of LLM models from HuggingFace
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-4xl mb-4">🎨</div>
-            <h3 className="font-bold mb-2">CivitAI Models</h3>
-            <p className="text-gray-600">
-              Discover image generation models from CivitAI
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-4xl mb-4">👷</div>
-            <h3 className="font-bold mb-2">Worker Binaries</h3>
-            <p className="text-gray-600">
-              Install optimized workers for your hardware
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  ```
-- [ ] Test home page renders
-- [ ] Test links work
-
----
-
-## 📦 Phase 3: Models List Page (Day 3)
-
-### 3.1 Create Models Page
+### 3.1 Models List Page
 
 - [ ] Create `app/models/page.tsx`:
   ```tsx
+  // TEAM-400: Models list page with SSG
+  import { ModelsPage } from '@rbee/ui/marketplace/pages/ModelsPage'
+  import type { ModelsPageProps } from '@rbee/ui/marketplace/pages/ModelsPage'
   import { HuggingFaceClient } from '@rbee/marketplace-sdk'
-  import { ModelCard, MarketplaceGrid } from '@rbee/marketplace-components'
   
-  export const metadata = {
-    title: 'AI Models - rbee Marketplace',
-    description: 'Browse and download AI models from HuggingFace and CivitAI'
+  // TEAM-400: Fetch data at build time (SSG)
+  async function getModelsData(): Promise<ModelsPageProps> {
+    const client = new HuggingFaceClient()
+    const models = await client.list_models({ limit: 100 })
+    
+    return {
+      seo: {
+        title: 'AI Models | rbee Marketplace',
+        description: 'Browse AI models from HuggingFace'
+      },
+      template: {
+        title: 'AI Models',
+        description: 'Discover and download AI models',
+        models: models.map(m => ({
+          model: m,
+          onAction: undefined, // Client-side only
+        })),
+        filters: { search: '', sort: 'popular' }
+      }
+    }
   }
   
-  export default async function ModelsPage() {
-    // Fetch models at build time (SSG)
-    const hfClient = new HuggingFaceClient()
-    const models = await hfClient.listModels({ limit: 100, sort: 'popular' })
-    
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">AI Models</h1>
-        
-        <MarketplaceGrid
-          items={models}
-          renderItem={(model) => (
-            <ModelCard
-              key={model.id}
-              model={model}
-              downloadButton={
-                <a 
-                  href={`/models/${encodeURIComponent(model.id)}`}
-                  className="btn-primary"
-                >
-                  View Details
-                </a>
-              }
-              mode="nextjs"
-            />
-          )}
-        />
-      </div>
-    )
+  export default async function ModelsListPage() {
+    const props = await getModelsData()
+    return <ModelsPage {...props} />
   }
   
-  // Revalidate every hour
-  export const revalidate = 3600
-  ```
-- [ ] Test page renders
-- [ ] Test SSG works: `pnpm build`
-- [ ] Verify models appear
-
-### 3.2 Add Search & Filter
-
-- [ ] Create `app/models/page.tsx` with client component:
-  ```tsx
-  'use client'
-  
-  import { useState, useEffect } from 'react'
-  import { HuggingFaceClient } from '@rbee/marketplace-sdk'
-  import { ModelCard, MarketplaceGrid, SearchBar } from '@rbee/marketplace-components'
-  
-  export default function ModelsPage() {
-    const [models, setModels] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [search, setSearch] = useState('')
-    
-    useEffect(() => {
-      const client = new HuggingFaceClient()
-      client.listModels({ search, limit: 100 })
-        .then(setModels)
-        .finally(() => setIsLoading(false))
-    }, [search])
-    
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">AI Models</h1>
-        
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-          placeholder="Search models..."
-        />
-        
-        <MarketplaceGrid
-          items={models}
-          isLoading={isLoading}
-          renderItem={(model) => (
-            <ModelCard
-              key={model.id}
-              model={model}
-              downloadButton={
-                <a 
-                  href={`/models/${encodeURIComponent(model.id)}`}
-                  className="btn-primary"
-                >
-                  View Details
-                </a>
-              }
-              mode="nextjs"
-            />
-          )}
-        />
-      </div>
-    )
+  // TEAM-400: Generate metadata for SEO
+  export async function generateMetadata() {
+    return {
+      title: 'AI Models | rbee Marketplace',
+      description: 'Browse and download AI models from HuggingFace and CivitAI'
+    }
   }
   ```
-- [ ] Test search works
-- [ ] Test loading state
 
----
+### 3.2 Model Detail Page (Dynamic Route)
 
-## 📄 Phase 4: Model Detail Page (Day 4)
-
-### 4.1 Create Dynamic Route
-
-- [ ] Create `app/models/[id]/page.tsx`:
+- [ ] Create `app/models/[modelId]/page.tsx`:
   ```tsx
+  // TEAM-400: Model detail page with SSG
+  import { ModelDetailPage } from '@rbee/ui/marketplace/pages/ModelDetailPage'
+  import type { ModelDetailPageProps } from '@rbee/ui/marketplace/pages/ModelDetailPage'
   import { HuggingFaceClient } from '@rbee/marketplace-sdk'
-  import { ModelCard } from '@rbee/marketplace-components'
-  import { InstallationAwareButton } from '@/components/InstallationAwareButton'
-  import type { Metadata } from 'next'
   
-  interface Props {
-    params: { id: string }
+  interface PageProps {
+    params: { modelId: string }
   }
   
-  // Generate static paths for top 1000 models
+  // TEAM-400: Fetch single model data
+  async function getModelData(modelId: string): Promise<ModelDetailPageProps> {
+    const client = new HuggingFaceClient()
+    const model = await client.get_model(modelId)
+    
+    return {
+      seo: {
+        title: `${model.name} | rbee Marketplace`,
+        description: model.description
+      },
+      template: {
+        model,
+        installButton: undefined, // Client-side component
+      }
+    }
+  }
+  
+  export default async function ModelDetailPageRoute({ params }: PageProps) {
+    const props = await getModelData(params.modelId)
+    return <ModelDetailPage {...props} />
+  }
+  
+  // TEAM-400: Generate static params for top 1000 models
   export async function generateStaticParams() {
     const client = new HuggingFaceClient()
-    const models = await client.listModels({ limit: 1000, sort: 'popular' })
+    const models = await client.list_models({ limit: 1000, sort: 'popular' })
     
-    return models.map(model => ({
-      id: encodeURIComponent(model.id)
+    return models.map((model) => ({
+      modelId: model.id,
     }))
   }
   
-  // Generate metadata for SEO
-  export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const client = new HuggingFaceClient()
-    const model = await client.getModel(decodeURIComponent(params.id))
-    
+  // TEAM-400: Generate metadata for each model
+  export async function generateMetadata({ params }: PageProps) {
+    const props = await getModelData(params.modelId)
     return {
-      title: `${model.name} - rbee Marketplace`,
-      description: `${model.description} | Run ${model.name} locally with rbee. Free, private, unlimited.`,
-      keywords: [model.name, 'rbee', 'AI model', 'local AI', ...model.tags],
-      openGraph: {
-        title: model.name,
-        description: model.description,
-        images: model.imageUrl ? [model.imageUrl] : []
-      }
+      title: props.seo.title,
+      description: props.seo.description,
     }
   }
-  
-  export default async function ModelDetailPage({ params }: Props) {
-    const client = new HuggingFaceClient()
-    const model = await client.getModel(decodeURIComponent(params.id))
-    
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <ModelCard
-            model={model}
-            downloadButton={
-              <InstallationAwareButton
-                modelId={model.id}
-                modelName={model.name}
-              />
-            }
-            mode="nextjs"
-          />
-          
-          <div className="mt-8 prose max-w-none">
-            <h2>About {model.name}</h2>
-            <p>{model.description}</p>
-            
-            <h3>How to use with rbee</h3>
-            <ol>
-              <li>Install rbee Keeper</li>
-              <li>Click "Run with rbee"</li>
-              <li>Model downloads and runs automatically</li>
-            </ol>
-            
-            <h3>Why use rbee?</h3>
-            <ul>
-              <li>✅ Free forever - no API costs</li>
-              <li>✅ 100% private - your data never leaves your machine</li>
-              <li>✅ No limits - run as much as you want</li>
-              <li>✅ Use your own GPU - maximize performance</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
-  export const revalidate = 3600
   ```
-- [ ] Test page renders for specific model
-- [ ] Test SSG generates 1000 pages
-- [ ] Verify metadata is correct
 
-### 4.2 Create Installation-Aware Button
+### 3.3 Test SSG Build
 
-- [ ] Create `components/InstallationAwareButton.tsx`:
-  ```tsx
-  'use client'
-  
-  import { useState } from 'react'
-  import { openInKeeperWithIframe } from '@/lib/protocolDetection'
-  import { InstallModal } from './InstallModal'
-  
-  interface Props {
-    modelId: string
-    modelName: string
-  }
-  
-  export function InstallationAwareButton({ modelId, modelName }: Props) {
-    const [showInstallModal, setShowInstallModal] = useState(false)
-    const [isChecking, setIsChecking] = useState(false)
-    
-    const handleClick = async () => {
-      setIsChecking(true)
-      
-      const rbeeUrl = `rbee://download/model/huggingface/${modelId}`
-      const opened = await openInKeeperWithIframe(rbeeUrl)
-      
-      setIsChecking(false)
-      
-      if (!opened) {
-        setShowInstallModal(true)
-      }
-    }
-    
-    return (
-      <>
-        <button 
-          onClick={handleClick}
-          disabled={isChecking}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isChecking ? '⏳ Opening rbee...' : `🚀 Run ${modelName} with rbee`}
-        </button>
-        
-        {showInstallModal && (
-          <InstallModal
-            onClose={() => setShowInstallModal(false)}
-            modelId={modelId}
-            modelName={modelName}
-          />
-        )}
-      </>
-    )
-  }
+- [ ] Build site: `pnpm build`
+- [ ] Check output:
   ```
-- [ ] Test button click
-- [ ] Test protocol detection
-
-### 4.3 Create Protocol Detection
-
-- [ ] Create `lib/protocolDetection.ts`:
-  ```typescript
-  export async function openInKeeperWithIframe(url: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      document.body.appendChild(iframe)
-      
-      let timeout: NodeJS.Timeout
-      let hasBlurred = false
-      
-      const handleBlur = () => {
-        hasBlurred = true
-        clearTimeout(timeout)
-        cleanup()
-        resolve(true)
-      }
-      
-      const cleanup = () => {
-        window.removeEventListener('blur', handleBlur)
-        document.body.removeChild(iframe)
-      }
-      
-      timeout = setTimeout(() => {
-        if (!hasBlurred) {
-          cleanup()
-          resolve(false)
-        }
-      }, 2000)
-      
-      window.addEventListener('blur', handleBlur)
-      iframe.src = url
-    })
-  }
+  ✓ Generating static pages (1000/1000)
   ```
-- [ ] Test detection works
-
-### 4.4 Create Install Modal
-
-- [ ] Create `components/InstallModal.tsx`:
-  ```tsx
-  'use client'
-  
-  interface Props {
-    onClose: () => void
-    modelId: string
-    modelName: string
-  }
-  
-  export function InstallModal({ onClose, modelId, modelName }: Props) {
-    const rbeeUrl = `rbee://download/model/huggingface/${modelId}`
-    
-    return (
-      <div 
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-        onClick={onClose}
-      >
-        <div 
-          className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h2 className="text-2xl font-bold mb-4">Install rbee Keeper</h2>
-          <p className="mb-6">
-            To run <strong>{modelName}</strong> locally, you need to install rbee first.
-          </p>
-          
-          <div className="space-y-4 mb-6">
-            <div className="border rounded-lg p-4">
-              <h3 className="font-bold mb-2">🐧 Arch Linux</h3>
-              <code className="block bg-gray-100 p-2 rounded">
-                yay -S rbee-keeper
-              </code>
-            </div>
-            
-            <div className="border rounded-lg p-4">
-              <h3 className="font-bold mb-2">🐧 Debian/Ubuntu</h3>
-              <code className="block bg-gray-100 p-2 rounded">
-                curl -fsSL https://rbee.dev/install.sh | sh
-              </code>
-            </div>
-            
-            <div className="border rounded-lg p-4 opacity-50">
-              <h3 className="font-bold mb-2">🍎 macOS (Coming Soon)</h3>
-              <p className="text-sm">Sign up to get notified</p>
-              <input 
-                type="email" 
-                placeholder="your@email.com"
-                className="mt-2 px-3 py-2 border rounded w-full"
-              />
-            </div>
-            
-            <div className="border rounded-lg p-4 opacity-50">
-              <h3 className="font-bold mb-2">🪟 Windows (Coming Soon)</h3>
-              <p className="text-sm">Sign up to get notified</p>
-              <input 
-                type="email" 
-                placeholder="your@email.com"
-                className="mt-2 px-3 py-2 border rounded w-full"
-              />
-            </div>
-          </div>
-          
-          <div className="flex gap-4">
-            <a 
-              href={rbeeUrl}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
-            >
-              ← Back to {modelName}
-            </a>
-            <button 
-              onClick={onClose}
-              className="px-6 py-3 border rounded-lg hover:bg-gray-50"
-            >
-              Close
-            </button>
-          </div>
-          
-          <p className="text-sm text-gray-600 mt-4 text-center">
-            After installing, come back and click the button again!
-          </p>
-        </div>
-      </div>
-    )
-  }
-  ```
-- [ ] Test modal appears
-- [ ] Test close functionality
+- [ ] Verify pages generated: `ls .next/server/app/models/`
+- [ ] Test production: `pnpm start`
 
 ---
 
-## 👷 Phase 5: Workers Page (Day 5)
+## 👷 Phase 4: Workers Pages (Day 4)
 
-### 5.1 Create Workers List Page
+**TEAM-400:** Similar to models, but for workers.
+
+### 4.1 Workers List Page
 
 - [ ] Create `app/workers/page.tsx`:
   ```tsx
-  import { WorkerCatalogClient } from '@rbee/marketplace-sdk'
-  import { WorkerCard, MarketplaceGrid } from '@rbee/marketplace-components'
+  // TEAM-400: Workers list page
+  import { WorkersPage } from '@rbee/ui/marketplace/pages/WorkersPage'
+  import { WorkerClient } from '@rbee/marketplace-sdk'
   
-  export const metadata = {
-    title: 'Worker Binaries - rbee Marketplace',
-    description: 'Install optimized worker binaries for your hardware'
+  async function getWorkersData() {
+    // TEAM-400: This talks to rbee-hive
+    // For SSG, we need a public endpoint or mock data
+    const client = new WorkerClient('https://api.rbee.dev')
+    const workers = await client.list_workers()
+    
+    return {
+      seo: {
+        title: 'Workers | rbee Marketplace',
+        description: 'Browse rbee workers'
+      },
+      template: {
+        title: 'Workers',
+        workers: workers.map(w => ({
+          worker: w,
+          onAction: undefined,
+        })),
+      }
+    }
   }
   
-  export default async function WorkersPage() {
-    const client = new WorkerCatalogClient('https://catalog.rbee.dev')
-    const workers = await client.listWorkers()
+  export default async function WorkersListPage() {
+    const props = await getWorkersData()
+    return <WorkersPage {...props} />
+  }
+  ```
+
+### 4.2 Worker Detail Page
+
+- [ ] Create `app/workers/[workerId]/page.tsx`:
+  ```tsx
+  // TEAM-400: Worker detail page
+  import { WorkerDetailPage } from '@rbee/ui/marketplace/pages/WorkerDetailPage'
+  import { WorkerClient } from '@rbee/marketplace-sdk'
+  
+  interface PageProps {
+    params: { workerId: string }
+  }
+  
+  async function getWorkerData(workerId: string) {
+    const client = new WorkerClient('https://api.rbee.dev')
+    const worker = await client.get_worker(workerId)
     
+    return {
+      seo: {
+        title: `${worker.name} | rbee Marketplace`,
+        description: worker.description
+      },
+      template: { worker }
+    }
+  }
+  
+  export default async function WorkerDetailPageRoute({ params }: PageProps) {
+    const props = await getWorkerData(params.workerId)
+    return <WorkerDetailPage {...props} />
+  }
+  
+  export async function generateStaticParams() {
+    const client = new WorkerClient('https://api.rbee.dev')
+    const workers = await client.list_workers()
+    
+    return workers.map((worker) => ({
+      workerId: worker.id,
+    }))
+  }
+  ```
+
+---
+
+## 🔘 Phase 5: Installation Detection (Day 5)
+
+**TEAM-400:** Client-side detection if Keeper is installed.
+
+### 5.1 Create Detection Hook
+
+- [ ] Create `app/hooks/useKeeperInstalled.ts`:
+  ```tsx
+  'use client'
+  
+  import { useEffect, useState } from 'react'
+  
+  export function useKeeperInstalled() {
+    const [installed, setInstalled] = useState(false)
+    const [checking, setChecking] = useState(true)
+    
+    useEffect(() => {
+      // TEAM-400: Try to detect rbee:// protocol support
+      async function checkInstallation() {
+        try {
+          // Method 1: Try to open rbee:// URL
+          const testUrl = 'rbee://ping'
+          const iframe = document.createElement('iframe')
+          iframe.style.display = 'none'
+          iframe.src = testUrl
+          document.body.appendChild(iframe)
+          
+          // If no error after 1 second, assume installed
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          setInstalled(true)
+          
+          document.body.removeChild(iframe)
+        } catch (error) {
+          setInstalled(false)
+        } finally {
+          setChecking(false)
+        }
+      }
+      
+      checkInstallation()
+    }, [])
+    
+    return { installed, checking }
+  }
+  ```
+
+### 5.2 Create Install Button Component
+
+- [ ] Create `app/components/InstallButton.tsx`:
+  ```tsx
+  'use client'
+  
+  import { useKeeperInstalled } from '../hooks/useKeeperInstalled'
+  import { Button } from '@rbee/ui/atoms/Button'
+  
+  interface InstallButtonProps {
+    modelId: string
+  }
+  
+  export function InstallButton({ modelId }: InstallButtonProps) {
+    const { installed, checking } = useKeeperInstalled()
+    
+    if (checking) {
+      return <Button disabled>Checking...</Button>
+    }
+    
+    if (installed) {
+      // TEAM-400: Open rbee:// protocol
+      return (
+        <Button onClick={() => {
+          window.location.href = `rbee://model/${modelId}`
+        }}>
+          Run with rbee
+        </Button>
+      )
+    }
+    
+    // TEAM-400: Download Keeper
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Worker Binaries</h1>
-        
-        <MarketplaceGrid
-          items={workers}
-          renderItem={(worker) => (
-            <WorkerCard
-              key={worker.id}
-              worker={worker}
-              installButton={
-                <a 
-                  href={`rbee://install/worker/${worker.id}`}
-                  className="btn-primary"
-                >
-                  Install Worker
-                </a>
-              }
-              mode="nextjs"
-            />
-          )}
-        />
-      </div>
+      <Button onClick={() => {
+        window.location.href = 'https://github.com/veighnsche/llama-orch/releases'
+      }}>
+        Download Keeper
+      </Button>
     )
   }
+  ```
+
+### 5.3 Use in Model Detail Page
+
+- [ ] Update `app/models/[modelId]/page.tsx`:
+  ```tsx
+  import { InstallButton } from '@/components/InstallButton'
   
-  export const revalidate = 3600
+  // In getModelData:
+  return {
+    // ...
+    template: {
+      model,
+      installButton: <InstallButton modelId={model.id} />,
+    }
+  }
   ```
-- [ ] Test page renders
-- [ ] Test workers appear
-
-### 5.2 Create Worker Detail Page
-
-- [ ] Create `app/workers/[id]/page.tsx` (similar to model detail)
-- [ ] Generate static params
-- [ ] Generate metadata
-- [ ] Add installation button
-- [ ] Test page renders
 
 ---
 
-## 🚀 Phase 6: Deployment (Day 6)
+## 🌐 Phase 6: SEO & Sitemap (Day 6)
 
-### 6.1 Configure Cloudflare Pages
-
-- [ ] Create `wrangler.toml`:
-  ```toml
-  name = "marketplace-rbee-dev"
-  compatibility_date = "2024-01-01"
-  pages_build_output_dir = ".next"
-  ```
-- [ ] Build site: `pnpm build`
-- [ ] Test static export works
-- [ ] Verify all pages generated
-
-### 6.2 Deploy to Cloudflare
-
-- [ ] Install Wrangler: `pnpm add -D wrangler`
-- [ ] Login: `wrangler login`
-- [ ] Deploy: `pnpm deploy`
-- [ ] Verify site is live
-- [ ] Test on marketplace.rbee.dev
-
-### 6.3 Configure DNS
-
-- [ ] Add CNAME record: `marketplace.rbee.dev` → Cloudflare Pages
-- [ ] Wait for DNS propagation
-- [ ] Test site loads on custom domain
-- [ ] Verify HTTPS works
-
-### 6.4 Test Production
-
-- [ ] Test home page loads
-- [ ] Test models page loads
-- [ ] Test model detail pages load
-- [ ] Test workers page loads
-- [ ] Test "Run with rbee" button
-- [ ] Test install modal
-- [ ] Test on mobile
-- [ ] Test on different browsers
-
----
-
-## 📊 Phase 7: SEO & Analytics (Day 7)
-
-### 7.1 Generate Sitemap
+### 6.1 Generate Sitemap
 
 - [ ] Create `app/sitemap.ts`:
-  ```typescript
-  import { HuggingFaceClient, WorkerCatalogClient } from '@rbee/marketplace-sdk'
+  ```tsx
+  // TEAM-400: Generate sitemap for all models + workers
+  import { MetadataRoute } from 'next'
+  import { HuggingFaceClient, WorkerClient } from '@rbee/marketplace-sdk'
   
-  export default async function sitemap() {
-    const hfClient = new HuggingFaceClient()
-    const workerClient = new WorkerCatalogClient()
+  export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    const baseUrl = 'https://marketplace.rbee.dev'
     
-    const models = await hfClient.listModels({ limit: 1000 })
-    const workers = await workerClient.listWorkers()
+    // Fetch all models
+    const hfClient = new HuggingFaceClient()
+    const models = await hfClient.list_models({ limit: 1000 })
+    
+    // Fetch all workers
+    const workerClient = new WorkerClient('https://api.rbee.dev')
+    const workers = await workerClient.list_workers()
     
     return [
       {
-        url: 'https://marketplace.rbee.dev',
+        url: baseUrl,
         lastModified: new Date(),
         changeFrequency: 'daily',
-        priority: 1
+        priority: 1,
       },
       {
-        url: 'https://marketplace.rbee.dev/models',
+        url: `${baseUrl}/models`,
         lastModified: new Date(),
         changeFrequency: 'daily',
-        priority: 0.9
+        priority: 0.9,
       },
-      ...models.map(model => ({
-        url: `https://marketplace.rbee.dev/models/${encodeURIComponent(model.id)}`,
+      ...models.map((model) => ({
+        url: `${baseUrl}/models/${model.id}`,
         lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.8
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
       })),
       {
-        url: 'https://marketplace.rbee.dev/workers',
+        url: `${baseUrl}/workers`,
         lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.7
+        changeFrequency: 'weekly',
+        priority: 0.7,
       },
-      ...workers.map(worker => ({
-        url: `https://marketplace.rbee.dev/workers/${worker.id}`,
+      ...workers.map((worker) => ({
+        url: `${baseUrl}/workers/${worker.id}`,
         lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.6
-      }))
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+      })),
     ]
   }
   ```
-- [ ] Build and verify sitemap.xml generated
-- [ ] Test sitemap is accessible
 
-### 7.2 Add robots.txt
+### 6.2 Add robots.txt
 
 - [ ] Create `app/robots.ts`:
-  ```typescript
-  export default function robots() {
+  ```tsx
+  import { MetadataRoute } from 'next'
+  
+  export default function robots(): MetadataRoute.Robots {
     return {
       rules: {
         userAgent: '*',
@@ -878,21 +497,77 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
     }
   }
   ```
-- [ ] Verify robots.txt generated
 
-### 7.3 Submit to Search Engines
+### 6.3 Add Open Graph Images
 
-- [ ] Submit sitemap to Google Search Console
-- [ ] Submit sitemap to Bing Webmaster Tools
-- [ ] Verify indexing starts
-- [ ] Monitor search rankings
+- [ ] Create `app/opengraph-image.tsx`:
+  ```tsx
+  import { ImageResponse } from 'next/og'
+  
+  export const size = {
+    width: 1200,
+    height: 630,
+  }
+  
+  export default async function Image() {
+    return new ImageResponse(
+      (
+        <div style={{
+          fontSize: 128,
+          background: 'white',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          rbee Marketplace
+        </div>
+      ),
+      { ...size }
+    )
+  }
+  ```
 
-### 7.4 Add Analytics (Optional)
+---
 
-- [ ] Add Plausible Analytics script
-- [ ] Track page views
-- [ ] Track button clicks
-- [ ] Monitor conversion rate
+## 🚀 Phase 7: Deploy to Cloudflare Pages (Day 7)
+
+**TEAM-400:** Already configured! Just deploy.
+
+### 7.1 Build for Production
+
+- [ ] Build: `pnpm build`
+- [ ] Check output size:
+  ```bash
+  du -sh .next
+  ```
+- [ ] Verify all pages generated:
+  ```bash
+  find .next/server/app -name "*.html" | wc -l
+  ```
+
+### 7.2 Test Cloudflare Build
+
+- [ ] Build with OpenNext: `pnpm run deploy`
+- [ ] Or preview: `pnpm run preview`
+- [ ] Test locally with Wrangler
+
+### 7.3 Deploy
+
+- [ ] Deploy to Cloudflare Pages:
+  ```bash
+  pnpm run deploy
+  ```
+- [ ] Or connect to GitHub for auto-deploy
+- [ ] Verify deployment: `https://marketplace.rbee.dev`
+
+### 7.4 Configure Custom Domain
+
+- [ ] In Cloudflare Pages dashboard
+- [ ] Add custom domain: `marketplace.rbee.dev`
+- [ ] Configure DNS
+- [ ] Enable HTTPS
 
 ---
 
@@ -900,34 +575,39 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
 
 ### Must Have
 
-- [ ] Site deployed to marketplace.rbee.dev
-- [ ] 1000+ model pages pre-rendered
-- [ ] All worker pages pre-rendered
-- [ ] "Run with rbee" button works
+- [ ] Home page renders with ModelsPage
+- [ ] Models list page works (/models)
+- [ ] Model detail pages work (/models/[id])
+- [ ] Workers list page works (/workers)
+- [ ] Worker detail pages work (/workers/[id])
+- [ ] SSG generates 1000+ model pages
 - [ ] Installation detection works
-- [ ] Install modal works
+- [ ] "Run with rbee" button works (if Keeper installed)
+- [ ] "Download Keeper" button works (if not installed)
 - [ ] Sitemap generated
-- [ ] robots.txt present
-- [ ] Mobile responsive
-- [ ] Fast loading (<3s)
+- [ ] Deployed to Cloudflare Pages
+- [ ] Custom domain works
 
 ### Nice to Have
 
 - [ ] Search functionality
-- [ ] Filter functionality
-- [ ] Analytics tracking
-- [ ] Error tracking
-- [ ] A/B testing
+- [ ] Filter by category
+- [ ] Sort options
+- [ ] Related models
+- [ ] Download stats
+- [ ] User reviews
+- [ ] Analytics (Cloudflare Analytics)
 
 ---
 
 ## 🚀 Deliverables
 
-1. **Site:** marketplace.rbee.dev live and accessible
-2. **Pages:** 1000+ model pages + worker pages
-3. **SEO:** Sitemap, robots.txt, metadata
-4. **Integration:** Protocol detection and fallback
-5. **Performance:** Fast loading, optimized images
+1. **Next.js App:** Updated `frontend/apps/marketplace/`
+2. **Pages:** Home, Models List, Model Detail, Workers List, Worker Detail
+3. **SSG:** 1000+ pre-rendered model pages
+4. **SEO:** Sitemap, robots.txt, Open Graph images
+5. **Installation Detection:** Client-side Keeper detection
+6. **Deployment:** Live on Cloudflare Pages
 
 ---
 
@@ -935,21 +615,40 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
 
 ### Key Principles
 
-1. **SSG EVERYTHING** - Pre-render all pages at build time
-2. **SEO OPTIMIZED** - Metadata, sitemap, robots.txt
-3. **INSTALLATION AWARE** - Detect rbee, fallback gracefully
-4. **MOBILE FIRST** - Responsive design
-5. **FAST** - Optimize images, minimize JS
+1. **APP EXISTS** - Don't create from scratch, update existing
+2. **SSG FIRST** - Pre-render everything at build time
+3. **CLIENT COMPONENTS** - Only for interactive parts (buttons, detection)
+4. **USE rbee-ui** - Import marketplace components
+5. **USE marketplace-sdk** - WASM SDK for data fetching
 
 ### Common Pitfalls
 
-- ❌ Don't use client-side rendering for main content
-- ❌ Don't forget metadata for each page
-- ❌ Don't hardcode URLs (use env vars)
-- ✅ Pre-render everything possible
-- ✅ Add proper error handling
-- ✅ Test on real devices
+- ❌ Don't create new Next.js app (it exists!)
+- ❌ Don't fetch data client-side (use SSG)
+- ❌ Don't hardcode model data (fetch from SDK)
+- ❌ Don't forget generateStaticParams (needed for SSG)
+- ✅ Use existing app structure
+- ✅ Fetch data at build time
+- ✅ Use marketplace-sdk (WASM)
+- ✅ Generate static params for all models
+
+### SSG vs Client-Side
+
+**SSG (Build Time):**
+- Model list
+- Model details
+- Worker list
+- Worker details
+- SEO metadata
+
+**Client-Side (Runtime):**
+- Installation detection
+- "Run with rbee" button
+- Search/filter (optional)
+- Real-time data (optional)
 
 ---
 
-**Complete each phase, test thoroughly, deploy with confidence!** ✅
+**Start with Phase 1, use existing app!** ✅
+
+**TEAM-400 🐝🎊**

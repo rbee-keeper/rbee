@@ -1,246 +1,290 @@
-# Checklist 02: Marketplace SDK Package
+# Checklist 02: Marketplace SDK (Rust + WASM + tsify)
 
 **Timeline:** 3 days  
 **Status:** 📋 NOT STARTED  
-**Dependencies:** None (can run parallel with Checklist 01)
+**Dependencies:** None (can run parallel with Checklist 01)  
+**TEAM-400:** ✅ RULE ZERO - Complete rewrite from TypeScript to Rust+WASM+tsify
 
 ---
 
 ## 🎯 Goal
 
-Create `@rbee/marketplace-sdk` package with abstract data layer that works in both Next.js (server-side) and Tauri (client-side).
+Create marketplace SDK in **Rust** (`bin/99_shared_crates/marketplace-sdk/`), compile to **WASM**, auto-generate TypeScript types with **tsify**. Single crate for BOTH Next.js AND Tauri.
+
+**Pattern:** Same as `queen-rbee-sdk` - Rust crate → wasm-pack → WASM + TypeScript types
 
 ---
 
-## 📦 Phase 1: Package Setup (Day 1, Morning)
+## 📦 Phase 1: Rust Crate Setup (Day 1, Morning)
 
-### 1.1 Create Package Structure
+**TEAM-400:** Follow queen-rbee-sdk pattern exactly.
 
-- [ ] Create directory: `frontend/packages/marketplace-sdk/`
+### 1.1 Create Crate Structure
+
+- [ ] Create directory: `bin/99_shared_crates/marketplace-sdk/`
+- [ ] Create `Cargo.toml`:
+  ```toml
+  # TEAM-400: Marketplace SDK for HuggingFace, CivitAI, and Worker Catalog
+  
+  [package]
+  name = "marketplace-sdk"
+  version = "0.1.0"
+  edition = "2021"
+  authors = ["rbee Team"]
+  license = "GPL-3.0-or-later"
+  
+  [lib]
+  crate-type = ["cdylib", "rlib"]  # cdylib = WASM, rlib = for tests
+  
+  [dependencies]
+  # WASM bindings
+  wasm-bindgen = "0.2"
+  wasm-bindgen-futures = "0.4"
+  
+  # Serialization (Rust ↔ JavaScript)
+  serde = { version = "1.0", features = ["derive"] }
+  serde-wasm-bindgen = "0.6"
+  serde_json = "1.0"
+  
+  # TypeScript type generation
+  tsify = "0.4"
+  
+  # JavaScript types
+  js-sys = "0.3"
+  
+  # Web APIs
+  web-sys = { version = "0.3", features = [
+      "Request", "RequestInit", "RequestMode", "Response", "Headers",
+      "Window", "console"
+  ] }
+  
+  # HTTP client (WASM-compatible)
+  reqwest = { version = "0.12", default-features = false, features = ["json"] }
+  
+  # Async runtime (WASM-compatible)
+  tokio = { version = "1", features = ["sync"], default-features = false }
+  
+  # Error handling
+  anyhow = "1.0"
+  thiserror = "1.0"
+  
+  [dev-dependencies]
+  wasm-bindgen-test = "0.3"
+  
+  [profile.release]
+  # Optimize for small WASM size
+  opt-level = "z"
+  lto = true
+  codegen-units = 1
+  panic = "abort"
+  strip = true
+  ```
+- [ ] Create `src/lib.rs` (entry point)
 - [ ] Create `package.json`:
   ```json
   {
     "name": "@rbee/marketplace-sdk",
-    "version": "1.0.0",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "scripts": {
-      "build": "tsup src/index.ts --format esm,cjs --dts",
-      "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
-      "test": "vitest"
+    "version": "0.1.0",
+    "type": "module",
+    "description": "Rust SDK for marketplace (HuggingFace, CivitAI, Worker Catalog) that compiles to WASM",
+    "main": "./pkg/bundler/marketplace_sdk.js",
+    "types": "./pkg/bundler/marketplace_sdk.d.ts",
+    "exports": {
+      ".": "./pkg/bundler/marketplace_sdk.js"
     },
-    "dependencies": {},
-    "devDependencies": {
-      "tsup": "^8.0.0",
-      "typescript": "^5.0.0",
-      "vitest": "^1.0.0"
-    }
+    "files": ["pkg"],
+    "scripts": {
+      "build": "wasm-pack build --target bundler --out-dir pkg/bundler",
+      "build:web": "wasm-pack build --target web --out-dir pkg/web",
+      "build:all": "./build-wasm.sh"
+    },
+    "keywords": ["rbee", "marketplace", "huggingface", "civitai", "wasm", "rust"],
+    "author": "rbee Team",
+    "license": "GPL-3.0-or-later"
   }
   ```
-- [ ] Create `tsconfig.json`
-- [ ] Create `src/` directory
-- [ ] Create `src/index.ts` (empty for now)
-- [ ] Run `pnpm install`
-- [ ] Verify build works: `pnpm build`
+- [ ] Create `build-wasm.sh`:
+  ```bash
+  #!/bin/bash
+  # TEAM-400: Build WASM for all targets
+  wasm-pack build --target bundler --out-dir pkg/bundler
+  wasm-pack build --target web --out-dir pkg/web
+  echo "✅ WASM built for all targets"
+  ```
+- [ ] Run: `chmod +x build-wasm.sh`
 
-### 1.2 Define Interfaces
+### 1.2 Define Types with tsify
 
-- [ ] Create `src/types.ts`:
-  ```typescript
-  export interface Model {
-    id: string
-    name: string
-    description: string
-    author?: string
-    imageUrl?: string
-    tags: string[]
-    downloads: number
-    likes: number
-    size: string
-    source: 'huggingface' | 'civitai'
-    metadata?: Record<string, any>
+**TEAM-400:** Types are auto-generated for TypeScript. NO manual definitions.
+
+- [ ] Create `src/types.rs`:
+  ```rust
+  // TEAM-400: Marketplace types with tsify for TypeScript generation
+  
+  use serde::{Deserialize, Serialize};
+  use tsify::Tsify;
+  use wasm_bindgen::prelude::*;
+  
+  /// Model from marketplace (HuggingFace or CivitAI)
+  /// 
+  /// TEAM-400: TypeScript types are AUTO-GENERATED by tsify.
+  /// Import from SDK: `import type { Model } from '@rbee/marketplace-sdk'`
+  #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+  #[tsify(into_wasm_abi, from_wasm_abi)]
+  pub struct Model {
+      pub id: String,
+      pub name: String,
+      pub description: String,
+      pub author: Option<String>,
+      pub image_url: Option<String>,
+      pub tags: Vec<String>,
+      pub downloads: u64,
+      pub likes: u64,
+      pub size: String,
+      pub source: ModelSource,
   }
   
-  export interface Worker {
-    id: string
-    name: string
-    description: string
-    version: string
-    platform: string[]
-    architecture: string[]
-    workerType: 'cpu' | 'cuda' | 'metal'
-    metadata?: Record<string, any>
+  /// Model source
+  #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+  #[tsify(into_wasm_abi, from_wasm_abi)]
+  pub enum ModelSource {
+      HuggingFace,
+      CivitAI,
   }
   
-  export interface ModelFilters {
-    search?: string
-    category?: string
-    sort?: 'popular' | 'recent' | 'trending'
-    limit?: number
+  /// Worker binary info
+  #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+  #[tsify(into_wasm_abi, from_wasm_abi)]
+  pub struct Worker {
+      pub id: String,
+      pub name: String,
+      pub description: String,
+      pub version: String,
+      pub platform: Vec<String>,
+      pub architecture: Vec<String>,
+      pub worker_type: WorkerType,
   }
   
-  export interface WorkerFilters {
-    workerType?: 'cpu' | 'cuda' | 'metal'
-    platform?: string
+  /// Worker type
+  #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+  #[tsify(into_wasm_abi, from_wasm_abi)]
+  pub enum WorkerType {
+      Cpu,
+      Cuda,
+      Metal,
+  }
+  
+  /// Model filters
+  #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+  #[tsify(into_wasm_abi, from_wasm_abi)]
+  pub struct ModelFilters {
+      pub search: Option<String>,
+      pub category: Option<String>,
+      pub sort: Option<SortOrder>,
+      pub limit: Option<u32>,
+  }
+  
+  /// Sort order
+  #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+  #[tsify(into_wasm_abi, from_wasm_abi)]
+  pub enum SortOrder {
+      Popular,
+      Recent,
+      Trending,
   }
   ```
-- [ ] Export from `src/index.ts`
-
-### 1.3 Define Abstract Interface
-
-- [ ] Create `src/MarketplaceClient.ts`:
-  ```typescript
-  import { Model, Worker, ModelFilters, WorkerFilters } from './types'
-  
-  export interface MarketplaceClient {
-    // Models
-    listModels(filters?: ModelFilters): Promise<Model[]>
-    getModel(id: string): Promise<Model>
-    searchModels(query: string): Promise<Model[]>
-    
-    // Workers
-    listWorkers(filters?: WorkerFilters): Promise<Worker[]>
-    getWorker(id: string): Promise<Worker>
-    
-    // Optional: Download/Install (implementation-specific)
-    downloadModel?(modelId: string): Promise<void>
-    installWorker?(workerId: string): Promise<void>
-  }
-  ```
-- [ ] Export from `src/index.ts`
+- [ ] Export from `src/lib.rs`: `pub use types::*;`
 
 ---
 
 ## 🤗 Phase 2: HuggingFace Client (Day 1, Afternoon)
 
-### 2.1 Create HuggingFace Client
+### 2.1 Create HTTP Client Module
 
-- [ ] Create `src/HuggingFaceClient.ts`
-- [ ] Define class:
-  ```typescript
-  export class HuggingFaceClient implements MarketplaceClient {
-    private baseUrl = 'https://huggingface.co/api'
-    private apiToken?: string
-    
-    constructor(apiToken?: string) {
-      this.apiToken = apiToken
-    }
-    
-    async listModels(filters?: ModelFilters): Promise<Model[]> {
-      // TODO: Implement
-    }
-    
-    async getModel(id: string): Promise<Model> {
-      // TODO: Implement
-    }
-    
-    async searchModels(query: string): Promise<Model[]> {
-      // TODO: Implement
-    }
-    
-    async listWorkers(): Promise<Worker[]> {
-      throw new Error('HuggingFace does not support workers')
-    }
-    
-    async getWorker(): Promise<Worker> {
-      throw new Error('HuggingFace does not support workers')
-    }
+- [ ] Create `src/huggingface.rs`:
+  ```rust
+  // TEAM-400: HuggingFace API client (WASM-compatible)
+  
+  use crate::types::*;
+  use anyhow::Result;
+  use serde_json::Value;
+  use wasm_bindgen::prelude::*;
+  
+  /// HuggingFace API client
+  #[wasm_bindgen]
+  pub struct HuggingFaceClient {
+      base_url: String,
+      api_token: Option<String>,
   }
-  ```
-
-### 2.2 Implement listModels
-
-- [ ] Research HuggingFace API endpoint for listing models
-- [ ] Implement fetch with filters:
-  ```typescript
-  async listModels(filters?: ModelFilters): Promise<Model[]> {
-    const params = new URLSearchParams()
-    if (filters?.search) params.append('search', filters.search)
-    if (filters?.sort) params.append('sort', filters.sort)
-    if (filters?.limit) params.append('limit', filters.limit.toString())
-    
-    const url = `${this.baseUrl}/models?${params}`
-    const response = await fetch(url, {
-      headers: this.apiToken ? {
-        'Authorization': `Bearer ${this.apiToken}`
-      } : {}
-    })
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    return data.map(this.transformModel)
-  }
-  ```
-- [ ] Implement transformModel helper:
-  ```typescript
-  private transformModel(hfModel: any): Model {
-    return {
-      id: hfModel.id || hfModel.modelId,
-      name: hfModel.id || hfModel.modelId,
-      description: hfModel.description || '',
-      author: hfModel.author,
-      imageUrl: hfModel.cardData?.thumbnail,
-      tags: hfModel.tags || [],
-      downloads: hfModel.downloads || 0,
-      likes: hfModel.likes || 0,
-      size: hfModel.size || 'Unknown',
-      source: 'huggingface',
-      metadata: {
-        modelId: hfModel.modelId,
-        pipeline_tag: hfModel.pipeline_tag,
-        library_name: hfModel.library_name
+  
+  #[wasm_bindgen]
+  impl HuggingFaceClient {
+      /// Create new HuggingFace client
+      #[wasm_bindgen(constructor)]
+      pub fn new(api_token: Option<String>) -> Self {
+          Self {
+              base_url: "https://huggingface.co/api".to_string(),
+              api_token,
+          }
       }
-    }
-  }
-  ```
-- [ ] Test with real API call
-- [ ] Handle errors gracefully
-
-### 2.3 Implement getModel
-
-- [ ] Implement single model fetch:
-  ```typescript
-  async getModel(id: string): Promise<Model> {
-    const url = `${this.baseUrl}/models/${id}`
-    const response = await fetch(url, {
-      headers: this.apiToken ? {
-        'Authorization': `Bearer ${this.apiToken}`
-      } : {}
-    })
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error(`Model not found: ${id}`)
+      
+      /// List models with filters
+      pub async fn list_models(&self, filters: Option<ModelFilters>) -> Result<Vec<Model>, JsValue> {
+          // TEAM-400: Implement HTTP GET to HuggingFace API
+          // Use reqwest with WASM support
+          todo!("Implement HuggingFace list_models")
       }
-      throw new Error(`Failed to fetch model: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    return this.transformModel(data)
+      
+      /// Get single model by ID
+      pub async fn get_model(&self, id: String) -> Result<Model, JsValue> {
+          todo!("Implement HuggingFace get_model")
+      }
+      
+      /// Search models
+      pub async fn search_models(&self, query: String) -> Result<Vec<Model>, JsValue> {
+          // TEAM-400: Use list_models with search filter
+          let filters = ModelFilters {
+              search: Some(query),
+              category: None,
+              sort: None,
+              limit: Some(50),
+          };
+          self.list_models(Some(filters)).await
+      }
+  }
+  
+  // TEAM-400: Helper to transform HuggingFace API response to Model
+  fn transform_hf_model(data: Value) -> Result<Model> {
+      // TEAM-400: Parse HuggingFace JSON and convert to Model struct
+      todo!("Implement HuggingFace response transformation")
   }
   ```
-- [ ] Test with real model ID
-- [ ] Handle 404 errors
+- [ ] Export from `src/lib.rs`: `pub use huggingface::HuggingFaceClient;`
 
-### 2.4 Implement searchModels
+### 2.2 Implement reqwest with WASM
 
-- [ ] Implement search:
-  ```typescript
-  async searchModels(query: string): Promise<Model[]> {
-    return this.listModels({ search: query, limit: 50 })
+- [ ] Study queen-rbee-sdk job-client usage
+- [ ] Implement HTTP GET with headers:
+  ```rust
+  let mut headers = reqwest::header::HeaderMap::new();
+  if let Some(token) = &self.api_token {
+      headers.insert(
+          reqwest::header::AUTHORIZATION,
+          format!("Bearer {}", token).parse().unwrap(),
+      );
   }
+  
+  let client = reqwest::Client::new();
+  let response = client
+      .get(&url)
+      .headers(headers)
+      .send()
+      .await
+      .map_err(|e| JsValue::from_str(&e.to_string()))?;
   ```
-- [ ] Test with various queries
-
-### 2.5 Export Client
-
-- [ ] Export from `src/index.ts`:
-  ```typescript
-  export { HuggingFaceClient } from './HuggingFaceClient'
-  ```
+- [ ] Parse JSON response
+- [ ] Transform to Model struct
+- [ ] Return Vec<Model>
 
 ---
 
@@ -248,308 +292,182 @@ Create `@rbee/marketplace-sdk` package with abstract data layer that works in bo
 
 ### 3.1 Create CivitAI Client
 
-- [ ] Create `src/CivitAIClient.ts`
-- [ ] Define class:
-  ```typescript
-  export class CivitAIClient implements MarketplaceClient {
-    private baseUrl = 'https://civitai.com/api/v1'
-    private apiToken?: string
-    
-    constructor(apiToken?: string) {
-      this.apiToken = apiToken
-    }
-    
-    async listModels(filters?: ModelFilters): Promise<Model[]> {
-      // TODO: Implement
-    }
-    
-    async getModel(id: string): Promise<Model> {
-      // TODO: Implement
-    }
-    
-    async searchModels(query: string): Promise<Model[]> {
-      // TODO: Implement
-    }
-    
-    async listWorkers(): Promise<Worker[]> {
-      throw new Error('CivitAI does not support workers')
-    }
-    
-    async getWorker(): Promise<Worker> {
-      throw new Error('CivitAI does not support workers')
-    }
+- [ ] Create `src/civitai.rs`:
+  ```rust
+  // TEAM-400: CivitAI API client (WASM-compatible)
+  
+  use crate::types::*;
+  use wasm_bindgen::prelude::*;
+  
+  /// CivitAI API client
+  #[wasm_bindgen]
+  pub struct CivitAIClient {
+      base_url: String,
+      api_token: Option<String>,
   }
-  ```
-
-### 3.2 Implement listModels
-
-- [ ] Research CivitAI API endpoint
-- [ ] Implement fetch with filters:
-  ```typescript
-  async listModels(filters?: ModelFilters): Promise<Model[]> {
-    const params = new URLSearchParams()
-    if (filters?.search) params.append('query', filters.search)
-    if (filters?.sort) params.append('sort', filters.sort)
-    if (filters?.limit) params.append('limit', filters.limit.toString())
-    
-    const url = `${this.baseUrl}/models?${params}`
-    const response = await fetch(url, {
-      headers: this.apiToken ? {
-        'Authorization': `Bearer ${this.apiToken}`
-      } : {}
-    })
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    return data.items.map(this.transformModel)
-  }
-  ```
-- [ ] Implement transformModel helper:
-  ```typescript
-  private transformModel(civitModel: any): Model {
-    const latestVersion = civitModel.modelVersions?.[0]
-    
-    return {
-      id: `civitai:${civitModel.id}`,
-      name: civitModel.name,
-      description: civitModel.description || '',
-      author: civitModel.creator?.username,
-      imageUrl: latestVersion?.images?.[0]?.url,
-      tags: civitModel.tags || [],
-      downloads: civitModel.stats?.downloadCount || 0,
-      likes: civitModel.stats?.favoriteCount || 0,
-      size: latestVersion?.files?.[0]?.sizeKB 
-        ? `${(latestVersion.files[0].sizeKB / 1024 / 1024).toFixed(1)} GB`
-        : 'Unknown',
-      source: 'civitai',
-      metadata: {
-        modelId: civitModel.id,
-        type: civitModel.type,
-        nsfw: civitModel.nsfw,
-        versionId: latestVersion?.id
+  
+  #[wasm_bindgen]
+  impl CivitAIClient {
+      #[wasm_bindgen(constructor)]
+      pub fn new(api_token: Option<String>) -> Self {
+          Self {
+              base_url: "https://civitai.com/api/v1".to_string(),
+              api_token,
+          }
       }
-    }
-  }
-  ```
-- [ ] Test with real API call
-- [ ] Handle NSFW filtering
-
-### 3.3 Implement getModel
-
-- [ ] Implement single model fetch:
-  ```typescript
-  async getModel(id: string): Promise<Model> {
-    // Extract numeric ID from "civitai:123456" format
-    const numericId = id.replace('civitai:', '')
-    
-    const url = `${this.baseUrl}/models/${numericId}`
-    const response = await fetch(url, {
-      headers: this.apiToken ? {
-        'Authorization': `Bearer ${this.apiToken}`
-      } : {}
-    })
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error(`Model not found: ${id}`)
+      
+      pub async fn list_models(&self, filters: Option<ModelFilters>) -> Result<Vec<Model>, JsValue> {
+          // TEAM-400: Similar to HuggingFaceClient
+          todo!("Implement CivitAI list_models")
       }
-      throw new Error(`Failed to fetch model: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    return this.transformModel(data)
+      
+      pub async fn get_model(&self, id: String) -> Result<Model, JsValue> {
+          todo!("Implement CivitAI get_model")
+      }
+      
+      pub async fn search_models(&self, query: String) -> Result<Vec<Model>, JsValue> {
+          let filters = ModelFilters {
+              search: Some(query),
+              category: None,
+              sort: None,
+              limit: Some(50),
+          };
+          self.list_models(Some(filters)).await
+      }
   }
   ```
-- [ ] Test with real model ID
-
-### 3.4 Implement searchModels
-
-- [ ] Implement search:
-  ```typescript
-  async searchModels(query: string): Promise<Model[]> {
-    return this.listModels({ search: query, limit: 50 })
-  }
-  ```
-
-### 3.5 Export Client
-
-- [ ] Export from `src/index.ts`:
-  ```typescript
-  export { CivitAIClient } from './CivitAIClient'
-  ```
+- [ ] Export from `src/lib.rs`: `pub use civitai::CivitAIClient;`
+- [ ] Implement HTTP requests (same pattern as HuggingFace)
+- [ ] Transform CivitAI responses to Model struct
 
 ---
 
 ## 👷 Phase 4: Worker Catalog Client (Day 2, Afternoon)
 
-### 4.1 Create Worker Catalog Client
+**TEAM-400:** HTTP client to talk to rbee-hive's worker endpoints.
 
-- [ ] Create `src/WorkerCatalogClient.ts`
-- [ ] Define class:
-  ```typescript
-  export class WorkerCatalogClient implements MarketplaceClient {
-    private baseUrl: string
-    
-    constructor(baseUrl = 'http://localhost:8787') {
-      this.baseUrl = baseUrl
-    }
-    
-    async listModels(): Promise<Model[]> {
-      throw new Error('Worker catalog does not support models')
-    }
-    
-    async getModel(): Promise<Model> {
-      throw new Error('Worker catalog does not support models')
-    }
-    
-    async searchModels(): Promise<Model[]> {
-      throw new Error('Worker catalog does not support models')
-    }
-    
-    async listWorkers(filters?: WorkerFilters): Promise<Worker[]> {
-      // TODO: Implement
-    }
-    
-    async getWorker(id: string): Promise<Worker> {
-      // TODO: Implement
-    }
+### 4.1 Create Worker HTTP Client
+
+- [ ] Create `src/worker_client.rs`:
+  ```rust
+  // TEAM-400: Worker Catalog HTTP client (talks to rbee-hive)
+  
+  use crate::types::*;
+  use wasm_bindgen::prelude::*;
+  
+  /// Worker Catalog HTTP client
+  #[wasm_bindgen]
+  pub struct WorkerClient {
+      base_url: String,
   }
-  ```
-
-### 4.2 Implement listWorkers
-
-- [ ] Implement fetch:
-  ```typescript
-  async listWorkers(filters?: WorkerFilters): Promise<Worker[]> {
-    const url = `${this.baseUrl}/workers`
-    const response = await fetch(url)
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch workers: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    let workers = data.workers || []
-    
-    // Apply filters
-    if (filters?.workerType) {
-      workers = workers.filter((w: any) => 
-        w.worker_type === filters.workerType
-      )
-    }
-    
-    if (filters?.platform) {
-      workers = workers.filter((w: any) => 
-        w.platform.includes(filters.platform)
-      )
-    }
-    
-    return workers.map(this.transformWorker)
-  }
-  ```
-- [ ] Implement transformWorker helper:
-  ```typescript
-  private transformWorker(catalogWorker: any): Worker {
-    return {
-      id: catalogWorker.id,
-      name: catalogWorker.name || catalogWorker.id,
-      description: catalogWorker.description || '',
-      version: catalogWorker.version || '0.1.0',
-      platform: catalogWorker.platform || [],
-      architecture: catalogWorker.architecture || [],
-      workerType: catalogWorker.worker_type || 'cpu',
-      metadata: {
-        pkgbuildUrl: catalogWorker.pkgbuild_url,
-        dependencies: catalogWorker.dependencies
+  
+  #[wasm_bindgen]
+  impl WorkerClient {
+      /// Create new Worker client
+      /// 
+      /// base_url: URL to rbee-hive (e.g., "http://localhost:9200")
+      #[wasm_bindgen(constructor)]
+      pub fn new(base_url: String) -> Self {
+          Self { base_url }
       }
-    }
-  }
-  ```
-- [ ] Test with real catalog service
-
-### 4.3 Implement getWorker
-
-- [ ] Implement single worker fetch:
-  ```typescript
-  async getWorker(id: string): Promise<Worker> {
-    const url = `${this.baseUrl}/workers/${id}`
-    const response = await fetch(url)
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error(`Worker not found: ${id}`)
+      
+      /// List all workers
+      pub async fn list_workers(&self) -> Result<Vec<Worker>, JsValue> {
+          let url = format!("{}/v1/workers", self.base_url);
+          // TEAM-400: HTTP GET to rbee-hive
+          todo!("Implement worker list")
       }
-      throw new Error(`Failed to fetch worker: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    return this.transformWorker(data)
+      
+      /// Get single worker by ID
+      pub async fn get_worker(&self, id: String) -> Result<Worker, JsValue> {
+          let url = format!("{}/v1/workers/{}", self.base_url, id);
+          todo!("Implement worker get")
+      }
   }
   ```
-- [ ] Test with real worker ID
+- [ ] Export from `src/lib.rs`: `pub use worker_client::WorkerClient;`
+- [ ] Implement HTTP requests
+- [ ] Transform rbee-hive responses to Worker struct
 
-### 4.4 Export Client
+### 4.2 Question: Catalog Contract?
 
-- [ ] Export from `src/index.ts`:
-  ```typescript
-  export { WorkerCatalogClient } from './WorkerCatalogClient'
-  ```
+**TEAM-400:** If we need shared types between worker-catalog (desktop) and marketplace SDK:
+
+- [ ] Decide: Create `bin/97_contracts/catalog-contract/`?
+- [ ] If yes:
+  - [ ] Pure types only (no HTTP logic)
+  - [ ] ModelEntry, WorkerBinary types
+  - [ ] Enable wasm feature with tsify
+  - [ ] marketplace-sdk imports from catalog-contract
+
+**NOTE:** For now, just define types in marketplace-sdk. Can extract to contract later if needed.
 
 ---
 
-## ✅ Phase 5: Testing & Documentation (Day 3)
+## 📦 Phase 5: Build & Export (Day 3)
 
-### 5.1 Unit Tests
+### 5.1 Complete lib.rs
 
-- [ ] Install dependencies:
-  ```bash
-  pnpm add -D vitest @vitest/ui
+- [ ] Update `src/lib.rs`:
+  ```rust
+  // TEAM-400: Marketplace SDK main entry point
+  
+  #![warn(missing_docs)]
+  
+  use wasm_bindgen::prelude::*;
+  
+  // Modules
+  mod types;
+  mod huggingface;
+  mod civitai;
+  mod worker_client;
+  
+  // Re-export types
+  pub use types::*;
+  
+  // Re-export clients
+  pub use huggingface::HuggingFaceClient;
+  pub use civitai::CivitAIClient;
+  pub use worker_client::WorkerClient;
+  
+  /// Initialize WASM module
+  #[wasm_bindgen(start)]
+  pub fn init() {
+      web_sys::console::log_1(&"🛒 [Marketplace SDK] WASM initialized!".into());
+  }
   ```
-- [ ] Create `vitest.config.ts`
-- [ ] Create `src/__tests__/HuggingFaceClient.test.ts`:
-  - [ ] Test listModels with filters
-  - [ ] Test getModel with valid ID
-  - [ ] Test getModel with invalid ID (404)
-  - [ ] Test searchModels
-  - [ ] Test error handling
-- [ ] Create `src/__tests__/CivitAIClient.test.ts`:
-  - [ ] Test listModels with filters
-  - [ ] Test getModel with valid ID
-  - [ ] Test NSFW filtering
-  - [ ] Test error handling
-- [ ] Create `src/__tests__/WorkerCatalogClient.test.ts`:
-  - [ ] Test listWorkers with filters
-  - [ ] Test getWorker with valid ID
-  - [ ] Test error handling
-- [ ] Run tests: `pnpm test`
-- [ ] Verify all tests pass
 
-### 5.2 Integration Tests
+### 5.2 Build WASM
 
-- [ ] Create `src/__tests__/integration.test.ts`
-- [ ] Test HuggingFace API (real calls):
-  - [ ] List popular models
-  - [ ] Get specific model
-  - [ ] Search for "llama"
-- [ ] Test CivitAI API (real calls):
-  - [ ] List popular models
-  - [ ] Get specific model
-  - [ ] Search for "sdxl"
-- [ ] Test Worker Catalog (requires service running):
-  - [ ] List all workers
-  - [ ] Get specific worker
-- [ ] Mark as integration tests (skip in CI)
+- [ ] Build: `./build-wasm.sh`
+- [ ] Verify output:
+  ```
+  pkg/bundler/
+  ├── marketplace_sdk.js
+  ├── marketplace_sdk.d.ts  (TypeScript types AUTO-GENERATED!)
+  ├── marketplace_sdk_bg.wasm
+  └── package.json
+  ```
+- [ ] Check TypeScript types were generated:
+  ```bash
+  grep "export interface Model" pkg/bundler/marketplace_sdk.d.ts
+  ```
 
-### 5.3 Documentation
+### 5.3 Create README
 
 - [ ] Create `README.md`:
   ```markdown
   # @rbee/marketplace-sdk
   
-  Data layer for marketplace integrations.
+  **TEAM-400:** Rust SDK for marketplace (HuggingFace, CivitAI, Worker Catalog) that compiles to WASM.
+  
+  ## Features
+  
+  - ✅ HuggingFace API client
+  - ✅ CivitAI API client
+  - ✅ Worker Catalog HTTP client
+  - ✅ TypeScript types AUTO-GENERATED (no manual sync!)
+  - ✅ Works in Next.js AND Tauri
   
   ## Installation
   
@@ -565,7 +483,7 @@ Create `@rbee/marketplace-sdk` package with abstract data layer that works in bo
   import { HuggingFaceClient } from '@rbee/marketplace-sdk'
   
   const client = new HuggingFaceClient(apiToken)
-  const models = await client.listModels({ limit: 10 })
+  const models = await client.list_models()
   \`\`\`
   
   ### CivitAI
@@ -574,57 +492,100 @@ Create `@rbee/marketplace-sdk` package with abstract data layer that works in bo
   import { CivitAIClient } from '@rbee/marketplace-sdk'
   
   const client = new CivitAIClient(apiToken)
-  const models = await client.listModels({ limit: 10 })
+  const models = await client.search_models('sdxl')
   \`\`\`
   
   ### Worker Catalog
   
   \`\`\`typescript
-  import { WorkerCatalogClient } from '@rbee/marketplace-sdk'
+  import { WorkerClient } from '@rbee/marketplace-sdk'
   
-  const client = new WorkerCatalogClient('http://localhost:8787')
-  const workers = await client.listWorkers()
+  const client = new WorkerClient('http://localhost:9200')
+  const workers = await client.list_workers()
   \`\`\`
   
-  ## API
+  ## TypeScript Types
   
-  ### MarketplaceClient Interface
-  
-  All clients implement this interface:
-  
-  - `listModels(filters?)` - List models
-  - `getModel(id)` - Get single model
-  - `searchModels(query)` - Search models
-  - `listWorkers(filters?)` - List workers
-  - `getWorker(id)` - Get single worker
-  
-  ### Filters
-  
-  - `ModelFilters` - search, category, sort, limit
-  - `WorkerFilters` - workerType, platform
-  
-  ## Error Handling
-  
-  All methods throw errors on failure:
+  Types are AUTO-GENERATED from Rust via tsify:
   
   \`\`\`typescript
-  try {
-    const model = await client.getModel('invalid-id')
-  } catch (error) {
-    console.error('Failed to fetch model:', error.message)
-  }
+  import type { Model, Worker, ModelFilters } from '@rbee/marketplace-sdk'
   \`\`\`
+  
+  ## Architecture
+  
   ```
-- [ ] Add API documentation for each client
-- [ ] Add examples for common use cases
+  Rust (marketplace-sdk) → wasm-pack → WASM + TypeScript types
+  ```
+  
+  - Rust code is the single source of truth
+  - TypeScript types are generated automatically
+  - No manual type sync needed
+  - Same crate works in Next.js AND Tauri
+  ```
 
-### 5.4 Build & Publish
+---
 
-- [ ] Build package: `pnpm build`
-- [ ] Verify exports work
-- [ ] Test in example Next.js app
-- [ ] Test in example Tauri app
-- [ ] Publish to workspace (not npm yet)
+## ✅ Phase 6: Testing (Day 3, Afternoon)
+
+### 6.1 Unit Tests (Rust)
+
+- [ ] Create `src/huggingface.rs` tests:
+  ```rust
+  #[cfg(test)]
+  mod tests {
+      use super::*;
+      
+      #[test]
+      fn test_transform_hf_model() {
+          // TEAM-400: Test JSON → Model conversion
+      }
+  }
+  ```
+- [ ] Create tests for CivitAI client
+- [ ] Create tests for Worker client
+- [ ] Run: `cargo test`
+
+### 6.2 WASM Tests
+
+- [ ] Create `tests/wasm.rs`:
+  ```rust
+  // TEAM-400: WASM-specific tests
+  
+  use wasm_bindgen_test::*;
+  use marketplace_sdk::*;
+  
+  #[wasm_bindgen_test]
+  fn test_huggingface_client_creation() {
+      let client = HuggingFaceClient::new(None);
+      assert!(true); // Just verify it compiles
+  }
+  ```
+- [ ] Run: `wasm-pack test --node`
+
+### 6.3 Integration Test (JavaScript)
+
+- [ ] Create `test.js`:
+  ```javascript
+  import init, { HuggingFaceClient, CivitAIClient, WorkerClient } from './pkg/bundler/marketplace_sdk.js'
+  
+  await init()
+  
+  // Test HuggingFace
+  const hfClient = new HuggingFaceClient()
+  console.log('✅ HuggingFaceClient created')
+  
+  // Test CivitAI
+  const civClient = new CivitAIClient()
+  console.log('✅ CivitAIClient created')
+  
+  // Test Worker
+  const workerClient = new WorkerClient('http://localhost:9200')
+  console.log('✅ WorkerClient created')
+  
+  console.log('🎉 All clients work!')
+  ```
+- [ ] Run: `node test.js`
 
 ---
 
@@ -632,32 +593,34 @@ Create `@rbee/marketplace-sdk` package with abstract data layer that works in bo
 
 ### Must Have
 
-- [ ] All 3 clients implemented
-- [ ] All clients implement MarketplaceClient interface
-- [ ] HuggingFace client works with real API
-- [ ] CivitAI client works with real API
-- [ ] Worker Catalog client works with service
+- [ ] Rust crate compiles successfully
+- [ ] WASM builds successfully with `wasm-pack`
+- [ ] TypeScript types are AUTO-GENERATED (check .d.ts file)
+- [ ] HuggingFaceClient works (list, get, search)
+- [ ] CivitAIClient works (list, get, search)
+- [ ] WorkerClient works (list, get)
 - [ ] Unit tests pass
-- [ ] README with examples
-- [ ] Package builds successfully
+- [ ] WASM tests pass
+- [ ] Integration test passes
 
 ### Nice to Have
 
-- [ ] Integration tests with real APIs
-- [ ] Error retry logic
+- [ ] Error handling with custom error types
+- [ ] Retry logic for HTTP requests
 - [ ] Caching layer
 - [ ] Rate limiting
-- [ ] TypeScript strict mode
+- [ ] Progress tracking for downloads
 
 ---
 
 ## 🚀 Deliverables
 
-1. **Package:** `@rbee/marketplace-sdk` published to workspace
-2. **Clients:** 3 marketplace clients
-3. **Interface:** Abstract MarketplaceClient interface
-4. **Tests:** Unit tests for all clients
-5. **Documentation:** README with examples
+1. **Rust Crate:** `bin/99_shared_crates/marketplace-sdk/`
+2. **WASM Package:** Auto-generated `pkg/` with .js, .d.ts, .wasm
+3. **TypeScript Types:** AUTO-GENERATED by tsify
+4. **3 Clients:** HuggingFace, CivitAI, Worker
+5. **Tests:** Unit, WASM, and integration tests
+6. **Documentation:** README with usage examples
 
 ---
 
@@ -665,27 +628,41 @@ Create `@rbee/marketplace-sdk` package with abstract data layer that works in bo
 
 ### Key Principles
 
-1. **ABSTRACT INTERFACE** - All clients implement same interface
-2. **ERROR HANDLING** - Throw descriptive errors
-3. **TRANSFORMATION** - Transform API responses to common format
-4. **OPTIONAL AUTH** - Support API tokens but don't require them
-5. **FILTERS** - Support common filtering patterns
-
-### API Tokens
-
-- **HuggingFace:** Optional, increases rate limits
-- **CivitAI:** Optional, required for NSFW content
-- **Worker Catalog:** Not required (local service)
+1. **RUST FIRST** - Rust is the single source of truth
+2. **WASM-COMPATIBLE** - Uses reqwest with WASM support
+3. **AUTO-GENERATED TYPES** - tsify generates TypeScript types
+4. **SINGLE CRATE** - Works in both Next.js AND Tauri
+5. **FOLLOW PATTERN** - Same as queen-rbee-sdk
 
 ### Common Pitfalls
 
-- ❌ Don't hardcode API URLs (make configurable)
-- ❌ Don't swallow errors (throw with context)
-- ❌ Don't assume API structure (validate responses)
-- ✅ Transform API responses to common format
-- ✅ Handle 404s gracefully
-- ✅ Support optional authentication
+- ❌ Don't create TypeScript types manually (tsify does it!)
+- ❌ Don't use non-WASM-compatible crates (tokio default features, std::fs)
+- ❌ Don't forget #[wasm_bindgen] on public structs/functions
+- ❌ Don't use blocking I/O (use async/await)
+- ✅ Use tsify for all types
+- ✅ Use reqwest with default-features = false
+- ✅ Follow queen-rbee-sdk pattern exactly
+- ✅ Test WASM builds frequently
+
+### Debugging WASM
+
+```bash
+# Build and check output
+./build-wasm.sh
+
+# Check generated types
+cat pkg/bundler/marketplace_sdk.d.ts | grep "export"
+
+# Test in Node
+node test.js
+
+# Check WASM size
+ls -lh pkg/bundler/*.wasm
+```
 
 ---
 
-**Complete each phase in order, test thoroughly!** ✅
+**Start with Phase 1, follow queen-rbee-sdk pattern!** ✅
+
+**TEAM-400 🐝🎊**

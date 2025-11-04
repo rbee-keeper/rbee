@@ -1,22 +1,24 @@
 # Checklist 06: Launch Demo (WOW FACTOR MVP)
 
-**Date:** 2025-11-04  
-**Status:** 📋 READY TO START  
 **Timeline:** 3 days  
-**Dependencies:** CHECKLIST_05 (Keeper UI must be complete)
+**Status:** 📋 NOT STARTED  
+**Dependencies:** CHECKLIST_05 (Keeper UI must be complete)  
+**TEAM-400:** ✅ Updated to reference corrected checklists
 
 ---
 
 ## 🎯 Goal
 
-Prepare and execute the "WOW FACTOR" demo that showcases simultaneous LLM chat + image generation on two GPUs. Record professional demo video for launch.
+Prepare and execute the "WOW FACTOR" demo: Google search → Running model in under 60 seconds. Record professional demo video for launch.
+
+**TEAM-400:** Demo showcases the complete flow from all previous checklists.
 
 ---
 
 ## 📚 Reference Documents
 
 **PRIMARY:**
-- [WOW_FACTOR_LAUNCH_MVP.md](./WOW_FACTOR_LAUNCH_MVP.md) - Complete demo script (674 lines)
+- [WOW_FACTOR_LAUNCH_MVP.md](./WOW_FACTOR_LAUNCH_MVP.md) - Complete demo script
 
 **SUPPORTING:**
 - [COMPLETE_ONBOARDING_FLOW.md](./COMPLETE_ONBOARDING_FLOW.md) - User journey
@@ -26,210 +28,234 @@ Prepare and execute the "WOW FACTOR" demo that showcases simultaneous LLM chat +
 
 ## Phase 1: Demo Environment Setup (Day 1 Morning)
 
-### Hardware Verification
+**TEAM-400:** Verify all components from previous checklists work together.
 
-- [ ] **Verify dual GPU setup**
-  - Run `nvidia-smi` or equivalent
-  - Confirm GPU 0 and GPU 1 detected
-  - Check VRAM: Min 8GB each
-  **Verification:** Both GPUs listed with adequate VRAM
-
-- [ ] **Verify models downloaded**
-  - LLM: Llama 3.2 1B Instruct (GGUF format, ~1GB)
-  - Image: Flux.1 Schnell (GGUF format, ~12GB)
-  **Location:** `~/.cache/rbee/models/`
-  **Verification:** `ls ~/.cache/rbee/models/` shows both models
-
-- [ ] **Verify worker binaries installed**
-  - cuda-llm-worker (for Llama)
-  - cuda-sd-worker (for Flux) - if exists, otherwise use llm worker
-  **Location:** `~/.cache/rbee/workers/`
-  **Verification:** `ls ~/.cache/rbee/workers/` shows binaries
-
-- [ ] **Test hive start**
-  ```bash
-  rbee-keeper hive start
-  # or
-  queen-rbee hive start localhost
-  ```
-  **Verification:** Hive starts without errors, port 8787 listening
-
-### Software Verification
+### 1.1 Verify Marketplace Site (CHECKLIST_03)
 
 - [ ] **Test marketplace.rbee.dev is live**
   - Open in browser
   - Verify Llama 3.2 1B page exists
-  - Verify Flux.1 Schnell page exists (if applicable)
-  **Verification:** Both model pages load with "Run with rbee" button
+  - Verify "Run with rbee" button shows
+  - Verify installation detection works
+  **Verification:** Site loads, buttons work
 
-- [ ] **Test protocol detection**
-  - Click "Run with rbee" button
-  - Verify Keeper opens (if installed)
-  - Verify install modal shows (if not installed)
-  **Verification:** Protocol handler works
+- [ ] **Test SSG pages**
+  - Check `/models` page loads
+  - Check `/models/llama-3.2-1b` page loads
+  - Check SEO metadata is correct
+  **Verification:** All pages pre-rendered
 
-- [ ] **Test auto-run flow end-to-end**
-  - Close all workers
-  - Click "Run with rbee" on Llama 3.2 1B
-  - Verify Keeper opens with pre-filled wizard
-  - Click "Spawn" button
-  - Verify worker spawns and starts
-  **Verification:** Worker running in <30 seconds
+### 1.2 Verify Protocol Handler (CHECKLIST_04)
+
+- [ ] **Test rbee:// protocol registration**
+  ```bash
+  # macOS
+  open "rbee://model/llama-3.2-1b"
+  
+  # Linux
+  xdg-open "rbee://model/llama-3.2-1b"
+  
+  # Windows
+  start "rbee://model/llama-3.2-1b"
+  ```
+  **Verification:** Keeper opens
+
+- [ ] **Test protocol from browser**
+  - Click "Run with rbee" on marketplace
+  - Verify browser prompts to open Keeper
+  - Verify Keeper opens and navigates to marketplace
+  **Verification:** Protocol flow works
+
+### 1.3 Verify Keeper UI (CHECKLIST_05)
+
+- [ ] **Test marketplace page in Keeper**
+  - Open Keeper
+  - Click "Marketplace" in sidebar
+  - Verify models list loads
+  - Verify search works
+  **Verification:** Marketplace page works
+
+- [ ] **Test install flow**
+  - Click "Install" on a model
+  - Verify download starts
+  - Verify progress shows
+  - Verify worker spawns
+  **Verification:** Full install flow works
+
+### 1.4 Hardware Verification
+
+- [ ] **Verify GPU setup**
+  - Run `nvidia-smi` (or equivalent)
+  - Confirm GPU 0 and GPU 1 detected
+  - Check VRAM: Min 8GB each
+  **Verification:** Both GPUs available
+
+- [ ] **Verify models downloaded**
+  - LLM: Llama 3.2 1B Instruct (~1GB)
+  - Image: Flux.1 Schnell (~12GB) OR another model
+  **Location:** `~/.cache/rbee/models/`
+  **Verification:** Models exist
+
+- [ ] **Verify worker binaries**
+  - cuda-llm-worker (for Llama)
+  - cuda-sd-worker (for Flux) OR use llm worker
+  **Location:** `~/.cache/rbee/workers/`
+  **Verification:** Binaries exist
+
+- [ ] **Test hive start**
+  ```bash
+  rbee-keeper hive start
+  ```
+  **Verification:** Hive starts, port 9200 listening
 
 ---
 
 ## Phase 2: Demo Script Preparation (Day 1 Afternoon)
 
-### Visual Design
+### 2.1 Demo Flow
 
-- [ ] **Set up color scheme** (from WOW_FACTOR_LAUNCH_MVP.md lines 232-285)
+**TEAM-400:** Updated to match actual architecture.
+
+**Flow:**
+1. **Start:** Open browser → marketplace.rbee.dev (3s)
+2. **Browse:** Search "Llama 3.2 1B" (2s)
+3. **Click:** "Run with rbee" button (1s)
+4. **Protocol:** Browser prompts, user clicks "Open" (2s)
+5. **Keeper Opens:** Navigates to marketplace, shows model (2s)
+6. **Install:** Click "Install" button (1s)
+7. **Download:** Progress bar shows download (5-10s)
+8. **Spawn:** Worker spawns automatically (3s)
+9. **Ready:** Model ready to use (1s)
+
+**Total: ~20-30 seconds from Google to running model**
+
+**Verification:** Can complete demo in <45 seconds
+
+### 2.2 Visual Design
+
+- [ ] **Set up color scheme**
   - GPU 0 Tab: Electric Blue (#00D9FF)
   - GPU 1 Tab: Neon Pink (#FF006E)
   - Background: Dark (#0A0A0F)
-  - Accent: Purple (#8B5CF6)
-  **Implementation:** Update Keeper theme or CSS variables
-  **Verification:** Colors match design doc
+  **Implementation:** Update Keeper theme
+  **Verification:** Colors look good
 
 - [ ] **Create tab icons**
   - 💬 Chat icon for LLM tab
   - 🎨 Image icon for Image Gen tab
-  - Icons visible in tab bar
-  **Verification:** Icons display in tabs
+  **Verification:** Icons visible
 
-- [ ] **Set up split-screen layout**
-  - Two tabs side-by-side (if possible)
-  - OR: Fast tab switching animation
-  **Implementation:** May require custom layout component
-  **Verification:** Layout looks clean
+### 2.3 Demo Content
 
-### Demo Content
+- [ ] **Prepare chat prompt**
+  - Test: "Write a haiku about AI"
+  - Length: ~50 tokens
+  - Should complete in 1-2 seconds
+  **Verification:** Good output
 
-- [ ] **Prepare chat prompts** (WOW_FACTOR_LAUNCH_MVP.md lines 287-370)
-  - Test prompt: "Write a poem about AI"
-  - Length: ~100 tokens
-  - Should complete in 2-3 seconds on GPU
-  **Verification:** Prompt generates good output
+- [ ] **Prepare image prompt** (if using image model)
+  - Test: "A futuristic cityscape at sunset"
+  - Should generate in 5-8 seconds
+  **Verification:** Good image
 
-- [ ] **Prepare image prompts** (WOW_FACTOR_LAUNCH_MVP.md lines 372-428)
-  - Test prompt: "A futuristic cityscape at sunset, cyberpunk style"
-  - Should generate in 5-8 seconds on GPU
-  **Verification:** Image quality is good
+- [ ] **Test simultaneous execution** (if dual GPU)
+  - Start chat on GPU 0
+  - Start image on GPU 1
+  - Verify both complete
+  **Verification:** No conflicts
 
-- [ ] **Test simultaneous execution**
-  - Start chat generation on GPU 0
-  - Immediately start image generation on GPU 1
-  - Verify both complete successfully
-  - Verify no GPU memory conflicts
-  **Verification:** Both tasks complete without errors
+### 2.4 Timing Rehearsal
 
-### Timing Rehearsal
-
-- [ ] **Practice demo flow** (WOW_FACTOR_LAUNCH_MVP.md lines 92-230)
-  1. Open browser → marketplace.rbee.dev (3s)
-  2. Search "Llama 3.2 1B" (2s)
-  3. Click "Run with rbee" (1s)
-  4. Keeper opens, wizard pre-filled (2s)
-  5. Click "Spawn" → Worker tab opens (3s)
-  6. Type chat prompt, press Enter (5s)
-  7. Switch tabs, search "Flux Schnell" (3s)
-  8. Click "Run with rbee", spawn on GPU 1 (5s)
-  9. Type image prompt, press Enter (8s)
-  10. Show both outputs side-by-side (5s)
-  
-  **Total: ~37 seconds from Google to two models running**
-  
-  **Verification:** Can complete demo in <45 seconds
+- [ ] **Practice demo flow 3 times**
+  - Time each step
+  - Note any slowdowns
+  - Optimize where possible
+  **Verification:** Consistent timing
 
 ---
 
 ## Phase 3: Recording Setup (Day 2 Morning)
 
-### Screen Recording
+### 3.1 Screen Recording
 
 - [ ] **Install recording software**
-  - macOS: Use QuickTime or ScreenFlow
-  - Linux: Use OBS Studio or SimpleScreenRecorder
-  - Windows: Use OBS Studio
-  **Verification:** Software installed and tested
+  - macOS: QuickTime or ScreenFlow
+  - Linux: OBS Studio or SimpleScreenRecorder
+  - Windows: OBS Studio
+  **Verification:** Software works
 
 - [ ] **Configure recording settings**
-  - Resolution: 1920x1080 (minimum)
+  - Resolution: 1920x1080
   - Frame rate: 60 FPS
   - Audio: System audio + microphone (optional)
   - Format: MP4 (H.264)
-  **Verification:** Test recording plays back smoothly
+  **Verification:** Test recording plays smoothly
 
 - [ ] **Set up browser window**
-  - Use Chrome/Firefox in clean profile (no extensions)
-  - Window size: 1280x720 (fits nicely in recording)
-  - Zoom: 125% (for readability)
-  **Verification:** Text is readable in recording
+  - Chrome/Firefox clean profile
+  - Window size: 1280x720
+  - Zoom: 125% (readable)
+  **Verification:** Text readable
 
 - [ ] **Set up Keeper window**
   - Window size: Full screen or 1920x1080
   - Font size: Increase for readability
-  - Hide personal info (paths, usernames)
-  **Verification:** UI is clear in recording
+  - Hide personal info
+  **Verification:** UI clear
 
-### Voiceover Script
+### 3.2 Voiceover Script
 
-- [ ] **Write voiceover script** (optional, recommended)
+- [ ] **Write voiceover script** (optional)
   ```
-  "Watch as I go from Google search to running two AI models in under 60 seconds.
+  "Watch as I go from Google search to running an AI model in under 60 seconds.
   
   I search for Llama 3.2, click 'Run with rbee', and boom—Keeper opens.
   
-  The model spawns on GPU 0, I type a prompt, and it generates instantly.
+  The model downloads and spawns automatically. I type a prompt, and it generates instantly.
   
-  Now I search for Flux, click run, spawn on GPU 1, and generate an image.
-  
-  Two models, two GPUs, zero configuration. That's rbee."
+  Zero configuration. That's rbee."
   ```
-  **Length:** ~30 seconds
-  **Verification:** Script matches demo timing
+  **Length:** ~20 seconds
+  **Verification:** Matches timing
 
 - [ ] **Practice voiceover**
   - Record test audio
-  - Check audio quality (no background noise)
-  - Speak clearly and at moderate pace
-  **Verification:** Audio is clear and professional
+  - Check quality
+  - Speak clearly
+  **Verification:** Audio clear
 
 ---
 
 ## Phase 4: Demo Recording (Day 2 Afternoon)
 
-### Recording Sessions
+### 4.1 Recording Sessions
 
 - [ ] **Record demo take 1**
-  - Follow script exactly
-  - Don't worry about perfection
-  - Note any mistakes or improvements
-  **Verification:** Recording completes without crashes
+  - Follow script
+  - Note mistakes
+  **Verification:** Recording completes
 
 - [ ] **Review take 1**
-  - Check for errors (wrong clicks, slow loading)
-  - Check audio sync (if using voiceover)
-  - Note timestamp of any issues
-  **Verification:** Identify improvements needed
+  - Check for errors
+  - Check audio sync
+  - Note improvements
+  **Verification:** Identify issues
 
 - [ ] **Record demo take 2**
-  - Fix issues from take 1
+  - Fix issues
   - Aim for smooth execution
-  - Keep energy high
   **Verification:** Better than take 1
 
 - [ ] **Record demo take 3** (if needed)
-  - Polish final details
-  - Ensure perfect timing
-  - Capture "wow factor" moment
+  - Polish details
+  - Capture "wow factor"
   **Verification:** This is "the one"
 
-### Video Editing
+### 4.2 Video Editing
 
 - [ ] **Select best take**
-  - Compare all recordings
-  - Choose smoothest execution
-  - May combine best parts from multiple takes
+  - Compare recordings
+  - Choose smoothest
   **Verification:** Selected take is polished
 
 - [ ] **Add intro card** (5 seconds)
@@ -237,7 +263,6 @@ Prepare and execute the "WOW FACTOR" demo that showcases simultaneous LLM chat +
   "rbee - Your Personal AI Infrastructure"
   "Watch: Google Search to Running Model in 60 Seconds"
   ```
-  **Tool:** Use Canva or video editor
   **Verification:** Intro looks professional
 
 - [ ] **Add outro card** (5 seconds)
@@ -245,425 +270,291 @@ Prepare and execute the "WOW FACTOR" demo that showcases simultaneous LLM chat +
   "Get Started: rbee.dev"
   "Open Source • Self-Hosted • Privacy-First"
   ```
-  **Verification:** Call-to-action is clear
+  **Verification:** Call-to-action clear
 
-- [ ] **Add captions** (optional but recommended)
+- [ ] **Add captions** (optional)
   - Transcribe voiceover
   - Add as subtitles
-  - Use readable font (24pt+)
-  **Tool:** YouTube auto-caption or manual
-  **Verification:** Captions sync with audio
+  **Verification:** Captions sync
 
 - [ ] **Add music** (optional)
-  - Use royalty-free music (YouTube Audio Library)
-  - Volume: Low (background only)
-  - Genre: Tech/Electronic
-  **Verification:** Music doesn't overpower voice
+  - Royalty-free music
+  - Low volume (background)
+  **Verification:** Music doesn't overpower
 
 ---
 
-## Phase 5: Launch Materials (Day 3 Morning)
+## Phase 5: Launch Materials (Day 3)
 
-### Video Assets
+### 5.1 Video Assets
 
 - [ ] **Export final video**
   - Format: MP4 (H.264)
   - Resolution: 1920x1080
   - Frame rate: 60 FPS
-  - Bitrate: 8 Mbps (high quality)
-  **Verification:** File size ~50-100 MB for 60s video
+  - Bitrate: 8 Mbps
+  **Verification:** File size ~50-100 MB
 
 - [ ] **Create thumbnail**
-  - Show split-screen: Chat + Image Gen
-  - Add text overlay: "2 GPUs • 1 Minute • 0 Config"
-  - Use brand colors (blue + pink)
-  - Resolution: 1280x720 (YouTube standard)
-  **Tool:** Canva or Photoshop
-  **Verification:** Thumbnail is eye-catching
+  - Show Keeper UI with model running
+  - Text: "Google to Running Model in 60s"
+  - Brand colors
+  - Resolution: 1280x720
+  **Verification:** Thumbnail eye-catching
 
 - [ ] **Create GIF preview** (optional)
   - Extract 5-10 second clip
-  - Show key moment (model spawning)
-  - Resolution: 800x450
-  - Under 5 MB file size
-  **Tool:** ezgif.com or ffmpeg
+  - Show key moment
+  - Under 5 MB
   **Verification:** GIF loops smoothly
 
-### Written Content
+### 5.2 Written Content
 
 - [ ] **Write YouTube description**
   ```markdown
   # rbee - Your Personal AI Infrastructure
   
-  Watch as I go from a Google search to running TWO AI models (LLM + Image Gen)
-  on two GPUs in under 60 seconds—with ZERO configuration.
+  Watch as I go from a Google search to running an AI model in under 60 seconds—with ZERO configuration.
   
-  ## What You Just Saw:
-  ✅ SEO-optimized marketplace (marketplace.rbee.dev)
-  ✅ One-click model deployment
-  ✅ Automatic worker spawning
-  ✅ Multi-GPU support
-  ✅ Real-time generation
+  ## What You'll See:
+  - Browse models on marketplace.rbee.dev
+  - One-click install with rbee:// protocol
+  - Automatic download and worker spawning
+  - Model ready to use in seconds
   
-  ## Get Started:
-  🌐 Website: rbee.dev
-  📦 Install: [link]
-  📖 Docs: [link]
-  💻 GitHub: [link]
+  ## Features:
+  - 🚀 Zero configuration
+  - 🔒 Privacy-first (runs locally)
+  - 🆓 Open source
+  - 🎯 Simple workflow
   
-  ## Tech Stack:
-  - Rust backend (queen-rbee, rbee-hive)
-  - Tauri desktop app (Bee Keeper)
-  - Next.js marketplace (SSG for SEO)
-  - Protocol handler (rbee://)
+  Get started: https://rbee.dev
+  GitHub: https://github.com/veighnsche/llama-orch
   
-  ## Timestamps:
-  0:00 - Google search
-  0:05 - Click "Run with rbee"
-  0:10 - Model spawns on GPU 0
-  0:15 - Chat generation
-  0:25 - Spawn image model on GPU 1
-  0:35 - Image generation
-  0:45 - Both models running simultaneously
-  
-  #AI #MachineLearning #LLM #StableDiffusion #SelfHosted
+  #AI #OpenSource #LocalAI #LLM #SelfHosted
   ```
-  **Verification:** Description is clear and informative
+  **Verification:** Description complete
 
-- [ ] **Write Reddit post** (for r/LocalLLaMA, r/StableDiffusion)
+- [ ] **Write Twitter/X thread**
+  ```
+  🚀 Introducing rbee: Your Personal AI Infrastructure
+  
+  Watch me go from Google search to running an AI model in under 60 seconds.
+  
+  No Docker. No config files. No cloud APIs.
+  
+  Just one click. 🧵👇
+  
+  [Video]
+  
+  1/ The problem: Running AI models locally is too complicated.
+  
+  You need to install dependencies, configure workers, download models, and manage everything manually.
+  
+  2/ The solution: rbee makes it as easy as installing a browser extension.
+  
+  Browse models → Click "Run with rbee" → Model downloads and spawns automatically.
+  
+  3/ How it works:
+  - Marketplace site (marketplace.rbee.dev)
+  - rbee:// protocol handler
+  - Keeper desktop app
+  - Automatic worker management
+  
+  4/ It's open source, privacy-first, and runs entirely on your hardware.
+  
+  No cloud. No tracking. No limits.
+  
+  Get started: https://rbee.dev
+  GitHub: https://github.com/veighnsche/llama-orch
+  ```
+  **Verification:** Thread ready
+
+- [ ] **Write Reddit post**
   ```markdown
-  # I built a system to run AI models in 60 seconds from Google search
+  # rbee: Google Search to Running AI Model in 60 Seconds
   
-  **TLDR:** marketplace.rbee.dev → Click "Run with rbee" → Model spawns automatically
+  I built a system that makes running local AI models as easy as installing a browser extension.
   
-  ## The Problem:
-  Running local AI models is too complex. You need to:
-  - Find and download models
-  - Install dependencies
-  - Configure GPU settings
-  - Write inference scripts
+  **Demo:** [YouTube link]
   
-  ## My Solution: rbee
-  1. SEO-optimized marketplace (every model gets a page)
-  2. One-click deployment via custom URL protocol (rbee://)
-  3. Automatic worker spawning (no config needed)
-  4. Multi-GPU support out of the box
+  ## The Problem
+  Running AI models locally is complicated. You need Docker, config files, manual downloads, and lots of terminal commands.
   
-  ## Demo Video: [link]
+  ## The Solution
+  rbee simplifies everything:
+  1. Browse models on marketplace.rbee.dev
+  2. Click "Run with rbee"
+  3. Keeper desktop app opens and handles everything
+  4. Model ready in seconds
   
-  Watch me run Llama 3.2 1B + Flux Schnell on two GPUs in <60 seconds.
+  ## How It Works
+  - **Marketplace:** Next.js site with 1000+ pre-rendered model pages
+  - **Protocol Handler:** rbee:// protocol (like mailto:)
+  - **Keeper:** Tauri desktop app that manages workers
+  - **Auto-Run:** Automatic download + spawn
   
-  ## Open Source:
-  - GitHub: [link]
-  - License: GPL-3.0 (user binaries), MIT (libraries)
-  - Docs: [link]
+  ## Tech Stack
+  - Rust (backend, WASM SDK)
+  - Next.js (marketplace)
+  - Tauri (desktop app)
+  - React (UI components)
   
-  Happy to answer questions! 🐝
+  ## Open Source
+  - GitHub: https://github.com/veighnsche/llama-orch
+  - License: GPL-3.0
+  - Contributions welcome!
+  
+  Feedback appreciated! 🙏
   ```
-  **Verification:** Post is engaging and informative
-
-- [ ] **Write Twitter thread**
-  ```
-  🧵 I built a system to run AI models in 60 seconds from Google search.
-  
-  No Docker. No pip install. No config files.
-  
-  Just click a button. Watch the demo 👇
-  
-  [1/6]
-  
-  ---
-  
-  The problem: Running local AI is TOO HARD.
-  
-  Download models ✋
-  Install deps ✋  
-  Configure GPUs ✋
-  Write scripts ✋
-  
-  It takes HOURS to run your first model.
-  
-  [2/6]
-  
-  ---
-  
-  The solution: rbee
-  
-  ✅ marketplace.rbee.dev (SEO for every model)
-  ✅ Custom URL protocol (rbee://)
-  ✅ One-click spawning
-  ✅ Multi-GPU out of the box
-  
-  [3/6]
-  
-  ---
-  
-  Watch: I go from Google search to running TWO models on TWO GPUs in 60 seconds.
-  
-  [VIDEO]
-  
-  Llama 3.2 1B + Flux Schnell. Zero configuration.
-  
-  [4/6]
-  
-  ---
-  
-  How it works:
-  
-  1. Next.js marketplace (SSG for SEO)
-  2. Tauri desktop app (Bee Keeper)
-  3. Protocol handler (rbee://)
-  4. Rust backend (queen-rbee, rbee-hive)
-  
-  [5/6]
-  
-  ---
-  
-  Open source. MIT + GPL-3.0.
-  
-  🌐 rbee.dev
-  💻 github.com/[username]/rbee
-  📖 docs.rbee.dev
-  
-  Star the repo if this is cool! 🐝⭐
-  
-  [6/6]
-  ```
-  **Verification:** Thread is concise and engaging
+  **Verification:** Post ready
 
 ---
 
-## Phase 6: Launch Execution (Day 3 Afternoon)
+## Phase 6: Launch Checklist (Day 3 Afternoon)
 
-### Platform Publishing
+### 6.1 Pre-Launch
 
-- [ ] **Upload to YouTube**
-  - Title: "Run Any AI Model in 60 Seconds | rbee Demo"
-  - Description: [from above]
-  - Thumbnail: [custom thumbnail]
-  - Tags: AI, LLM, Stable Diffusion, Self-Hosted, Open Source
-  - Category: Science & Technology
-  - Visibility: Public
-  **Verification:** Video is live and playable
+- [ ] **Verify all components deployed**
+  - [ ] marketplace.rbee.dev is live (CHECKLIST_03)
+  - [ ] Keeper installers available (CHECKLIST_04)
+  - [ ] Protocol handler works on all platforms
+  - [ ] Marketplace page works in Keeper (CHECKLIST_05)
 
-- [ ] **Post to Reddit**
-  - r/LocalLLaMA (high priority)
-  - r/StableDiffusion (high priority)
-  - r/selfhosted (medium priority)
-  - r/programming (medium priority)
-  **Timing:** Post during US morning hours (8-10am EST)
-  **Verification:** Posts are live, no rule violations
+- [ ] **Test full flow one more time**
+  - Fresh install of Keeper
+  - Test from marketplace site
+  - Verify protocol works
+  - Verify install works
+  **Verification:** Everything works
 
-- [ ] **Post to Twitter**
-  - Tweet thread (6 tweets)
-  - Tag relevant accounts (@huggingface, @karpathy, etc.)
-  - Use hashtags: #AI #LLM #OpenSource
-  **Verification:** Thread is live
+- [ ] **Prepare social media accounts**
+  - Twitter/X account ready
+  - Reddit account ready
+  - YouTube channel ready
+  - LinkedIn account ready (optional)
 
-- [ ] **Post to Hacker News**
-  - Title: "Show HN: Run AI models in 60 seconds from Google search"
-  - URL: YouTube video or rbee.dev
-  **Timing:** Post Tuesday-Thursday, 9-11am EST
-  **Verification:** Post is live
+### 6.2 Launch Day
 
-- [ ] **Post to LinkedIn** (optional)
-  - Shorter, more professional version
+- [ ] **Upload video to YouTube**
+  - Title: "rbee: Google Search to Running AI Model in 60 Seconds"
+  - Description: (from 5.2)
+  - Thumbnail: (from 5.1)
+  - Tags: AI, OpenSource, LocalAI, LLM, SelfHosted
+  **Verification:** Video published
+
+- [ ] **Post on Twitter/X**
+  - Post thread (from 5.2)
+  - Include video link
+  - Use hashtags
+  **Verification:** Thread posted
+
+- [ ] **Post on Reddit**
+  - r/LocalLLaMA
+  - r/selfhosted
+  - r/opensource
+  - Use post from 5.2
+  **Verification:** Posts live
+
+- [ ] **Post on Hacker News** (optional)
+  - Title: "rbee: Google Search to Running AI Model in 60 Seconds"
+  - URL: YouTube video or GitHub
+  **Verification:** Posted
+
+- [ ] **Post on LinkedIn** (optional)
+  - Professional version of announcement
   - Focus on technical achievement
-  - Tag company/tech leaders
-  **Verification:** Post is live
+  **Verification:** Posted
 
-### Website Update
+### 6.3 Post-Launch
 
-- [ ] **Update rbee.dev homepage**
-  - Add demo video embed
-  - Add "Watch the Demo" CTA
-  - Update hero text: "Run AI Models in 60 Seconds"
-  **Verification:** Video plays on homepage
+- [ ] **Monitor feedback**
+  - Check comments on YouTube
+  - Check replies on Twitter
+  - Check Reddit comments
+  - Respond to questions
 
-- [ ] **Add testimonials section** (optional)
-  - Collect early user feedback
-  - Add quotes with avatars
-  - Link to full reviews
-  **Verification:** Section looks good
+- [ ] **Track metrics**
+  - Video views
+  - GitHub stars
+  - Keeper downloads
+  - Website traffic
 
-- [ ] **Add press kit** (optional)
-  - High-res logo (SVG + PNG)
-  - Screenshots
-  - Demo video (MP4 download)
-  - Fact sheet (PDF)
-  **Location:** rbee.dev/press
-  **Verification:** All assets downloadable
+- [ ] **Iterate based on feedback**
+  - Note common questions
+  - Note feature requests
+  - Note bugs reported
 
 ---
 
-## Phase 7: Post-Launch Monitoring (Ongoing)
+## ✅ Success Criteria
 
-### Metrics Tracking
+### Must Have
 
-- [ ] **Set up analytics**
-  - Google Analytics on marketplace.rbee.dev
-  - YouTube Analytics for video
-  - GitHub stars tracking
-  **Verification:** Analytics collecting data
+- [ ] Demo video recorded and edited
+- [ ] Video uploaded to YouTube
+- [ ] Social media posts published
+- [ ] All components working (marketplace, protocol, Keeper)
+- [ ] Full flow tested end-to-end
 
-- [ ] **Monitor social media**
-  - Reddit comments (respond within 1 hour)
-  - Twitter mentions (engage with everyone)
-  - Hacker News comments (professional responses)
-  **Verification:** No questions go unanswered
+### Nice to Have
 
-- [ ] **Track conversion metrics**
-  - marketplace.rbee.dev → Install clicks
-  - Video views → Website visits
-  - GitHub stars → Issues opened
-  **Tool:** Google Analytics + GitHub Insights
-  **Verification:** Funnel is tracked
-
-### Response Plan
-
-- [ ] **Prepare FAQ responses**
-  - "Does it work on Mac/Windows?" → Yes, cross-platform
-  - "Is it secure?" → Self-hosted, your data never leaves
-  - "How does it compare to Ollama?" → [comparison doc]
-  - "Can I use custom models?" → Yes, any GGUF model
-  **Verification:** Responses saved for quick copy-paste
-
-- [ ] **Handle bug reports**
-  - Triage within 2 hours
-  - Fix critical bugs within 24 hours
-  - Communicate timeline transparently
-  **Tool:** GitHub Issues
-  **Verification:** All issues acknowledged
-
-- [ ] **Collect feature requests**
-  - Create "Feature Requests" GitHub Discussion
-  - Vote on most-requested features
-  - Roadmap updated weekly
-  **Verification:** Users feel heard
+- [ ] Professional voiceover
+- [ ] Background music
+- [ ] Captions
+- [ ] Multiple platform posts (Twitter, Reddit, HN)
+- [ ] Press coverage
 
 ---
 
-## Success Criteria
+## 🚀 Deliverables
 
-### Launch Week Goals:
-
-- [ ] Demo video: >1,000 views (YouTube)
-- [ ] Website: >500 unique visitors (rbee.dev)
-- [ ] GitHub: >100 stars
-- [ ] Reddit: >100 upvotes on r/LocalLLaMA
-- [ ] Hacker News: Front page (top 10)
-- [ ] Twitter: >50 retweets
-- [ ] Downloads: >50 Keeper installs
-
-### Quality Benchmarks:
-
-- [ ] Demo video: <60 seconds total
-- [ ] Time from Google → Running model: <45 seconds
-- [ ] Zero errors during demo
-- [ ] Professional audio/video quality
-- [ ] Clear call-to-action
-- [ ] Positive comment sentiment (>80%)
-
-### User Feedback:
-
-- [ ] "This is so easy!" comments
-- [ ] "I got it running in X minutes" stories
-- [ ] Feature requests (sign of engagement)
-- [ ] Bug reports (sign of real usage)
-- [ ] Screenshots/videos from users
+1. **Demo Video:** 60-second professional recording
+2. **YouTube Upload:** Published with description and thumbnail
+3. **Social Media Posts:** Twitter thread, Reddit posts
+4. **Launch Materials:** All written content ready
+5. **Metrics Tracking:** Analytics set up
 
 ---
 
-## Notes
+## 📝 Notes
 
 ### Key Principles
 
-1. **Show, Don't Tell** - Demo speaks louder than docs
-2. **Speed Matters** - Every second counts in demo
-3. **Quality > Quantity** - One great video > 10 mediocre posts
-4. **Engage Immediately** - Respond to ALL comments in first 24 hours
-5. **Be Humble** - Acknowledge limitations, welcome feedback
+1. **SHOW, DON'T TELL** - Demo the actual product
+2. **SIMPLE FLOW** - Google → Running model in 60s
+3. **WOW FACTOR** - Make it look effortless
+4. **PROFESSIONAL** - High-quality video and audio
+5. **HONEST** - Show real product, no fake demos
 
 ### Common Pitfalls
 
-- ❌ Demo too long (keep under 60s)
-- ❌ Technical jargon (speak plainly)
-- ❌ Ignoring comments (kills momentum)
-- ❌ Overpromising features (under-promise, over-deliver)
-- ✅ Practice demo 10+ times
-- ✅ Test on fresh hardware
-- ✅ Respond to every comment
-- ✅ Be transparent about roadmap
+- ❌ Don't fake the demo (use real product)
+- ❌ Don't skip testing (verify everything works)
+- ❌ Don't rush recording (take multiple takes)
+- ❌ Don't forget call-to-action (link to rbee.dev)
+- ✅ Test full flow multiple times
+- ✅ Record multiple takes
+- ✅ Edit professionally
+- ✅ Launch on multiple platforms
 
-### Marketing Angles (WOW_FACTOR_LAUNCH_MVP.md lines 495-628)
+### Demo Timing
 
-**For r/LocalLLaMA:**
-- Emphasize: One-click deployment, multi-GPU, GGUF support
-- Avoid: Marketing speak, overhype
+**Target:** <60 seconds total
+- Intro card: 5s
+- Demo: 30-40s
+- Outro card: 5s
+- Total: 40-50s
 
-**For r/StableDiffusion:**
-- Emphasize: Flux support, GPU selection, local inference
-- Show: Image generation demo prominently
-
-**For Hacker News:**
-- Emphasize: Technical architecture, protocol handler, monorepo
-- Discuss: Design decisions, trade-offs
-- Be prepared: HN asks hard questions
-
-**For Twitter:**
-- Emphasize: Speed, simplicity, wow factor
-- Use: Emojis, GIFs, thread format
-- Tag: Relevant influencers (but don't spam)
+**Actual demo flow:** ~20-30s
+- Browse marketplace: 5s
+- Click "Run with rbee": 2s
+- Keeper opens: 2s
+- Download + spawn: 10-15s
+- Model ready: 1s
 
 ---
 
-## Dependencies
+**Start with Phase 1, verify all components work!** ✅
 
-**Must be complete before starting:**
-- ✅ CHECKLIST_01 (Shared Components)
-- ✅ CHECKLIST_02 (Marketplace SDK)
-- ✅ CHECKLIST_03 (Next.js Site)
-- ✅ CHECKLIST_04 (Tauri Protocol)
-- ✅ CHECKLIST_05 (Keeper UI)
-
-**Blocks:**
-- Nothing! This is the final step before public launch 🚀
-
----
-
-## Post-Launch Roadmap
-
-**Week 1-2 Post-Launch:**
-- Monitor metrics daily
-- Fix critical bugs immediately
-- Respond to all feedback
-- Update docs based on questions
-
-**Month 1 Post-Launch:**
-- Implement top 3 feature requests
-- Write technical blog posts
-- Guest post on relevant blogs
-- Reach out to podcasts/YouTubers
-
-**Month 2-3 Post-Launch:**
-- Premium features (if applicable)
-- Enterprise partnerships
-- Conference talks
-- Version 1.0 release
-
----
-
-## Celebration! 🎉
-
-**After launch:**
-- [ ] Take a break! You earned it.
-- [ ] Reflect on what worked well
-- [ ] Note what to improve next time
-- [ ] Thank early adopters publicly
-- [ ] Start planning v1.1
-
----
-
-**Remember:** The demo is your elevator pitch. Make it count.
-
-**Let's launch!** 🐝🚀
+**TEAM-400 🐝🎊**

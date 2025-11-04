@@ -1,670 +1,581 @@
-# Checklist 04: Tauri Protocol & Auto-Run
+# Checklist 04: Tauri Protocol Handler (`rbee://`)
 
 **Timeline:** 1 week  
 **Status:** 📋 NOT STARTED  
-**Dependencies:** Checklist 01 (Shared Components), Checklist 02 (SDK)
+**Dependencies:** Checklist 01 (Components), Checklist 02 (SDK)  
+**TEAM-400:** ✅ RULE ZERO - Keeper IS Tauri v2, just add protocol
 
 ---
 
 ## 🎯 Goal
 
-**Keeper is already a Tauri app!** Add `rbee://` protocol registration and implement auto-run flow (one-click from browser to running model).
+Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click model installation from marketplace site.
+
+**TEAM-400:** Keeper is ALREADY Tauri v2! Just add protocol registration + handler.
 
 ---
 
-## ✅ Phase 0: Verify Existing Tauri Setup (Day 1, Morning)
+## 📦 Phase 1: Protocol Registration (Day 1)
 
-### 0.1 Verify Tauri is Working
+**TEAM-400:** Keeper exists at `bin/00_rbee_keeper/` with Tauri v2 configured.
 
-- [ ] Navigate to Keeper: `cd bin/00_rbee_keeper`
-- [ ] Check `src-tauri/` directory exists
-- [ ] Check `src-tauri/tauri.conf.json` exists
-- [ ] Check `src/tauri_commands.rs` exists (already has commands!)
-- [ ] Run Tauri dev: `cargo tauri dev`
-- [ ] Verify app opens successfully
+### 1.1 Update tauri.conf.json
 
-### 0.2 Review Existing Commands
-
-- [ ] Read `src/tauri_commands.rs`
-- [ ] Note existing commands:
-  - `test_narration`
-  - `ssh_list`, `ssh_open_config`
-  - `get_installed_hives`
-  - `queen_status`, `queen_start`, `queen_stop`, `queen_install`, `queen_rebuild`, `queen_uninstall`
-  - `hive_start`, `hive_stop`, `hive_status`, `hive_install`, `hive_uninstall`, `hive_rebuild`
-- [ ] Verify TypeScript bindings are generated
-- [ ] Check `ui/src/lib/tauri/` for existing hooks
-
-### 0.3 Review UI Structure
-
-- [ ] Navigate to UI: `cd ui`
-- [ ] Check `package.json` - verify `@tauri-apps/api` is installed
-- [ ] Check if `@rbee/ui` is already used
-- [ ] Run dev server: `pnpm dev`
-- [ ] Verify UI works
-
----
-
-## 🔗 Phase 1: Protocol Registration (Day 1, Afternoon)
-
-### 1.1 Update Tauri Config for Protocol
-
-- [ ] Open `src-tauri/tauri.conf.json`
-- [ ] Add protocol to `bundle.protocols`:
+- [ ] Open: `bin/00_rbee_keeper/tauri.conf.json`
+- [ ] Add protocol registration:
   ```json
   {
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "rbee-keeper",
+    "version": "0.1.0",
+    "identifier": "com.rbee.keeper",
+    "build": {
+      "frontendDist": "../ui/dist",
+      "devUrl": "http://localhost:5173",
+      "beforeDevCommand": "cargo tauri-typegen generate && cd ../ui && npm run dev",
+      "beforeBuildCommand": "cargo tauri-typegen generate && cd ../ui && npm run build"
+    },
     "bundle": {
-      "identifier": "dev.rbee.keeper",
-      "protocols": [
-        {
-          "name": "rbee",
-          "schemes": ["rbee"]
+      "active": true,
+      "targets": "all",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "windows": {
+        "wix": {
+          "language": "en-US"
         }
-      ]
+      },
+      "linux": {
+        "deb": {
+          "depends": []
+        }
+      }
+    },
+    "app": {
+      "windows": [
+        {
+          "fullscreen": false,
+          "resizable": true,
+          "title": "rbee Keeper",
+          "width": 960,
+          "height": 1080,
+          "minWidth": 600,
+          "minHeight": 800,
+          "decorations": false,
+          "transparent": false
+        }
+      ],
+      "security": {
+        "csp": null,
+        "assetProtocol": {
+          "enable": true,
+          "scope": ["**"]
+        },
+        "capabilities": [
+          {
+            "identifier": "main-capability",
+            "description": "Main window capabilities",
+            "windows": ["main"],
+            "permissions": [
+              "core:default",
+              "core:event:allow-listen",
+              "core:event:allow-emit",
+              "protocol:default"
+            ]
+          }
+        ]
+      }
+    },
+    "plugins": {
+      "tauri-typegen": {
+        "project_path": ".",
+        "output_path": "./ui/src/generated",
+        "validation_library": "none",
+        "verbose": false,
+        "visualize_deps": false
+      },
+      "deep-link": {
+        "schemes": ["rbee"],
+        "mobile": {
+          "appIdBase": "com.rbee"
+        }
+      }
     }
   }
   ```
-- [ ] Verify config is valid: `cargo tauri build --debug`
 
-### 1.2 Create Protocol Handler Module
+### 1.2 Add Tauri Deep Link Plugin
 
-- [ ] Create `src/protocol_handler.rs`:
-  ```rust
-  //! Protocol handler for rbee:// URLs
-  //! TEAM-XXX: Created protocol handler for marketplace integration
+- [ ] Add to `Cargo.toml`:
+  ```toml
+  [dependencies]
+  # ... existing dependencies ...
   
-  use tauri::{AppHandle, Manager};
-  use serde::{Serialize, Deserialize};
-  
-  #[derive(Clone, Serialize, Deserialize, Debug)]
-  #[serde(tag = "type", rename_all = "snake_case")]
-  pub enum ProtocolEvent {
-      DownloadModel {
-          source: String,
-          model_id: String,
-      },
-      InstallWorker {
-          worker_id: String,
-      },
-      AutoRun {
-          source: String,
-          model_id: String,
-          hive_id: Option<String>,
-      },
-  }
-  
-  /// Parse rbee:// URL and emit event to frontend
-  /// 
-  /// Supported formats:
-  /// - rbee://download/model/huggingface/llama-3.2-1b
-  /// - rbee://install/worker/llm-worker-rbee-cuda
-  /// - rbee://auto-run/model/huggingface/llama-3.2-1b
-  /// - rbee://auto-run/model/huggingface/llama-3.2-1b?hive=my-remote-hive
-  pub fn handle_protocol_url(app: &AppHandle, url: String) {
-      tracing::info!("Received protocol URL: {}", url);
-      
-      // Parse: rbee://action/...
-      let Some(path) = url.strip_prefix("rbee://") else {
-          tracing::error!("Invalid protocol URL: {}", url);
-          return;
-      };
-      
-      // Split path and query
-      let (path, query) = if let Some(idx) = path.find('?') {
-          (&path[..idx], Some(&path[idx + 1..]))
-      } else {
-          (path, None)
-      };
-      
-      let parts: Vec<&str> = path.split('/').collect();
-      
-      let event = match parts.as_slice() {
-          ["download", "model", source, model_id] => {
-              ProtocolEvent::DownloadModel {
-                  source: source.to_string(),
-                  model_id: model_id.to_string(),
-              }
-          }
-          ["install", "worker", worker_id] => {
-              ProtocolEvent::InstallWorker {
-                  worker_id: worker_id.to_string(),
-              }
-          }
-          ["auto-run", "model", source, model_id] => {
-              let hive_id = query
-                  .and_then(|q| q.split('&')
-                      .find(|p| p.starts_with("hive="))
-                      .map(|p| p.strip_prefix("hive=").unwrap().to_string()));
-              
-              ProtocolEvent::AutoRun {
-                  source: source.to_string(),
-                  model_id: model_id.to_string(),
-                  hive_id,
-              }
-          }
-          _ => {
-              tracing::error!("Unknown protocol path: {}", path);
-              return;
-          }
-      };
-      
-      tracing::info!("Emitting protocol event: {:?}", event);
-      
-      if let Err(e) = app.emit_all("protocol-event", &event) {
-          tracing::error!("Failed to emit protocol event: {}", e);
-      }
-  }
+  # TEAM-400: Deep link plugin for rbee:// protocol
+  tauri-plugin-deep-link = "2"
   ```
-- [ ] Add to `src/main.rs`:
-  ```rust
-  mod protocol_handler;
-  ```
+- [ ] Run: `cargo check` to verify
 
-### 1.3 Wire Up Protocol Handler
+### 1.3 Register Protocol in main.rs
 
-- [ ] Update `src/main.rs` to handle protocol URLs:
+- [ ] Open: `bin/00_rbee_keeper/src/main.rs`
+- [ ] Add protocol registration:
   ```rust
-  use std::env;
+  // TEAM-400: Import deep link plugin
+  use tauri_plugin_deep_link::DeepLinkExt;
   
   fn main() {
-      // Get command line arguments
-      let args: Vec<String> = env::args().collect();
+      // ... existing setup ...
       
       tauri::Builder::default()
-          .setup(move |app| {
-              // Check if launched with URL (Linux/Windows)
-              if args.len() > 1 && args[1].starts_with("rbee://") {
-                  let url = args[1].clone();
-                  let app_handle = app.handle();
-                  protocol_handler::handle_protocol_url(&app_handle, url);
-              }
+          // TEAM-400: Register rbee:// protocol
+          .plugin(tauri_plugin_deep_link::init())
+          .setup(|app| {
+              // TEAM-400: Register protocol handler
+              app.deep_link().register("rbee")?;
               
-              // macOS protocol handling
-              #[cfg(target_os = "macos")]
-              {
-                  use tauri::Manager;
-                  let app_handle = app.handle();
-                  app.listen_global("open-url", move |event| {
-                      if let Some(url) = event.payload() {
-                          protocol_handler::handle_protocol_url(&app_handle, url.to_string());
-                      }
-                  });
-              }
+              // TEAM-400: Listen for deep link events
+              app.deep_link().on_open_url(|event| {
+                  println!("🔗 Deep link opened: {}", event.urls().join(", "));
+                  // Will handle in protocol handler
+              });
               
               Ok(())
           })
-          // ... rest of builder
+          // ... rest of builder ...
+          .run(tauri::generate_context!())
+          .expect("error while running tauri application");
   }
   ```
-- [ ] Test protocol handling: `./target/debug/rbee-keeper "rbee://download/model/huggingface/test"`
 
 ---
 
-## 🎯 Phase 2: Auto-Run Commands (Day 2)
+## 🔧 Phase 2: Protocol Handler (Days 2-3)
 
-### 2.1 Create Auto-Run Module
+**TEAM-400:** Create handler to process `rbee://` URLs.
 
-- [ ] Create `src/auto_run.rs`:
+### 2.1 Create Protocol Handler Module
+
+- [ ] Create: `bin/00_rbee_keeper/src/handlers/protocol.rs`
   ```rust
-  //! Auto-run flow: Download model + Install worker + Spawn worker
-  //! TEAM-XXX: Created auto-run flow for one-click marketplace integration
+  // TEAM-400: Protocol handler for rbee:// URLs
   
   use anyhow::{Context, Result};
   use serde::{Deserialize, Serialize};
+  use tauri::{AppHandle, Emitter};
   
-  #[derive(Debug, Serialize, Deserialize)]
-  pub struct AutoRunRequest {
-      pub hive_id: String,
-      pub model_id: String,
-      pub source: String,
+  /// Protocol action from rbee:// URL
+  #[derive(Debug, Clone, Serialize, Deserialize)]
+  #[serde(tag = "type", rename_all = "snake_case")]
+  pub enum ProtocolAction {
+      /// Install model: rbee://model/{model_id}
+      InstallModel { model_id: String },
+      
+      /// Install worker: rbee://worker/{worker_id}
+      InstallWorker { worker_id: String },
+      
+      /// Open marketplace: rbee://marketplace
+      OpenMarketplace,
   }
   
-  #[derive(Debug, Serialize, Deserialize)]
-  pub struct AutoRunProgress {
-      pub step: String,
-      pub status: String,
-      pub message: String,
-  }
-  
-  /// Execute auto-run flow
-  /// 
-  /// Steps:
-  /// 1. Check if hive is running (start if needed)
-  /// 2. Check if model exists (download if needed)
-  /// 3. Detect best worker type (CUDA > Metal > CPU)
-  /// 4. Check if worker is installed (install if needed)
-  /// 5. Spawn worker with model
-  pub async fn execute_auto_run(
-      request: AutoRunRequest,
-      progress_callback: impl Fn(AutoRunProgress),
-  ) -> Result<String> {
-      let queen_url = "http://localhost:8500";
-      let client = reqwest::Client::new();
+  /// Parse rbee:// URL into action
+  pub fn parse_protocol_url(url: &str) -> Result<ProtocolAction> {
+      // Remove rbee:// prefix
+      let path = url.strip_prefix("rbee://")
+          .context("Invalid rbee:// URL")?;
       
-      // Step 1: Check hive status
-      progress_callback(AutoRunProgress {
-          step: "hive_check".to_string(),
-          status: "in_progress".to_string(),
-          message: format!("Checking hive: {}", request.hive_id),
-      });
+      // Parse path
+      let parts: Vec<&str> = path.split('/').collect();
       
-      let hive_running = check_hive_status(&client, queen_url, &request.hive_id).await?;
-      
-      if !hive_running {
-          progress_callback(AutoRunProgress {
-              step: "hive_start".to_string(),
-              status: "in_progress".to_string(),
-              message: format!("Starting hive: {}", request.hive_id),
-          });
-          
-          start_hive(&client, queen_url, &request.hive_id).await?;
+      match parts.as_slice() {
+          ["model", model_id] => Ok(ProtocolAction::InstallModel {
+              model_id: model_id.to_string(),
+          }),
+          ["worker", worker_id] => Ok(ProtocolAction::InstallWorker {
+              worker_id: worker_id.to_string(),
+          }),
+          ["marketplace"] => Ok(ProtocolAction::OpenMarketplace),
+          _ => Err(anyhow::anyhow!("Unknown protocol action: {}", path)),
       }
-      
-      // Step 2: Check if model exists
-      progress_callback(AutoRunProgress {
-          step: "model_check".to_string(),
-          status: "in_progress".to_string(),
-          message: format!("Checking model: {}", request.model_id),
-      });
-      
-      let model_exists = check_model_exists(&client, queen_url, &request.hive_id, &request.model_id).await?;
-      
-      if !model_exists {
-          progress_callback(AutoRunProgress {
-              step: "model_download".to_string(),
-              status: "in_progress".to_string(),
-              message: format!("Downloading model: {}", request.model_id),
-          });
-          
-          let job_id = download_model(&client, queen_url, &request).await?;
-          wait_for_job(&client, queen_url, &job_id, |status| {
-              progress_callback(AutoRunProgress {
-                  step: "model_download".to_string(),
-                  status: "in_progress".to_string(),
-                  message: format!("Downloading: {}", status),
-              });
-          }).await?;
-      }
-      
-      // Step 3: Detect best worker
-      progress_callback(AutoRunProgress {
-          step: "worker_detect".to_string(),
-          status: "in_progress".to_string(),
-          message: "Detecting best worker type".to_string(),
-      });
-      
-      let worker_type = detect_best_worker(&client, queen_url, &request.hive_id).await?;
-      
-      // Step 4: Check if worker is installed
-      progress_callback(AutoRunProgress {
-          step: "worker_check".to_string(),
-          status: "in_progress".to_string(),
-          message: format!("Checking worker: {}", worker_type),
-      });
-      
-      let worker_installed = check_worker_installed(&client, queen_url, &request.hive_id, &worker_type).await?;
-      
-      if !worker_installed {
-          progress_callback(AutoRunProgress {
-              step: "worker_install".to_string(),
-              status: "in_progress".to_string(),
-              message: format!("Installing worker: {}", worker_type),
-          });
-          
-          let job_id = install_worker(&client, queen_url, &request.hive_id, &worker_type).await?;
-          wait_for_job(&client, queen_url, &job_id, |status| {
-              progress_callback(AutoRunProgress {
-                  step: "worker_install".to_string(),
-                  status: "in_progress".to_string(),
-                  message: format!("Installing: {}", status),
-              });
-          }).await?;
-      }
-      
-      // Step 5: Spawn worker
-      progress_callback(AutoRunProgress {
-          step: "worker_spawn".to_string(),
-          status: "in_progress".to_string(),
-          message: "Spawning worker".to_string(),
-      });
-      
-      let worker_id = spawn_worker(&client, queen_url, &request.hive_id, &request.model_id, &worker_type).await?;
-      
-      progress_callback(AutoRunProgress {
-          step: "complete".to_string(),
-          status: "success".to_string(),
-          message: format!("Worker running: {}", worker_id),
-      });
-      
-      Ok(worker_id)
   }
   
-  // Helper functions (implement these)
-  async fn check_hive_status(client: &reqwest::Client, queen_url: &str, hive_id: &str) -> Result<bool> {
-      // TODO: Call Queen API to check hive status
-      Ok(true)
-  }
-  
-  async fn start_hive(client: &reqwest::Client, queen_url: &str, hive_id: &str) -> Result<()> {
-      // TODO: Call Queen API to start hive
-      Ok(())
-  }
-  
-  async fn check_model_exists(client: &reqwest::Client, queen_url: &str, hive_id: &str, model_id: &str) -> Result<bool> {
-      // TODO: Call Queen API to check if model exists
-      Ok(false)
-  }
-  
-  async fn download_model(client: &reqwest::Client, queen_url: &str, request: &AutoRunRequest) -> Result<String> {
-      // TODO: Call Queen API to download model
-      Ok("job-123".to_string())
-  }
-  
-  async fn wait_for_job<F>(client: &reqwest::Client, queen_url: &str, job_id: &str, progress: F) -> Result<()>
-  where
-      F: Fn(&str),
-  {
-      // TODO: Poll Queen API for job status
-      Ok(())
-  }
-  
-  async fn detect_best_worker(client: &reqwest::Client, queen_url: &str, hive_id: &str) -> Result<String> {
-      // TODO: Detect GPU capabilities
-      // Priority: CUDA > Metal > CPU
-      Ok("llm-worker-rbee-cuda".to_string())
-  }
-  
-  async fn check_worker_installed(client: &reqwest::Client, queen_url: &str, hive_id: &str, worker_type: &str) -> Result<bool> {
-      // TODO: Check if worker binary exists
-      Ok(false)
-  }
-  
-  async fn install_worker(client: &reqwest::Client, queen_url: &str, hive_id: &str, worker_type: &str) -> Result<String> {
-      // TODO: Call Queen API to install worker
-      Ok("job-456".to_string())
-  }
-  
-  async fn spawn_worker(client: &reqwest::Client, queen_url: &str, hive_id: &str, model_id: &str, worker_type: &str) -> Result<String> {
-      // TODO: Call Queen API to spawn worker
-      Ok("worker-789".to_string())
-  }
-  ```
-- [ ] Add to `src/main.rs`:
-  ```rust
-  mod auto_run;
-  ```
-
-### 2.2 Create Tauri Command for Auto-Run
-
-- [ ] Add to `src/tauri_commands.rs`:
-  ```rust
-  use crate::auto_run::{execute_auto_run, AutoRunRequest, AutoRunProgress};
-  use tauri::{AppHandle, Manager};
-  
-  #[tauri::command]
-  #[specta::specta]
-  pub async fn auto_run_model(
+  /// Handle protocol action
+  pub async fn handle_protocol_action(
       app: AppHandle,
-      hive_id: String,
-      model_id: String,
-      source: String,
-  ) -> Result<String, String> {
-      let request = AutoRunRequest {
-          hive_id,
-          model_id,
-          source,
-      };
+      action: ProtocolAction,
+  ) -> Result<()> {
+      match action {
+          ProtocolAction::InstallModel { model_id } => {
+              // TEAM-400: Emit event to frontend
+              app.emit("protocol:install-model", &model_id)?;
+              
+              // TEAM-400: Navigate to marketplace tab
+              app.emit("navigate", "/marketplace")?;
+              
+              // TEAM-400: Show notification
+              println!("📦 Installing model: {}", model_id);
+              
+              Ok(())
+          }
+          
+          ProtocolAction::InstallWorker { worker_id } => {
+              app.emit("protocol:install-worker", &worker_id)?;
+              app.emit("navigate", "/marketplace")?;
+              println!("👷 Installing worker: {}", worker_id);
+              Ok(())
+          }
+          
+          ProtocolAction::OpenMarketplace => {
+              app.emit("navigate", "/marketplace")?;
+              println!("🛒 Opening marketplace");
+              Ok(())
+          }
+      }
+  }
+  
+  #[cfg(test)]
+  mod tests {
+      use super::*;
       
-      execute_auto_run(request, |progress| {
-          // Emit progress events to frontend
-          let _ = app.emit_all("auto-run-progress", &progress);
-      })
-      .await
-      .map_err(|e| e.to_string())
+      #[test]
+      fn test_parse_model_url() {
+          let action = parse_protocol_url("rbee://model/llama-3.2-1b").unwrap();
+          match action {
+              ProtocolAction::InstallModel { model_id } => {
+                  assert_eq!(model_id, "llama-3.2-1b");
+              }
+              _ => panic!("Wrong action type"),
+          }
+      }
+      
+      #[test]
+      fn test_parse_worker_url() {
+          let action = parse_protocol_url("rbee://worker/cpu-llm").unwrap();
+          match action {
+              ProtocolAction::InstallWorker { worker_id } => {
+                  assert_eq!(worker_id, "cpu-llm");
+              }
+              _ => panic!("Wrong action type"),
+          }
+      }
   }
   ```
-- [ ] Add `auto_run_model` to command list in test
-- [ ] Regenerate TypeScript bindings: `cargo test`
+
+### 2.2 Export Protocol Handler
+
+- [ ] Update `bin/00_rbee_keeper/src/handlers/mod.rs`:
+  ```rust
+  // TEAM-400: Export protocol handler
+  pub mod protocol;
+  ```
+
+### 2.3 Wire Up Protocol Handler
+
+- [ ] Update `bin/00_rbee_keeper/src/main.rs`:
+  ```rust
+  mod handlers;
+  
+  use handlers::protocol::{parse_protocol_url, handle_protocol_action};
+  
+  fn main() {
+      tauri::Builder::default()
+          .plugin(tauri_plugin_deep_link::init())
+          .setup(|app| {
+              app.deep_link().register("rbee")?;
+              
+              // TEAM-400: Handle deep link URLs
+              let app_handle = app.handle().clone();
+              app.deep_link().on_open_url(move |event| {
+                  for url in event.urls() {
+                      println!("🔗 Processing URL: {}", url);
+                      
+                      // Parse URL
+                      match parse_protocol_url(url) {
+                          Ok(action) => {
+                              // Handle action
+                              let app = app_handle.clone();
+                              tauri::async_runtime::spawn(async move {
+                                  if let Err(e) = handle_protocol_action(app, action).await {
+                                      eprintln!("❌ Protocol handler error: {}", e);
+                                  }
+                              });
+                          }
+                          Err(e) => {
+                              eprintln!("❌ Failed to parse URL: {}", e);
+                          }
+                      }
+                  }
+              });
+              
+              Ok(())
+          })
+          // ... rest of builder ...
+  }
+  ```
 
 ---
 
-## ⚛️ Phase 3: Frontend Integration (Day 3)
+## ⚡ Phase 3: Auto-Run Logic (Day 4)
 
-### 3.1 Create Protocol Event Listener
+**TEAM-400:** Automatically download and run model when protocol is triggered.
 
-- [ ] Create `ui/src/hooks/useProtocolHandler.ts`:
+### 3.1 Create Auto-Run Module
+
+- [ ] Create: `bin/00_rbee_keeper/src/handlers/auto_run.rs`
+  ```rust
+  // TEAM-400: Auto-run logic for models/workers
+  
+  use anyhow::Result;
+  use job_client::JobClient;
+  use operations_contract::Operation;
+  
+  /// Auto-run model installation
+  pub async fn auto_run_model(model_id: String) -> Result<()> {
+      println!("🚀 Auto-running model: {}", model_id);
+      
+      // TEAM-400: Step 1 - Download model
+      let client = JobClient::new("http://localhost:9200");
+      
+      let download_op = Operation::ModelDownload {
+          model_id: model_id.clone(),
+          source: "huggingface".to_string(),
+      };
+      
+      client.submit_and_stream(download_op, |line| {
+          println!("📥 {}", line);
+          Ok(())
+      }).await?;
+      
+      // TEAM-400: Step 2 - Spawn worker (if needed)
+      let spawn_op = Operation::WorkerSpawn {
+          worker_type: "cpu-llm".to_string(),
+          model: Some(model_id.clone()),
+          port: None,
+      };
+      
+      client.submit_and_stream(spawn_op, |line| {
+          println!("🐝 {}", line);
+          Ok(())
+      }).await?;
+      
+      println!("✅ Model ready: {}", model_id);
+      Ok(())
+  }
+  
+  /// Auto-run worker installation
+  pub async fn auto_run_worker(worker_id: String) -> Result<()> {
+      println!("🚀 Auto-running worker: {}", worker_id);
+      
+      let client = JobClient::new("http://localhost:9200");
+      
+      let spawn_op = Operation::WorkerSpawn {
+          worker_type: worker_id.clone(),
+          model: None,
+          port: None,
+      };
+      
+      client.submit_and_stream(spawn_op, |line| {
+          println!("🐝 {}", line);
+          Ok(())
+      }).await?;
+      
+      println!("✅ Worker ready: {}", worker_id);
+      Ok(())
+  }
+  ```
+
+### 3.2 Integrate Auto-Run
+
+- [ ] Update `protocol.rs` to use auto-run:
+  ```rust
+  use crate::handlers::auto_run::{auto_run_model, auto_run_worker};
+  
+  pub async fn handle_protocol_action(
+      app: AppHandle,
+      action: ProtocolAction,
+  ) -> Result<()> {
+      match action {
+          ProtocolAction::InstallModel { model_id } => {
+              app.emit("protocol:install-model", &model_id)?;
+              app.emit("navigate", "/marketplace")?;
+              
+              // TEAM-400: Auto-run model installation
+              auto_run_model(model_id).await?;
+              
+              Ok(())
+          }
+          // ... rest of handlers ...
+      }
+  }
+  ```
+
+---
+
+## 🖥️ Phase 4: Frontend Integration (Day 5)
+
+**TEAM-400:** Listen for protocol events in Keeper UI.
+
+### 4.1 Create Protocol Hook
+
+- [ ] Create: `bin/00_rbee_keeper/ui/src/hooks/useProtocol.ts`
   ```typescript
+  // TEAM-400: React hook for protocol events
+  
   import { useEffect } from 'react'
   import { listen } from '@tauri-apps/api/event'
-  import { invoke } from '@tauri-apps/api/tauri'
-  import { toast } from 'sonner'
+  import { useNavigate } from 'react-router-dom'
   
-  interface ProtocolEvent {
-    type: 'download_model' | 'install_worker' | 'auto_run'
-    source?: string
-    model_id?: string
-    worker_id?: string
-    hive_id?: string
-  }
-  
-  export function useProtocolHandler() {
+  export function useProtocol() {
+    const navigate = useNavigate()
+    
     useEffect(() => {
-      const unlisten = listen<ProtocolEvent>('protocol-event', async (event) => {
-        console.log('Protocol event received:', event.payload)
-        
-        const { type, source, model_id, worker_id, hive_id } = event.payload
-        
-        try {
-          switch (type) {
-            case 'auto_run':
-              if (source && model_id) {
-                toast.loading(`Running ${model_id}...`)
-                await handleAutoRun(hive_id || 'localhost', model_id, source)
-              }
-              break
-            
-            case 'download_model':
-              if (source && model_id) {
-                toast.loading(`Downloading ${model_id}...`)
-                // TODO: Call download command
-              }
-              break
-            
-            case 'install_worker':
-              if (worker_id) {
-                toast.loading(`Installing ${worker_id}...`)
-                // TODO: Call install command
-              }
-              break
-          }
-        } catch (error) {
-          toast.error(`Failed: ${error}`)
-        }
+      // TEAM-400: Listen for protocol events
+      const unlistenModel = listen<string>('protocol:install-model', (event) => {
+        console.log('📦 Installing model:', event.payload)
+        // Navigate to marketplace tab
+        navigate('/marketplace')
+        // Show notification
+        // TODO: Trigger download UI
+      })
+      
+      const unlistenWorker = listen<string>('protocol:install-worker', (event) => {
+        console.log('👷 Installing worker:', event.payload)
+        navigate('/marketplace')
+      })
+      
+      const unlistenNavigate = listen<string>('navigate', (event) => {
+        console.log('🧭 Navigating to:', event.payload)
+        navigate(event.payload)
       })
       
       return () => {
-        unlisten.then(fn => fn())
+        unlistenModel.then(f => f())
+        unlistenWorker.then(f => f())
+        unlistenNavigate.then(f => f())
       }
-    }, [])
-  }
-  
-  async function handleAutoRun(hiveId: string, modelId: string, source: string) {
-    try {
-      const workerId = await invoke<string>('auto_run_model', {
-        hiveId,
-        modelId,
-        source,
-      })
-      
-      toast.success(`Model running! Worker ID: ${workerId}`)
-      
-      // Navigate to worker view
-      // window.location.href = `/workers/${workerId}`
-    } catch (error) {
-      toast.error(`Failed to run model: ${error}`)
-    }
+    }, [navigate])
   }
   ```
-- [ ] Test hook in App component
 
-### 3.2 Create Progress Listener
+### 4.2 Use in App Component
 
-- [ ] Create `ui/src/hooks/useAutoRunProgress.ts`:
-  ```typescript
-  import { useEffect, useState } from 'react'
-  import { listen } from '@tauri-apps/api/event'
-  
-  interface AutoRunProgress {
-    step: string
-    status: string
-    message: string
-  }
-  
-  export function useAutoRunProgress() {
-    const [progress, setProgress] = useState<AutoRunProgress | null>(null)
-    
-    useEffect(() => {
-      const unlisten = listen<AutoRunProgress>('auto-run-progress', (event) => {
-        setProgress(event.payload)
-      })
-      
-      return () => {
-        unlisten.then(fn => fn())
-      }
-    }, [])
-    
-    return progress
-  }
-  ```
-- [ ] Create progress UI component
-- [ ] Test progress updates
-
-### 3.3 Update App Component
-
-- [ ] Update `ui/src/App.tsx`:
+- [ ] Update `bin/00_rbee_keeper/ui/src/App.tsx`:
   ```tsx
-  import { useProtocolHandler } from './hooks/useProtocolHandler'
-  import { useAutoRunProgress } from './hooks/useAutoRunProgress'
-  import { Toaster } from 'sonner'
+  import { useProtocol } from './hooks/useProtocol'
   
-  export function App() {
-    useProtocolHandler()
-    const progress = useAutoRunProgress()
+  function App() {
+    // TEAM-400: Listen for protocol events
+    useProtocol()
     
     return (
-      <>
-        {/* Your existing app UI */}
-        
-        {/* Progress indicator */}
-        {progress && (
-          <div className="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4">
-            <div className="font-bold">{progress.step}</div>
-            <div className="text-sm text-gray-600">{progress.message}</div>
-          </div>
-        )}
-        
-        <Toaster />
-      </>
+      // ... existing app structure ...
     )
   }
   ```
-- [ ] Test protocol handling end-to-end
 
 ---
 
-## 🧪 Phase 4: Testing (Days 4-5)
+## 🧪 Phase 5: Testing (Days 6-7)
 
-### 4.1 Test Protocol Registration
+### 5.1 Test Protocol Registration
 
-- [ ] Build Tauri app: `cargo tauri build`
-- [ ] Install app
+- [ ] Build Keeper: `cargo tauri build`
+- [ ] Install built app
 - [ ] Test protocol from terminal:
   ```bash
-  xdg-open "rbee://auto-run/model/huggingface/test"
+  # macOS
+  open "rbee://model/llama-3.2-1b"
+  
+  # Linux
+  xdg-open "rbee://model/llama-3.2-1b"
+  
+  # Windows
+  start "rbee://model/llama-3.2-1b"
   ```
-- [ ] Verify app opens
-- [ ] Verify event received in frontend
-- [ ] Test on macOS (if available)
-- [ ] Test on Windows (if available)
+- [ ] Verify Keeper opens and navigates to marketplace
 
-### 4.2 Test Auto-Run Flow
+### 5.2 Test from Browser
 
-- [ ] Ensure Queen is running: `cargo run --bin queen-rbee`
-- [ ] Ensure Hive is running: `cargo run --bin rbee-hive`
-- [ ] Open marketplace.rbee.dev in browser
-- [ ] Click "Run with rbee" on a model
-- [ ] Verify Keeper opens
-- [ ] Verify auto-run starts
-- [ ] Verify progress updates appear
-- [ ] Verify model downloads
-- [ ] Verify worker installs
-- [ ] Verify worker spawns
-- [ ] Verify success message
+- [ ] Open marketplace site: `http://localhost:3000/models/llama-3.2-1b`
+- [ ] Click "Run with rbee" button
+- [ ] Verify browser prompts to open Keeper
+- [ ] Verify Keeper opens and starts download
 
-### 4.3 Test Error Handling
+### 5.3 Test Auto-Run
 
-- [ ] Test with Queen not running
-- [ ] Test with Hive not running
-- [ ] Test with invalid model ID
-- [ ] Test with network error
-- [ ] Verify error messages are clear
-- [ ] Verify user can retry
+- [ ] Trigger protocol: `rbee://model/llama-3.2-1b`
+- [ ] Verify:
+  - [ ] Keeper opens
+  - [ ] Navigates to marketplace
+  - [ ] Model download starts automatically
+  - [ ] Worker spawns automatically
+  - [ ] Model is ready to use
 
-### 4.4 Test Multi-Hive
+### 5.4 Platform-Specific Testing
 
-- [ ] Add SSH config for remote hive
-- [ ] Test auto-run with `?hive=remote-hive`
-- [ ] Verify model downloads to correct hive
-- [ ] Verify worker spawns on correct hive
+**macOS:**
+- [ ] Build: `cargo tauri build --target universal-apple-darwin`
+- [ ] Test protocol registration
+- [ ] Test from Safari
+
+**Linux:**
+- [ ] Build: `cargo tauri build`
+- [ ] Test protocol registration
+- [ ] Test from Firefox/Chrome
+
+**Windows:**
+- [ ] Build: `cargo tauri build --target x86_64-pc-windows-msvc`
+- [ ] Test protocol registration
+- [ ] Test from Edge/Chrome
 
 ---
 
-## 📦 Phase 5: Build & Package (Day 6)
+## 📦 Phase 6: Distribution (Day 7)
 
-### 5.1 Build for Linux
+### 6.1 Create Installers
 
-- [ ] Build: `cargo tauri build`
-- [ ] Test AppImage: `./target/release/bundle/appimage/rbee-keeper_*.AppImage`
-- [ ] Test .deb: `sudo dpkg -i ./target/release/bundle/deb/rbee-keeper_*.deb`
-- [ ] Verify protocol registration
-- [ ] Test auto-run flow
+- [ ] Build for all platforms:
+  ```bash
+  # macOS
+  cargo tauri build --target universal-apple-darwin
+  
+  # Linux
+  cargo tauri build --target x86_64-unknown-linux-gnu
+  
+  # Windows
+  cargo tauri build --target x86_64-pc-windows-msvc
+  ```
 
-### 5.2 Build for macOS (if available)
+### 6.2 Test Installers
 
-- [ ] Build: `cargo tauri build`
-- [ ] Test .app bundle
-- [ ] Test .dmg installer
-- [ ] Verify protocol registration
-- [ ] Test auto-run flow
+- [ ] macOS: Test .dmg installer
+  - [ ] Install app
+  - [ ] Test protocol works after install
+  - [ ] Test app signature (if signed)
+  
+- [ ] Linux: Test .deb/.AppImage
+  - [ ] Install package
+  - [ ] Test protocol registration
+  
+- [ ] Windows: Test .msi installer
+  - [ ] Install app
+  - [ ] Test protocol registration
+  - [ ] Test from different browsers
 
-### 5.3 Build for Windows (if available)
+### 6.3 Upload to GitHub Releases
 
-- [ ] Build: `cargo tauri build`
-- [ ] Test .msi installer
-- [ ] Verify protocol registration
-- [ ] Test auto-run flow
-
----
-
-## 🚀 Phase 6: Distribution (Day 7)
-
-### 6.1 Create GitHub Release
-
-- [ ] Tag version: `git tag v0.1.0`
-- [ ] Push tag: `git push origin v0.1.0`
 - [ ] Create GitHub release
-- [ ] Upload Linux AppImage
-- [ ] Upload Linux .deb
-- [ ] Upload macOS .dmg (if available)
-- [ ] Upload Windows .msi (if available)
-- [ ] Write release notes
-
-### 6.2 Update Documentation
-
-- [ ] Update README with protocol usage
-- [ ] Document auto-run flow
-- [ ] Add troubleshooting guide
-- [ ] Update marketplace.rbee.dev with download links
+- [ ] Upload installers:
+  - `rbee-keeper_0.1.0_universal.dmg` (macOS)
+  - `rbee-keeper_0.1.0_amd64.deb` (Linux)
+  - `rbee-keeper_0.1.0_x64_en-US.msi` (Windows)
+- [ ] Add release notes
+- [ ] Update marketplace download links
 
 ---
 
@@ -672,68 +583,79 @@
 
 ### Must Have
 
-- [ ] `rbee://` protocol registered
-- [ ] Protocol handler works
-- [ ] Auto-run flow works end-to-end
-- [ ] Progress updates work
-- [ ] Error handling works
-- [ ] Linux build works
-- [ ] Packaged for distribution
+- [ ] `rbee://` protocol registered on all platforms
+- [ ] Protocol handler parses URLs correctly
+- [ ] `rbee://model/{id}` opens Keeper and starts download
+- [ ] `rbee://worker/{id}` opens Keeper and spawns worker
+- [ ] Auto-run downloads model automatically
+- [ ] Auto-run spawns worker automatically
+- [ ] Frontend listens for protocol events
+- [ ] Marketplace button triggers protocol
+- [ ] Works on macOS, Linux, Windows
+- [ ] Installers available for download
 
 ### Nice to Have
 
-- [ ] macOS build works
-- [ ] Windows build works
-- [ ] Multi-hive support
-- [ ] Auto-update mechanism
-- [ ] Crash reporting
+- [ ] Progress notifications during download
+- [ ] Error handling with user-friendly messages
+- [ ] Cancel download option
+- [ ] Queue multiple installs
+- [ ] Remember last opened model
+- [ ] Analytics (protocol usage)
 
 ---
 
 ## 🚀 Deliverables
 
-1. **Protocol Handler:** `rbee://` registered and working
-2. **Auto-Run:** One-click from browser to running model
-3. **Commands:** Auto-run with progress tracking
-4. **Packages:** AppImage, .deb, .dmg, .msi
-5. **Distribution:** GitHub releases
+1. **Protocol Registration:** `rbee://` works on all platforms
+2. **Protocol Handler:** Rust module in `src/handlers/protocol.rs`
+3. **Auto-Run Logic:** Automatic download + spawn in `src/handlers/auto_run.rs`
+4. **Frontend Integration:** React hook for protocol events
+5. **Tests:** Platform-specific testing complete
+6. **Installers:** .dmg, .deb, .msi for all platforms
 
 ---
 
 ## 📝 Notes
 
-### Key Differences from Original Plan
+### Key Principles
 
-**Original Plan Assumed:**
-- Need to initialize Tauri from scratch
-- Need to create all commands
-- Need to set up UI from scratch
+1. **KEEPER EXISTS** - Don't create new Tauri app, update existing
+2. **TAURI V2** - Already configured, just add plugin
+3. **PROTOCOL FIRST** - Register protocol before handler
+4. **AUTO-RUN** - Make it seamless (one click → running model)
+5. **CROSS-PLATFORM** - Test on macOS, Linux, Windows
 
-**Reality:**
-- ✅ Keeper is already a Tauri app
-- ✅ Many commands already exist
-- ✅ UI is already set up
-- ✅ TypeScript bindings already generated
+### Common Pitfalls
 
-**What We Actually Need:**
-- Add protocol registration to existing config
-- Add protocol handler module
-- Add auto-run command
-- Wire up frontend listeners
-- Test and package
+- ❌ Don't create new Tauri project (Keeper exists!)
+- ❌ Don't forget to register protocol in tauri.conf.json
+- ❌ Don't block UI during download (use async)
+- ❌ Don't forget platform-specific testing
+- ✅ Use existing Keeper structure
+- ✅ Add tauri-plugin-deep-link
+- ✅ Emit events to frontend
+- ✅ Test on all platforms
 
-### Existing Commands We Can Use
+### Platform Differences
 
-From `src/tauri_commands.rs`:
-- `queen_status`, `queen_start`, `queen_stop` - For hive management
-- `hive_status`, `hive_start`, `hive_stop` - For hive management
-- `ssh_list`, `get_installed_hives` - For multi-hive support
+**macOS:**
+- Protocol registered in Info.plist (automatic)
+- Requires app signature for distribution
+- Use .dmg for distribution
 
-**We just need to add:**
-- Protocol handler
-- Auto-run command
-- Frontend listeners
+**Linux:**
+- Protocol registered in .desktop file
+- Requires update-desktop-database
+- Use .deb or .AppImage
+
+**Windows:**
+- Protocol registered in Registry
+- Installer handles registration
+- Use .msi for distribution
 
 ---
 
-**Much simpler than starting from scratch!** 🎉
+**Start with Phase 1, Keeper is already Tauri!** ✅
+
+**TEAM-400 🐝🎊**

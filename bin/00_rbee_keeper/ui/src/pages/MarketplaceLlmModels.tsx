@@ -1,11 +1,13 @@
 // TEAM-405: Marketplace LLM Models page
-// Browse and search HuggingFace models using marketplace-react
+// Browse and search HuggingFace models using marketplace-sdk
 
 import { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@rbee/ui/atoms";
 import { MarketplaceGrid } from "@rbee/ui/marketplace/organisms/MarketplaceGrid";
 import { ModelCard } from "@rbee/ui/marketplace/organisms/ModelCard";
-import { useMarketplaceModels } from "@rbee/marketplace-react";
+import type { Model } from "@/generated/bindings";
 
 export function MarketplaceLlmModels() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,10 +22,17 @@ export function MarketplaceLlmModels() {
     }, 500);
   };
 
-  // Fetch models from HuggingFace via marketplace-react hook
-  const { models, isLoading, error } = useMarketplaceModels({
-    query: debouncedQuery || undefined,
-    limit: 50,
+  // Fetch models from HuggingFace via Tauri command
+  const { data: models = [], isLoading, error } = useQuery({
+    queryKey: ["marketplace", "llm-models", debouncedQuery],
+    queryFn: async () => {
+      const result = await invoke<Model[]>("marketplace_list_models", {
+        query: debouncedQuery || null,
+        limit: 50,
+      });
+      return result;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   return (

@@ -55,7 +55,7 @@ mod tests {
             .typ::<marketplace_sdk::ModelSource>();
 
         builder
-            .export(Typescript::default(), "ui/app/src/generated/bindings.ts")
+            .export(Typescript::default(), "ui/src/generated/bindings.ts")
             .expect("Failed to export typescript bindings");
     }
 }

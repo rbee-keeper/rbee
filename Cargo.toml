@@ -71,6 +71,7 @@ members = [
     # TEAM-284: DELETED daemon-sync and ssh-client (SSH/remote operations removed)
     "bin/99_shared_crates/job-client",          # Workspace automation (cargo xtask)
     "bin/99_shared_crates/ssh-config-parser",   # TEAM-365: SSH config parser for Queen discovery
+    "bin/99_shared_crates/marketplace-sdk",     # WASM SDK for marketplace integration
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # CONTRACT CRATES — Type-safe contracts (TEAM-285: Moved from 99 to 97)
@@ -110,7 +111,6 @@ members = [
     "bin/97_contracts/keeper-config-contract", "bin/25_rbee_hive_crates/model-provisioner", # TEAM-329: Removed daemon-contract (inlined into daemon-lifecycle)
     
     # TEAM-358: Removed stub-binary (directory doesn't exist)
-    "bin/00_rbee_keeper/ui/packages/marketplace-sdk",     # WASM SDK for marketplace integration
 ]
 
 resolver = "2"

@@ -13,7 +13,7 @@ This is your implementation guide with 4 comprehensive checklists:
 - **Checklist 01:** Shared Components (1 week)
 - **Checklist 02:** Marketplace SDK (3 days)
 - **Checklist 03:** Next.js Site (1 week)
-- **Checklist 04:** Tauri Integration (1 week)
+- **Checklist 04:** Tauri Protocol & Auto-Run (1 week)
 
 **Total: 3.5 weeks with detailed checkboxes for every task.**
 
@@ -35,7 +35,7 @@ This is your navigation guide for understanding the architecture:
 1. **[CHECKLIST_01_SHARED_COMPONENTS.md](./CHECKLIST_01_SHARED_COMPONENTS.md)** - Shared components package (1 week)
 2. **[CHECKLIST_02_MARKETPLACE_SDK.md](./CHECKLIST_02_MARKETPLACE_SDK.md)** - Marketplace SDK package (3 days)
 3. **[CHECKLIST_03_NEXTJS_SITE.md](./CHECKLIST_03_NEXTJS_SITE.md)** - Next.js marketplace site (1 week)
-4. **[CHECKLIST_04_TAURI_INTEGRATION.md](./CHECKLIST_04_TAURI_INTEGRATION.md)** - Tauri integration (1 week)
+4. **[CHECKLIST_04_TAURI_PROTOCOL.md](./CHECKLIST_04_TAURI_PROTOCOL.md)** - Protocol & auto-run (1 week)
 
 ### Architecture Documentation (FOR UNDERSTANDING)
 

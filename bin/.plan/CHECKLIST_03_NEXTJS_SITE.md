@@ -14,57 +14,89 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
 
 ## 📦 Phase 1: Project Setup (Day 1)
 
-### 1.1 Create Next.js App
+### 1.1 Hook Up Workspace Packages
 
-- [X] Create directory: `frontend/apps/marketplace-site/`
-- [X] Initialize Next.js:
-  ```bash
-  cd frontend/apps/marketplace-site
-  pnpm create next-app@latest . --typescript --tailwind --app --no-src-dir
-  ```
-- [X] Install dependencies:
-  ```bash
-  pnpm add @rbee/marketplace-components @rbee/marketplace-sdk
-  ```
-- [X] Update `package.json`:
+- [ ] Navigate to marketplace: `cd frontend/apps/marketplace`
+- [ ] Update `package.json` to use workspace packages:
   ```json
   {
-    "name": "marketplace-site",
-    "version": "1.0.0",
+    "name": "marketplace",
+    "version": "0.1.0",
+    "private": true,
     "scripts": {
       "dev": "next dev",
       "build": "next build",
       "start": "next start",
-      "deploy": "wrangler pages deploy .next"
+      "lint": "next lint",
+      "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+      "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+      "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
+    },
+    "dependencies": {
+      "@opennextjs/cloudflare": "^1.3.0",
+      "@rbee/ui": "workspace:*",
+      "next": "15.4.6",
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    },
+    "devDependencies": {
+      "@repo/eslint-config": "workspace:*",
+      "@repo/tailwind-config": "workspace:*",
+      "@repo/typescript-config": "workspace:*",
+      "@eslint/eslintrc": "^3",
+      "@tailwindcss/postcss": "^4",
+      "@types/node": "^20.19.24",
+      "@types/react": "^19",
+      "@types/react-dom": "^19",
+      "eslint": "^9",
+      "eslint-config-next": "15.4.6",
+      "tailwindcss": "^4",
+      "typescript": "^5",
+      "wrangler": "^4.45.3"
     }
   }
   ```
-- [X] Verify dev server works: `pnpm dev`
+- [ ] Install dependencies: `pnpm install`
+- [ ] Verify dev server works: `pnpm dev`
 
-### 1.2 Configure Next.js
+### 1.2 Configure TypeScript
 
-- [ ] Update `next.config.js`:
-  ```javascript
-  /** @type {import('next').NextConfig} */
-  const nextConfig = {
-    output: 'export', // Static export for Cloudflare Pages
-    images: {
-      unoptimized: true, // Required for static export
-      domains: [
-        'huggingface.co',
-        'cdn-lfs.huggingface.co',
-        'image.civitai.com'
-      ]
+- [ ] Update `tsconfig.json` to extend workspace config:
+  ```json
+  {
+    "extends": "@repo/typescript-config/react-app.json",
+    "compilerOptions": {
+      "target": "ES2017",
+      "lib": ["dom", "dom.iterable", "esnext"],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "noEmit": true,
+      "esModuleInterop": true,
+      "module": "esnext",
+      "moduleResolution": "bundler",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "jsx": "preserve",
+      "incremental": true,
+      "plugins": [
+        {
+          "name": "next"
+        }
+      ],
+      "paths": {
+        "@/*": ["./*"]
+      }
     },
-    transpilePackages: [
-      '@rbee/marketplace-components',
-      '@rbee/marketplace-sdk'
-    ]
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+    "exclude": ["node_modules"]
   }
-  
-  module.exports = nextConfig
   ```
-- [ ] Update `tailwind.config.ts`:
+- [ ] Verify TypeScript works: `pnpm run typecheck` (add script if needed)
+
+### 1.3 Configure Tailwind
+
+- [ ] Create `tailwind.config.ts`:
   ```typescript
   import type { Config } from 'tailwindcss'
   
@@ -72,7 +104,7 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
     content: [
       './app/**/*.{js,ts,jsx,tsx,mdx}',
       './components/**/*.{js,ts,jsx,tsx,mdx}',
-      '../../packages/marketplace-components/src/**/*.{js,ts,jsx,tsx}'
+      '../../packages/rbee-ui/src/**/*.{js,ts,jsx,tsx}'
     ],
     theme: {
       extend: {}
@@ -82,14 +114,92 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
   
   export default config
   ```
-- [ ] Test build: `pnpm build`
-- [ ] Verify static export works
+- [ ] Create `postcss.config.mjs`:
+  ```javascript
+  export default {
+    plugins: {
+      '@tailwindcss/postcss': {},
+    },
+  }
+  ```
+- [ ] Update `app/globals.css`:
+  ```css
+  @import "@rbee/ui/globals";
+  @import "tailwindcss";
+  ```
+- [ ] Test styles work: `pnpm dev`
 
-### 1.3 Create Layout
+### 1.4 Configure ESLint
+
+- [ ] Create `eslint.config.mjs`:
+  ```javascript
+  import { dirname } from "path";
+  import { fileURLToPath } from "url";
+  import { FlatCompat } from "@eslint/eslintrc";
+
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+
+  const compat = new FlatCompat({
+    baseDirectory: __dirname,
+  });
+
+  const eslintConfig = [
+    ...compat.extends(
+      "next/core-web-vitals",
+      "next/typescript",
+      "@repo/eslint-config/react"
+    ),
+  ];
+
+  export default eslintConfig;
+  ```
+- [ ] Test linting: `pnpm lint`
+
+### 1.5 Configure Next.js
+
+- [ ] Update `next.config.ts`:
+  ```typescript
+  import type { NextConfig } from "next";
+  import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
+
+  if (process.env.NODE_ENV === 'development') {
+    await setupDevPlatform();
+  }
+
+  const nextConfig: NextConfig = {
+    images: {
+      unoptimized: true,
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'huggingface.co',
+        },
+        {
+          protocol: 'https',
+          hostname: 'cdn-lfs.huggingface.co',
+        },
+        {
+          protocol: 'https',
+          hostname: 'image.civitai.com',
+        },
+      ],
+    },
+    transpilePackages: ['@rbee/ui'],
+  };
+
+  export default nextConfig;
+  ```
+- [ ] Test build: `pnpm build`
+- [ ] Verify Cloudflare build works
+
+### 1.6 Create Layout with @rbee/ui Components
 
 - [ ] Update `app/layout.tsx`:
   ```tsx
   import type { Metadata } from 'next'
+  import { GeistSans } from 'geist/font/sans'
+  import { GeistMono } from 'geist/font/mono'
   import './globals.css'
   
   export const metadata: Metadata = {
@@ -111,8 +221,8 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
     children: React.ReactNode
   }) {
     return (
-      <html lang="en">
-        <body>
+      <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+        <body className="font-sans antialiased">
           <nav className="border-b">
             <div className="container mx-auto px-4 py-4">
               <div className="flex items-center justify-between">
@@ -130,7 +240,7 @@ Build `marketplace.rbee.dev` with Next.js SSG, pre-render top 1000 models, imple
           </nav>
           <main>{children}</main>
           <footer className="border-t mt-16">
-            <div className="container mx-auto px-4 py-8 text-center text-sm text-gray-600">
+            <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
               <p>rbee Marketplace - Run AI models locally. Free, private, unlimited.</p>
             </div>
           </footer>

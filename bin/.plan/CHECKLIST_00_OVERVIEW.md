@@ -84,26 +84,28 @@ Build marketplace system with SEO-optimized Next.js site and Tauri desktop app, 
 
 ---
 
-### Checklist 04: Tauri Integration
+### Checklist 04: Tauri Protocol & Auto-Run
 **Timeline:** 1 week  
 **Dependencies:** Checklist 01, Checklist 02  
-**File:** [CHECKLIST_04_TAURI_INTEGRATION.md](./CHECKLIST_04_TAURI_INTEGRATION.md)
+**File:** [CHECKLIST_04_TAURI_PROTOCOL.md](./CHECKLIST_04_TAURI_PROTOCOL.md)
 
-**What:** Convert Keeper to Tauri, register `rbee://` protocol, implement auto-run.
+**What:** Add `rbee://` protocol to existing Keeper Tauri app, implement auto-run.
+
+**Note:** Keeper is already a Tauri app! Just need to add protocol handler.
 
 **Deliverables:**
-- Tauri desktop app
 - `rbee://` protocol registered
 - Auto-run flow (one-click to running model)
+- Progress tracking
 - Linux/macOS/Windows builds
 - Distribution packages
 
 **Key Tasks:**
-- Tauri setup (Day 1)
-- Protocol registration (Day 2)
-- Tauri commands (Day 3)
-- Frontend integration (Day 4)
-- Testing (Day 5)
+- Verify existing Tauri setup (Day 1 morning)
+- Protocol registration (Day 1 afternoon)
+- Auto-run commands (Day 2)
+- Frontend integration (Day 3)
+- Testing (Days 4-5)
 - Build & package (Day 6)
 - Distribution (Day 7)
 
@@ -122,10 +124,12 @@ Day 1-3: Checklist 02 (SDK) - Parallel
 ### Week 2-3: Applications
 ```
 Day 8-14: Checklist 03 (Next.js Site)
-Day 8-14: Checklist 04 (Tauri) - Parallel
+Day 8-14: Checklist 04 (Protocol) - Parallel
 ```
 
 **Requires Checklist 01 and 02 complete.**
+
+**Note:** Checklist 04 is simpler than originally planned because Keeper is already a Tauri app!
 
 ### Week 3.5: Polish
 ```

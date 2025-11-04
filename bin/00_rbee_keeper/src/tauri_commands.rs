@@ -48,6 +48,7 @@ mod tests {
                 hive_rebuild,
                 marketplace_list_models,
                 marketplace_search_models,
+                marketplace_get_model,
             ])
             .typ::<NarrationEvent>()
             .typ::<lifecycle_local::DaemonStatus>()
@@ -556,26 +557,35 @@ pub async fn get_installed_hives() -> Result<Vec<String>, String> {
 // MARKETPLACE COMMANDS
 // ============================================================================
 
-/// List models from HuggingFace
-/// TEAM-405: Search HuggingFace models for marketplace browsing
+/// List models from HuggingFace with full filtering and sorting
+/// TEAM-405: Marketplace integration with HuggingFace API
 #[tauri::command]
 #[specta::specta]
 pub async fn marketplace_list_models(
     query: Option<String>,
+    sort: Option<String>,
+    filter_tags: Option<Vec<String>>,
     limit: Option<u32>,
 ) -> Result<Vec<marketplace_sdk::Model>, String> {
     use marketplace_sdk::HuggingFaceClient;
     use observability_narration_core::n;
 
-    n!("marketplace_list_models", "🔍 Searching HuggingFace models: query={:?}, limit={:?}", query, limit);
+    n!(
+        "marketplace_list_models",
+        "🔍 Listing models (query: {:?}, sort: {:?}, tags: {:?}, limit: {:?})",
+        query,
+        sort,
+        filter_tags,
+        limit
+    );
 
     let client = HuggingFaceClient::new();
     client
-        .list_models(query.clone(), limit)
+        .list_models(query, sort, filter_tags, limit)
         .await
         .map_err(|e| {
             n!("marketplace_list_models", "❌ Error: {}", e);
-            format!("Failed to fetch models: {}", e)
+            format!("Failed to list models: {}", e)
         })
         .map(|models| {
             n!("marketplace_list_models", "✅ Found {} models", models.len());
@@ -591,5 +601,31 @@ pub async fn marketplace_search_models(
     query: String,
     limit: Option<u32>,
 ) -> Result<Vec<marketplace_sdk::Model>, String> {
-    marketplace_list_models(Some(query), limit).await
+    marketplace_list_models(Some(query), None, None, limit).await
+}
+
+/// Get a specific model by ID from HuggingFace
+/// TEAM-405: Fetch detailed information for a single model
+#[tauri::command]
+#[specta::specta]
+pub async fn marketplace_get_model(
+    model_id: String,
+) -> Result<marketplace_sdk::Model, String> {
+    use marketplace_sdk::HuggingFaceClient;
+    use observability_narration_core::n;
+
+    n!("marketplace_get_model", "🔍 Fetching model: {}", model_id);
+
+    let client = HuggingFaceClient::new();
+    client
+        .get_model(&model_id)
+        .await
+        .map_err(|e| {
+            n!("marketplace_get_model", "❌ Error: {}", e);
+            format!("Failed to fetch model: {}", e)
+        })
+        .map(|model| {
+            n!("marketplace_get_model", "✅ Found model: {}", model.name);
+            model
+        })
 }

@@ -1,0 +1,31 @@
+{
+  "name": "@rbee/marketplace-node",
+  "version": "0.1.0",
+  "description": "Node.js wrapper for marketplace-sdk WASM (HuggingFace, CivitAI, Worker Catalog)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc && pnpm build:wasm",
+    "build:wasm": "cd ../../../bin/99_shared_crates/marketplace-sdk && wasm-pack build --target nodejs --out-dir ../../../../frontend/packages/marketplace-node/wasm",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist wasm"
+  },
+  "keywords": ["rbee", "marketplace", "huggingface", "civitai", "wasm", "node"],
+  "author": "rbee Team",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@rbee/marketplace-sdk": "workspace:*",
+    "@rbee/sdk-loader": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

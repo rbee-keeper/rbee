@@ -106,6 +106,10 @@ fn launch_gui() {
             hive_install,
             hive_uninstall,
             hive_rebuild,
+            // TEAM-405: Marketplace commands
+            marketplace_list_models,
+            marketplace_search_models,
+            marketplace_get_model,
         ])
         .setup(|app| {
             // TEAM-336: Initialize tracing with Tauri event streaming

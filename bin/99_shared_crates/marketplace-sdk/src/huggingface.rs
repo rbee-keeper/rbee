@@ -11,11 +11,12 @@ use serde::{Deserialize, Serialize};
 const HF_API_BASE: &str = "https://huggingface.co/api";
 
 /// HuggingFace model response from API
+/// TEAM-405: Using serde_json::Value to capture ALL fields for debugging
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct HFModelResponse {
     #[serde(rename = "modelId")]
     model_id: String,
-    #[serde(default)]
+    #[serde(default, alias = "author")]
     author: Option<String>,
     #[serde(default)]
     downloads: f64,
@@ -27,6 +28,13 @@ struct HFModelResponse {
     pipeline_tag: Option<String>,
     #[serde(default)]
     private: bool,
+    #[serde(default, rename = "lastModified")]
+    last_modified: Option<String>,
+    #[serde(default, rename = "createdAt")]
+    created_at: Option<String>,
+    // TEAM-405: Capture all other fields for debugging
+    #[serde(flatten)]
+    extra: serde_json::Map<String, serde_json::Value>,
 }
 
 /// HuggingFace client for searching models
@@ -46,17 +54,45 @@ impl HuggingFaceClient {
     ///
     /// # Arguments
     /// * `query` - Search query (optional)
+    /// * `sort` - Sort order: "downloads", "likes", "recent", "trending" (optional)
+    /// * `filter_tags` - Filter by tags (optional)
     /// * `limit` - Maximum number of results (default: 50)
-    pub async fn list_models(&self, query: Option<String>, limit: Option<u32>) -> Result<Vec<Model>> {
+    pub async fn list_models(
+        &self,
+        query: Option<String>,
+        sort: Option<String>,
+        filter_tags: Option<Vec<String>>,
+        limit: Option<u32>,
+    ) -> Result<Vec<Model>> {
         let limit = limit.unwrap_or(50);
         let mut url = format!("{}/models?limit={}", HF_API_BASE, limit);
 
+        // Add search query
         if let Some(q) = query {
             url.push_str(&format!("&search={}", urlencoding::encode(&q)));
         }
 
-        // Add filter for text-generation models
-        url.push_str("&filter=text-generation");
+        // Add sort parameter
+        if let Some(s) = sort {
+            match s.as_str() {
+                "downloads" => url.push_str("&sort=downloads"),
+                "likes" => url.push_str("&sort=likes"),
+                "recent" => url.push_str("&sort=lastModified"),
+                "trending" => url.push_str("&sort=trending"),
+                _ => url.push_str("&sort=downloads"), // default
+            }
+            url.push_str("&direction=-1"); // descending
+        }
+
+        // Add tag filters
+        if let Some(tags) = filter_tags {
+            for tag in tags {
+                url.push_str(&format!("&filter={}", urlencoding::encode(&tag)));
+            }
+        } else {
+            // Default: only text-generation models
+            url.push_str("&filter=text-generation");
+        }
 
         let response = self
             .client
@@ -65,9 +101,20 @@ impl HuggingFaceClient {
             .await
             .context("Failed to fetch models from HuggingFace")?;
 
-        let hf_models: Vec<HFModelResponse> = response
-            .json()
+        // TEAM-405: Get RAW JSON text first so we can print it
+        let raw_json = response
+            .text()
             .await
+            .context("Failed to get response text")?;
+
+        // TEAM-405: Print the COMPLETE RAW JSON - no filtering!
+        println!("\n🔍 RAW HuggingFace API List Response");
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!("{}", raw_json);
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+        // Now parse it
+        let hf_models: Vec<HFModelResponse> = serde_json::from_str(&raw_json)
             .context("Failed to parse HuggingFace response")?;
 
         // Convert HF models to our Model type
@@ -82,18 +129,59 @@ impl HuggingFaceClient {
 
     /// Search models by query
     pub async fn search_models(&self, query: &str, limit: Option<u32>) -> Result<Vec<Model>> {
-        self.list_models(Some(query.to_string()), limit).await
+        self.list_models(Some(query.to_string()), None, None, limit).await
+    }
+
+    /// Get a specific model by ID
+    ///
+    /// # Arguments
+    /// * `model_id` - Model ID (e.g., "meta-llama/Llama-3.2-1B")
+    pub async fn get_model(&self, model_id: &str) -> Result<Model> {
+        let url = format!("{}/models/{}", HF_API_BASE, model_id);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to fetch model from HuggingFace")?;
+
+        // TEAM-405: Get RAW JSON text first so we can print it
+        let raw_json = response
+            .text()
+            .await
+            .context("Failed to get response text")?;
+
+        // TEAM-405: Print the COMPLETE RAW JSON - no filtering!
+        println!("\n🔍 RAW HuggingFace API Response for: {}", model_id);
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        println!("{}", raw_json);
+        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+        // Now parse it
+        let hf_model: HFModelResponse = serde_json::from_str(&raw_json)
+            .context("Failed to parse HuggingFace response")?;
+
+        // Check if model is private
+        if hf_model.private {
+            anyhow::bail!("Model is private");
+        }
+
+        Ok(self.convert_hf_model(hf_model))
     }
 
     /// Convert HuggingFace model to our Model type
     fn convert_hf_model(&self, hf_model: HFModelResponse) -> Model {
-        // Extract model name from model_id (format: "author/model-name")
-        let name = hf_model
-            .model_id
-            .split('/')
-            .last()
-            .unwrap_or(&hf_model.model_id)
-            .to_string();
+        // Extract author and model name from model_id (format: "author/model-name")
+        let parts: Vec<&str> = hf_model.model_id.split('/').collect();
+        let (author, name) = if parts.len() >= 2 {
+            (Some(parts[0].to_string()), parts[1].to_string())
+        } else {
+            (None, hf_model.model_id.clone())
+        };
+
+        // Use author from API if available, otherwise use extracted from model_id
+        let author = hf_model.author.or(author);
 
         // Generate description from pipeline_tag and tags
         let description = if let Some(pipeline) = &hf_model.pipeline_tag {
@@ -109,7 +197,7 @@ impl HuggingFaceClient {
             id: hf_model.model_id.clone(),
             name,
             description,
-            author: hf_model.author,
+            author,
             image_url: None, // HF API doesn't provide image URLs directly
             tags: hf_model.tags,
             downloads: hf_model.downloads,
@@ -133,7 +221,7 @@ mod tests {
     #[tokio::test]
     async fn test_list_models() {
         let client = HuggingFaceClient::new();
-        let models = client.list_models(None, Some(5)).await;
+        let models = client.list_models(None, None, None, Some(5)).await;
         assert!(models.is_ok());
         let models = models.unwrap();
         assert!(!models.is_empty());

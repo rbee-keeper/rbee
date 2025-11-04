@@ -62,7 +62,7 @@ export function Shell({ children }: ShellProps) {
         {/* Page content area - scrollable container - takes remaining space */}
         <Panel id="main" minSize={30} order={2}>
           <div className="relative h-full">
-            <main className="h-full overflow-y-auto">{children}</main>
+            <main className="h-full overflow-y-auto text-foreground">{children}</main>
 
             {/* TEAM-339: Show open narration button when panel is closed */}
             {!showNarration && (

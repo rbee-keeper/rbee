@@ -13,6 +13,7 @@ packages:
   - frontend/packages/dev-utils
   - frontend/packages/sdk-loader
   - frontend/packages/react-hooks
+  - frontend/packages/marketplace-node
   - frontend/reference
   - bin/00_rbee_keeper/ui
   - bin/10_queen_rbee/ui/app

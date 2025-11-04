@@ -1,73 +1,80 @@
-// TEAM-405: Marketplace LLM Models page
-// Browse and search HuggingFace models using marketplace-sdk
+// TEAM-405: Marketplace LLM Models page - Using reusable components
+// DATA LAYER: Tauri commands + React Query
+// PRESENTATION/CONTROL: ModelListTableTemplate from rbee-ui
 
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@rbee/ui/atoms";
-import { MarketplaceGrid } from "@rbee/ui/marketplace/organisms/MarketplaceGrid";
-import { ModelCard } from "@rbee/ui/marketplace/organisms/ModelCard";
+import { PageContainer } from "@rbee/ui/molecules";
+import { ModelListTableTemplate, useModelFilters } from "@rbee/ui/marketplace";
 import type { Model } from "@/generated/bindings";
 
 export function MarketplaceLlmModels() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const navigate = useNavigate();
+  
+  // CONTROL LAYER: Filter state management
+  const { filters, setSearch, setSort, toggleTag, clearFilters, sortOptions, filterChips } = useModelFilters({
+    defaultSort: "downloads",
+    availableChips: [
+      { id: "transformers", label: "Transformers" },
+      { id: "safetensors", label: "SafeTensors" },
+      { id: "gguf", label: "GGUF" },
+      { id: "pytorch", label: "PyTorch" },
+    ],
+  });
 
-  // Debounce search query
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    // Debounce by 500ms
-    setTimeout(() => {
-      setDebouncedQuery(value);
-    }, 500);
-  };
-
-  // Fetch models from HuggingFace via Tauri command
-  const { data: models = [], isLoading, error } = useQuery({
-    queryKey: ["marketplace", "llm-models", debouncedQuery],
+  // DATA LAYER: Fetch models from Tauri
+  const { data: rawModels = [], isLoading, error } = useQuery({
+    queryKey: ["marketplace", "llm-models", filters],
     queryFn: async () => {
       const result = await invoke<Model[]>("marketplace_list_models", {
-        query: debouncedQuery || null,
+        query: filters.search || null,
+        sort: filters.sort,
+        filterTags: filters.tags.length > 0 ? filters.tags : null,
         limit: 50,
       });
       return result;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
+  // PRESENTATION LAYER: Render with reusable template
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="border-b border-border p-6">
-        <h1 className="text-2xl font-bold mb-2">LLM Models</h1>
-        <p className="text-muted-foreground">
-          Browse and search language models from HuggingFace
-        </p>
-      </div>
-
-      {/* Search */}
-      <div className="border-b border-border p-6">
-        <Input
-          type="text"
-          placeholder="Search models (e.g., 'llama', 'mistral', 'phi')..."
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="max-w-2xl"
-        />
-      </div>
-
-      {/* Results */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <MarketplaceGrid
-          items={models}
-          renderItem={(model) => <ModelCard key={model.id} model={model} />}
-          isLoading={isLoading}
-          error={error ? String(error) : undefined}
-          emptyMessage="No models found"
-          emptyDescription="Try adjusting your search query"
-          columns={3}
-        />
-      </div>
-    </div>
+    <PageContainer
+      title="LLM Models"
+      description="Discover and download state-of-the-art language models from HuggingFace"
+      padding="default"
+    >
+      <ModelListTableTemplate
+        models={rawModels}
+        onModelClick={(modelId) => navigate(`/marketplace/llm-models/${encodeURIComponent(modelId)}`)}
+        isLoading={isLoading}
+        error={error ? String(error) : undefined}
+        emptyMessage="No models found"
+        emptyDescription="Try adjusting your search query"
+        filters={filters}
+        onFiltersChange={(newFilters) => {
+          if (newFilters.search !== filters.search) setSearch(newFilters.search);
+          if (newFilters.sort !== filters.sort) setSort(newFilters.sort);
+          if (JSON.stringify(newFilters.tags) !== JSON.stringify(filters.tags)) {
+            // Find which tag changed and toggle it
+            const added = newFilters.tags.find(t => !filters.tags.includes(t));
+            const removed = filters.tags.find(t => !newFilters.tags.includes(t));
+            if (added) toggleTag(added);
+            if (removed) toggleTag(removed);
+          }
+        }}
+        filterOptions={{
+          defaultSort: "downloads",
+          sortOptions,
+          availableChips: [
+            { id: "transformers", label: "Transformers" },
+            { id: "safetensors", label: "SafeTensors" },
+            { id: "gguf", label: "GGUF" },
+            { id: "pytorch", label: "PyTorch" },
+          ],
+        }}
+      />
+    </PageContainer>
   );
 }

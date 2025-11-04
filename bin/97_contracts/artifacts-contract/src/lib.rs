@@ -1,4 +1,5 @@
 // TEAM-402: Artifact types contract
+// TEAM-405: Enhanced with trait-based model system
 //! Artifact types contract
 //!
 //! Pure data types for models and workers.
@@ -9,7 +10,7 @@
 
 #![warn(missing_docs)]
 
-/// Model entry type
+/// Model types with trait-based configuration
 pub mod model;
 /// Worker binary type
 pub mod worker;
@@ -17,6 +18,11 @@ pub mod worker;
 pub mod status;
 
 // Re-export main types
-pub use model::ModelEntry;
+pub use model::{
+    ModelEntry, ModelType, ModelSource,
+    ModelConfig, InferenceParams,
+    LlmConfig, TokenizerConfig,
+    ImageConfig, CheckpointType, ImagePreview,
+};
 pub use worker::{Platform, WorkerBinary, WorkerType};
 pub use status::ArtifactStatus;

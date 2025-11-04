@@ -18,6 +18,7 @@ import SettingsPage from './pages/SettingsPage'
 import { MarketplaceLlmModels } from './pages/MarketplaceLlmModels'
 import { MarketplaceImageModels } from './pages/MarketplaceImageModels'
 import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
+import { ModelDetailsPage } from './pages/ModelDetailsPage'
 import { setupNarrationListener } from './utils/narrationListener'
 import { broadcastThemeChanges } from '@rbee/iframe-bridge'
 
@@ -54,6 +55,7 @@ function App() {
             <Route path="/queen" element={<QueenPage />} />
             <Route path="/hive/:hiveId" element={<HivePage />} />
             <Route path="/marketplace/llm-models" element={<MarketplaceLlmModels />} />
+            <Route path="/marketplace/llm-models/:modelId" element={<ModelDetailsPage />} />
             <Route path="/marketplace/image-models" element={<MarketplaceImageModels />} />
             <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
             <Route path="/settings" element={<SettingsPage />} />

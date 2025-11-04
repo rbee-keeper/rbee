@@ -409,12 +409,13 @@ fn add_to_catalog(
     eprintln!("[add_to_catalog] worker_id={}, binary_path={}", worker_id, binary_path.display());
     
     // Determine worker type from worker_id
+    // TEAM-404: Updated to use simplified WorkerType enum
     let worker_type = if worker_id.contains("cpu") {
-        WorkerType::CpuLlm
+        WorkerType::Cpu
     } else if worker_id.contains("cuda") {
-        WorkerType::CudaLlm
+        WorkerType::Cuda
     } else if worker_id.contains("metal") {
-        WorkerType::MetalLlm
+        WorkerType::Metal
     } else {
         anyhow::bail!("Unknown worker type for worker_id: {}", worker_id);
     };

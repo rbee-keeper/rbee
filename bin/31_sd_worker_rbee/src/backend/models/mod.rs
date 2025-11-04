@@ -291,7 +291,7 @@ pub struct ModelComponents {
     pub clip_weights: std::path::PathBuf,
     pub unet: candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModel,
     pub vae: candle_transformers::models::stable_diffusion::vae::AutoEncoderKL,
-    pub scheduler: crate::backend::scheduler::DDIMScheduler,  // TEAM-397: Use our scheduler
+    pub scheduler: Box<dyn crate::backend::scheduler::Scheduler>,  // TEAM-404: Use trait object for flexibility
     pub vae_scale: f64,
 }
 

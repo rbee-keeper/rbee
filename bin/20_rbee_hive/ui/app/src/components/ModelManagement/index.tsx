@@ -1,7 +1,9 @@
 // TEAM-381: Model Management - Main component with clean composition
+// TEAM-405: Removed "Search HuggingFace" tab - marketplace search moved to separate component
+// TEAM-405: Now focuses on LOCAL CATALOG management (Downloaded, Loaded)
 
 import { useState } from 'react'
-import { HardDrive, Search, Play, Filter } from 'lucide-react'
+import { HardDrive, Play } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -9,8 +11,6 @@ import {
   CardHeader,
   CardTitle,
   Badge,
-  Button,
-  Input,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -19,26 +19,13 @@ import {
 import { useModels, useModelOperations } from '@rbee/rbee-hive-react'
 import { DownloadedModelsView } from './DownloadedModelsView'
 import { LoadedModelsView } from './LoadedModelsView'
-import { SearchResultsView } from './SearchResultsView'
-import { FilterPanel } from './FilterPanel'
 import { ModelDetailsPanel } from './ModelDetailsPanel'
-import type { ViewMode, ModelInfo, FilterState } from './types'
+import type { ViewMode, ModelInfo } from './types'
 
 export function ModelManagement() {
   const { models, loading, error } = useModels()
   const [viewMode, setViewMode] = useState<ViewMode>('downloaded')
   const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  
-  // TEAM-381: Default filters for MVP (GGUF, LLaMA/Mistral/Phi)
-  const [filters, setFilters] = useState<FilterState>({
-    formats: ['gguf'],
-    architectures: ['llama', 'mistral', 'phi'],
-    maxSize: '15gb',
-    openSourceOnly: true,
-    sortBy: 'downloads',
-  })
   
   const { loadModel, unloadModel, deleteModel, isPending } = useModelOperations()
 
@@ -80,9 +67,10 @@ export function ModelManagement() {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* TEAM-405: Removed "Search HuggingFace" tab - use MarketplaceSearch component instead */}
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="downloaded">
               <HardDrive className="h-4 w-4 mr-2" />
               Downloaded ({downloadedModels.length})
@@ -90,10 +78,6 @@ export function ModelManagement() {
             <TabsTrigger value="loaded">
               <Play className="h-4 w-4 mr-2" />
               Loaded in RAM ({loadedModels.length})
-            </TabsTrigger>
-            <TabsTrigger value="search">
-              <Search className="h-4 w-4 mr-2" />
-              Search HuggingFace
             </TabsTrigger>
           </TabsList>
 
@@ -119,46 +103,6 @@ export function ModelManagement() {
               onUnload={handleUnloadModel}
             />
           </TabsContent>
-
-          {/* Search HuggingFace Tab */}
-          <TabsContent value="search" className="space-y-4">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  type="text"
-                  placeholder="Search HuggingFace models (e.g., 'llama', 'mistral', 'phi')..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Button
-                variant={showFilters ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-12 gap-4">
-              {/* Filters Sidebar */}
-              {showFilters && (
-                <div className="col-span-3">
-                  <FilterPanel filters={filters} onFiltersChange={setFilters} />
-                </div>
-              )}
-
-              {/* Search Results */}
-              <div className={showFilters ? 'col-span-9' : 'col-span-12'}>
-                <SearchResultsView
-                  query={searchQuery}
-                  filters={filters}
-                  onSelect={setSelectedModel}
-                />
-              </div>
-            </div>
-          </TabsContent>
         </Tabs>
 
         {/* Model Details Panel (always visible when model selected) */}
@@ -177,4 +121,4 @@ export function ModelManagement() {
 }
 
 // Re-export types for convenience
-export type { ViewMode, ModelInfo, HFModel, FilterState } from './types'
+export type { ViewMode, ModelInfo } from './types'

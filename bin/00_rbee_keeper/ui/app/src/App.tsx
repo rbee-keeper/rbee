@@ -4,6 +4,7 @@
 // TEAM-342: Added Hive page with dynamic iframe
 // TEAM-XXX: Added narration listener for Queen iframe events
 // TEAM-350: Log build mode on startup
+// TEAM-405: Added Marketplace pages (LLM Models, Image Models, Rbee Workers)
 
 import { useEffect } from 'react'
 import { SidebarProvider } from '@rbee/ui/atoms'
@@ -14,6 +15,9 @@ import HivePage from './pages/HivePage'
 import QueenPage from './pages/QueenPage'
 import KeeperPage from './pages/ServicesPage'
 import SettingsPage from './pages/SettingsPage'
+import { MarketplaceLlmModels } from './pages/MarketplaceLlmModels'
+import { MarketplaceImageModels } from './pages/MarketplaceImageModels'
+import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
 import { setupNarrationListener } from './utils/narrationListener'
 import { broadcastThemeChanges } from '@rbee/iframe-bridge'
 
@@ -49,6 +53,9 @@ function App() {
             <Route path="/" element={<KeeperPage />} />
             <Route path="/queen" element={<QueenPage />} />
             <Route path="/hive/:hiveId" element={<HivePage />} />
+            <Route path="/marketplace/llm-models" element={<MarketplaceLlmModels />} />
+            <Route path="/marketplace/image-models" element={<MarketplaceImageModels />} />
+            <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/help" element={<HelpPage />} />
           </Routes>

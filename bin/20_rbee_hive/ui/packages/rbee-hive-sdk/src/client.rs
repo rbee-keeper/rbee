@@ -77,19 +77,24 @@ impl HiveClient {
         let callback = on_line.clone();
 
         // TEAM-353: Use existing job-client!
-        let job_id = self.inner
+        // TEAM-404: submit_and_stream now returns (job_id, future)
+        // We need to await the stream_future inline since it borrows self
+        let (job_id, stream_future) = self
+            .inner
             .submit_and_stream(op, move |line| {
-                // Call JavaScript callback
-                let this = JsValue::null();
-                let line_js = JsValue::from_str(line);
-                
-                // Ignore callback errors (non-critical)
-                let _ = callback.call1(&this, &line_js);
-                
+                let line_clone = line.to_string();
+                let callback_clone = callback.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    let js_line = JsValue::from_str(&line_clone);
+                    let _ = callback_clone.call1(&JsValue::NULL, &js_line);
+                });
                 Ok(())
             })
             .await
             .map_err(error_to_js)?;
+
+        // TEAM-404: Await the stream future inline (can't spawn it due to lifetime)
+        stream_future.await.map_err(error_to_js)?;
 
         Ok(job_id)
     }

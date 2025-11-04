@@ -46,12 +46,16 @@ mod tests {
                 hive_install,
                 hive_uninstall,
                 hive_rebuild,
+                marketplace_list_models,
+                marketplace_search_models,
             ])
             .typ::<NarrationEvent>()
-            .typ::<lifecycle_local::DaemonStatus>();
+            .typ::<lifecycle_local::DaemonStatus>()
+            .typ::<marketplace_sdk::Model>()
+            .typ::<marketplace_sdk::ModelSource>();
 
         builder
-            .export(Typescript::default(), "ui/src/generated/bindings.ts")
+            .export(Typescript::default(), "ui/app/src/generated/bindings.ts")
             .expect("Failed to export typescript bindings");
     }
 }
@@ -546,4 +550,46 @@ pub async fn get_installed_hives() -> Result<Vec<String>, String> {
     
     n!("get_installed_hives", "Found {} installed hives", installed.len());
     Ok(installed)
+}
+
+// ============================================================================
+// MARKETPLACE COMMANDS
+// ============================================================================
+
+/// List models from HuggingFace
+/// TEAM-405: Search HuggingFace models for marketplace browsing
+#[tauri::command]
+#[specta::specta]
+pub async fn marketplace_list_models(
+    query: Option<String>,
+    limit: Option<u32>,
+) -> Result<Vec<marketplace_sdk::Model>, String> {
+    use marketplace_sdk::HuggingFaceClient;
+    use observability_narration_core::n;
+
+    n!("marketplace_list_models", "🔍 Searching HuggingFace models: query={:?}, limit={:?}", query, limit);
+
+    let client = HuggingFaceClient::new();
+    client
+        .list_models(query.clone(), limit)
+        .await
+        .map_err(|e| {
+            n!("marketplace_list_models", "❌ Error: {}", e);
+            format!("Failed to fetch models: {}", e)
+        })
+        .map(|models| {
+            n!("marketplace_list_models", "✅ Found {} models", models.len());
+            models
+        })
+}
+
+/// Search models from HuggingFace by query
+/// TEAM-405: Convenience wrapper for marketplace_list_models with required query
+#[tauri::command]
+#[specta::specta]
+pub async fn marketplace_search_models(
+    query: String,
+    limit: Option<u32>,
+) -> Result<Vec<marketplace_sdk::Model>, String> {
+    marketplace_list_models(Some(query), limit).await
 }

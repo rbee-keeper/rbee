@@ -1,6 +1,7 @@
 # Model Management Component
 
-**TEAM-381: Modular, readable component structure**
+**TEAM-381: Modular, readable component structure**  
+**TEAM-405: Removed marketplace search - now focuses on LOCAL CATALOG management**
 
 ## Structure
 
@@ -11,31 +12,30 @@ ModelManagement/
 ├── utils.ts                     # Utility functions (detection, filtering)
 ├── DownloadedModelsView.tsx     # Downloaded models table
 ├── LoadedModelsView.tsx         # Loaded models table
-├── SearchResultsView.tsx        # HuggingFace search results
-├── FilterPanel.tsx              # Search filter controls
 ├── ModelDetailsPanel.tsx        # Model details sidebar
-└── README.md                    # This file
+├── README.md                    # This file
+├── SearchResultsView.tsx        # ❌ REMOVED (TEAM-405) - use MarketplaceSearch
+├── FilterPanel.tsx              # ❌ REMOVED (TEAM-405) - use MarketplaceSearch
+└── utils.ts                     # ❌ REMOVED (TEAM-405) - use marketplace-sdk
 ```
 
 ## Component Responsibilities
 
 ### `index.tsx` - Main Component
 - **Role:** Orchestration and state management
-- **State:** View mode, selected model, search query, filters
+- **State:** View mode, selected model
 - **Responsibilities:**
-  - Manage tabs (Downloaded, Loaded, Search)
+  - Manage tabs (Downloaded, Loaded)
   - Coordinate between child components
   - Handle model operations (load, unload, delete)
-- **Size:** ~170 lines
+- **Size:** ~125 lines (TEAM-405: reduced from 181)
 
 ### `types.ts` - Type Definitions
 - **Role:** Shared TypeScript interfaces
 - **Exports:**
-  - `ViewMode` - Tab selection type
-  - `Model` - Local model interface
-  - `HFModel` - HuggingFace model interface
-  - `FilterState` - Search filter state
-- **Size:** ~30 lines
+  - `ViewMode` - Tab selection type ('downloaded' | 'loaded')
+  - `ModelInfo` - Local model interface (from SDK)
+- **Size:** ~10 lines (TEAM-405: reduced from 18)
 
 ### `utils.ts` - Utility Functions
 - **Role:** Pure functions for detection and filtering
@@ -63,25 +63,15 @@ ModelManagement/
   - Unload action
 - **Size:** ~90 lines
 
-### `SearchResultsView.tsx` - HuggingFace Search
-- **Role:** Search and display HuggingFace models
-- **Features:**
-  - Debounced search (500ms)
-  - Client-side filtering
-  - Loading/error/empty states
-  - Architecture and format badges
-  - Download action
-- **Size:** ~200 lines
+### ❌ `SearchResultsView.tsx` - REMOVED (TEAM-405)
+- **Reason:** Marketplace search moved to separate MarketplaceSearch component
+- **Replacement:** Use `@rbee/marketplace-sdk` HuggingFaceClient
+- **Size:** 207 lines removed
 
-### `FilterPanel.tsx` - Search Filters
-- **Role:** Filter controls for HuggingFace search
-- **Filters:**
-  - Format (GGUF, SafeTensors)
-  - Architecture (LLaMA, Mistral, Phi, Gemma, Qwen)
-  - Max Size (5GB, 15GB, 30GB, All)
-  - License (Open Source Only)
-  - Sort By (Downloads, Likes, Recent)
-- **Size:** ~160 lines
+### ❌ `FilterPanel.tsx` - REMOVED (TEAM-405)
+- **Reason:** Marketplace filters moved to MarketplaceSearch component
+- **Replacement:** Use `@rbee/marketplace-sdk` ModelFilters
+- **Size:** 160 lines removed
 
 ### `ModelDetailsPanel.tsx` - Model Details
 - **Role:** Display selected model details and actions
@@ -233,5 +223,8 @@ This modular structure makes the Model Management component:
 - **Easy to test** - Components are independent
 - **Easy to extend** - New features fit naturally
 
-Total size: ~960 lines split across 8 files (avg ~120 lines/file)
-vs. Original monolith: ~800 lines in 1 file
+**TEAM-405 Update:**
+- Before: ~960 lines split across 8 files
+- After: ~593 lines split across 5 files
+- **Removed:** 367 lines (SearchResultsView, FilterPanel, utils)
+- **Reason:** Marketplace search moved to separate component using marketplace-sdk

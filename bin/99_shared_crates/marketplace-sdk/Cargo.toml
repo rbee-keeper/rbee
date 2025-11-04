@@ -41,14 +41,21 @@ web-sys = { version = "0.3", features = [
 ] }
 
 # HTTP client (WASM-compatible)
-reqwest = { version = "0.12", default-features = false, features = ["json"] }
+# TEAM-405: Added rustls-tls for HTTPS support (native Rust only, not WASM)
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# TEAM-405: URL encoding for query parameters
+urlencoding = "2.1"
 
 # Async runtime (WASM-compatible)
-tokio = { version = "1", features = ["sync"], default-features = false }
+tokio = { version = "1", features = ["sync", "rt"], default-features = false }
 
 # Error handling
 anyhow = "1.0"
 thiserror = "1.0"
+
+# TEAM-405: Tauri type generation (non-WASM only)
+specta = { version = "=2.0.0-rc.22", optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

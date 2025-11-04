@@ -220,13 +220,14 @@ impl WorkerProvisioner {
     }
     
     /// Determine worker type from worker_id
+    /// TEAM-404: Updated to use simplified WorkerType enum
     fn determine_worker_type(&self, worker_id: &str) -> Result<WorkerType> {
         if worker_id.contains("cpu") {
-            Ok(WorkerType::CpuLlm)
+            Ok(WorkerType::Cpu)
         } else if worker_id.contains("cuda") {
-            Ok(WorkerType::CudaLlm)
+            Ok(WorkerType::Cuda)
         } else if worker_id.contains("metal") {
-            Ok(WorkerType::MetalLlm)
+            Ok(WorkerType::Metal)
         } else {
             anyhow::bail!("Unknown worker type for worker_id: {}", worker_id);
         }
@@ -421,20 +422,20 @@ mod tests {
     fn test_determine_worker_type_cpu() {
         let provisioner = WorkerProvisioner::new().unwrap();
         let worker_type = provisioner.determine_worker_type("llm-worker-rbee-cpu").unwrap();
-        assert_eq!(worker_type, WorkerType::CpuLlm);
+        assert_eq!(worker_type, WorkerType::Cpu);
     }
     
     #[test]
     fn test_determine_worker_type_cuda() {
         let provisioner = WorkerProvisioner::new().unwrap();
         let worker_type = provisioner.determine_worker_type("llm-worker-rbee-cuda").unwrap();
-        assert_eq!(worker_type, WorkerType::CudaLlm);
+        assert_eq!(worker_type, WorkerType::Cuda);
     }
     
     #[test]
     fn test_determine_worker_type_metal() {
         let provisioner = WorkerProvisioner::new().unwrap();
         let worker_type = provisioner.determine_worker_type("llm-worker-rbee-metal").unwrap();
-        assert_eq!(worker_type, WorkerType::MetalLlm);
+        assert_eq!(worker_type, WorkerType::Metal);
     }
 }

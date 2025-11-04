@@ -1,9 +1,12 @@
 // TEAM-404: Storybook story for MarketplaceGrid
+// TEAM-405: Fixed generic type inference for Story type
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ModelCard, type ModelCardProps } from '../ModelCard'
-import { MarketplaceGrid } from './MarketplaceGrid'
+import { MarketplaceGrid, type MarketplaceGridProps } from './MarketplaceGrid'
 
-const meta: Meta<typeof MarketplaceGrid> = {
+type MockModel = ModelCardProps['model']
+
+const meta: Meta<typeof MarketplaceGrid<MockModel>> = {
   title: 'Marketplace/Organisms/MarketplaceGrid',
   component: MarketplaceGrid,
   parameters: {
@@ -13,9 +16,7 @@ const meta: Meta<typeof MarketplaceGrid> = {
 }
 
 export default meta
-type Story = StoryObj<typeof MarketplaceGrid>
-
-type MockModel = ModelCardProps['model']
+type Story = StoryObj<MarketplaceGridProps<MockModel>>
 
 const mockModels: MockModel[] = [
   {

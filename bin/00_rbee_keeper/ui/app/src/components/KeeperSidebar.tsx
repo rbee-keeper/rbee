@@ -3,6 +3,7 @@
 // TEAM-339: Simplified to work with react-resizable-panels (removed fixed-width Sidebar wrapper)
 // TEAM-340: Added Queen navigation item with iframe page
 // TEAM-342: Added Hives section with dynamic navigation to installed hives
+// TEAM-405: Added Marketplace section with LLM Models, Image Models, Rbee Workers
 
 import { ThemeToggle } from "@rbee/ui/molecules";
 import {
@@ -11,6 +12,9 @@ import {
   HomeIcon,
   ServerIcon,
   SettingsIcon,
+  BrainIcon,
+  ImageIcon,
+  PackageIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSshHives, useInstalledHives } from "@/store/hiveQueries";
@@ -85,6 +89,51 @@ export function KeeperSidebar() {
                   </Link>
                 );
               })}
+            </nav>
+          </div>
+
+          {/* TEAM-405: Marketplace section */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold font-serif text-muted-foreground uppercase tracking-wider px-2">
+              Marketplace
+            </h3>
+            <nav className="space-y-1">
+              <Link
+                to="/marketplace/llm-models"
+                title="Browse LLM models from HuggingFace"
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === "/marketplace/llm-models"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <BrainIcon className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">LLM Models</span>
+              </Link>
+              <Link
+                to="/marketplace/image-models"
+                title="Browse image models from CivitAI"
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === "/marketplace/image-models"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <ImageIcon className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">Image Models</span>
+              </Link>
+              <Link
+                to="/marketplace/rbee-workers"
+                title="Browse rbee worker binaries"
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === "/marketplace/rbee-workers"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <PackageIcon className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">Rbee Workers</span>
+              </Link>
             </nav>
           </div>
 

@@ -1,4 +1,5 @@
 // TEAM-402: Marketplace SDK main entry point
+// TEAM-405: Added HuggingFace client for native Rust (non-WASM) usage
 
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
@@ -8,8 +9,16 @@ use wasm_bindgen::prelude::*;
 // Modules
 mod types;
 
+// TEAM-405: Native Rust API clients (not WASM)
+#[cfg(not(target_arch = "wasm32"))]
+mod huggingface;
+
 // Re-export types
 pub use types::*;
+
+// TEAM-405: Re-export native clients
+#[cfg(not(target_arch = "wasm32"))]
+pub use huggingface::HuggingFaceClient;
 
 // TEAM-404: Explicitly re-export WorkerType and Platform for WASM/TypeScript generation
 // These are canonical types from artifacts-contract

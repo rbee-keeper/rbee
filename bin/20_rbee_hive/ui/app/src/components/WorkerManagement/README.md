@@ -1,6 +1,7 @@
 # Worker Management Component
 
-**TEAM-382: Clean MVP with card-based layout**
+**TEAM-382: Clean MVP with card-based layout**  
+**TEAM-405: Removed marketplace catalog - now focuses on LOCAL CATALOG management**
 
 ## Structure
 
@@ -9,29 +10,31 @@ WorkerManagement/
 ├── index.tsx                    # Main component (orchestration)
 ├── types.ts                     # Shared TypeScript types
 ├── WorkerCard.tsx               # Individual worker card
+├── InstalledWorkersView.tsx     # Installed workers list
 ├── ActiveWorkersView.tsx        # Active workers grid
 ├── SpawnWorkerView.tsx          # Spawn worker form
-└── README.md                    # This file
+├── README.md                    # This file
+└── WorkerCatalogView.tsx        # ❌ REMOVED (TEAM-405) - use MarketplaceSearch
 ```
 
 ## Component Responsibilities
 
 ### `index.tsx` - Main Component
 - **Role:** Orchestration and state management
-- **State:** View mode (active/spawn)
+- **State:** View mode (installed/active/spawn)
 - **Responsibilities:**
-  - Manage tabs (Active Workers, Spawn Worker)
+  - Manage tabs (Installed, Active, Spawn)
   - Coordinate between child components
-  - Handle worker operations (spawn)
-- **Size:** ~100 lines
+  - Handle worker operations (spawn, terminate)
+- **Size:** ~120 lines (TEAM-405: reduced from 169)
 
 ### `types.ts` - Type Definitions
 - **Role:** Shared TypeScript interfaces
 - **Exports:**
-  - `ViewMode` - Tab selection type
+  - `ViewMode` - Tab selection type ('installed' | 'active' | 'spawn')
   - `SpawnFormState` - Spawn form state
   - Re-exports `ProcessStats` from SDK (auto-generated from Rust)
-- **Size:** ~15 lines
+- **Size:** ~16 lines (TEAM-405: removed 'catalog' from ViewMode)
 
 ### `WorkerCard.tsx` - Worker Card
 - **Role:** Display individual worker metrics
@@ -43,6 +46,14 @@ WorkerManagement/
   - Uptime display
   - Terminate button (optional)
 - **Size:** ~130 lines
+
+### `InstalledWorkersView.tsx` - Installed Workers List
+- **Role:** Display installed worker binaries from local catalog
+- **Features:**
+  - Lists workers from WorkerListInstalled operation
+  - Shows type, version, size, path
+  - Loading/error/empty states
+- **Size:** ~150 lines (TEAM-382)
 
 ### `ActiveWorkersView.tsx` - Active Workers Grid
 - **Role:** Display all active workers in a grid
@@ -61,6 +72,11 @@ WorkerManagement/
   - Device ID input (for GPU workers)
   - Submit button with loading state
 - **Size:** ~160 lines
+
+### ❌ `WorkerCatalogView.tsx` - REMOVED (TEAM-405)
+- **Reason:** Marketplace catalog moved to separate MarketplaceSearch component
+- **Replacement:** Use `@rbee/marketplace-sdk` WorkerClient
+- **Size:** 410 lines removed
 
 ## Usage
 
@@ -157,4 +173,8 @@ This component provides a clean MVP for worker management:
 - **Responsive design** - Works on all screen sizes
 - **Easy to extend** - Clear structure for future features
 
-Total size: ~475 lines split across 5 files (avg ~95 lines/file)
+**TEAM-405 Update:**
+- Before: ~885 lines split across 6 files (including WorkerCatalogView)
+- After: ~475 lines split across 5 files
+- **Removed:** 410 lines (WorkerCatalogView)
+- **Reason:** Marketplace catalog moved to separate component using marketplace-sdk

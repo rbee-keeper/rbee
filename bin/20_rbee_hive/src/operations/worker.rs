@@ -292,10 +292,11 @@ async fn handle_worker_spawn(
     );
 
     // Determine worker type from worker string
+    // TEAM-404: Updated to use simplified WorkerType enum
     let worker_type = match request.worker.as_str() {
-        "cuda" => WorkerType::CudaLlm,
-        "cpu" => WorkerType::CpuLlm,
-        "metal" => WorkerType::MetalLlm,
+        "cuda" => WorkerType::Cuda,
+        "cpu" => WorkerType::Cpu,
+        "metal" => WorkerType::Metal,
         _ => return Err(anyhow::anyhow!("Unsupported worker type: {}", request.worker)),
     };
 

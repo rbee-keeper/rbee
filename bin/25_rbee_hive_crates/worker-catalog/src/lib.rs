@@ -83,12 +83,13 @@ impl WorkerCatalog {
     /// - llm-worker-rbee-cuda  
     /// - llm-worker-rbee-metal
     ///
+    /// TEAM-404: Updated to use simplified WorkerType enum (Cpu, Cuda, Metal)
     /// These are the binaries that can be built and installed by lifecycle-local.
     pub fn hardcoded_workers() -> Vec<(WorkerType, &'static str, &'static str)> {
         vec![
-            (WorkerType::CpuLlm, "llm-worker-rbee-cpu", "llm-worker-rbee"),
-            (WorkerType::CudaLlm, "llm-worker-rbee-cuda", "llm-worker-rbee"),
-            (WorkerType::MetalLlm, "llm-worker-rbee-metal", "llm-worker-rbee"),
+            (WorkerType::Cpu, "llm-worker-rbee-cpu", "llm-worker-rbee"),
+            (WorkerType::Cuda, "llm-worker-rbee-cuda", "llm-worker-rbee"),
+            (WorkerType::Metal, "llm-worker-rbee-metal", "llm-worker-rbee"),
         ]
     }
 }
@@ -138,7 +139,7 @@ mod tests {
 
         let worker = WorkerBinary::new(
             "cpu-llm-worker-rbee-v0.1.0-linux".to_string(),
-            WorkerType::CpuLlm,
+            WorkerType::Cpu,
             Platform::Linux,
             temp_dir.path().join("cpu-llm-worker-rbee"),
             1024 * 1024, // 1 MB
@@ -151,14 +152,14 @@ mod tests {
 
         // Get
         let retrieved = catalog.get("cpu-llm-worker-rbee-v0.1.0-linux").unwrap();
-        assert_eq!(retrieved.worker_type(), &WorkerType::CpuLlm);
+        assert_eq!(retrieved.worker_type(), &WorkerType::Cpu);
 
         // List
         let workers = catalog.list();
         assert_eq!(workers.len(), 1);
 
         // Find by type and platform
-        let found = catalog.find_by_type_and_platform(WorkerType::CpuLlm, Platform::Linux);
+        let found = catalog.find_by_type_and_platform(WorkerType::Cpu, Platform::Linux);
         assert!(found.is_some());
 
         // Remove

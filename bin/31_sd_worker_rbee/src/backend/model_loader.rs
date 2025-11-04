@@ -110,10 +110,11 @@ impl ModelLoader {
         )?;
 
         // Create scheduler (our implementation)
-        let scheduler = crate::backend::scheduler::DDIMScheduler::new(
+        // TEAM-404: Box the scheduler to use as trait object
+        let scheduler = Box::new(crate::backend::scheduler::DDIMScheduler::new(
             1000, // num_train_timesteps
             self.version.default_steps(),
-        );
+        ));
 
         let components = ModelComponents {
             version: self.version,

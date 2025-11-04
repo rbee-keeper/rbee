@@ -1,8 +1,9 @@
 // TEAM-382: Worker Management - Main component with clean composition
-// Updated to focus on worker installation lifecycle first
+// TEAM-405: Removed "Catalog" tab - marketplace search moved to separate component
+// TEAM-405: Now focuses on LOCAL CATALOG management (Installed, Active, Spawn)
 
 import { useState } from 'react'
-import { Server, Plus, Activity, Package } from 'lucide-react'
+import { Server, Plus, Activity } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -15,12 +16,10 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@rbee/ui/atoms'
-import { parseNarrationLine } from '@rbee/ui/organisms'
 import { useWorkers, useWorkerOperations } from '@rbee/rbee-hive-react'
 import { useModels } from '@rbee/rbee-hive-react'
 import { ActiveWorkersView } from './ActiveWorkersView'
 import { SpawnWorkerView } from './SpawnWorkerView'
-import { WorkerCatalogView } from './WorkerCatalogView'
 import { InstalledWorkersView } from './InstalledWorkersView'
 import type { ViewMode, SpawnFormState } from './types'
 
@@ -28,23 +27,9 @@ export function WorkerManagement() {
   const { workers, loading, error } = useWorkers()
   const { models } = useModels()
   
-  // TEAM-384: Parse SSE messages for better formatting
-  const [installProgress, setInstallProgress] = useState<string[]>([])
+  const { spawnWorker, terminateWorker, isPending } = useWorkerOperations()
   
-  const { spawnWorker, installWorker, terminateWorker, isPending, isSuccess, isError, error: installError, reset } = useWorkerOperations({
-    onSSEMessage: (line: string) => {
-      // TEAM-384: Parse the line to extract just the message
-      const parsed = parseNarrationLine(line)
-      setInstallProgress(prev => [...prev, parsed.message])
-    }
-  })
-  
-  const handleReset = () => {
-    reset()
-    setInstallProgress([])
-  }
-  
-  const [viewMode, setViewMode] = useState<ViewMode>('catalog') // Start with catalog - install workers first!
+  const [viewMode, setViewMode] = useState<ViewMode>('installed') // Start with installed workers
 
   // Separate idle and active workers
   const idleWorkers = workers.filter((w: any) => w.gpu_util_pct === 0.0)
@@ -58,19 +43,7 @@ export function WorkerManagement() {
     })
   }
   
-  const handleInstallWorker = async (workerId: string) => {
-    // TEAM-378: Call hive backend via SDK → JobClient → Job Server
-    console.log('[WorkerManagement] 📥 Received install request for:', workerId)
-    console.log('[WorkerManagement] 🚀 Calling useWorkerOperations.installWorker()...')
-    installWorker(workerId)
-    console.log('[WorkerManagement] ✓ installWorker() called (async operation started)')
-  }
-  
-  const handleRemoveWorker = async (workerId: string) => {
-    // TODO: Call hive backend to remove worker
-    console.log('Removing worker:', workerId)
-    // DELETE /v1/workers/{workerId}
-  }
+  // TEAM-405: Removed handleInstallWorker and handleRemoveWorker - use MarketplaceSearch component
   
   // TEAM-384: Handle worker termination (stop running worker)
   const handleTerminateWorker = (pid: number) => {
@@ -99,13 +72,10 @@ export function WorkerManagement() {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* TEAM-405: Removed "Catalog" tab - use MarketplaceSearch component instead */}
         {/* View Mode Tabs */}
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="catalog">
-              <Package className="h-4 w-4 mr-2" />
-              Catalog
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="installed">
               <Server className="h-4 w-4 mr-2" />
               Installed
@@ -120,24 +90,9 @@ export function WorkerManagement() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Worker Catalog Tab - FIRST PRIORITY */}
-          <TabsContent value="catalog" className="space-y-4">
-            <WorkerCatalogView
-              onInstall={handleInstallWorker}
-              onRemove={handleRemoveWorker}
-              installProgress={installProgress}
-              isInstalling={isPending}
-              installSuccess={isSuccess}
-              installError={isError ? installError : null}
-              onResetInstall={handleReset}
-            />
-          </TabsContent>
-
           {/* Installed Workers Tab */}
           <TabsContent value="installed" className="space-y-4">
-            <InstalledWorkersView
-              onUninstall={handleRemoveWorker}
-            />
+            <InstalledWorkersView />
           </TabsContent>
 
           {/* Active Workers Tab */}

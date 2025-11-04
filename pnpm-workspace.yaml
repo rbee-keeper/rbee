@@ -15,6 +15,7 @@ packages:
   - frontend/packages/react-hooks
   - frontend/reference
   - bin/00_rbee_keeper/ui/app
+  - bin/00_rbee_keeper/ui/packages/marketplace-sdk
   - bin/00_rbee_keeper/ui/packages/marketplace-react
   - bin/10_queen_rbee/ui/app
   - bin/10_queen_rbee/ui/packages/queen-rbee-sdk
@@ -26,7 +27,6 @@ packages:
   - bin/30_llm_worker_rbee/ui/packages/llm-worker-sdk
   - bin/30_llm_worker_rbee/ui/packages/llm-worker-react
   - bin/80-hono-worker-catalog
-  - bin/99_shared_crates/marketplace-sdk
 
 onlyBuiltDependencies:
   - esbuild

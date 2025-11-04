@@ -36,7 +36,9 @@
     "./icons": "./src/icons/index.ts",
     "./icons/*": "./src/icons/*",
     "./providers": "./src/providers/index.ts",
-    "./providers/*": "./src/providers/*/index.ts"
+    "./providers/*": "./src/providers/*/index.ts",
+    "./marketplace": "./src/marketplace/index.ts",
+    "./marketplace/*": "./src/marketplace/*/index.ts"
   },
   "files": [
     "src",

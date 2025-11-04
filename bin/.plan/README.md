@@ -1,56 +1,235 @@
-# ⭐ START HERE - Implementation Plans
+# ⭐ START HERE - Marketplace Implementation
 
-**Last Updated:** 2025-11-04  
+**Last Updated:** 2025-11-04 (TEAM-400)  
 **Status:** ✅ READY TO IMPLEMENT  
 **Timeline:** 5 weeks (6 checklists)
 
 ---
 
-## 🎯 ENGINEERS: Read This First
+## 🚨 ENGINEERS: Read This First (2 minutes)
 
-**You are here:** This is the ONLY entry point you need.
+### If You're Just Starting
+1. Read [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md) (10 minutes)
+2. Open [CHECKLIST_01_SHARED_COMPONENTS.md](./CHECKLIST_01_SHARED_COMPONENTS.md)
+3. Start checking boxes
 
-**Your next step:** Read [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md) (10 minutes)
+### If You're Continuing Work
+1. Find which checklist you're on (see "Current Status" below)
+2. Open that checklist file
+3. Find the first unchecked box
+4. Do that task
+5. Check the box
+6. Repeat
 
-**Then:** Follow the 6 checklists in order. Each checkbox is a task. Check them off as you complete them.
-
----
-
-## 📋 The 6 Checklists (Your Roadmap)
-
-### For Engineers Implementing: **[CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md)** ← START HERE
-
-This is your implementation guide with 6 comprehensive checklists:
-- **Checklist 01:** Shared Components (1 week)
-- **Checklist 02:** Marketplace SDK (3 days)
-- **Checklist 03:** Next.js Site (1 week)
-- **Checklist 04:** Tauri Protocol & Auto-Run (1 week)
-- **Checklist 05:** Keeper UI - Tab System + Worker Spawning (1 week)
-- **Checklist 06:** Launch Demo - WOW FACTOR MVP (3 days)
-
-**What you get:** Every task broken down into checkboxes. Just follow the list.
+### If You're Joining Mid-Project
+1. Read [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md) (10 minutes)
+2. Check "Current Status" below to see what's done
+3. Open the current checklist
+4. Start from the first unchecked box
 
 ---
 
-## 📊 How Far Along Are We?
+## 📊 Current Status (Update This!)
 
-**Check CHECKLIST_00_OVERVIEW.md** - It has the complete progress tracking system.
+**Current Week:** Week 1  
+**Current Checklist:** CHECKLIST_01 (Marketplace Components)  
+**Current Phase:** Phase 5 - Export & Documentation  
+**Last Completed Task:** Created all marketplace components (TEAM-401)
 
-Each checklist shows:
-- ✅ Which tasks are complete
-- 🎯 What you're working on now
-- ⚠️ Any blockers
-- 📈 Overall progress percentage
+**Progress:**
+- [x] Week 1: Components + SDK (5/7 days - TEAM-401 in progress)
+- [ ] Week 2-3: Next.js + Protocol (0/14 days)
+- [ ] Week 4: Keeper UI (0/7 days)
+- [ ] Week 5: Launch (0/7 days)
 
-**That's it. One file to check progress. One file to see what's next.**
+**Next Task:** Complete testing and verification (Phase 6)
+
+---
+
+## 📋 The 6 Checklists (Implementation Order)
+
+### Week 1: Foundations
+
+**[CHECKLIST_01_SHARED_COMPONENTS.md](./CHECKLIST_01_SHARED_COMPONENTS.md)** (1 week)
+- **What:** Create marketplace components in `rbee-ui/src/marketplace/`
+- **Deliverables:** 4 organisms, 3 templates, 3 pages
+- **Dependencies:** None (start immediately)
+- **Status:** 📋 NOT STARTED
+
+**[CHECKLIST_02_MARKETPLACE_SDK.md](./CHECKLIST_02_MARKETPLACE_SDK.md)** (3 days, parallel)
+- **What:** Create Rust + WASM SDK in `bin/99_shared_crates/marketplace-sdk/`
+- **Deliverables:** HuggingFace client, CivitAI client, Worker client
+- **Dependencies:** None (can run parallel with 01)
+- **Status:** 📋 NOT STARTED
+
+### Week 2-3: Applications (Parallel)
+
+**[CHECKLIST_03_NEXTJS_SITE.md](./CHECKLIST_03_NEXTJS_SITE.md)** (1 week)
+- **What:** Update existing `frontend/apps/marketplace/` with SSG pages
+- **Deliverables:** 1000+ model pages, workers pages, SEO
+- **Dependencies:** Checklist 01 + 02 complete
+- **Status:** ⏳ WAITING
+
+**[CHECKLIST_04_TAURI_PROTOCOL.md](./CHECKLIST_04_TAURI_PROTOCOL.md)** (1 week, parallel)
+- **What:** Add `rbee://` protocol to existing Keeper
+- **Deliverables:** Protocol handler, auto-run, installers
+- **Dependencies:** Checklist 01 + 02 complete
+- **Status:** ⏳ WAITING
+
+### Week 4: Keeper UI
+
+**[CHECKLIST_05_KEEPER_UI.md](./CHECKLIST_05_KEEPER_UI.md)** (1 week)
+- **What:** Add marketplace page to existing Keeper UI
+- **Deliverables:** Marketplace page, install functionality
+- **Dependencies:** Checklist 04 complete
+- **Status:** ⏳ WAITING
+
+### Week 5: Launch
+
+**[CHECKLIST_06_LAUNCH_DEMO.md](./CHECKLIST_06_LAUNCH_DEMO.md)** (3 days)
+- **What:** Record demo video and launch
+- **Deliverables:** Demo video, launch materials, posts
+- **Dependencies:** Checklist 05 complete
+- **Status:** ⏳ WAITING
+
+---
+
+## 🎯 What to Do Right Now
+
+### If Nothing is Started
+```bash
+# 1. Read overview (10 minutes)
+cat CHECKLIST_00_OVERVIEW.md
+
+# 2. Open first checklist
+cat CHECKLIST_01_SHARED_COMPONENTS.md
+
+# 3. Start with Phase 1, Task 1.1
+# Create directories in rbee-ui/src/marketplace/
+```
+
+### If Week 1 is In Progress
+```bash
+# 1. Open current checklist
+cat CHECKLIST_01_SHARED_COMPONENTS.md  # or CHECKLIST_02
+
+# 2. Find first unchecked box [ ]
+# 3. Do that task
+# 4. Check the box [x]
+# 5. Commit your work
+# 6. Repeat
+```
+
+### If Week 1 is Complete
+```bash
+# 1. Verify Week 1 success criteria (see CHECKLIST_00)
+# 2. Start Week 2-3 (parallel work possible)
+cat CHECKLIST_03_NEXTJS_SITE.md      # Team A
+cat CHECKLIST_04_TAURI_PROTOCOL.md   # Team B (or same team, later)
+```
+
+### If Week 2-3 is Complete
+```bash
+# 1. Verify Week 2-3 success criteria
+# 2. Start Week 4
+cat CHECKLIST_05_KEEPER_UI.md
+```
+
+### If Week 4 is Complete
+```bash
+# 1. Verify Week 4 success criteria
+# 2. Start Week 5
+cat CHECKLIST_06_LAUNCH_DEMO.md
+```
+
+---
+
+## ⚠️ CRITICAL: What Already EXISTS (Don't Create!)
+
+**TEAM-400 Updated:** All checklists now use existing infrastructure.
+
+### These Already Exist (Use Them!)
+- ✅ `frontend/apps/marketplace/` - Next.js 15 + Cloudflare configured
+- ✅ `bin/00_rbee_keeper/` - Tauri v2 app
+- ✅ `bin/00_rbee_keeper/ui/` - React UI with routing + Zustand
+- ✅ `frontend/packages/rbee-ui/` - Atomic design UI library
+- ✅ `frontend/packages/rbee-ui/src/marketplace/` - Empty, ready for components
+
+### These Need to be Created
+- 🆕 `rbee-ui/src/marketplace/organisms/` - ModelCard, WorkerCard, etc.
+- 🆕 `rbee-ui/src/marketplace/templates/` - ModelListTemplate, etc.
+- 🆕 `rbee-ui/src/marketplace/pages/` - ModelsPage, etc.
+- 🆕 `bin/99_shared_crates/marketplace-sdk/` - Rust + WASM SDK
+- 🆕 `bin/00_rbee_keeper/src/handlers/protocol.rs` - Protocol handler
+- 🆕 `bin/00_rbee_keeper/ui/src/pages/MarketplacePage.tsx` - Marketplace page
+
+### DO NOT Create These (Common Mistakes!)
+- ❌ `frontend/packages/marketplace-components/` - Use rbee-ui instead!
+- ❌ `frontend/packages/marketplace-sdk/` - Use Rust crate instead!
+- ❌ New Next.js app - Use existing marketplace app!
+- ❌ New Tauri project - Use existing Keeper!
+- ❌ New UI app - Use existing Keeper UI!
+
+---
+
+## 📈 How to Track Progress
+
+### Daily Updates
+Update "Current Status" section above:
+```markdown
+**Current Week:** Week 1
+**Current Checklist:** CHECKLIST_01
+**Current Phase:** Phase 2 - Organisms
+**Last Completed Task:** Created ModelCard component
+```
+
+### Weekly Updates
+Check off completed weeks in "Progress" section:
+```markdown
+**Progress:**
+- [x] Week 1: Components + SDK (7/7 days) ✅
+- [ ] Week 2-3: Next.js + Protocol (0/14 days)
+- [ ] Week 4: Keeper UI (0/7 days)
+- [ ] Week 5: Launch (0/7 days)
+```
+
+### Checklist Status Updates
+Update status in "The 6 Checklists" section:
+```markdown
+**Status:** 🎯 IN PROGRESS (Phase 2/6)
+**Status:** ✅ COMPLETE
+**Status:** ⏳ WAITING
+```
+
+---
+
+## 🚀 Quick Reference
+
+### What Are We Building?
+- **Marketplace Site:** marketplace.rbee.dev with 1000+ model pages (SSG)
+- **Protocol Handler:** `rbee://` protocol for one-click installs
+- **Keeper Integration:** Marketplace page in Keeper desktop app
+- **Demo:** Google search → Running model in 60 seconds
+
+### Timeline
+- **Week 1:** Components + SDK (can start now)
+- **Week 2-3:** Next.js + Protocol (parallel)
+- **Week 4:** Keeper UI
+- **Week 5:** Launch
+
+### Success Criteria
+- User can go from Google → running model in <60 seconds
+- 1000+ model pages indexed by Google
+- `rbee://` protocol works on all platforms
+- Demo video published with >1,000 views
 
 ---
 
 ## 📚 Architecture Docs (Reference Only)
 
-**You don't need to read these unless a checklist tells you to.**
+**Don't read these upfront. The checklists will tell you when to read them.**
 
-The checklists reference these documents when needed:
+Supporting documents:
 - `COMPLETE_ONBOARDING_FLOW.md` - End-to-end user flow
 - `MARKETPLACE_SHARED_COMPONENTS_ARCHITECTURE.md` - Component design
 - `URL_PROTOCOL_REGISTRATION.md` - Platform-specific `rbee://` setup
@@ -58,37 +237,60 @@ The checklists reference these documents when needed:
 - `WORKER_SPAWNING_3_STEPS.md` - Spawning wizard UX
 - `WOW_FACTOR_LAUNCH_MVP.md` - Demo & launch plan
 
-**Don't read them all upfront. Read them when the checklist says to.**
+---
+
+## ❓ FAQ
+
+**Q: Where do I start?**  
+A: Read [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md), then open [CHECKLIST_01_SHARED_COMPONENTS.md](./CHECKLIST_01_SHARED_COMPONENTS.md)
+
+**Q: How do I know what to do next?**  
+A: Open the current checklist, find the first unchecked box [ ], do that task
+
+**Q: What if I'm joining mid-project?**  
+A: Check "Current Status" above, read the current checklist, start from first unchecked box
+
+**Q: Can I work on multiple checklists at once?**  
+A: Week 1 is sequential. Week 2-3 can be parallel (Checklist 03 || 04). Week 4-5 is sequential.
+
+**Q: What if I get stuck?**  
+A: Each checklist has a "Notes" section with common pitfalls and solutions
+
+**Q: How do I track progress?**  
+A: Update "Current Status" section in this README daily
+
+**Q: What's the critical path?**  
+A: 01 → 02 → (03 || 04) → 05 → 06
+
+**Q: What if tests fail?**  
+A: Don't move forward. Debug, fix, re-run tests. Only proceed when green.
 
 ---
 
-## 🚀 Quick Facts
+## 🎯 Your Next Action
 
-**What are we building?**
-- SEO-optimized marketplace (marketplace.rbee.dev) with 1000+ model pages
-- Tauri desktop app (Keeper) with `rbee://` protocol handler
-- One-click flow: Google search → Running model in 60 seconds
+### Right Now
+1. ✅ You've read this README
+2. 📖 Read [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md) (10 minutes)
+3. 📋 Open [CHECKLIST_01_SHARED_COMPONENTS.md](./CHECKLIST_01_SHARED_COMPONENTS.md)
+4. ✏️ Start checking boxes
 
-**Timeline:** 5 weeks
+### Every Day
+1. Open current checklist
+2. Find first unchecked box
+3. Do that task
+4. Check the box
+5. Update "Current Status" in this README
+6. Commit your work
+7. Repeat
 
-**Success:** User searches "Llama 3.2 rbee" on Google → Clicks result → Clicks "Run with rbee" → Model spawns automatically
-
----
-
-## ❓ Questions?
-
-**"Where do I start?"**
-→ [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md)
-
-**"How do I check progress?"**
-→ [CHECKLIST_00_OVERVIEW.md](./CHECKLIST_00_OVERVIEW.md) has success criteria for each week
-
-**"What if I need architecture details?"**
-→ The checklists will tell you which docs to read when you need them
-
-**"What's the development order?"**
-→ Week 1: Components + SDK → Week 2-3: Next.js + Protocol (parallel) → Week 4: UI → Week 5: Launch
+### Every Week
+1. Verify success criteria (see CHECKLIST_00)
+2. Update progress in this README
+3. Move to next checklist
 
 ---
 
-**That's it. Now go read CHECKLIST_00_OVERVIEW.md and start checking boxes!** 🐝
+**That's it. Now go read CHECKLIST_00_OVERVIEW.md and start checking boxes!** 🐝🎊
+
+**TEAM-400 - All checklists aligned with actual architecture!**

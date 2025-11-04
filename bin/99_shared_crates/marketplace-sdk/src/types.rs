@@ -6,8 +6,13 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 // TEAM-402: Re-export core artifact types (catalog types)
-// Note: Marketplace has its own Worker/WorkerType for display purposes
-pub use artifacts_contract::{ModelEntry as CatalogModelEntry, WorkerBinary as CatalogWorkerBinary};
+// TEAM-404: WorkerType and Platform are now canonical from artifacts-contract
+pub use artifacts_contract::{
+    ModelEntry as CatalogModelEntry, 
+    WorkerBinary as CatalogWorkerBinary,
+    WorkerType,
+    // Platform is re-exported in lib.rs for WASM generation
+};
 
 /// Model from marketplace (HuggingFace or CivitAI)
 /// 
@@ -17,17 +22,27 @@ pub use artifacts_contract::{ModelEntry as CatalogModelEntry, WorkerBinary as Ca
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct Model {
+    /// Unique model identifier
     pub id: String,
+    /// Model name
     pub name: String,
+    /// Model description
     pub description: String,
+    /// Model author (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author: Option<String>,
+    /// Model preview image URL (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image_url: Option<String>,
+    /// Model tags for categorization
     pub tags: Vec<String>,
+    /// Total download count
     pub downloads: u64,
+    /// Total likes/favorites
     pub likes: u64,
+    /// Model size (human-readable, e.g., "4.2 GB")
     pub size: String,
+    /// Source marketplace (HuggingFace or CivitAI)
     pub source: ModelSource,
 }
 
@@ -35,46 +50,51 @@ pub struct Model {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum ModelSource {
+    /// HuggingFace model hub
     HuggingFace,
+    /// CivitAI model marketplace
     CivitAI,
 }
 
-/// Worker binary info
+/// Worker binary info for marketplace display
+/// TEAM-404: Uses canonical WorkerType from artifacts-contract
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct Worker {
+    /// Unique worker identifier
     pub id: String,
+    /// Worker name
     pub name: String,
+    /// Worker description
     pub description: String,
+    /// Worker version (semver)
     pub version: String,
+    /// Supported platforms (linux, macos, windows)
     pub platform: Vec<String>,
+    /// Supported architectures (x86_64, aarch64)
     pub architecture: Vec<String>,
+    /// Worker type (cpu, cuda, metal)
     pub worker_type: WorkerType,
 }
 
-/// Worker type
-#[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub enum WorkerType {
-    #[serde(rename = "cpu")]
-    Cpu,
-    #[serde(rename = "cuda")]
-    Cuda,
-    #[serde(rename = "metal")]
-    Metal,
-}
+// TEAM-404: WorkerType is now re-exported from artifacts-contract (see top of file)
+// No need to redefine it here - single source of truth!
 
 /// Model filters
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ModelFilters {
+    /// Search query string
     #[serde(skip_serializing_if = "Option::is_none")]
     pub search: Option<String>,
+    /// Category filter
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
+    /// Sort order
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort: Option<SortOrder>,
+    /// Maximum number of results
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
 }
@@ -83,7 +103,10 @@ pub struct ModelFilters {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum SortOrder {
+    /// Sort by popularity (downloads, likes)
     Popular,
+    /// Sort by most recent
     Recent,
+    /// Sort by trending (recent popularity spike)
     Trending,
 }

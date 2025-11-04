@@ -10,56 +10,56 @@ use tsify::Tsify;
 
 use crate::status::ArtifactStatus;
 
-/// Worker type
+/// Worker type (canonical source of truth)
+/// TEAM-404: Simplified to match Hono catalog types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "lowercase")]
 pub enum WorkerType {
-    /// CPU-based LLM worker
-    CpuLlm,
-    /// CUDA-based LLM worker
-    CudaLlm,
-    /// Metal-based LLM worker (macOS)
-    MetalLlm,
+    /// CPU-based worker
+    Cpu,
+    /// CUDA-based worker (NVIDIA GPU)
+    Cuda,
+    /// Metal-based worker (Apple GPU)
+    Metal,
 }
 
 impl WorkerType {
     /// Get the binary name for this worker type
-    ///
-    /// TEAM-NARRATION-FIX: Updated to match actual binary names in Cargo.toml
+    /// TEAM-404: Updated to match simplified enum
     pub fn binary_name(&self) -> &str {
         match self {
-            WorkerType::CpuLlm => "llm-worker-rbee-cpu",
-            WorkerType::CudaLlm => "llm-worker-rbee-cuda",
-            WorkerType::MetalLlm => "llm-worker-rbee-metal",
+            WorkerType::Cpu => "llm-worker-rbee-cpu",
+            WorkerType::Cuda => "llm-worker-rbee-cuda",
+            WorkerType::Metal => "llm-worker-rbee-metal",
         }
     }
 
     /// Get the crate name (for building)
-    ///
-    /// TEAM-NARRATION-FIX: All workers are in the same crate
     pub fn crate_name(&self) -> &str {
         "llm-worker-rbee"
     }
 
     /// Get the features needed to build this worker type
-    ///
-    /// TEAM-NARRATION-FIX: Feature flags for compile-time backend selection
     pub fn build_features(&self) -> Option<&str> {
         match self {
-            WorkerType::CpuLlm => Some("cpu"),
-            WorkerType::CudaLlm => Some("cuda"),
-            WorkerType::MetalLlm => Some("metal"),
+            WorkerType::Cpu => Some("cpu"),
+            WorkerType::Cuda => Some("cuda"),
+            WorkerType::Metal => Some("metal"),
         }
     }
 }
 
-/// Platform
+/// Platform (canonical source of truth)
+/// TEAM-404: Matches Hono catalog types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "lowercase")]
 pub enum Platform {
     /// Linux
     Linux,
     /// macOS
+    #[serde(rename = "macos")]
     MacOS,
     /// Windows
     Windows,
@@ -69,13 +69,24 @@ impl Platform {
     /// Get the current platform
     pub fn current() -> Self {
         #[cfg(target_os = "linux")]
-        return Platform::Linux;
+        {
+            return Platform::Linux;
+        }
 
         #[cfg(target_os = "macos")]
-        return Platform::MacOS;
+        {
+            return Platform::MacOS;
+        }
 
         #[cfg(target_os = "windows")]
-        return Platform::Windows;
+        {
+            return Platform::Windows;
+        }
+
+        #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+        {
+            panic!("Unsupported platform");
+        }
     }
 
     /// Get the file extension for this platform

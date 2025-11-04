@@ -1,4 +1,5 @@
 // TEAM-401: Marketplace worker card organism
+// TEAM-404: Now uses canonical WorkerType from marketplace-sdk
 import { Badge } from '@rbee/ui/atoms/Badge'
 import { Button } from '@rbee/ui/atoms/Button'
 import {
@@ -13,6 +14,12 @@ import {
 import { Cpu, Download } from 'lucide-react'
 import * as React from 'react'
 
+// TEAM-404: Import canonical WorkerType from marketplace-sdk
+// This ensures type consistency across Rust (artifacts-contract), WASM (marketplace-sdk), and React
+// TODO: Once marketplace-sdk is published to npm, import from '@rbee/marketplace-sdk'
+// For now, we use the inline type that matches the generated WASM types
+export type WorkerType = 'cpu' | 'cuda' | 'metal'
+
 export interface WorkerCardProps {
   worker: {
     id: string
@@ -21,7 +28,7 @@ export interface WorkerCardProps {
     version: string
     platform: string[]
     architecture: string[]
-    workerType: 'cpu' | 'cuda' | 'metal'
+    workerType: WorkerType
   }
   onAction?: (workerId: string) => void
   actionButton?: React.ReactNode

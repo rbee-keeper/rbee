@@ -1,17 +1,21 @@
-// Worker Catalog Types
-// Matches Rust types in:
-// - bin/25_rbee_hive_crates/worker-catalog/src/types.rs (WorkerType, Platform)
-// - bin/97_contracts/worker-contract/src/types.rs (WorkerInfo)
+// TEAM-404: Worker Catalog Types
+// CANONICAL SOURCE: bin/97_contracts/artifacts-contract/src/worker.rs
+// Generated TypeScript types: bin/99_shared_crates/marketplace-sdk/pkg/bundler/marketplace_sdk.d.ts
+//
+// These types are AUTO-GENERATED from Rust via WASM/tsify
+// DO NOT modify these manually - they come from artifacts-contract via marketplace-sdk
 
 /**
  * Worker type (backend acceleration)
- * Matches Rust enum: WorkerType { CpuLlm, CudaLlm, MetalLlm }
+ * CANONICAL SOURCE: artifacts-contract::WorkerType
+ * Generated via: marketplace-sdk WASM build
  */
 export type WorkerType = "cpu" | "cuda" | "metal";
 
 /**
  * Platform (operating system)
- * Matches Rust enum: Platform { Linux, MacOS, Windows }
+ * CANONICAL SOURCE: artifacts-contract::Platform
+ * Generated via: marketplace-sdk WASM build
  */
 export type Platform = "linux" | "macos" | "windows";
 

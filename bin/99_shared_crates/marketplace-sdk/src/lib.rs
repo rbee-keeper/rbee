@@ -11,8 +11,37 @@ mod types;
 // Re-export types
 pub use types::*;
 
+// TEAM-404: Explicitly re-export WorkerType and Platform for WASM/TypeScript generation
+// These are canonical types from artifacts-contract
+// Note: Platform is used in wasm_bindgen function below
+#[allow(unused_imports)]
+pub use artifacts_contract::{WorkerType, Platform};
+
 /// Initialize WASM module
 #[wasm_bindgen(start)]
 pub fn init() {
     web_sys::console::log_1(&"🛒 [Marketplace SDK] WASM initialized!".into());
+}
+
+// TEAM-404: Dummy functions to force TypeScript type generation for WorkerType and Platform
+// These ensure tsify generates the types even though they're re-exported from artifacts-contract
+
+/// Get WorkerType as string (forces TypeScript type generation)
+#[wasm_bindgen]
+pub fn worker_type_to_string(worker_type: WorkerType) -> String {
+    match worker_type {
+        WorkerType::Cpu => "cpu".to_string(),
+        WorkerType::Cuda => "cuda".to_string(),
+        WorkerType::Metal => "metal".to_string(),
+    }
+}
+
+/// Get Platform as string (forces TypeScript type generation)
+#[wasm_bindgen]
+pub fn platform_to_string(platform: Platform) -> String {
+    match platform {
+        Platform::Linux => "linux".to_string(),
+        Platform::MacOS => "macos".to_string(),
+        Platform::Windows => "windows".to_string(),
+    }
 }

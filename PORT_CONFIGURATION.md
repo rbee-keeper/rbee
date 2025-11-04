@@ -1,7 +1,7 @@
 # Port Configuration Reference
 
-**Version:** 2.0  
-**Last Updated:** 2025-10-25  
+**Version:** 3.0  
+**Last Updated:** 2025-11-04  
 **Purpose:** Central registry of all port numbers used in the rbee ecosystem
 
 ---
@@ -12,21 +12,24 @@
 Backend APIs:
 7833 ← queen-rbee (orchestrator)
 7835 ← rbee-hive (hive manager)
-8000 ← vllm-worker
+8000 ← vllm-worker (PLANNED)
 8080 ← llm-worker
-8188 ← comfy-worker
+8188 ← comfy-worker (PLANNED)
 8787 ← hono-worker-catalog
 
 Frontend (Development):
 5173 ← keeper GUI (Tauri)
-6006 ← Storybook
+5174 ← sd-worker UI (dev)
+6006 ← rbee-ui Storybook
+6007 ← commercial Storybook
 7811 ← user-docs
 7822 ← commercial
+7823 ← marketplace (Next.js SSG)
 7834 ← queen UI (dev) → 7833/ (prod)
 7836 ← hive UI (dev) → 7835/ (prod)
 7837 ← llm-worker UI (dev) → 8080/ (prod)
-7838 ← comfy-worker UI (dev) → 8188/ (prod)
-7839 ← vllm-worker UI (dev) → 8000/ (prod)
+7838 ← comfy-worker UI (dev) → 8188/ (prod - PLANNED)
+7839 ← vllm-worker UI (dev) → 8000/ (prod - PLANNED)
 ```
 
 ---
@@ -40,8 +43,9 @@ Frontend (Development):
 | **queen-rbee** | `7833` | Orchestrator daemon (HTTP API) |
 | **rbee-hive** | `7835` | Hive daemon (HTTP API) |
 | **llm-worker** | `8080` | LLM worker (HTTP API) |
-| **comfy-worker** | `8188` | ComfyUI worker (HTTP API) |
-| **vllm-worker** | `8000` | vLLM worker (HTTP API) |
+| **sd-worker** | `8081` | Stable Diffusion worker (HTTP API) |
+| **comfy-worker** | `8188` | ComfyUI worker (HTTP API) - PLANNED |
+| **vllm-worker** | `8000` | vLLM worker (HTTP API) - PLANNED |
 | **hono-worker-catalog** | `8787` | Hono worker catalog (Cloudflare Worker dev) |
 
 ### Frontend Services (Development)
@@ -49,13 +53,16 @@ Frontend (Development):
 | Service | Port | Description | Production |
 |---------|------|-------------|------------|
 | **rbee-keeper GUI** | `5173` | Keeper Tauri GUI (dev server) | Tauri app |
+| **sd-worker UI** | `5174` | SD worker UI (dev server) | Hosted at `8081/` |
 | **queen-rbee UI** | `7834` | Queen UI (dev server) | Hosted at `7833/` |
 | **rbee-hive UI** | `7836` | Hive UI (dev server) | Hosted at `7835/` |
 | **llm-worker UI** | `7837` | LLM worker UI (dev server) | Hosted at `8080/` |
-| **comfy-worker UI** | `7838` | ComfyUI worker UI (dev server) | Hosted at `8188/` |
-| **vllm-worker UI** | `7839` | vLLM worker UI (dev server) | Hosted at `8000/` |
+| **comfy-worker UI** | `7838` | ComfyUI worker UI (dev server) - PLANNED | Hosted at `8188/` |
+| **vllm-worker UI** | `7839` | vLLM worker UI (dev server) - PLANNED | Hosted at `8000/` |
 | **rbee-ui Storybook** | `6006` | Component library | N/A |
+| **commercial Storybook** | `6007` | Commercial site components | N/A |
 | **commercial** | `7822` | Marketing site (Next.js) | Deployed |
+| **marketplace** | `7823` | Model marketplace (Next.js SSG) | Deployed |
 | **user-docs** | `7811` | Documentation (Next.js + Nextra) | Deployed |
 | **web-ui** | `5179` | OLD UI (DEPRECATED) | N/A |
 
@@ -318,17 +325,21 @@ Tests use **dynamic port allocation** to avoid conflicts.
 | Range | Purpose | Notes |
 |-------|---------|-------|
 | `5173` | Keeper GUI dev server | Tauri frontend (Vite default) |
-| `6006` | Storybook | Component library |
+| `5174` | SD worker UI (dev) | Frontend dev server |
+| `6006` | rbee-ui Storybook | Component library |
+| `6007` | commercial Storybook | Commercial site components |
 | `7811` | user-docs | Next.js documentation |
 | `7822` | commercial | Next.js marketing site |
+| `7823` | marketplace | Next.js model marketplace (SSG) |
 | `7833` | queen-rbee API | Backend HTTP API |
 | `7834` | queen-rbee UI (dev) | Frontend dev server |
 | `7835` | rbee-hive API | Backend HTTP API |
 | `7836` | rbee-hive UI (dev) | Frontend dev server |
-| `7837-7839` | Worker UIs (dev) | LLM, ComfyUI, vLLM dev servers |
-| `8000` | vLLM worker API | Backend HTTP API |
+| `7837-7839` | Worker UIs (dev) | LLM, ComfyUI (planned), vLLM (planned) |
+| `8000` | vLLM worker API | Backend HTTP API (PLANNED) |
 | `8080` | LLM worker API | Backend HTTP API |
-| `8188` | ComfyUI worker API | Backend HTTP API |
+| `8081` | SD worker API | Backend HTTP API |
+| `8188` | ComfyUI worker API | Backend HTTP API (PLANNED) |
 | `8787` | Hono worker catalog | Cloudflare Worker dev server |
 
 **Port Assignment Strategy:**
@@ -410,6 +421,9 @@ These should be updated when ports change to keep documentation accurate:
 
 **commercial (Port 7822):**
 - `frontend/apps/commercial/package.json` - Next.js dev script
+
+**marketplace (Port 7823):**
+- `frontend/apps/marketplace/package.json` - Next.js dev script
 
 **user-docs (Port 7811):**
 - `frontend/apps/user-docs/package.json` - Next.js dev script
@@ -639,6 +653,7 @@ cd frontend/packages/rbee-ui && pnpm dev &     # Port 6006 (Storybook)
 
 # Existing apps
 cd frontend/apps/commercial && pnpm dev &      # Port 7822
+cd frontend/apps/marketplace && pnpm dev &     # Port 7823
 cd frontend/apps/user-docs && pnpm dev &       # Port 7811
 ```
 
@@ -668,6 +683,7 @@ curl http://localhost:7836         # rbee-hive UI
 curl http://localhost:7837         # llm-worker UI
 curl http://localhost:6006         # rbee-ui Storybook
 curl http://localhost:7822         # commercial
+curl http://localhost:7823         # marketplace
 curl http://localhost:7811         # user-docs
 ```
 
@@ -695,20 +711,23 @@ curl http://localhost:8080/        # llm-worker UI (served by binary)
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2025-11-04 | 3.0 | Added marketplace app (port 7823) for Next.js SSG model marketplace |
 | 2025-10-25 | 2.0 | Updated for hierarchical UI architecture (keeper, queen, hive, workers) |
 | 2025-10-25 | 1.0 | Initial port configuration document created |
 
 ---
 
 **Maintained by:** rbee Core Team  
-**Last Review:** 2025-10-25
+**Last Review:** 2025-11-04
 
 ## Summary
 
-**Total Ports Tracked:** 15
+**Total Ports Tracked:** 19
 
-**Backend APIs:** 6 (queen, hive, 3 worker types, catalog service)  
-**Frontend Dev:** 9 (keeper, queen, hive, 3 workers, storybook, commercial, user-docs)  
+**Backend APIs:** 7 (queen, hive, 4 worker types [2 active, 2 planned], catalog service)  
+**Frontend Dev:** 12 (keeper, 2 worker UIs [1 active, 2 planned], queen, hive, 2 storybooks, commercial, marketplace, user-docs)  
 **Deprecated:** 1 (web-ui)
+
+**Note:** Ports marked as PLANNED are reserved for future worker types (ComfyUI, vLLM) that are not yet implemented.
 
 **Key Principle:** Each binary hosts its own UI at ROOT (/) in production. API routes take priority via router merge order.

@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-04  
 **Status:** 📋 READY TO START  
-**Total Timeline:** 3.5 weeks
+**Total Timeline:** 5 weeks
 
 ---
 
@@ -111,6 +111,53 @@ Build marketplace system with SEO-optimized Next.js site and Tauri desktop app, 
 
 ---
 
+### Checklist 05: Keeper UI (Tab System + Worker Spawning)
+**Timeline:** 1 week  
+**Dependencies:** Checklist 04  
+**File:** [CHECKLIST_05_KEEPER_UI.md](./CHECKLIST_05_KEEPER_UI.md)
+
+**What:** Add browser-like tab system and 3-step worker spawning wizard to Keeper.
+
+**Deliverables:**
+- Tab system with drag-and-drop (Zustand + dnd-kit)
+- 3-step worker spawning wizard
+- Worker tab view with real-time status
+- Dashboard integration
+- Auto-run flow integration
+
+**Key Tasks:**
+- Tab system foundation (Days 1-2)
+- Worker spawning wizard (Days 3-4)
+- Worker tab view (Day 5)
+- Dashboard integration (Day 6)
+- Auto-run integration & testing (Day 7)
+
+---
+
+### Checklist 06: Launch Demo (WOW FACTOR MVP)
+**Timeline:** 3 days  
+**Dependencies:** Checklist 05  
+**File:** [CHECKLIST_06_LAUNCH_DEMO.md](./CHECKLIST_06_LAUNCH_DEMO.md)
+
+**What:** Prepare and execute "WOW FACTOR" demo showcasing dual GPU simultaneous execution.
+
+**Deliverables:**
+- Demo environment setup
+- Demo script and timing
+- Professional demo video recording
+- Launch materials (YouTube, Reddit, Twitter)
+- Post-launch monitoring
+
+**Key Tasks:**
+- Hardware/software verification (Day 1 morning)
+- Demo script & rehearsal (Day 1 afternoon)
+- Recording setup (Day 2 morning)
+- Demo recording & editing (Day 2 afternoon)
+- Launch materials (Day 3 morning)
+- Launch execution (Day 3 afternoon)
+
+---
+
 ## 📅 Timeline & Dependencies
 
 ### Week 1: Foundations
@@ -131,10 +178,20 @@ Day 8-14: Checklist 04 (Protocol) - Parallel
 
 **Note:** Checklist 04 is simpler than originally planned because Keeper is already a Tauri app!
 
-### Week 3.5: Polish
+### Week 4: Keeper UI
 ```
-Day 15-17: Final testing, bug fixes, documentation
+Day 15-21: Checklist 05 (Tab System + Worker Spawning)
 ```
+
+**Requires Checklist 04 complete.**
+
+### Week 5: Launch
+```
+Day 22-24: Checklist 06 (Demo Preparation & Launch)
+Day 25-28: Post-launch monitoring, bug fixes, iteration
+```
+
+**Requires Checklist 05 complete.**
 
 ---
 
@@ -142,16 +199,19 @@ Day 15-17: Final testing, bug fixes, documentation
 
 ```
 Checklist 01 (Components) ──┐
-                            ├──> Checklist 03 (Next.js)
-Checklist 02 (SDK) ─────────┤
-                            └──> Checklist 04 (Tauri)
+                            ├──> Checklist 03 (Next.js) ──┐
+Checklist 02 (SDK) ─────────┤                             │
+                            └──> Checklist 04 (Tauri) ────┴──> Checklist 05 (Keeper UI) ──> Checklist 06 (Launch)
 ```
 
 **Blockers:**
 - Checklist 03 and 04 both need 01 and 02 complete
 - But 03 and 04 can run in parallel
+- Checklist 05 needs 04 complete (protocol handler required)
+- Checklist 06 needs 05 complete (UI must work)
 - Week 1 is sequential (01 → 02)
 - Week 2-3 is parallel (03 || 04)
+- Week 4-5 is sequential (05 → 06)
 
 ---
 
@@ -162,29 +222,30 @@ Checklist 02 (SDK) ─────────┤
 Week 1: Checklist 01 + 02
 Week 2: Checklist 03
 Week 3: Checklist 04
-Week 3.5: Polish
+Week 4: Checklist 05
+Week 5: Checklist 06 + Polish
 ```
 
-**Total: 3.5 weeks**
+**Total: 5 weeks**
 
 ### Option 2: Two Teams (Parallel)
 ```
-Team A: Checklist 01 + 02 (Week 1) → Checklist 03 (Week 2)
-Team B: Wait (Week 1) → Checklist 04 (Week 2)
-Both: Polish (Week 3)
+Team A: Checklist 01 + 02 (Week 1) → Checklist 03 (Week 2) → Checklist 05 (Week 4)
+Team B: Wait (Week 1) → Checklist 04 (Week 2) → Help Team A (Week 4)
+Both: Checklist 06 + Polish (Week 5)
 ```
 
-**Total: 3 weeks**
+**Total: 5 weeks** (no time savings, more coordination)
 
 ### Option 3: Three Teams (Maximum Parallel)
 ```
-Team A: Checklist 01 (Week 1) → Checklist 03 (Week 2)
-Team B: Checklist 02 (Days 1-3) → Help Team C
-Team C: Wait (Week 1) → Checklist 04 (Week 2)
-All: Polish (Week 3)
+Team A: Checklist 01 (Week 1) → Checklist 03 (Week 2) → Checklist 05 (Week 4)
+Team B: Checklist 02 (Days 1-3) → Checklist 04 (Week 2) → Help Team A (Week 4)
+Team C: Wait (Weeks 1-3) → Checklist 06 prep (Week 4) → Launch (Week 5)
+All: Polish (Week 5)
 ```
 
-**Total: 3 weeks**
+**Total: 5 weeks** (better utilization, same timeline)
 
 ---
 
@@ -196,22 +257,35 @@ All: Polish (Week 3)
 - [ ] All tests pass
 - [ ] Documentation complete
 
-### Week 2 Complete
+### Week 2-3 Complete
 - [ ] marketplace.rbee.dev is live
 - [ ] 1000+ model pages indexed
 - [ ] Tauri app builds successfully
 - [ ] `rbee://` protocol works
-
-### Week 3 Complete
 - [ ] Auto-run flow works end-to-end
 - [ ] Installation detection works
 - [ ] All platforms packaged
-- [ ] Documentation complete
+
+### Week 4 Complete
+- [ ] Tab system works with drag-and-drop
+- [ ] Worker spawning wizard completes 3 steps
+- [ ] Worker tabs show real-time status
+- [ ] Dashboard integration complete
+- [ ] All UI tests passing
+
+### Week 5 Complete
+- [ ] Demo video recorded and edited
+- [ ] Launch materials prepared
+- [ ] Video published to YouTube
+- [ ] Posts live on Reddit, Twitter, HN
+- [ ] Initial user feedback collected
 
 ### Final Success
-- [ ] User can go from Google → running model in 5 minutes
-- [ ] SEO: "model name + rbee" rankings
-- [ ] Conversion: >50% install rate
+- [ ] User can go from Google → running model in <60 seconds
+- [ ] Demo video: >1,000 views in first week
+- [ ] GitHub: >100 stars
+- [ ] SEO: "model name + rbee" pages indexed
+- [ ] Conversion: >50% install rate from marketplace
 - [ ] Performance: <3s page load
 
 ---
@@ -250,9 +324,11 @@ Team A (Day 3/7 - Checklist 01):
 - [ ] Read CHECKLIST_01_SHARED_COMPONENTS.md
 - [ ] Read CHECKLIST_02_MARKETPLACE_SDK.md
 - [ ] Read CHECKLIST_03_NEXTJS_SITE.md
-- [ ] Read CHECKLIST_04_TAURI_INTEGRATION.md
+- [ ] Read CHECKLIST_04_TAURI_PROTOCOL.md
+- [ ] Read CHECKLIST_05_KEEPER_UI.md
+- [ ] Read CHECKLIST_06_LAUNCH_DEMO.md
 
-**Time: ~1 hour**
+**Time: ~90 minutes**
 
 ### Step 2: Set Up Environment
 - [ ] Install Node.js 18+
@@ -284,6 +360,20 @@ Team A (Day 3/7 - Checklist 01):
 - [ ] Follow each checklist
 
 **Time: 2 weeks**
+
+### Step 6: Keeper UI (Checklist 05)
+- [ ] Wait for 04 to complete
+- [ ] Implement tab system and worker spawning
+- [ ] Follow checklist step-by-step
+
+**Time: 1 week**
+
+### Step 7: Launch Preparation (Checklist 06)
+- [ ] Wait for 05 to complete
+- [ ] Prepare demo video
+- [ ] Execute launch plan
+
+**Time: 3 days**
 
 ---
 
@@ -334,7 +424,7 @@ Team A (Day 3/7 - Checklist 01):
 ## 🎯 Final Checklist
 
 **Before starting:**
-- [ ] Read all 4 checklists (1 hour)
+- [ ] Read all 6 checklists (90 minutes)
 - [ ] Understand dependencies
 - [ ] Set up environment
 - [ ] Assign teams (if multiple)
@@ -350,11 +440,12 @@ Team A (Day 3/7 - Checklist 01):
 - [ ] Weekly review
 
 **After completion:**
-- [ ] All checklists 100% complete
+- [ ] All 6 checklists 100% complete
 - [ ] All tests passing
 - [ ] All documentation complete
 - [ ] End-to-end testing done
-- [ ] Ready to launch!
+- [ ] Demo video published
+- [ ] Ready to launch! 🚀
 
 ---
 

@@ -1,6 +1,7 @@
 // TEAM-405: Model list with table template
 //! Complete template combining FilterBar + ModelTable
 //! Pure presentation + control, NO data fetching
+//! NOTE: This component uses hooks and requires 'use client' in consuming code
 
 import { FilterBar } from '../../organisms/FilterBar'
 import { ModelTable } from '../../organisms/ModelTable'

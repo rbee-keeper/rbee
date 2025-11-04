@@ -28,12 +28,32 @@ const getFileExtension = (filename: string) => {
 }
 
 /**
- * Card for displaying list of model files
+ * Filter files to show only essential ones for rbee installation
+ */
+const filterEssentialFiles = (files: ModelFile[]): ModelFile[] => {
+  const essentialPatterns = [
+    /^model.*\.(safetensors|bin|gguf)$/i,  // Model weights
+    /^config\.json$/i,                      // Model config
+    /^tokenizer.*\.json$/i,                 // Tokenizer files
+    /^generation_config\.json$/i,           // Generation config
+    /^special_tokens_map\.json$/i,          // Special tokens
+    /^vocab\.(json|txt)$/i,                 // Vocabulary
+    /^merges\.txt$/i,                       // BPE merges
+  ]
+  
+  return files.filter(file => 
+    essentialPatterns.some(pattern => pattern.test(file.rfilename))
+  )
+}
+
+/**
+ * Card for displaying list of essential model files
+ * Shows only files needed for rbee installation (weights, config, tokenizer)
  * 
  * @example
  * ```tsx
  * <ModelFilesList
- *   title="Model Files"
+ *   title="Essential Files"
  *   files={[
  *     { rfilename: 'config.json' },
  *     { rfilename: 'model.safetensors' },
@@ -44,24 +64,26 @@ const getFileExtension = (filename: string) => {
  */
 export function ModelFilesList({ 
   files, 
-  title = 'Model Files', 
+  title = 'Essential Files', 
   maxHeight = '300px',
   className 
 }: ModelFilesListProps) {
-  if (files.length === 0) return null
+  const essentialFiles = filterEssentialFiles(files)
+  
+  if (essentialFiles.length === 0) return null
 
   return (
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>{title}</CardTitle>
-          <Badge variant="secondary">{files.length} files</Badge>
+          <Badge variant="secondary">{essentialFiles.length} files</Badge>
         </div>
       </CardHeader>
       <CardContent>
         <ScrollArea style={{ maxHeight }}>
           <div className="space-y-2">
-            {files.map((file, index) => {
+            {essentialFiles.map((file, index) => {
               const Icon = getFileIcon(file.rfilename)
               const ext = getFileExtension(file.rfilename)
               

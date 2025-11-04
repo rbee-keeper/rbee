@@ -136,41 +136,67 @@ export function ModelDetailPageTemplate({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Back button */}
       {showBackButton && onBack && (
         <Button
           variant="ghost"
           size="sm"
           onClick={onBack}
+          className="mb-4"
         >
           <ArrowLeft className="size-4 mr-2" />
           Back to Models
         </Button>
       )}
 
-      {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Stats and actions */}
-        <aside className="lg:col-span-1 space-y-6">
-          {/* Quick stats */}
-          <ModelStatsCard
-            stats={[
-              { icon: Download, label: 'Downloads', value: model.downloads },
-              { icon: Heart, label: 'Likes', value: model.likes },
-              { icon: HardDrive, label: 'Size', value: model.size, badge: true }
-            ]}
-          />
+      {/* Hero Header */}
+      <header className="space-y-6">
+        <div className="space-y-4">
+          {/* Model name and author */}
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
+              {model.name}
+            </h1>
+            {model.author && (
+              <p className="text-xl text-muted-foreground">
+                by <span className="font-semibold">{model.author}</span>
+              </p>
+            )}
+          </div>
 
-          {/* Actions */}
-          <nav className="space-y-3" aria-label="Model actions">
+          {/* Primary stats bar */}
+          <div className="flex flex-wrap items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <Download className="size-4 text-muted-foreground" />
+              <span className="font-semibold">{model.downloads.toLocaleString()}</span>
+              <span className="text-muted-foreground">downloads</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Heart className="size-4 text-muted-foreground" />
+              <span className="font-semibold">{model.likes.toLocaleString()}</span>
+              <span className="text-muted-foreground">likes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <HardDrive className="size-4 text-muted-foreground" />
+              <span className="font-semibold">{model.size}</span>
+            </div>
+            {model.pipeline_tag && (
+              <Badge variant="secondary" className="text-sm">
+                {model.pipeline_tag}
+              </Badge>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-3">
             {onDownload && (
-              <Button className="w-full" size="lg" onClick={onDownload}>
+              <Button size="lg" onClick={onDownload}>
                 <Download className="size-4 mr-2" />
                 Download Model
               </Button>
             )}
-            <Button variant="outline" className="w-full" asChild>
+            <Button variant="outline" size="lg" asChild>
               <a
                 href={hfUrl}
                 target="_blank"
@@ -180,8 +206,14 @@ export function ModelDetailPageTemplate({
                 View on HuggingFace
               </a>
             </Button>
-          </nav>
+          </div>
+        </div>
+      </header>
 
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Model Files */}
+        <aside className="lg:col-span-1 space-y-6">
           {/* Model Files */}
           {model.siblings && model.siblings.length > 0 && (
             <ModelFilesList files={model.siblings} />

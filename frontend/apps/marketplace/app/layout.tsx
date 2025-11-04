@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type React from "react";
 // 🚨 TURBOREPO PATTERN: Import app CSS (with JIT scanning), then UI CSS (pre-built tokens)
 // ✅ App CSS: Enables arbitrary values like translate-y-[2rem] in app components
 // ✅ UI CSS: Provides design tokens and component styles
@@ -6,6 +7,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "@rbee/ui/styles.css";
 import { ThemeProvider } from "next-themes";
+import { MarketplaceNav } from "@/components/MarketplaceNav";
+import { Footer } from "@rbee/ui/organisms";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: {
@@ -37,9 +41,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-serif">
+      <body className="font-serif bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <MarketplaceNav />
+          <main id="main" className="pt-16 md:pt-14 min-h-screen">
+            <Suspense fallback={null}>{children}</Suspense>
+          </main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

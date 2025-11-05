@@ -1,0 +1,89 @@
+# TEAM-420: AUR package for rbee-keeper
+# Maintainer: rbee Team <team@rbee.dev>
+
+pkgname=rbee-keeper
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Desktop application for rbee - one-click LLM installation from marketplace"
+arch=('x86_64')
+url="https://marketplace.rbee.dev"
+license=('GPL3')
+depends=(
+    'webkit2gtk'
+    'gtk3'
+    'libappindicator-gtk3'
+)
+makedepends=(
+    'rust'
+    'cargo'
+    'nodejs'
+    'pnpm'
+    'git'
+)
+optdepends=(
+    'rbee-hive: Required for auto-download functionality'
+)
+provides=('rbee-keeper')
+conflicts=('rbee-keeper-bin' 'rbee-keeper-git')
+source=(
+    "rbee-keeper-${pkgver}.tar.gz::https://github.com/rbee-dev/llama-orch/archive/refs/tags/keeper-v${pkgver}.tar.gz"
+)
+sha256sums=('SKIP')  # TEAM-420: Update with actual checksum after first release
+
+# TEAM-420: Build from source
+build() {
+    cd "${srcdir}/llama-orch-keeper-v${pkgver}"
+    
+    # Build frontend
+    cd bin/00_rbee_keeper/ui
+    pnpm install --frozen-lockfile
+    pnpm build
+    
+    # Build Tauri app
+    cd ..
+    cargo tauri build --target x86_64-unknown-linux-gnu
+}
+
+# TEAM-420: Install to system
+package() {
+    cd "${srcdir}/llama-orch-keeper-v${pkgver}/bin/00_rbee_keeper"
+    
+    # Install binary
+    install -Dm755 \
+        "target/x86_64-unknown-linux-gnu/release/rbee-keeper" \
+        "${pkgdir}/usr/bin/rbee-keeper"
+    
+    # Install desktop file
+    install -Dm644 \
+        "${srcdir}/rbee-keeper.desktop" \
+        "${pkgdir}/usr/share/applications/rbee-keeper.desktop"
+    
+    # Install icon
+    install -Dm644 \
+        "icons/128x128.png" \
+        "${pkgdir}/usr/share/icons/hicolor/128x128/apps/rbee-keeper.png"
+    
+    # Install protocol handler
+    install -Dm644 \
+        "${srcdir}/rbee-protocol.xml" \
+        "${pkgdir}/usr/share/mime/packages/rbee-protocol.xml"
+}
+
+# TEAM-420: Post-install message
+post_install() {
+    echo ""
+    echo "==> rbee-keeper installed successfully!"
+    echo ""
+    echo "    To use rbee-keeper:"
+    echo "    1. Start rbee-hive: rbee-hive start"
+    echo "    2. Launch rbee-keeper from applications menu"
+    echo "    3. Visit marketplace.rbee.dev and click 'Run with rbee'"
+    echo ""
+    echo "    For more information:"
+    echo "    https://marketplace.rbee.dev/docs/installation"
+    echo ""
+}
+
+post_upgrade() {
+    post_install
+}

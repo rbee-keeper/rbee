@@ -1,0 +1,26 @@
+# TEAM-420: AUR package metadata
+# Generated with: makepkg --printsrcinfo > .SRCINFO
+
+pkgbase = rbee-keeper
+	pkgdesc = Desktop application for rbee - one-click LLM installation from marketplace
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://marketplace.rbee.dev
+	arch = x86_64
+	license = GPL3
+	makedepends = rust
+	makedepends = cargo
+	makedepends = nodejs
+	makedepends = pnpm
+	makedepends = git
+	depends = webkit2gtk
+	depends = gtk3
+	depends = libappindicator-gtk3
+	optdepends = rbee-hive: Required for auto-download functionality
+	provides = rbee-keeper
+	conflicts = rbee-keeper-bin
+	conflicts = rbee-keeper-git
+	source = rbee-keeper-0.1.0.tar.gz::https://github.com/rbee-dev/llama-orch/archive/refs/tags/keeper-v0.1.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = rbee-keeper

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEAM-420: MIME type registration for rbee:// protocol -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+    <mime-type type="x-scheme-handler/rbee">
+        <comment>rbee Protocol</comment>
+        <comment xml:lang="en">rbee Protocol Handler</comment>
+        <glob pattern="rbee://*"/>
+    </mime-type>
+</mime-info>

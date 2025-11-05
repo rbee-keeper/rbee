@@ -1,0 +1,246 @@
+name: Build rbee-keeper Installers
+# TEAM-420: Multi-platform installer builds for rbee-keeper
+# Builds .dmg (macOS), .deb/.AppImage (Linux), .msi (Windows)
+
+on:
+  push:
+    tags:
+      - 'keeper-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux builds
+          - platform: 'linux'
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            
+          # macOS builds (universal binary - Intel + Apple Silicon)
+          - platform: 'macos'
+            os: macos-latest
+            target: universal-apple-darwin
+            
+          # Windows builds
+          - platform: 'windows'
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # TEAM-420: Install Rust toolchain
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # TEAM-420: Rust cache for faster builds
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './bin/00_rbee_keeper -> target'
+
+      # TEAM-420: Install Node.js for frontend build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # TEAM-420: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: false
+
+      # TEAM-420: Install frontend dependencies
+      - name: Install frontend dependencies
+        run: |
+          cd bin/00_rbee_keeper/ui
+          pnpm install --frozen-lockfile
+
+      # TEAM-420: Linux-specific dependencies
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev
+
+      # TEAM-420: Build frontend
+      - name: Build frontend
+        run: |
+          cd bin/00_rbee_keeper/ui
+          pnpm build
+
+      # TEAM-420: Build Tauri app
+      - name: Build Tauri app
+        run: |
+          cd bin/00_rbee_keeper
+          cargo tauri build --target ${{ matrix.target }}
+
+      # TEAM-420: Upload Linux artifacts (.deb and .AppImage)
+      - name: Upload Linux artifacts
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rbee-keeper-linux-${{ github.sha }}
+          path: |
+            bin/00_rbee_keeper/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            bin/00_rbee_keeper/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+          if-no-files-found: error
+
+      # TEAM-420: Upload macOS artifacts (.dmg)
+      - name: Upload macOS artifacts
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rbee-keeper-macos-${{ github.sha }}
+          path: |
+            bin/00_rbee_keeper/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
+      # TEAM-420: Upload Windows artifacts (.msi)
+      - name: Upload Windows artifacts
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rbee-keeper-windows-${{ github.sha }}
+          path: |
+            bin/00_rbee_keeper/target/${{ matrix.target }}/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+  # TEAM-420: Create GitHub Release with all installers
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/keeper-v')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # TEAM-420: Download all artifacts
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rbee-keeper-linux-${{ github.sha }}
+          path: ./artifacts/linux
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rbee-keeper-macos-${{ github.sha }}
+          path: ./artifacts/macos
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rbee-keeper-windows-${{ github.sha }}
+          path: ./artifacts/windows
+
+      # TEAM-420: Generate checksums
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.msi" \) -exec sha256sum {} \; > SHA256SUMS
+          cat SHA256SUMS
+
+      # TEAM-420: Create GitHub Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/linux/**/*.deb
+            artifacts/linux/**/*.AppImage
+            artifacts/macos/**/*.dmg
+            artifacts/windows/**/*.msi
+            artifacts/SHA256SUMS
+          body: |
+            # rbee Keeper ${{ github.ref_name }}
+            
+            Desktop application for rbee - one-click LLM installation from marketplace.
+            
+            ## Features
+            - 🐝 One-click model installation from marketplace
+            - 🚀 Auto-download and worker spawning
+            - 🔗 rbee:// protocol support
+            - 📦 Marketplace integration
+            
+            ## Downloads
+            
+            ### Linux
+            - **Debian/Ubuntu:** `rbee-keeper_*_amd64.deb`
+            - **AppImage (Universal):** `rbee-keeper_*_amd64.AppImage`
+            - **AUR:** `yay -S rbee-keeper` (coming soon)
+            
+            ### macOS
+            - **Universal (Intel + Apple Silicon):** `rbee-keeper_*_universal.dmg`
+            
+            ### Windows
+            - **Installer:** `rbee-keeper_*_x64.msi`
+            
+            ## Installation
+            
+            ### Linux (Debian/Ubuntu)
+            ```bash
+            sudo dpkg -i rbee-keeper_*_amd64.deb
+            ```
+            
+            ### Linux (AppImage)
+            ```bash
+            chmod +x rbee-keeper_*_amd64.AppImage
+            ./rbee-keeper_*_amd64.AppImage
+            ```
+            
+            ### macOS
+            1. Download and open the .dmg file
+            2. Drag rbee Keeper to Applications folder
+            3. Open from Applications (may need to allow in Security & Privacy)
+            
+            ### Windows
+            1. Download and run the .msi installer
+            2. Follow installation wizard
+            3. Launch from Start Menu
+            
+            ## Verification
+            
+            Verify checksums:
+            ```bash
+            sha256sum -c SHA256SUMS
+            ```
+            
+            ## Requirements
+            - **rbee-hive** must be running for auto-download to work
+            - See: https://marketplace.rbee.dev/docs/installation
+            
+            ## Support
+            - Documentation: https://marketplace.rbee.dev/docs
+            - Issues: https://github.com/rbee-dev/llama-orch/issues
+            - Discord: https://discord.gg/rbee
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

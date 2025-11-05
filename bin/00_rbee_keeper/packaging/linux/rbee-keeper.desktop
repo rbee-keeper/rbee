@@ -1,0 +1,16 @@
+[Desktop Entry]
+# TEAM-420: Desktop entry for rbee-keeper
+Name=rbee Keeper
+Comment=One-click LLM installation from marketplace
+Exec=rbee-keeper %u
+Icon=rbee-keeper
+Terminal=false
+Type=Application
+Categories=Development;Utility;
+MimeType=x-scheme-handler/rbee;
+Keywords=llm;ai;model;marketplace;rbee;
+StartupNotify=true
+StartupWMClass=rbee-keeper
+
+# TEAM-420: Protocol handler registration
+X-GNOME-UsesNotifications=true

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev:ui": "turbo dev --filter=@rbee/ui",
-    "dev:commercial": "turbo dev --filter=@rbee/ui --filter=@rbee/commercial --filter=@rbee/user-docs",
+    "dev:commercial": "turbo dev --filter=@rbee/ui --filter=@rbee/commercial --filter=@rbee/marketplace",
     "dev:keeper": "turbo dev --filter=@rbee/ui --filter=@rbee/keeper-ui",
     "dev:marketplace": "turbo dev --filter=@rbee/ui --filter=@rbee/marketplace-sdk --filter=@rbee/keeper-ui --filter=@rbee/marketplace",
     "dev:queen": "turbo dev --filter=@rbee/ui --filter=@rbee/keeper-ui --filter=@rbee/queen-rbee-ui --filter=@rbee/queen-rbee-react --filter=@rbee/queen-rbee-sdk",
@@ -12,6 +12,7 @@
     "dev:worker": "turbo dev --filter=@rbee/ui --filter=@rbee/llm-worker-ui --filter=@rbee/llm-worker-react --filter=@rbee/llm-worker-sdk",
     "dev:product": "turbo dev --filter=@rbee/ui --filter=@rbee/keeper-ui --filter=@rbee/queen-rbee-ui --filter=@rbee/queen-rbee-react --filter=@rbee/queen-rbee-sdk --filter=@rbee/rbee-hive-ui --filter=@rbee/rbee-hive-react --filter=@rbee/rbee-hive-sdk --filter=@rbee/llm-worker-ui --filter=@rbee/llm-worker-react --filter=@rbee/llm-worker-sdk",
     "dev:all": "turbo dev",
+    "build": "turbo run build",
     "build:ui": "pnpm --filter @rbee/ui run build",
     "build:commercial": "pnpm run build:ui && pnpm --filter @rbee/commercial run build",
     "build:docs": "pnpm run build:ui && pnpm --filter @rbee/user-docs run build",

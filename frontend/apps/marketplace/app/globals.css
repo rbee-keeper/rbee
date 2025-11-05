@@ -8,7 +8,7 @@
  */
 
 @import "tailwindcss";
-@import "@repo/tailwind-config";
+@import "@repo/tailwind-config/shared-styles.css";
 @import "tw-animate-css";
 
 /**

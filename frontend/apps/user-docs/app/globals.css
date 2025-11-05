@@ -10,7 +10,7 @@
  */
 
 @import "tailwindcss";
-@import "@repo/tailwind-config";
+@import "@repo/tailwind-config/shared-styles.css";
 
 /**
  * Tailwind v4 JIT: Scan app files for arbitrary values like translate-y-[2rem]
@@ -19,7 +19,6 @@
  */
 @source "../app/**/*.{ts,tsx,md,mdx}";
 @source "../components/**/*.{ts,tsx}";
-@source "../pages/**/*.{ts,tsx,md,mdx}";
 
 @layer base {
     body {

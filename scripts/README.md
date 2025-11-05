@@ -57,6 +57,28 @@ python scripts/find-dependency-path.py package-a package-b
 - Circular dependency detection
 - Package types and locations
 
+## Build Scripts
+
+### `build-all.sh` ⭐ NEW
+
+**TEAM-450:** Simple build script for new machines. Just runs `pnpm install && pnpm run build && cargo build --release`.
+
+```bash
+./scripts/build-all.sh
+```
+
+Turborepo and Cargo workspaces handle all the dependency ordering automatically!
+
+### `quick-start.sh` ⭐ NEW
+
+**TEAM-450:** Quick start for frontend development.
+
+```bash
+./scripts/quick-start.sh
+```
+
+Installs deps and builds @rbee/ui, then shows dev commands.
+
 ## Other Scripts
 
 ### `check-build-status.sh`

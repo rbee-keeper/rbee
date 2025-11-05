@@ -7,11 +7,17 @@ use wasm_bindgen::prelude::*;
 
 // TEAM-402: Re-export core artifact types (catalog types)
 // TEAM-404: WorkerType and Platform are now canonical from artifacts-contract
+// TEAM-407: Added ModelMetadata types for compatibility filtering
 pub use artifacts_contract::{
     ModelEntry as CatalogModelEntry, 
     WorkerBinary as CatalogWorkerBinary,
     WorkerType,
     // Platform is re-exported in lib.rs for WASM generation
+    // TEAM-407: Model metadata types
+    ModelArchitecture,
+    ModelFormat,
+    Quantization,
+    ModelMetadata,
 };
 
 /// Model from marketplace (HuggingFace or CivitAI)
@@ -50,7 +56,7 @@ pub struct Model {
 
 /// Model source
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
-#[cfg_attr(not(target_arch = "wasm32"), derive(specta::Type))]
+#[cfg_attr(all(not(target_arch = "wasm32"), feature = "specta"), derive(specta::Type))]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum ModelSource {
     /// HuggingFace model hub

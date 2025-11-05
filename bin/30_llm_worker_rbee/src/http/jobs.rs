@@ -1,7 +1,7 @@
 //! POST /v1/jobs endpoint - Create job (job-based architecture)
 //!
 //! Modified by: TEAM-017 (updated to use Mutex-wrapped backend)
-//! Modified by: TEAM-035 (renamed to /v1/inference, added [DONE] marker)
+//! Modified by: TEAM-035 (renamed to /v1/inference, added \[DONE\] marker)
 //! Modified by: TEAM-039 (added narration channel for real-time user visibility)
 //! Modified by: TEAM-149 (real-time streaming with request queue)
 //! Modified by: TEAM-150 (fixed streaming hang - removed blocking `narration_stream`)

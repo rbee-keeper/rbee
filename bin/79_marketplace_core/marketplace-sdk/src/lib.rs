@@ -13,6 +13,17 @@ mod types;
 #[cfg(not(target_arch = "wasm32"))]
 mod huggingface;
 
+// TEAM-408: Worker catalog client
+pub mod worker_catalog;
+
+// TEAM-408: WASM bindings for worker catalog
+#[cfg(target_arch = "wasm32")]
+mod wasm_worker;
+
+// TEAM-408: Re-export WASM worker functions
+#[cfg(target_arch = "wasm32")]
+pub use wasm_worker::*;
+
 // Re-export types
 pub use types::*;
 
@@ -20,11 +31,18 @@ pub use types::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use huggingface::HuggingFaceClient;
 
+// TEAM-408: Re-export worker catalog
+pub use worker_catalog::{WorkerCatalogClient, WorkerFilter};
+
 // TEAM-404: Explicitly re-export WorkerType and Platform for WASM/TypeScript generation
+// TEAM-407: Added ModelMetadata types for marketplace compatibility filtering
 // These are canonical types from artifacts-contract
 // Note: Platform is used in wasm_bindgen function below
 #[allow(unused_imports)]
-pub use artifacts_contract::{WorkerType, Platform};
+pub use artifacts_contract::{
+    WorkerType, Platform, WorkerBinary,
+    ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
+};
 
 /// Initialize WASM module
 #[wasm_bindgen(start)]

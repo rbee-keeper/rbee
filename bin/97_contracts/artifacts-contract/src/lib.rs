@@ -18,11 +18,13 @@ pub mod worker;
 pub mod status;
 
 // Re-export main types
+// TEAM-407: Added ModelMetadata exports
 pub use model::{
     ModelEntry, ModelType, ModelSource,
     ModelConfig, InferenceParams,
     LlmConfig, TokenizerConfig,
     ImageConfig, CheckpointType, ImagePreview,
+    ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
 };
 pub use worker::{Platform, WorkerBinary, WorkerType};
 pub use status::ArtifactStatus;

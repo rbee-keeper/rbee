@@ -8,7 +8,7 @@ use std::time::Duration;
 
 /// Run narration test with comprehensive narration testing
 /// TEAM-309: Actor auto-detected from crate name (rbee-keeper)
-/// TEAM-311: Function name tracked via #[narrate_fn]
+/// TEAM-311: Function name tracked via `#[narrate_fn]`
 pub async fn handle_self_check() -> Result<()> {
     println!("\n🔍 rbee-keeper Narration Test");
     println!("{}", "=".repeat(50));

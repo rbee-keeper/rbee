@@ -1,16 +1,21 @@
 // TEAM-405: Model module with trait system
+// TEAM-407: Added metadata module for marketplace compatibility
 //! Model types with trait-based configuration system
 //!
 //! Supports different model types (LLM, Image, Audio, Video) with
 //! type-specific configurations while maintaining a common interface.
+//!
+//! TEAM-407: Added ModelMetadata for marketplace filtering
 
 mod config;
 mod llm;
 mod image;
+mod metadata;
 
 pub use config::{ModelConfig, InferenceParams};
 pub use llm::{LlmConfig, TokenizerConfig};
 pub use image::{ImageConfig, CheckpointType, ImagePreview};
+pub use metadata::{ModelArchitecture, ModelFormat, Quantization, ModelMetadata};
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

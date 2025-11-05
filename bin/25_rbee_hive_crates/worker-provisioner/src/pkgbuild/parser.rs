@@ -41,11 +41,11 @@ pub struct PkgBuild {
     pub source: Vec<String>,
     
     /// TEAM-402: Architecture-specific sources (AUR pattern)
-    /// source_x86_64=("https://example.com/binary-x86_64.tar.gz")
+    /// source_x86_64=(<https://example.com/binary-x86_64.tar.gz>)
     pub source_x86_64: Vec<String>,
     
     /// TEAM-402: Architecture-specific sources (AUR pattern)
-    /// source_aarch64=("https://example.com/binary-aarch64.tar.gz")
+    /// source_aarch64=(<https://example.com/binary-aarch64.tar.gz>)
     pub source_aarch64: Vec<String>,
     
     /// SHA256 checksums (generic)

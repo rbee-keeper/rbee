@@ -13,7 +13,7 @@
 //! - test-001-mvp.md Lines 243-254: Loading progress events
 //!
 //! # Industry Standards
-//! - [DONE] marker (`OpenAI` compatible)
+//! - \[DONE\] marker (`OpenAI` compatible)
 //! - 10-second keep-alive interval (mistral.rs pattern)
 //! - Three-state machine: Running → `SendingDone` → Done
 //! - Broadcast channels with 100 buffer size
@@ -62,9 +62,9 @@ enum LoadingState {
 /// ```
 ///
 /// # Industry Standards
-/// - OpenAI-compatible [DONE] marker
+/// - OpenAI-compatible \[DONE\] marker
 /// - 10-second keep-alive interval (prevents proxy timeouts)
-/// - Three-state machine ensures [DONE] is always sent
+/// - Three-state machine ensures \[DONE\] is always sent
 /// - Graceful handling of connection drops
 ///
 /// # Errors

@@ -21,7 +21,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct AppState {
     /// Request queue for submitting generation requests
-    /// TEAM-396: Changed from Arc<GenerationEngine> to RequestQueue
+    /// TEAM-396: Changed from `Arc<GenerationEngine>` to RequestQueue
     request_queue: RequestQueue,
     
     /// Model loading status (true = ready for inference)

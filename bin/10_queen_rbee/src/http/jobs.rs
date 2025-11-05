@@ -102,7 +102,7 @@ pub async fn handle_cancel_job(
 /// 2. Triggers job execution (which emits narrations)
 /// 3. Streams narration events to the client
 /// 4. Also streams token results (for inference operations)
-/// 5. Sends [DONE] marker when complete
+/// 5. Sends \[DONE\] marker when complete
 /// 6. When receiver drops, sender fails gracefully (natural cleanup)
 ///
 /// Client connects here, which triggers job execution and streams results.

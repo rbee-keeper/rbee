@@ -1,4 +1,5 @@
 // TEAM-415: Shared types for marketplace-node
+// TEAM-410: Added compatibility types
 
 export interface ModelFile {
   rfilename: string
@@ -33,4 +34,36 @@ export interface Worker {
   platform: 'linux' | 'macos' | 'windows'
   version: string
   downloadUrl: string
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TEAM-410: COMPATIBILITY TYPES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
+ * Model metadata for compatibility checking
+ */
+export interface ModelMetadata {
+  architecture: string
+  format: string
+  quantization: string | null
+  parameters: string
+  sizeBytes: number
+  maxContextLength: number
+}
+
+/**
+ * Compatibility confidence level
+ */
+export type CompatibilityConfidence = 'high' | 'medium' | 'low' | 'none'
+
+/**
+ * Compatibility check result
+ */
+export interface CompatibilityResult {
+  compatible: boolean
+  confidence: CompatibilityConfidence
+  reasons: string[]
+  warnings: string[]
+  recommendations: string[]
 }

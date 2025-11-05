@@ -3,7 +3,7 @@
 //! TEAM-258: Consolidate hive-forwarding operations
 //! TEAM-259: Refactored to use job-client shared crate
 //! TEAM-265: Documented three communication modes
-//! TEAM-380: Migrated to n!() macro with #[with_job_id]
+//! TEAM-380: Migrated to n!() macro with `#[with_job_id]`
 //!
 //! This module handles forwarding of Worker and Model operations
 //! to the appropriate hive. This allows new operations to be added

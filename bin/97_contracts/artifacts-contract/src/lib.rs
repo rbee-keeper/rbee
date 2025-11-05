@@ -14,15 +14,23 @@
 pub mod model;
 /// Worker binary type
 pub mod worker;
+/// Worker catalog entry types
+pub mod worker_catalog;
 /// Artifact status type
 pub mod status;
 
 // Re-export main types
+// TEAM-407: Added ModelMetadata exports
 pub use model::{
     ModelEntry, ModelType, ModelSource,
     ModelConfig, InferenceParams,
     LlmConfig, TokenizerConfig,
     ImageConfig, CheckpointType, ImagePreview,
+    ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
 };
 pub use worker::{Platform, WorkerBinary, WorkerType};
+pub use worker_catalog::{
+    Architecture, WorkerImplementation, BuildSystem,
+    SourceInfo, BuildConfig, WorkerCatalogEntry,
+};
 pub use status::ArtifactStatus;

@@ -274,6 +274,7 @@ export pkgdir="{pkgdir}"
         // TEAM-388: On Unix, create a new process group
         #[cfg(unix)]
         {
+            #[allow(unused_imports)]  // TEAM-420: Used via trait method, compiler doesn't detect it
             use std::os::unix::process::CommandExt;
             cmd.process_group(0);  // 0 = create new process group with PID as PGID
         }

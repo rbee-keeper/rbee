@@ -82,7 +82,7 @@ async fn main() -> Result<()> {
 // - See: DESKTOP_ENTRY.md for debugging
 fn launch_gui() {
     use rbee_keeper::tauri_commands::*;
-    use rbee_keeper::protocol::{parse_protocol_url, handle_protocol_url};
+    use rbee_keeper::protocol::handle_protocol_url;
     use tauri_plugin_deep_link::DeepLinkExt;
 
     tauri::Builder::default()
@@ -118,10 +118,7 @@ fn launch_gui() {
             // TEAM-413: Download commands
             model_download,
             worker_download,
-            // TEAM-411: Compatibility commands
-            check_model_compatibility,
-            list_compatible_workers,
-            list_compatible_models,
+            // TEAM-420: Compatibility commands removed (incomplete stubs)
         ])
         .setup(|app| {
             // TEAM-336: Initialize tracing with Tauri event streaming
@@ -139,20 +136,14 @@ fn launch_gui() {
                 for url in event.urls() {
                     println!("🔗 Protocol URL opened: {}", url);
                     
-                    // Parse and handle the URL
-                    match parse_protocol_url(url) {
-                        Ok(protocol_url) => {
-                            let app = app_handle.clone();
-                            tauri::async_runtime::spawn(async move {
-                                if let Err(e) = handle_protocol_url(app, protocol_url).await {
-                                    eprintln!("❌ Protocol handler error: {}", e);
-                                }
-                            });
+                    // Handle the URL (parsing happens inside handle_protocol_url)
+                    let app = app_handle.clone();
+                    let url_str = url.to_string();
+                    tauri::async_runtime::spawn(async move {
+                        if let Err(e) = handle_protocol_url(&app, &url_str).await {
+                            eprintln!("❌ Protocol handler error: {}", e);
                         }
-                        Err(e) => {
-                            eprintln!("❌ Failed to parse protocol URL: {}", e);
-                        }
-                    }
+                    });
                 }
             });
             

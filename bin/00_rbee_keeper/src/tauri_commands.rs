@@ -49,9 +49,7 @@ mod tests {
                 marketplace_list_models,
                 marketplace_search_models,
                 marketplace_get_model,
-                check_model_compatibility,
-                list_compatible_workers,
-                list_compatible_models,
+                // TEAM-420: Removed check_model_compatibility, list_compatible_workers, list_compatible_models (incomplete stubs)
             ])
             .typ::<NarrationEvent>()
             .typ::<lifecycle_local::DaemonStatus>()
@@ -704,155 +702,14 @@ pub async fn worker_download(
 }
 
 // ============================================================================
-// TEAM-411: COMPATIBILITY COMMANDS
+// TEAM-420: COMPATIBILITY COMMANDS - REMOVED
 // ============================================================================
-
-/// Check if a model is compatible with a worker
-/// TEAM-411: Uses marketplace-sdk compatibility module (native Rust, no WASM)
-#[tauri::command]
-#[specta::specta]
-pub async fn check_model_compatibility(
-    model_id: String,
-    worker_type: String,
-) -> Result<marketplace_sdk::CompatibilityResult, String> {
-    use marketplace_sdk::{compatibility, HuggingFaceClient};
-    use observability_narration_core::n;
-
-    n!("check_model_compatibility", "🔍 Checking compatibility: {} with {}", model_id, worker_type);
-
-    // Fetch model from HuggingFace
-    let client = HuggingFaceClient::new();
-    let model = client
-        .get_model(&model_id)
-        .await
-        .map_err(|e| format!("Failed to fetch model: {}", e))?;
-
-    // Extract metadata
-    let metadata = compatibility::extract_model_metadata(&model)
-        .map_err(|e| format!("Failed to extract metadata: {}", e))?;
-
-    // Get worker from catalog (simplified - in real impl, fetch from catalog)
-    let worker = create_worker_from_type(&worker_type)?;
-
-    // Check compatibility
-    let result = compatibility::check_compatibility(&metadata, &worker);
-
-    n!("check_model_compatibility", "✅ Compatible: {}", result.compatible);
-
-    Ok(result)
-}
-
-/// List all workers compatible with a model
-/// TEAM-411: Filters worker catalog by compatibility
-#[tauri::command]
-#[specta::specta]
-pub async fn list_compatible_workers(
-    model_id: String,
-) -> Result<Vec<String>, String> {
-    use marketplace_sdk::{compatibility, HuggingFaceClient};
-    use observability_narration_core::n;
-
-    n!("list_compatible_workers", "🔍 Finding compatible workers for: {}", model_id);
-
-    // Fetch model
-    let client = HuggingFaceClient::new();
-    let model = client
-        .get_model(&model_id)
-        .await
-        .map_err(|e| format!("Failed to fetch model: {}", e))?;
-
-    // Extract metadata
-    let metadata = compatibility::extract_model_metadata(&model)
-        .map_err(|e| format!("Failed to extract metadata: {}", e))?;
-
-    // Get all workers from catalog
-    let all_workers = get_all_workers()?;
-
-    // Filter compatible
-    let compatible: Vec<String> = all_workers
-        .into_iter()
-        .filter(|worker| {
-            compatibility::check_compatibility(&metadata, worker).compatible
-        })
-        .map(|w| w.id)
-        .collect();
-
-    n!("list_compatible_workers", "✅ Found {} compatible workers", compatible.len());
-
-    Ok(compatible)
-}
-
-/// List all models compatible with a worker
-/// TEAM-411: Filters top models by worker compatibility
-#[tauri::command]
-#[specta::specta]
-pub async fn list_compatible_models(
-    worker_type: String,
-    limit: Option<u32>,
-) -> Result<Vec<String>, String> {
-    use marketplace_sdk::{compatibility, HuggingFaceClient};
-    use observability_narration_core::n;
-
-    let limit = limit.unwrap_or(50);
-    n!("list_compatible_models", "🔍 Finding compatible models for: {} (limit: {})", worker_type, limit);
-
-    // Get worker
-    let worker = create_worker_from_type(&worker_type)?;
-
-    // Fetch top models
-    let client = HuggingFaceClient::new();
-    let models = client
-        .list_models(None, None, None, Some(limit))
-        .await
-        .map_err(|e| format!("Failed to fetch models: {}", e))?;
-
-    // Filter compatible
-    let compatible: Vec<String> = models
-        .into_iter()
-        .filter_map(|model| {
-            let metadata = compatibility::extract_model_metadata(&model).ok()?;
-            if compatibility::check_compatibility(&metadata, &worker).compatible {
-                Some(model.id)
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    n!("list_compatible_models", "✅ Found {} compatible models", compatible.len());
-
-    Ok(compatible)
-}
-
-// TEAM-411: Helper functions for compatibility commands
-
-fn create_worker_from_type(worker_type: &str) -> Result<marketplace_sdk::Worker, String> {
-    // Simplified worker creation - in real impl, fetch from catalog
-    use marketplace_sdk::{Worker, WorkerType};
-
-    let (wtype, platform, arch) = match worker_type {
-        "cpu" => (WorkerType::Cpu, vec!["linux".to_string(), "macos".to_string(), "windows".to_string()], vec!["x86_64".to_string(), "aarch64".to_string()]),
-        "cuda" => (WorkerType::Cuda, vec!["linux".to_string()], vec!["x86_64".to_string()]),
-        "metal" => (WorkerType::Metal, vec!["macos".to_string()], vec!["aarch64".to_string()]),
-        _ => return Err(format!("Unknown worker type: {}", worker_type)),
-    };
-
-    Ok(Worker {
-        id: worker_type.to_string(),
-        name: format!("{} Worker", worker_type.to_uppercase()),
-        description: format!("LLM worker with {} acceleration", worker_type.to_uppercase()),
-        worker_type: wtype,
-        platform,
-        architecture: arch,
-        version: "0.1.0".to_string(),
-    })
-}
-
-fn get_all_workers() -> Result<Vec<marketplace_sdk::Worker>, String> {
-    // Simplified - in real impl, fetch from worker catalog
-    Ok(vec![
-        create_worker_from_type("cpu")?,
-        create_worker_from_type("cuda")?,
-        create_worker_from_type("metal")?,
-    ])
-}
+// TEAM-420: Removed incomplete compatibility commands (check_model_compatibility,
+// list_compatible_workers, list_compatible_models) that referenced non-existent
+// functions. These need proper implementation using the actual compatibility API:
+// - is_model_compatible(metadata: &ModelMetadata) -> CompatibilityResult
+// - check_model_worker_compatibility(metadata, worker_archs, worker_formats, max_ctx)
+//
+// The challenge: HuggingFaceClient returns Model (marketplace type), but
+// compatibility functions expect ModelMetadata (artifacts-contract type).
+// Need a proper conversion layer before re-implementing these commands.

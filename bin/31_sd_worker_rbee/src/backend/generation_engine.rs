@@ -13,7 +13,6 @@ use crate::backend::{
     generation,  // TEAM-397: Direct Candle functions
     models::ModelComponents,  // TEAM-397: Direct Candle types
     request_queue::{GenerationRequest, GenerationResponse},
-    image_utils::image_to_base64,
 };
 use std::sync::Arc;
 use tokio::sync::mpsc;

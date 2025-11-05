@@ -12,16 +12,6 @@ pub use artifacts_contract::{
     ModelEntry as CatalogModelEntry, 
     WorkerBinary as CatalogWorkerBinary,
     WorkerType,
-    // Platform is re-exported in lib.rs for WASM generation
-    // TEAM-407: Model metadata types
-    ModelArchitecture,
-    ModelFormat,
-    Quantization,
-    ModelMetadata,
-    WorkerCatalogEntry,
-    Architecture,
-    WorkerImplementation,
-    BuildSystem,
 };
 
 /// Model from marketplace (HuggingFace or CivitAI)

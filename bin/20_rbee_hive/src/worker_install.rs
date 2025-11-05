@@ -24,6 +24,7 @@ use tokio_util::sync::CancellationToken; // TEAM-388: For cancellable operations
 /// Worker metadata from catalog
 #[derive(Debug, serde::Deserialize)]
 struct WorkerMetadata {
+    #[allow(dead_code)]  // TEAM-420: Deserialized but not used
     id: String,
     name: String,
     version: String,

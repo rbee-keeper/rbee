@@ -192,7 +192,7 @@ async fn handle_worker_installed_get(
 async fn handle_worker_install(
     request: &operations_contract::WorkerInstallRequest,
     worker_catalog: Arc<WorkerCatalog>,
-    job_id: &str,
+    _job_id: &str,
     get_cancel_token: impl FnOnce() -> Option<CancellationToken>,
 ) -> Result<()> {
     n!(

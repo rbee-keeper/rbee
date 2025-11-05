@@ -7,7 +7,7 @@
 use observability_narration_core::format_message;
 use serde::{Deserialize, Serialize};
 use tauri::Emitter; // TEAM-336: Required for app_handle.emit() in Tauri v2
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer}; // TEAM-337: Use existing formatting
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer}; // TEAM-337: Use existing formatting
 
 /// Narration event payload for Tauri frontend
 /// TEAM-339: Include ALL narration fields for rich UI display

@@ -33,7 +33,7 @@ use operations_contract::Operation;
 
 // TEAM-387: Conditional Send bound - WASM types aren't Send
 #[cfg(not(target_arch = "wasm32"))]
-trait MaybeSend: Send {}
+pub(crate) trait MaybeSend: Send {}
 #[cfg(not(target_arch = "wasm32"))]
 impl<T: Send> MaybeSend for T {}
 

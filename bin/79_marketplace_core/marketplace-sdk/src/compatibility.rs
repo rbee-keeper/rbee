@@ -194,7 +194,7 @@ pub fn check_model_worker_compatibility(
 ) -> CompatibilityResult {
     let mut reasons = Vec::new();
     let mut warnings = Vec::new();
-    let mut recommendations = Vec::new();
+    let recommendations = Vec::new();
     
     // Check architecture
     let arch_match = worker_architectures

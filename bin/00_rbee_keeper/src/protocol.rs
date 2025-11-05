@@ -1,7 +1,7 @@
 // TEAM-412: Protocol handler for rbee:// URLs
 // Handles one-click model installation from marketplace
 
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter};
 use serde::{Deserialize, Serialize};
 
 /// Protocol action types

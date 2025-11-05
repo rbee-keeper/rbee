@@ -12,7 +12,6 @@ use anyhow::Result;
 use job_server::JobRegistry;
 use observability_narration_core::n;
 use operations_contract::Operation;
-use rbee_hive_artifact_catalog::{ArtifactCatalog, ArtifactProvisioner};
 use rbee_hive_model_catalog::ModelCatalog;
 use rbee_hive_model_provisioner::ModelProvisioner;
 use rbee_hive_worker_catalog::WorkerCatalog;

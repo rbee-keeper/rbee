@@ -39,7 +39,7 @@ pub async fn submit_and_stream_job(target_url: &str, operation: Operation) -> Re
 
     // Extract metadata before moving operation
     let operation_name = operation.name();
-    let hive_id = operation.hive_id().map(|s| s.to_string());
+    let _hive_id = operation.hive_id().map(|s| s.to_string());
 
     n!("job_submit", "📋 Job submitted: {}", operation_name);
 

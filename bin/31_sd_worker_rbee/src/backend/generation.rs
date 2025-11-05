@@ -7,7 +7,7 @@
 use crate::backend::models::ModelComponents;
 use crate::backend::sampling::SamplingConfig;
 use crate::error::{Error, Result};
-use candle_core::{DType, Device, IndexOp, Module, Tensor, D};
+use candle_core::{DType, Device, IndexOp, Module, Tensor};
 use candle_transformers::models::stable_diffusion;
 use image::{DynamicImage, RgbImage};
 use tokenizers::Tokenizer;

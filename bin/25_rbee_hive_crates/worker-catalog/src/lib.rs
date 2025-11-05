@@ -22,10 +22,11 @@
 pub use artifacts_contract::{ArtifactStatus, Platform, WorkerBinary, WorkerType};
 
 // Alias for backwards compatibility
+/// Status of a worker binary in the catalog (Available, Downloading, Failed)
 pub type WorkerStatus = ArtifactStatus;
 
 use anyhow::Result;
-use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, FilesystemCatalog};
+use rbee_hive_artifact_catalog::{ArtifactCatalog, FilesystemCatalog};
 use std::path::PathBuf;
 
 /// Worker catalog for managing worker binaries

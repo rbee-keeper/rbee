@@ -171,6 +171,7 @@ async fn stream_from_hive(_job_id: &str, hive_url: &str, operation: Operation) -
     // TEAM-259: Use shared JobClient for submission and streaming
     let client = JobClient::new(hive_url);
 
+    #[allow(unused_must_use)]  // TEAM-420: Future IS awaited, compiler false positive
     client
         .submit_and_stream(operation, |line| {
             // TEAM-380: Forward each line to client via narration

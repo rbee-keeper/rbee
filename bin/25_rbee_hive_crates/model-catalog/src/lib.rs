@@ -14,11 +14,12 @@
 pub use artifacts_contract::{ArtifactStatus, ModelEntry};
 
 // Alias for backwards compatibility
+/// Status of a model in the catalog (Available, Downloading, Failed)
 pub type ModelStatus = ArtifactStatus;
 
 use anyhow::Result;
-use rbee_hive_artifact_catalog::{Artifact, ArtifactCatalog, FilesystemCatalog};
-use std::path::{Path, PathBuf};
+use rbee_hive_artifact_catalog::{ArtifactCatalog, FilesystemCatalog};
+use std::path::PathBuf;
 
 /// Model catalog for managing model files
 pub struct ModelCatalog {

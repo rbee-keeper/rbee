@@ -2,12 +2,14 @@
 //!
 //! TEAM-259: Consolidate job submission patterns
 //! TEAM-384: Migrated to use jobs-contract for shared types
+//! TEAM-420: Allow private_bounds - MaybeSend is intentionally private for WASM compatibility
 //!
 //! This crate provides a reusable pattern for:
 //! - Submitting operations to /v1/jobs endpoints
 //! - Streaming SSE responses from /v1/jobs/{job_id}/stream
 //! - Processing narration events
 //!
+#![allow(private_bounds)]
 //! # Usage
 //!
 //! ```rust,no_run

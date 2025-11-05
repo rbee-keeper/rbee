@@ -63,6 +63,7 @@ specta = ["dep:specta"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
+chrono = "0.4"  # For timestamp in generated markdown
 
 [profile.release]
 # Optimize for small WASM size

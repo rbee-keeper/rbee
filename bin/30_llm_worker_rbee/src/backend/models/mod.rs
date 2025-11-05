@@ -15,6 +15,7 @@ use std::path::Path;
 pub mod llama;
 pub mod mistral;
 pub mod phi;
+pub mod quantized_gemma;
 pub mod quantized_llama;
 pub mod quantized_phi;
 pub mod quantized_qwen;
@@ -24,15 +25,17 @@ pub mod qwen;
 ///
 /// TEAM-017: Each variant wraps a specific model type with its natural interface
 /// TEAM-036: Added `QuantizedLlama` for GGUF support
-/// TEAM-090: Added quantized versions for Phi and Qwen (Mistral GGUF not supported by candle)
+/// TEAM-090: Added quantized versions for Phi and Qwen
+/// TEAM-409: Added Gemma GGUF support (Mistral GGUF uses QuantizedLlama)
 pub enum Model {
     Llama(llama::LlamaModel),
-    QuantizedLlama(quantized_llama::QuantizedLlamaModel),
+    QuantizedLlama(quantized_llama::QuantizedLlamaModel),  // Also handles Mistral GGUF
     Mistral(mistral::MistralModel),
     Phi(phi::PhiModel),
     QuantizedPhi(quantized_phi::QuantizedPhiModel),
     Qwen(qwen::QwenModel),
     QuantizedQwen(quantized_qwen::QuantizedQwenModel),
+    QuantizedGemma(quantized_gemma::QuantizedGemmaModel),
 }
 
 impl Model {
@@ -41,6 +44,7 @@ impl Model {
     /// TEAM-017: Each model uses its natural interface
     /// TEAM-036: Added `QuantizedLlama` support
     /// TEAM-090: Added all quantized variants
+    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
     pub fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         match self {
             Model::Llama(m) => m.forward(input_ids, position),
@@ -50,12 +54,14 @@ impl Model {
             Model::QuantizedPhi(m) => m.forward(input_ids, position),
             Model::Qwen(m) => m.forward(input_ids, position),
             Model::QuantizedQwen(m) => m.forward(input_ids, position),
+            Model::QuantizedGemma(m) => m.forward(input_ids, position),
         }
     }
 
     /// Get EOS token ID
     /// TEAM-036: Added `QuantizedLlama` support
     /// TEAM-090: Added all quantized variants
+    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
     pub fn eos_token_id(&self) -> u32 {
         match self {
             Model::Llama(m) => m.eos_token_id(),
@@ -65,12 +71,14 @@ impl Model {
             Model::QuantizedPhi(m) => m.eos_token_id(),
             Model::Qwen(m) => m.eos_token_id(),
             Model::QuantizedQwen(m) => m.eos_token_id(),
+            Model::QuantizedGemma(m) => m.eos_token_id(),
         }
     }
 
     /// Get model architecture name
     /// TEAM-036: Added `QuantizedLlama` support
     /// TEAM-090: Added all quantized variants
+    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
     pub fn architecture(&self) -> &str {
         match self {
             Model::Llama(_) => "llama",
@@ -80,12 +88,14 @@ impl Model {
             Model::QuantizedPhi(_) => "phi-quantized",
             Model::Qwen(_) => "qwen",
             Model::QuantizedQwen(_) => "qwen-quantized",
+            Model::QuantizedGemma(_) => "gemma-quantized",
         }
     }
 
     /// Get vocab size
     /// TEAM-036: Added `QuantizedLlama` support
     /// TEAM-090: Added all quantized variants
+    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
     pub fn vocab_size(&self) -> usize {
         match self {
             Model::Llama(m) => m.vocab_size(),
@@ -95,6 +105,7 @@ impl Model {
             Model::QuantizedPhi(m) => m.vocab_size(),
             Model::Qwen(m) => m.vocab_size(),
             Model::QuantizedQwen(m) => m.vocab_size(),
+            Model::QuantizedGemma(m) => m.vocab_size(),
         }
     }
 
@@ -103,6 +114,7 @@ impl Model {
     /// TEAM-021: Required to clear warmup pollution before inference
     /// TEAM-036: Added `QuantizedLlama` support
     /// TEAM-090: Added all quantized variants
+    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
     /// Not all models may support this (Phi manages cache internally)
     pub fn reset_cache(&mut self) -> Result<()> {
         match self {
@@ -125,6 +137,7 @@ impl Model {
                 Ok(())
             }
             Model::QuantizedQwen(m) => m.reset_cache(),
+            Model::QuantizedGemma(m) => m.reset_cache(),
         }
     }
 }
@@ -249,8 +262,15 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
         );
 
         // Load appropriate quantized model based on architecture
+        // TEAM-409: Added Mistral and Gemma GGUF support
         match architecture.as_str() {
             "llama" => {
+                let model = quantized_llama::QuantizedLlamaModel::load(path, device)?;
+                Ok(Model::QuantizedLlama(model))
+            }
+            "mistral" => {
+                // TEAM-409: Mistral GGUF files use the same format as Llama
+                // Candle's quantized_llama loader handles both
                 let model = quantized_llama::QuantizedLlamaModel::load(path, device)?;
                 Ok(Model::QuantizedLlama(model))
             }
@@ -262,8 +282,12 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
                 let model = quantized_qwen::QuantizedQwenModel::load(path, device)?;
                 Ok(Model::QuantizedQwen(model))
             }
+            "gemma" | "gemma2" | "gemma3" => {
+                let model = quantized_gemma::QuantizedGemmaModel::load(path, device)?;
+                Ok(Model::QuantizedGemma(model))
+            }
             _ => bail!(
-                "Unsupported quantized architecture: {} (only llama, phi, qwen supported)",
+                "Unsupported quantized architecture: {} (supported: llama, mistral, phi, qwen, gemma)",
                 architecture
             ),
         }

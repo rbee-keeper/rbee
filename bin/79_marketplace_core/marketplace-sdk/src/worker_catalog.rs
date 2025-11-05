@@ -2,15 +2,29 @@
 //! Worker catalog client
 //!
 //! Provides access to the worker catalog API for listing and filtering
-//! available worker binaries by type, platform, and capabilities.
+//! available workers by type, platform, and capabilities.
+//!
+//! **IMPORTANT:** This works with `WorkerCatalogEntry` (available workers)
+//! NOT `WorkerBinary` (installed workers). These are different types!
 
 use anyhow::{Context, Result};
-use artifacts_contract::{Platform, WorkerBinary, WorkerType};
+use artifacts_contract::{
+    Architecture, Platform, WorkerCatalogEntry, WorkerType,
+};
 use serde::{Deserialize, Serialize};
+
+/// Response wrapper from Hono API
+#[derive(Debug, Deserialize)]
+struct WorkersListResponse {
+    workers: Vec<WorkerCatalogEntry>,
+}
 
 /// Worker catalog client
 ///
-/// Fetches worker binary information from the Hono worker catalog API.
+/// Fetches worker catalog entries from the Hono worker catalog API.
+/// 
+/// **Note:** Returns `WorkerCatalogEntry` (available workers for download),
+/// not `WorkerBinary` (installed workers on filesystem).
 pub struct WorkerCatalogClient {
     base_url: String,
     client: reqwest::Client,
@@ -32,9 +46,9 @@ pub struct WorkerFilter {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub platform: Option<Platform>,
     
-    /// Filter by architecture (x86_64, aarch64)
+    /// Filter by CPU architecture (x86_64, aarch64)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub architecture: Option<String>,
+    pub architecture: Option<Architecture>,
     
     /// Minimum context length required
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,14 +82,14 @@ impl WorkerCatalogClient {
     
     /// List all available workers
     ///
-    /// Fetches the complete list of worker binaries from the catalog.
+    /// Fetches the complete list of worker catalog entries.
     ///
     /// # Returns
-    /// Vector of `WorkerBinary` entries
+    /// Vector of `WorkerCatalogEntry` (available workers)
     ///
     /// # Errors
     /// Returns error if network request fails or response cannot be parsed
-    pub async fn list_workers(&self) -> Result<Vec<WorkerBinary>> {
+    pub async fn list_workers(&self) -> Result<Vec<WorkerCatalogEntry>> {
         let url = format!("{}/workers", self.base_url);
         
         let response = self.client
@@ -91,12 +105,13 @@ impl WorkerCatalogClient {
             );
         }
         
-        let workers: Vec<WorkerBinary> = response
+        // TEAM-408: Hono API returns { workers: [...] } wrapper
+        let response_data: WorkersListResponse = response
             .json()
             .await
             .context("Failed to parse worker catalog response")?;
         
-        Ok(workers)
+        Ok(response_data.workers)
     }
     
     /// Get a specific worker by ID
@@ -105,11 +120,11 @@ impl WorkerCatalogClient {
     /// * `id` - Worker ID (e.g., "llm-worker-rbee-cuda")
     ///
     /// # Returns
-    /// `Some(WorkerBinary)` if found, `None` if not found
+    /// `Some(WorkerCatalogEntry)` if found, `None` if not found
     ///
     /// # Errors
     /// Returns error if network request fails
-    pub async fn get_worker(&self, id: &str) -> Result<Option<WorkerBinary>> {
+    pub async fn get_worker(&self, id: &str) -> Result<Option<WorkerCatalogEntry>> {
         let url = format!("{}/workers/{}", self.base_url, id);
         
         let response = self.client
@@ -129,7 +144,7 @@ impl WorkerCatalogClient {
             );
         }
         
-        let worker: WorkerBinary = response
+        let worker: WorkerCatalogEntry = response
             .json()
             .await
             .context("Failed to parse worker response")?;
@@ -146,11 +161,11 @@ impl WorkerCatalogClient {
     /// * `filter` - Filter criteria
     ///
     /// # Returns
-    /// Vector of matching `WorkerBinary` entries
+    /// Vector of matching `WorkerCatalogEntry` entries
     ///
     /// # Errors
     /// Returns error if network request fails
-    pub async fn filter_workers(&self, filter: WorkerFilter) -> Result<Vec<WorkerBinary>> {
+    pub async fn filter_workers(&self, filter: WorkerFilter) -> Result<Vec<WorkerCatalogEntry>> {
         let workers = self.list_workers().await?;
         
         let filtered = workers
@@ -165,30 +180,40 @@ impl WorkerCatalogClient {
                 
                 // Filter by platform
                 if let Some(ref platform) = filter.platform {
-                    if worker.platform != *platform {
+                    if !worker.supports_platform(*platform) {
+                        return false;
+                    }
+                }
+                
+                // TEAM-408: Filter by CPU architecture (x86_64, aarch64)
+                if let Some(arch) = filter.architecture {
+                    if !worker.supports_architecture(arch) {
                         return false;
                     }
                 }
                 
                 // Filter by minimum context length
                 if let Some(min_context) = filter.min_context_length {
-                    if worker.max_context_length < min_context {
+                    if let Some(max_context) = worker.max_context_length {
+                        if max_context < min_context {
+                            return false;
+                        }
+                    } else {
+                        // No max_context_length specified, skip this worker
                         return false;
                     }
                 }
                 
-                // Filter by model architecture support
+                // Filter by model architecture support (llama, mistral, etc.)
                 if let Some(ref arch) = filter.model_architecture {
-                    if !worker.supported_architectures.iter()
-                        .any(|a| a.eq_ignore_ascii_case(arch)) {
+                    if !worker.supports_format(arch) {
                         return false;
                     }
                 }
                 
-                // Filter by model format support
+                // Filter by model format support (safetensors, gguf)
                 if let Some(ref format) = filter.model_format {
-                    if !worker.supported_formats.iter()
-                        .any(|f| f.eq_ignore_ascii_case(format)) {
+                    if !worker.supports_format(format) {
                         return false;
                     }
                 }
@@ -202,14 +227,14 @@ impl WorkerCatalogClient {
     
     /// Find workers compatible with a specific model
     ///
-    /// Checks both architecture and format compatibility.
+    /// Checks both model architecture and format compatibility.
     ///
     /// # Arguments
     /// * `architecture` - Model architecture (e.g., "llama", "mistral")
     /// * `format` - Model format (e.g., "safetensors", "gguf")
     ///
     /// # Returns
-    /// Vector of compatible `WorkerBinary` entries
+    /// Vector of compatible `WorkerCatalogEntry` entries
     ///
     /// # Errors
     /// Returns error if network request fails
@@ -217,7 +242,7 @@ impl WorkerCatalogClient {
         &self,
         architecture: &str,
         format: &str,
-    ) -> Result<Vec<WorkerBinary>> {
+    ) -> Result<Vec<WorkerCatalogEntry>> {
         let filter = WorkerFilter {
             model_architecture: Some(architecture.to_string()),
             model_format: Some(format.to_string()),

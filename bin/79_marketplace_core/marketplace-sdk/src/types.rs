@@ -18,6 +18,10 @@ pub use artifacts_contract::{
     ModelFormat,
     Quantization,
     ModelMetadata,
+    WorkerCatalogEntry,
+    Architecture,
+    WorkerImplementation,
+    BuildSystem,
 };
 
 /// Model from marketplace (HuggingFace or CivitAI)

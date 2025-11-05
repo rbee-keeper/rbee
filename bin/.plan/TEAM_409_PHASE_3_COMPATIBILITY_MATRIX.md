@@ -3,24 +3,32 @@
 **Created:** 2025-11-05  
 **Team:** TEAM-409  
 **Duration:** 3-4 days  
-**Status:** ⏳ WAITING (blocked by TEAM-408)  
-**Dependencies:** TEAM-408 complete (worker catalog SDK)
+**Status:** ✅ READY (TEAM-408 complete)  
+**Dependencies:** ✅ TEAM-408 complete (worker catalog SDK)
 
 ---
 
 ## 🎯 Mission
 
-Implement the compatibility matrix data layer: worker→model mappings, model metadata extraction, and compatibility check functions.
+**PRIMARY GOAL:** Filter HuggingFace models so we ONLY show models that our LLM workers can run.
+
+Implement the compatibility matrix to:
+1. **Filter HuggingFace API results** - Only show compatible models in marketplace
+2. **Check model→worker compatibility** - Determine if a specific model can run on our workers
+3. **Prevent advertising incompatible models** - Don't generate static pages for models we can't run
+
+**Key Principle:** "If we don't support it, it doesn't exist" (from TEAM-406 research)
 
 ---
 
 ## ✅ Checklist
 
 ### Task 3.1: Create Compatibility Module (Rust)
-- [ ] Create `bin/99_shared_crates/marketplace-sdk/src/compatibility.rs`
+- [ ] Create `bin/79_marketplace_core/marketplace-sdk/src/compatibility.rs`
 - [ ] Define `CompatibilityResult` struct
 - [ ] Define `CompatibilityReason` enum
-- [ ] Implement `check_compatibility(model, worker)` function
+- [ ] Implement `is_model_compatible(model_metadata)` - Check if model is compatible with ANY worker
+- [ ] Implement `check_model_worker_compatibility(model, worker)` - Check specific model-worker pair
 - [ ] Add TEAM-409 signatures
 - [ ] Commit: "TEAM-409: Add compatibility module"
 
@@ -122,7 +130,7 @@ pub fn check_compatibility(
 ---
 
 ### Task 3.2: Add Model Metadata Extraction
-- [ ] Create `bin/99_shared_crates/marketplace-sdk/src/model_metadata.rs`
+- [ ] Create `bin/79_marketplace_core/marketplace-sdk/src/model_metadata.rs`
 - [ ] Implement `extract_metadata_from_hf(model_id)` function
 - [ ] Parse HuggingFace model card
 - [ ] Extract architecture from tags/config
@@ -197,14 +205,14 @@ fn detect_format(files: &[HfFile]) -> Result<ModelFormat, MetadataError> {
 
 ---
 
-### Task 3.3: Add Compatibility Matrix Generator
-- [ ] Create `bin/99_shared_crates/marketplace-sdk/src/matrix.rs`
-- [ ] Implement `generate_compatibility_matrix(models, workers)`
-- [ ] Create matrix data structure
-- [ ] Check all model-worker combinations
-- [ ] Cache results for performance
+### Task 3.3: Add HuggingFace Filter Function
+- [ ] Add `filter_compatible_models(models)` to compatibility.rs
+- [ ] Filter models by supported architectures (llama, mistral, phi, qwen, gemma)
+- [ ] Filter models by supported formats (safetensors, gguf)
+- [ ] Filter models by quantization support
+- [ ] Return only models compatible with at least ONE worker
 - [ ] Add TEAM-409 signatures
-- [ ] Commit: "TEAM-409: Add compatibility matrix generator"
+- [ ] Commit: "TEAM-409: Add HuggingFace filter function"
 
 **Implementation:**
 ```rust
@@ -247,10 +255,10 @@ pub fn generate_compatibility_matrix(
 ---
 
 ### Task 3.4: Add WASM Bindings for Compatibility
-- [ ] Create `bin/99_shared_crates/marketplace-sdk/src/wasm_compatibility.rs`
-- [ ] Add `#[wasm_bindgen]` for `check_compatibility()`
-- [ ] Add `#[wasm_bindgen]` for `extract_metadata_from_hf()`
-- [ ] Add `#[wasm_bindgen]` for `generate_compatibility_matrix()`
+- [ ] Update `bin/79_marketplace_core/marketplace-sdk/src/wasm_worker.rs`
+- [ ] Add `#[wasm_bindgen]` for `is_model_compatible()`
+- [ ] Add `#[wasm_bindgen]` for `check_model_worker_compatibility()`
+- [ ] Add `#[wasm_bindgen]` for `filter_compatible_models()`
 - [ ] Export from lib.rs
 - [ ] Commit: "TEAM-409: Add WASM compatibility bindings"
 
@@ -282,10 +290,9 @@ pub fn check_model_worker_compatibility(
 
 ### Task 3.5: Update marketplace-node with Compatibility Functions
 - [ ] Open `frontend/packages/marketplace-node/src/index.ts`
-- [ ] Add `checkCompatibility(model, worker)` function
-- [ ] Add `getCompatibleWorkersForModel(modelId)` function
-- [ ] Add `getCompatibleModelsForWorker(workerId)` function
-- [ ] Add `generateCompatibilityMatrix(models, workers)` function
+- [ ] Add `isModelCompatible(modelMetadata)` function - Check if model can run on ANY worker
+- [ ] Add `filterCompatibleModels(models)` function - Filter HuggingFace results
+- [ ] Add `checkModelWorkerCompatibility(model, worker)` function - Check specific pair
 - [ ] Call WASM functions
 - [ ] Add TypeScript types
 - [ ] Commit: "TEAM-409: Add compatibility functions to marketplace-node"
@@ -353,13 +360,13 @@ export async function getCompatibleModelsForWorker(
 
 ---
 
-### Task 3.6: Add Compatibility Cache
-- [ ] Create `bin/99_shared_crates/marketplace-sdk/src/cache.rs`
-- [ ] Implement in-memory cache for compatibility results
-- [ ] Add TTL (time-to-live) for cache entries
-- [ ] Add cache invalidation
-- [ ] Use cache in compatibility checks
-- [ ] Commit: "TEAM-409: Add compatibility cache"
+### Task 3.6: Update HuggingFace Integration
+- [ ] Open `frontend/packages/marketplace-node/src/huggingface.ts`
+- [ ] Update `listHuggingFaceModels()` to filter by compatibility
+- [ ] Add `onlyCompatible` parameter (default: true)
+- [ ] Call `filterCompatibleModels()` on results
+- [ ] Update `searchHuggingFaceModels()` to filter
+- [ ] Commit: "TEAM-409: Filter HuggingFace models by compatibility"
 
 **Implementation:**
 ```rust
@@ -413,7 +420,7 @@ impl CompatibilityCache {
 ---
 
 ### Task 3.7: Write Unit Tests
-- [ ] Create `bin/99_shared_crates/marketplace-sdk/tests/compatibility_tests.rs`
+- [ ] Create `bin/79_marketplace_core/marketplace-sdk/tests/compatibility_tests.rs`
 - [ ] Test `check_compatibility()` with various scenarios
 - [ ] Test metadata extraction
 - [ ] Test matrix generation
@@ -473,10 +480,10 @@ fn test_incompatible_format() {
 
 ### Task 3.8: Write Integration Tests
 - [ ] Create `frontend/packages/marketplace-node/tests/compatibility.test.ts`
-- [ ] Test `checkCompatibility()`
-- [ ] Test `getCompatibleWorkersForModel()`
-- [ ] Test `getCompatibleModelsForWorker()`
-- [ ] Test with real HuggingFace models
+- [ ] Test `isModelCompatible()` with various models
+- [ ] Test `filterCompatibleModels()` filters correctly
+- [ ] Test `checkModelWorkerCompatibility()` for specific pairs
+- [ ] Test HuggingFace integration filters incompatible models
 - [ ] Run `pnpm test`
 - [ ] Commit: "TEAM-409: Add compatibility integration tests"
 
@@ -519,7 +526,7 @@ describe('Compatibility Matrix', () => {
 ---
 
 ### Task 3.9: Update Documentation
-- [ ] Update `bin/99_shared_crates/marketplace-sdk/README.md`
+- [ ] Update `bin/79_marketplace_core/marketplace-sdk/README.md`
 - [ ] Add compatibility check examples
 - [ ] Document metadata extraction
 - [ ] Add API reference
@@ -581,19 +588,18 @@ console.log(workers) // [{ id: 'llm-worker-rbee-cpu', ... }]
 ## 📁 Files Created/Modified
 
 ### New Files
-- `bin/99_shared_crates/marketplace-sdk/src/compatibility.rs`
-- `bin/99_shared_crates/marketplace-sdk/src/model_metadata.rs`
-- `bin/99_shared_crates/marketplace-sdk/src/matrix.rs`
-- `bin/99_shared_crates/marketplace-sdk/src/cache.rs`
-- `bin/99_shared_crates/marketplace-sdk/src/wasm_compatibility.rs`
-- `bin/99_shared_crates/marketplace-sdk/tests/compatibility_tests.rs`
-- `frontend/packages/marketplace-node/tests/compatibility.test.ts`
-- `TEAM_409_HANDOFF.md`
+- `bin/79_marketplace_core/marketplace-sdk/src/compatibility.rs` - Compatibility checking logic
+- `bin/79_marketplace_core/marketplace-sdk/src/model_metadata.rs` - Model metadata extraction
+- `bin/79_marketplace_core/marketplace-sdk/tests/compatibility_tests.rs` - Unit tests
+- `frontend/packages/marketplace-node/tests/compatibility.test.ts` - Integration tests
+- `bin/.plan/TEAM_409_COMPATIBILITY_HANDOFF.md` - Handoff document
 
 ### Modified Files
-- `bin/99_shared_crates/marketplace-sdk/src/lib.rs` - Re-exports
+- `bin/79_marketplace_core/marketplace-sdk/src/lib.rs` - Re-exports
+- `bin/79_marketplace_core/marketplace-sdk/src/wasm_worker.rs` - WASM bindings
 - `frontend/packages/marketplace-node/src/index.ts` - Compatibility functions
-- `bin/99_shared_crates/marketplace-sdk/README.md` - Documentation
+- `frontend/packages/marketplace-node/src/huggingface.ts` - Filter by compatibility
+- `bin/79_marketplace_core/marketplace-sdk/README.md` - Documentation
 - `frontend/packages/marketplace-node/README.md` - Documentation
 
 ---
@@ -610,13 +616,13 @@ console.log(workers) // [{ id: 'llm-worker-rbee-cpu', ... }]
 
 ## 🎯 Success Criteria
 
-- [ ] Compatibility check function working
+- [ ] **PRIMARY:** HuggingFace models filtered by compatibility
+- [ ] `isModelCompatible()` function working
+- [ ] `filterCompatibleModels()` function working
 - [ ] Model metadata extraction working
-- [ ] Compatibility matrix generation working
-- [ ] Cache improving performance
 - [ ] All tests passing (Rust + TypeScript)
 - [ ] Documentation complete
-- [ ] Can check compatibility from Next.js
+- [ ] Marketplace only shows compatible models
 - [ ] Handoff document complete (≤2 pages)
 
 ---

@@ -14,6 +14,8 @@
 pub mod model;
 /// Worker binary type
 pub mod worker;
+/// Worker catalog entry types
+pub mod worker_catalog;
 /// Artifact status type
 pub mod status;
 
@@ -27,4 +29,8 @@ pub use model::{
     ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
 };
 pub use worker::{Platform, WorkerBinary, WorkerType};
+pub use worker_catalog::{
+    Architecture, WorkerImplementation, BuildSystem,
+    SourceInfo, BuildConfig, WorkerCatalogEntry,
+};
 pub use status::ArtifactStatus;

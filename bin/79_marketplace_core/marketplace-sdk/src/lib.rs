@@ -16,6 +16,10 @@ mod huggingface;
 // TEAM-408: Worker catalog client
 pub mod worker_catalog;
 
+// TEAM-409: Compatibility checking for HuggingFace filtering
+/// Compatibility checking module for filtering HuggingFace models
+pub mod compatibility;
+
 // TEAM-408: WASM bindings for worker catalog
 #[cfg(target_arch = "wasm32")]
 mod wasm_worker;
@@ -34,14 +38,23 @@ pub use huggingface::HuggingFaceClient;
 // TEAM-408: Re-export worker catalog
 pub use worker_catalog::{WorkerCatalogClient, WorkerFilter};
 
+// TEAM-409: Re-export compatibility checking
+pub use compatibility::{
+    is_model_compatible, filter_compatible_models, check_model_worker_compatibility,
+    CompatibilityResult, CompatibilityConfidence,
+};
+
 // TEAM-404: Explicitly re-export WorkerType and Platform for WASM/TypeScript generation
 // TEAM-407: Added ModelMetadata types for marketplace compatibility filtering
 // These are canonical types from artifacts-contract
 // Note: Platform is used in wasm_bindgen function below
 #[allow(unused_imports)]
 pub use artifacts_contract::{
-    WorkerType, Platform, WorkerBinary,
+    ModelEntry, ModelType, ModelSource, ModelConfig,
+    WorkerBinary, WorkerType, Platform,
     ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
+    WorkerCatalogEntry, Architecture, WorkerImplementation, BuildSystem,
+    ArtifactStatus,
 };
 
 /// Initialize WASM module

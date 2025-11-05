@@ -30,7 +30,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     makedepends: ["rust", "cargo"],
     binary_name: "llm-worker-rbee-cpu",
     install_path: "/usr/local/bin/llm-worker-rbee-cpu",
-    supported_formats: ["gguf", "safetensors"],
+    supported_formats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
     max_context_length: 32768,
     supports_streaming: true,
     supports_batching: false
@@ -61,7 +61,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     makedepends: ["rust", "cargo"],
     binary_name: "llm-worker-rbee-cuda",
     install_path: "/usr/local/bin/llm-worker-rbee-cuda",
-    supported_formats: ["gguf", "safetensors"],
+    supported_formats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
     max_context_length: 32768,
     supports_streaming: true,
     supports_batching: false
@@ -92,7 +92,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     makedepends: ["rust", "cargo"],
     binary_name: "llm-worker-rbee-metal",
     install_path: "/usr/local/bin/llm-worker-rbee-metal",
-    supported_formats: ["gguf", "safetensors"],
+    supported_formats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
     max_context_length: 32768,
     supports_streaming: true,
     supports_batching: false

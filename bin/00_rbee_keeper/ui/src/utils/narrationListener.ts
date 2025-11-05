@@ -2,11 +2,13 @@
 // Uses @rbee/iframe-bridge for proper message validation
 // Uses @rbee/narration-client types for type safety
 // Uses @rbee/shared-config for port configuration
+// TEAM-413: Added download progress tracking from narration events
 
 import { createMessageReceiver } from "@rbee/iframe-bridge";
 import type { BackendNarrationEvent } from "@rbee/narration-client";
 import { getAllowedOrigins } from "@rbee/shared-config";
 import { useNarrationStore } from "../store/narrationStore";
+import { useDownloadStore } from "../store/downloadStore";
 import type { NarrationEvent } from "../generated/bindings";
 
 /**
@@ -54,6 +56,26 @@ export function setupNarrationListener(): () => void {
 
         // Add to narration store
         useNarrationStore.getState().addEntry(keeperEvent);
+
+        // TEAM-413: Update download progress if this is a download-related narration
+        if (narrationEvent.job_id) {
+          const message = narrationEvent.human;
+          const isDownloadRelated = 
+            message.includes('Download') || 
+            message.includes('download') ||
+            message.includes('Progress') ||
+            message.includes('📥') ||
+            message.includes('📊') ||
+            message.includes('model_download') ||
+            message.includes('worker_install');
+          
+          if (isDownloadRelated) {
+            useDownloadStore.getState().updateFromNarration(
+              narrationEvent.job_id,
+              message
+            );
+          }
+        }
       }
     },
     debug: true,

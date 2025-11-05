@@ -5,7 +5,6 @@
 
 import { Button, Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { ModelMetadataCard } from '../../molecules/ModelMetadataCard'
-import { ModelStatsCard, Download, Heart, HardDrive } from '../../molecules/ModelStatsCard'
 import { ModelFilesList } from '../../molecules/ModelFilesList'
 import { WorkerCompatibilityList } from '../../organisms/WorkerCompatibilityList'
 import type { CompatibilityResult, Worker } from '../../types/compatibility'
@@ -19,7 +18,10 @@ import {
   Hash,
   Cpu,
   MessageSquare,
-  CheckCircle2
+  CheckCircle2,
+  Download,
+  Heart,
+  HardDrive
 } from 'lucide-react'
 
 export interface ModelDetailData {

@@ -115,6 +115,13 @@ fn launch_gui() {
             marketplace_list_models,
             marketplace_search_models,
             marketplace_get_model,
+            // TEAM-413: Download commands
+            model_download,
+            worker_download,
+            // TEAM-411: Compatibility commands
+            check_model_compatibility,
+            list_compatible_workers,
+            list_compatible_models,
         ])
         .setup(|app| {
             // TEAM-336: Initialize tracing with Tauri event streaming

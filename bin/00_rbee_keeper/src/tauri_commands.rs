@@ -635,6 +635,75 @@ pub async fn marketplace_get_model(
 }
 
 // ============================================================================
+// TEAM-413: MODEL/WORKER DOWNLOAD COMMANDS
+// ============================================================================
+
+/// Download a model from HuggingFace
+/// TEAM-413: GUI model download with progress tracking via narration
+/// Returns job_id for tracking progress
+#[tauri::command]
+#[specta::specta]
+pub async fn model_download(
+    hive_id: String,
+    model_id: String,
+) -> Result<String, String> {
+    use crate::cli::ModelAction;
+    use crate::handlers::model::handle_model;
+    use observability_narration_core::n;
+
+    n!("model_download", "📥 Starting download: {}", model_id);
+
+    // Submit job and stream progress (via narration)
+    // The handle_model function will emit narration events with progress
+    handle_model(hive_id, ModelAction::Download { 
+        model: Some(model_id.clone()) 
+    })
+    .await
+    .map(|_| {
+        n!("model_download", "✅ Download job submitted: {}", model_id);
+        // Return model_id as job identifier
+        // TODO: Return actual job_id from JobClient
+        model_id
+    })
+    .map_err(|e| {
+        n!("model_download", "❌ Download failed: {}", e);
+        format!("Failed to download model: {}", e)
+    })
+}
+
+/// Download a worker binary
+/// TEAM-413: GUI worker download with progress tracking via narration
+/// Returns job_id for tracking progress
+#[tauri::command]
+#[specta::specta]
+pub async fn worker_download(
+    hive_id: String,
+    worker_id: String,
+) -> Result<String, String> {
+    use crate::cli::WorkerAction;
+    use crate::handlers::worker::handle_worker;
+    use observability_narration_core::n;
+
+    n!("worker_download", "📥 Starting worker install: {}", worker_id);
+
+    // Submit job and stream progress (via narration)
+    handle_worker(hive_id, WorkerAction::Download { 
+        worker_id: worker_id.clone() 
+    })
+    .await
+    .map(|_| {
+        n!("worker_download", "✅ Worker install job submitted: {}", worker_id);
+        // Return worker_id as job identifier
+        // TODO: Return actual job_id from JobClient
+        worker_id
+    })
+    .map_err(|e| {
+        n!("worker_download", "❌ Worker install failed: {}", e);
+        format!("Failed to install worker: {}", e)
+    })
+}
+
+// ============================================================================
 // TEAM-411: COMPATIBILITY COMMANDS
 // ============================================================================
 

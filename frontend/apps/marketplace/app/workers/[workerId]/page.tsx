@@ -95,7 +95,7 @@ const WORKERS: Record<string, Worker> = {
 }
 
 interface PageProps {
-  params: { workerId: string }
+  params: Promise<{ workerId: string }>
 }
 
 export async function generateStaticParams() {
@@ -105,7 +105,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const worker = WORKERS[params.workerId]
+  const { workerId } = await params
+  const worker = WORKERS[workerId]
   
   if (!worker) {
     return {
@@ -120,7 +121,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function WorkerDetailPage({ params }: PageProps) {
-  const worker = WORKERS[params.workerId]
+  const { workerId } = await params
+  const worker = WORKERS[workerId]
 
   if (!worker) {
     notFound()

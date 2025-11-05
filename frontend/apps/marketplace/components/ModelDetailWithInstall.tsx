@@ -8,10 +8,10 @@ import { InstallButton } from './InstallButton'
 
 interface ModelDetailWithInstallProps {
   model: ModelDetailData
-  compatibleWorkers?: any
+  compatibleWorkers?: Array<{ id: string; name: string; confidence: string }>
 }
 
-export function ModelDetailWithInstall({ model, compatibleWorkers }: ModelDetailWithInstallProps) {
+export function ModelDetailWithInstall({ model }: ModelDetailWithInstallProps) {
   return (
     <div className="space-y-6">
       {/* Install Button Section */}
@@ -31,7 +31,6 @@ export function ModelDetailWithInstall({ model, compatibleWorkers }: ModelDetail
       <ModelDetailPageTemplate
         model={model}
         showBackButton={false}
-        compatibleWorkers={compatibleWorkers}
       />
     </div>
   )

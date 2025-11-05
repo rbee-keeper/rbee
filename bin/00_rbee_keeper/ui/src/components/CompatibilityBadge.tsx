@@ -2,7 +2,7 @@
 // Shows compatibility status with tooltip
 
 import { useQuery } from '@tanstack/react-query'
-import { checkModelCompatibility, type CompatibilityResult } from '@/api/compatibility'
+import { checkModelCompatibility } from '@/api/compatibility'
 import { Badge } from '@rbee/ui/atoms'
 
 interface CompatibilityBadgeProps {

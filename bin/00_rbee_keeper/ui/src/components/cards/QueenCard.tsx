@@ -18,9 +18,10 @@ import { ServiceActionButton } from "./ServiceActionButton";
 import type { QueenStatus } from "../../store/queenQueries";
 
 // TEAM-363: React Query - no useEffect
+// TEAM-413: Added installProd to destructuring
 export function QueenCard() {
   const { data: queen, isLoading, error, refetch } = useQueen();
-  const { start, stop, install, rebuild, uninstall } = useQueenActions();
+  const { start, stop, install, installProd, rebuild, uninstall } = useQueenActions();
   const { isExecuting } = useCommandStore();
 
   return (
@@ -31,7 +32,7 @@ export function QueenCard() {
       onRetry={() => refetch()}
       metadata={{ name: "Queen", description: "Smart API server" }}
     >
-      {(queen) => <QueenCardContent queen={queen} isExecuting={isExecuting} actions={{ start, stop, install, rebuild, uninstall }} refetch={refetch} />}
+      {(queen) => <QueenCardContent queen={queen} isExecuting={isExecuting} actions={{ start, stop, install, installProd, rebuild, uninstall }} refetch={refetch} />}
     </QueryContainer>
   );
 }

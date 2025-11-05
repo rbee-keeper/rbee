@@ -6,16 +6,23 @@ import { modelIdToSlug } from '@/lib/slugify'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://marketplace.rbee.dev'
   
-  // Fetch all models for sitemap
-  const models = await listHuggingFaceModels({ limit: 100 })
+  let modelUrls: MetadataRoute.Sitemap = []
   
-  // Generate model URLs
-  const modelUrls = models.map((model) => ({
-    url: `${baseUrl}/models/${modelIdToSlug(model.id)}`,
-    lastModified: model.lastModified ? new Date(model.lastModified) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
+  try {
+    // Fetch all models for sitemap
+    const models = await listHuggingFaceModels({ limit: 100 })
+    
+    // Generate model URLs
+    modelUrls = models.map((model) => ({
+      url: `${baseUrl}/models/${modelIdToSlug(model.id)}`,
+      lastModified: model.lastModified ? new Date(model.lastModified) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
+  } catch (error) {
+    console.error('Failed to fetch models for sitemap:', error)
+    // Return basic sitemap if model fetch fails
+  }
   
   return [
     {

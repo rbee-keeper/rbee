@@ -38,7 +38,7 @@ export function useKeeperInstalled(): KeeperInstallationStatus {
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), 1000)
           
-          const response = await fetch('http://localhost:9200/health', {
+          await fetch('http://localhost:9200/health', {
             signal: controller.signal,
             mode: 'no-cors', // Avoid CORS issues
           })
@@ -48,8 +48,8 @@ export function useKeeperInstalled(): KeeperInstallationStatus {
           // If we get any response, Keeper is likely running
           setInstalled(true)
           localStorage.setItem('rbee-keeper-detected', 'true')
-        } catch (error) {
-          // Keeper not running or not installed
+        } catch {
+          // Keeper not running
           setInstalled(false)
         }
       } catch (error) {

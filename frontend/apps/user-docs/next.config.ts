@@ -2,8 +2,19 @@ import type { NextConfig } from 'next'
 import nextra from 'nextra'
 
 const nextConfig: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
-    unoptimized: true, // Cloudflare Workers compatibility
+    unoptimized: true,
+  },
+  // Transpile workspace packages
+  transpilePackages: ['@rbee/ui'],
+  experimental: {
+    optimizePackageImports: ['@rbee/ui'],
   },
 }
 

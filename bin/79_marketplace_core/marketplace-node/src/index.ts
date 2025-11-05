@@ -20,8 +20,16 @@
 import { fetchHFModels, fetchHFModel, type HFModel } from './huggingface'
 import type { Model, SearchOptions, ModelMetadata, CompatibilityResult } from './types'
 
-// TEAM-410: Import WASM bindings for compatibility checking
-import * as wasm from '../wasm/marketplace_sdk'
+// TEAM-413: Lazy-load WASM to avoid build-time issues in Next.js
+// The WASM module is only loaded when compatibility checking is actually used
+let wasmModule: typeof import('../wasm/marketplace_sdk') | null = null
+
+async function getWasmModule() {
+  if (!wasmModule) {
+    wasmModule = await import('../wasm/marketplace_sdk')
+  }
+  return wasmModule
+}
 
 // Re-export types
 export type { Model, SearchOptions, Worker, ModelFile, ModelMetadata, CompatibilityResult } from './types'
@@ -203,7 +211,7 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
  * }
  * ```
  */
-export function checkModelCompatibility(model: HFModel): CompatibilityResult {
+export async function checkModelCompatibility(model: HFModel): Promise<CompatibilityResult> {
   const metadata = extractModelMetadata(model)
   
   if (!metadata) {
@@ -216,7 +224,8 @@ export function checkModelCompatibility(model: HFModel): CompatibilityResult {
     }
   }
   
-  // Call WASM function
+  // Lazy-load WASM and call compatibility function
+  const wasm = await getWasmModule()
   return wasm.is_model_compatible_wasm(metadata)
 }
 
@@ -233,11 +242,14 @@ export function checkModelCompatibility(model: HFModel): CompatibilityResult {
  * console.log(`${compatible.length} compatible models found`)
  * ```
  */
-export function filterCompatibleModels(models: HFModel[]): HFModel[] {
-  return models.filter(model => {
-    const result = checkModelCompatibility(model)
-    return result.compatible
-  })
+export async function filterCompatibleModels(models: HFModel[]): Promise<HFModel[]> {
+  const results = await Promise.all(
+    models.map(async (model) => {
+      const result = await checkModelCompatibility(model)
+      return { model, compatible: result.compatible }
+    })
+  )
+  return results.filter(r => r.compatible).map(r => r.model)
 }
 
 /**
@@ -266,7 +278,7 @@ export async function searchCompatibleModels(
   
   // Filter compatible models
   const compatible = onlyCompatible 
-    ? filterCompatibleModels(hfModels)
+    ? await filterCompatibleModels(hfModels)
     : hfModels
   
   // Limit to requested amount
@@ -295,7 +307,7 @@ export async function listCompatibleModels(
   const fetchLimit = limit * 3
   
   const hfModels = await fetchHFModels(undefined, sortParam, fetchLimit)
-  const compatible = filterCompatibleModels(hfModels)
+  const compatible = await filterCompatibleModels(hfModels)
   
   return compatible.slice(0, limit).map(convertHFModel)
 }

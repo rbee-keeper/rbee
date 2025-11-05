@@ -32,7 +32,7 @@ export interface ModelCardProps {
 
 export function ModelCard({ model, onAction, actionButton, onClick }: ModelCardProps) {
   const [imageError, setImageError] = React.useState(false)
-  const [isHovered, setIsHovered] = React.useState(false)
+  const [, setIsHovered] = React.useState(false)
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`

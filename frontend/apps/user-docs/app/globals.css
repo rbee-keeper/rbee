@@ -1,16 +1,15 @@
 /**
  * User Docs App - Global Styles
  *
- * ✅ Design tokens imported from @rbee/ui (single source of truth)
- * ✅ App-specific styles only
+ * ALL CSS variables inherited from @rbee/ui/styles.css (imported in layout.tsx)
+ * ALL components imported from @rbee/ui/organisms
  *
- * CSS variables (:root, .dark, @theme) are defined in:
- * packages/rbee-ui/src/tokens/theme-tokens.css
- * packages/tailwind-config/shared-styles.css
+ * This file exists only because Next.js requires it for the app router.
  */
 
 @import "tailwindcss";
 @import "@repo/tailwind-config/shared-styles.css";
+@import "tw-animate-css";
 
 /**
  * Tailwind v4 JIT: Scan app files for arbitrary values like translate-y-[2rem]
@@ -19,10 +18,3 @@
  */
 @source "../app/**/*.{ts,tsx,md,mdx}";
 @source "../components/**/*.{ts,tsx}";
-
-@layer base {
-    body {
-        @apply bg-background text-foreground;
-        font-family: Arial, Helvetica, sans-serif;
-    }
-}

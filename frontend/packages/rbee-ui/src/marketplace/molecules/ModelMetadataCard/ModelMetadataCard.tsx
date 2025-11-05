@@ -1,7 +1,7 @@
 // TEAM-405: Model metadata display card
 //! Reusable component for displaying model metadata in a clean format
 
-import { Card, CardContent, CardHeader, CardTitle, KeyValuePair } from '@rbee/ui/atoms'
+import { Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 
 export interface ModelMetadataItem {
   label: string

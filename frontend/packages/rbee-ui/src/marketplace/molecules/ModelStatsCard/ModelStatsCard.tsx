@@ -2,7 +2,8 @@
 //! Reusable component for displaying model stats (downloads, likes, size)
 
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '@rbee/ui/atoms'
-import { Download, Heart, HardDrive, LucideIcon } from 'lucide-react'
+import { Download, Heart, HardDrive } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 export interface ModelStat {
   icon: LucideIcon

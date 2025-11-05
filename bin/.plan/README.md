@@ -99,7 +99,9 @@
 - ✅ TEAM-410: Next.js integration (sitemap, robots.txt, compatibility)
 - ✅ TEAM-411: Tauri integration (commands, API wrapper, UI)
 - ✅ TEAM-412: Protocol handler (149 LOC, 4 tests) - backend only
-- ✅ TEAM-413: Comprehensive review - identified gaps ✨ NEW
+- ✅ TEAM-413: Comprehensive review - identified gaps
+- ✅ TEAM-416: Auto-run logic (168 LOC) - one-click downloads
+- ✅ TEAM-417: Open Graph images (2 files) - social media sharing ✨ NEW
 
 **Ad Hoc Work Completed (Not Part of Marketplace):**
 - ✅ TEAM-402: Artifact system refactoring (9/9 phases, eliminates circular deps)

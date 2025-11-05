@@ -1,8 +1,10 @@
 // TEAM-412: Protocol handler for rbee:// URLs
 // Handles one-click model installation from marketplace
+// TEAM-416: Added auto-run integration for one-click downloads
 
 use tauri::{AppHandle, Emitter};
 use serde::{Deserialize, Serialize};
+use crate::handlers::auto_run_model;
 
 /// Protocol action types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,12 +99,37 @@ pub async fn handle_protocol_url(app: &AppHandle, url: &str) -> Result<(), Strin
         
         ProtocolAction::Install => {
             if let Some(model_id) = parsed.model_id {
-                // TEAM-412: Show install dialog
+                // TEAM-416: Emit event to frontend for UI feedback
                 app.emit("install-model", serde_json::json!({
-                    "modelId": model_id,
+                    "modelId": model_id.clone(),
                     "workerType": parsed.worker_type,
                 }))
                 .map_err(|e| format!("Failed to trigger install: {}", e))?;
+                
+                // TEAM-416: Navigate to marketplace to show progress
+                app.emit("navigate", "/marketplace/llm-models")
+                    .map_err(|e| format!("Failed to navigate: {}", e))?;
+                
+                // TEAM-416: Auto-run model installation in background
+                // Clone app handle for async task
+                let app_clone = app.clone();
+                let model_id_clone = model_id.clone();
+                
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = auto_run_model(model_id_clone.clone(), "localhost".to_string()).await {
+                        eprintln!("❌ Auto-run failed for {}: {}", model_id_clone, e);
+                        // TEAM-416: Emit error event to frontend
+                        let _ = app_clone.emit("install-error", serde_json::json!({
+                            "modelId": model_id_clone,
+                            "error": e.to_string(),
+                        }));
+                    } else {
+                        // TEAM-416: Emit success event to frontend
+                        let _ = app_clone.emit("install-success", serde_json::json!({
+                            "modelId": model_id_clone,
+                        }));
+                    }
+                });
             } else {
                 return Err("Missing model ID".to_string());
             }

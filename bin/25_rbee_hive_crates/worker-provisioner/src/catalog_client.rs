@@ -37,6 +37,16 @@ pub struct CatalogClient {
     client: reqwest::Client,
 }
 
+// TEAM-420: Manual Debug implementation (reqwest::Client doesn't implement Debug)
+impl std::fmt::Debug for CatalogClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CatalogClient")
+            .field("base_url", &self.base_url)
+            .field("client", &"<reqwest::Client>")
+            .finish()
+    }
+}
+
 impl CatalogClient {
     /// Create a new catalog client
     ///

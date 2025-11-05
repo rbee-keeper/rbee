@@ -12,8 +12,7 @@ use candle_core::{Device, Result as CandleResult};
 
 // TEAM-394: Removed unused import (narration not used in this module)
 // use observability_narration_core::n;
-
-const ACTION_DEVICE_INIT: &str = "device_init";
+// TEAM-420: Removed unused ACTION_DEVICE_INIT constant
 
 /// Initialize CPU device
 #[cfg(feature = "cpu")]

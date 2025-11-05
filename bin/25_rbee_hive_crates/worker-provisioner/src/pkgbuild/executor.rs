@@ -41,6 +41,7 @@ pub enum ExecutionError {
 /// 
 /// Executes build() and package() functions from PKGBUILD files.
 /// Runs commands in a shell environment with proper variables set.
+#[derive(Debug)]
 pub struct PkgBuildExecutor {
     /// Source directory (where source code is extracted)
     srcdir: PathBuf,

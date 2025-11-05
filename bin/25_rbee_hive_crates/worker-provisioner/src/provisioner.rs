@@ -10,7 +10,7 @@ use observability_narration_core::n;
 use rbee_hive_artifact_catalog::ArtifactProvisioner;
 // TEAM-402: Import types from artifacts-contract instead of worker-catalog
 use artifacts_contract::{WorkerBinary, WorkerType, Platform};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio_util::sync::CancellationToken;
 
 use crate::catalog_client::{CatalogClient, WorkerMetadata};
@@ -82,6 +82,7 @@ impl WorkerProvisioner {
     }
     
     /// Get worker directory path
+    #[allow(dead_code)]  // TEAM-420: Reserved for future use
     fn worker_dir(&self, worker_id: &str) -> PathBuf {
         // Sanitize worker ID for filesystem
         let safe_id = worker_id.replace('/', "-").replace(':', "-");
@@ -164,9 +165,9 @@ impl WorkerProvisioner {
     /// Install binary to determined directory
     fn install_binary(
         &self,
-        temp_dir: &PathBuf,
+        temp_dir: &Path,
         pkgbuild: &PkgBuild,
-        install_dir: &PathBuf,
+        install_dir: &Path,
     ) -> Result<PathBuf> {
         let pkg_dir = temp_dir.join("pkg");
         let binary_name = &pkgbuild.pkgname;

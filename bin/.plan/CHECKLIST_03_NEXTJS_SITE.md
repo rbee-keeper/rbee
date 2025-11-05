@@ -1,9 +1,10 @@
 # Checklist 03: Next.js Marketplace Site
 
 **Timeline:** 1 week  
-**Status:** 📋 NOT STARTED  
+**Status:** 🎯 80% COMPLETE (TEAM-410/412/415/413)  
 **Dependencies:** Checklist 01 (Components), Checklist 02 (SDK)  
 **TEAM-400:** ✅ RULE ZERO - App EXISTS, just add content
+**TEAM-413:** ✅ Priority 1 complete - models list, workers pages, detection, install button all implemented
 
 ---
 
@@ -128,7 +129,9 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 
 ### 3.1 Models List Page
 
-- [ ] Create `app/models/page.tsx`:
+**TEAM-413:** ✅ Already existed from TEAM-415
+
+- [x] Create `app/models/page.tsx`: ✅ TEAM-415
   ```tsx
   // TEAM-400: Models list page with SSG
   import { ModelsPage } from '@rbee/ui/marketplace/pages/ModelsPage'
@@ -173,7 +176,7 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 
 ### 3.2 Model Detail Page (Dynamic Route)
 
-- [ ] Create `app/models/[modelId]/page.tsx`:
+- [x] Create `app/models/[slug]/page.tsx`: ✅ TEAM-415 (slugified URLs)
   ```tsx
   // TEAM-400: Model detail page with SSG
   import { ModelDetailPage } from '@rbee/ui/marketplace/pages/ModelDetailPage'
@@ -241,10 +244,11 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 ## 👷 Phase 4: Workers Pages (Day 4)
 
 **TEAM-400:** Similar to models, but for workers.
+**TEAM-413:** ✅ COMPLETE - Both list and detail pages implemented
 
 ### 4.1 Workers List Page
 
-- [ ] Create `app/workers/page.tsx`:
+- [x] Create `app/workers/page.tsx`: ✅ TEAM-413
   ```tsx
   // TEAM-400: Workers list page
   import { WorkersPage } from '@rbee/ui/marketplace/pages/WorkersPage'
@@ -279,7 +283,9 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 
 ### 4.2 Worker Detail Page
 
-- [ ] Create `app/workers/[workerId]/page.tsx`:
+**TEAM-413:** ✅ COMPLETE
+
+- [x] Create `app/workers/[workerId]/page.tsx`: ✅ TEAM-413
   ```tsx
   // TEAM-400: Worker detail page
   import { WorkerDetailPage } from '@rbee/ui/marketplace/pages/WorkerDetailPage'
@@ -322,10 +328,11 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 ## 🔘 Phase 5: Installation Detection (Day 5)
 
 **TEAM-400:** Client-side detection if Keeper is installed.
+**TEAM-413:** ✅ COMPLETE - Detection hook and install button implemented
 
 ### 5.1 Create Detection Hook
 
-- [ ] Create `app/hooks/useKeeperInstalled.ts`:
+- [x] Create `app/hooks/useKeeperInstalled.ts`: ✅ TEAM-413
   ```tsx
   'use client'
   
@@ -367,7 +374,9 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 
 ### 5.2 Create Install Button Component
 
-- [ ] Create `app/components/InstallButton.tsx`:
+**TEAM-413:** ✅ COMPLETE
+
+- [x] Create `components/InstallButton.tsx`: ✅ TEAM-413
   ```tsx
   'use client'
   
@@ -409,7 +418,10 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 
 ### 5.3 Use in Model Detail Page
 
-- [ ] Update `app/models/[modelId]/page.tsx`:
+**TEAM-413:** ✅ COMPLETE - Integrated via ModelDetailWithInstall wrapper
+
+- [x] Update `app/models/[slug]/page.tsx`: ✅ TEAM-413
+- [x] Create `components/ModelDetailWithInstall.tsx`: ✅ TEAM-413
   ```tsx
   import { InstallButton } from '@/components/InstallButton'
   
@@ -429,7 +441,7 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
 
 ### 6.1 Generate Sitemap
 
-- [ ] Create `app/sitemap.ts`:
+- [x] Create `app/sitemap.ts`: ✅ TEAM-410
   ```tsx
   // TEAM-400: Generate sitemap for all models + workers
   import { MetadataRoute } from 'next'
@@ -481,9 +493,92 @@ Update EXISTING `frontend/apps/marketplace/` to use marketplace components and S
   }
   ```
 
+### 6.3 Add Open Graph Images
+
+**TEAM-413:** ❌ MISSING - No OG images for social sharing!
+
+- [ ] Create `app/opengraph-image.tsx`:
+  ```tsx
+  // TEAM-413: Generate Open Graph image for social sharing
+  import { ImageResponse } from 'next/og'
+  
+  export const runtime = 'edge'
+  export const alt = 'rbee Marketplace'
+  export const size = { width: 1200, height: 630 }
+  export const contentType = 'image/png'
+  
+  export default async function Image() {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            fontSize: 128,
+            background: 'linear-gradient(to bottom, #1e293b, #0f172a)',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+          }}
+        >
+          🐝 rbee Marketplace
+        </div>
+      ),
+      { ...size }
+    )
+  }
+  ```
+
+- [ ] Create `app/models/[slug]/opengraph-image.tsx`:
+  ```tsx
+  // TEAM-413: Generate OG image for each model
+  import { ImageResponse } from 'next/og'
+  import { listHuggingFaceModels } from '@rbee/marketplace-node'
+  
+  export const runtime = 'edge'
+  export const alt = 'Model Detail'
+  export const size = { width: 1200, height: 630 }
+  export const contentType = 'image/png'
+  
+  export default async function Image({ params }: { params: { slug: string } }) {
+    // Fetch model data
+    const models = await listHuggingFaceModels({ limit: 1000 })
+    const model = models.find(m => m.id === params.slug)
+    
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            fontSize: 64,
+            background: 'linear-gradient(to bottom, #1e293b, #0f172a)',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            padding: '40px',
+          }}
+        >
+          <div style={{ fontSize: 48, marginBottom: 20 }}>🐝 rbee</div>
+          <div style={{ fontSize: 72, fontWeight: 'bold', textAlign: 'center' }}>
+            {model?.name || 'Model'}
+          </div>
+          <div style={{ fontSize: 32, opacity: 0.8, marginTop: 20 }}>
+            {model?.author || 'Unknown'}
+          </div>
+        </div>
+      ),
+      { ...size }
+    )
+  }
+  ```
+
 ### 6.2 Add robots.txt
 
-- [ ] Create `app/robots.ts`:
+- [x] Create `app/robots.ts`: ✅ TEAM-410
   ```tsx
   import { MetadataRoute } from 'next'
   

@@ -1,9 +1,10 @@
 # Checklist 04: Tauri Protocol Handler (`rbee://`)
 
 **Timeline:** 1 week  
-**Status:** 📋 NOT STARTED  
+**Status:** 🎯 95% COMPLETE (TEAM-412/413)  
 **Dependencies:** Checklist 01 (Components), Checklist 02 (SDK)  
 **TEAM-400:** ✅ RULE ZERO - Keeper IS Tauri v2, just add protocol
+**TEAM-413:** ✅ Frontend listener complete, missing: auto-run logic, testing, installers
 
 ---
 
@@ -21,8 +22,8 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 1.1 Update tauri.conf.json
 
-- [ ] Open: `bin/00_rbee_keeper/tauri.conf.json`
-- [ ] Add protocol registration:
+- [x] Open: `bin/00_rbee_keeper/tauri.conf.json` ✅ TEAM-412
+- [x] Add protocol registration: ✅ TEAM-412
   ```json
   {
     "$schema": "https://schema.tauri.app/config/2",
@@ -111,7 +112,7 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 1.2 Add Tauri Deep Link Plugin
 
-- [ ] Add to `Cargo.toml`:
+- [x] Add to `Cargo.toml`: ✅ TEAM-412
   ```toml
   [dependencies]
   # ... existing dependencies ...
@@ -123,8 +124,8 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 1.3 Register Protocol in main.rs
 
-- [ ] Open: `bin/00_rbee_keeper/src/main.rs`
-- [ ] Add protocol registration:
+- [x] Open: `bin/00_rbee_keeper/src/main.rs` ✅ TEAM-412
+- [x] Add protocol registration: ✅ TEAM-412
   ```rust
   // TEAM-400: Import deep link plugin
   use tauri_plugin_deep_link::DeepLinkExt;
@@ -161,7 +162,7 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 2.1 Create Protocol Handler Module
 
-- [ ] Create: `bin/00_rbee_keeper/src/handlers/protocol.rs`
+- [x] Create: `bin/00_rbee_keeper/src/protocol.rs` ✅ TEAM-412 (149 LOC, 4 unit tests)
   ```rust
   // TEAM-400: Protocol handler for rbee:// URLs
   
@@ -268,7 +269,7 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 2.2 Export Protocol Handler
 
-- [ ] Update `bin/00_rbee_keeper/src/handlers/mod.rs`:
+- [x] Update `bin/00_rbee_keeper/src/lib.rs`: ✅ TEAM-412
   ```rust
   // TEAM-400: Export protocol handler
   pub mod protocol;
@@ -276,7 +277,7 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 2.3 Wire Up Protocol Handler
 
-- [ ] Update `bin/00_rbee_keeper/src/main.rs`:
+- [x] Update `bin/00_rbee_keeper/src/main.rs`: ✅ TEAM-412
   ```rust
   mod handlers;
   
@@ -323,8 +324,11 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 ## ⚡ Phase 3: Auto-Run Logic (Day 4)
 
 **TEAM-400:** Automatically download and run model when protocol is triggered.
+**TEAM-413:** ❌ MISSING - Protocol handler emits events but doesn't auto-download!
 
 ### 3.1 Create Auto-Run Module
+
+**TEAM-413:** ❌ MISSING - No auto-run module exists!
 
 - [ ] Create: `bin/00_rbee_keeper/src/handlers/auto_run.rs`
   ```rust
@@ -391,6 +395,8 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 3.2 Integrate Auto-Run
 
+**TEAM-413:** ❌ NOT INTEGRATED - protocol.rs exists but doesn't call auto-run
+
 - [ ] Update `protocol.rs` to use auto-run:
   ```rust
   use crate::handlers::auto_run::{auto_run_model, auto_run_worker};
@@ -419,10 +425,13 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 ## 🖥️ Phase 4: Frontend Integration (Day 5)
 
 **TEAM-400:** Listen for protocol events in Keeper UI.
+**TEAM-413:** ✅ COMPLETE - Protocol listener integrated
 
 ### 4.1 Create Protocol Hook
 
-- [ ] Create: `bin/00_rbee_keeper/ui/src/hooks/useProtocol.ts`
+**TEAM-413:** ✅ COMPLETE
+
+- [x] Create: `bin/00_rbee_keeper/ui/src/hooks/useProtocol.ts` ✅ TEAM-413
   ```typescript
   // TEAM-400: React hook for protocol events
   
@@ -464,7 +473,9 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 
 ### 4.2 Use in App Component
 
-- [ ] Update `bin/00_rbee_keeper/ui/src/App.tsx`:
+**TEAM-413:** ✅ COMPLETE
+
+- [x] Update `bin/00_rbee_keeper/ui/src/App.tsx`: ✅ TEAM-413
   ```tsx
   import { useProtocol } from './hooks/useProtocol'
   
@@ -481,6 +492,8 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 ---
 
 ## 🧪 Phase 5: Testing (Days 6-7)
+
+**TEAM-413:** ⏳ PENDING - No testing done yet!
 
 ### 5.1 Test Protocol Registration
 
@@ -536,6 +549,8 @@ Add `rbee://` protocol handler to EXISTING Keeper Tauri app. Enable one-click mo
 ---
 
 ## 📦 Phase 6: Distribution (Day 7)
+
+**TEAM-413:** ❌ MISSING - No platform installers created!
 
 ### 6.1 Create Installers
 

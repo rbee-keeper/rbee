@@ -34,12 +34,14 @@
 **Current Week:** Week 2  
 **Current Checklist:** CHECKLIST_03 (Next.js Site) + CHECKLIST_04 (Tauri Protocol)  
 **Current Phase:** Integration & Deployment  
-**Last Verified:** 2025-11-05 by TEAM-411 (full implementation check)
+**Last Verified:** 2025-11-05 by TEAM-413 (comprehensive review)
 
 **Progress:**
 - [x] Week 1: Components (6/7 days - TEAM-401 ✅, testing missing)
 - [x] Week 1: SDK (3/3 days - TEAM-402/405/406/409/410 ✅)
-- [x] Week 2-3: Next.js + Protocol (6/14 days - TEAM-410/411 ✅ compatibility integration)
+- [ ] Week 2-3: Next.js + Protocol (6/14 days - TEAM-410/411/412 partial)
+  - CHECKLIST_03: 40% (sitemap ✅, robots ✅, detail pages ✅, list pages ❌, workers ❌, detection ❌)
+  - CHECKLIST_04: 90% (protocol ✅, auto-run ❌, frontend listener ❌, installers ❌)
 - [ ] Week 4: Keeper UI (0/14 days)
 - [ ] Week 5: Launch (0/7 days)
 
@@ -54,29 +56,50 @@
 - ✅ Phase 5.3: Storybook stories created (10 .stories.tsx files - TEAM-404)
 - ❌ Phase 6: NO tests (0 .test.tsx or .spec.tsx files found)
 
-**CHECKLIST_02 Status (VERIFIED):**
-- ✅ Phase 1: Rust crate created with Cargo.toml
-- ✅ Phase 1: Types defined in src/types.rs
-- ✅ Phase 1: WASM entry point in src/lib.rs
-- ✅ Phase 1: artifacts-contract integration (TEAM-402 ✅)
-- ✅ Phase 2: HuggingFace client implemented (TEAM-405/406 ✅)
-- ❌ Phase 3: CivitAI client NOT implemented
-- ✅ Phase 4: Worker catalog client implemented (TEAM-403 ✅)
-- ✅ Phase 5: Compatibility matrix implemented (TEAM-409 ✅)
-- ✅ Phase 6: WASM bindings created (TEAM-410 ✅)
-- ✅ Phase 7: marketplace-node wrapper created (TEAM-410 ✅)
-- ✅ Phase 8: Tests added (TEAM-409 ✅ - 6 unit tests)
+**CHECKLIST_03 Status (TEAM-413 VERIFIED):**
+- ✅ Phase 6.1: Sitemap generated (TEAM-410)
+- ✅ Phase 6.2: Robots.txt added (TEAM-410)
+- ✅ Phase 3.2: Model detail page with SSG (TEAM-415)
+- ✅ Compatibility integration placeholder (TEAM-410)
+- ❌ Phase 1: Setup dependencies (not verified)
+- ❌ Phase 2: Home page (not updated)
+- ❌ Phase 3.1: Models list page (MISSING)
+- ❌ Phase 4: Workers pages (MISSING)
+- ❌ Phase 5: Installation detection (MISSING)
+- ❌ Phase 6.3: Open Graph images (MISSING)
+- ❌ Phase 7: Deployment (PENDING)
 
-**Next Task:** Continue CHECKLIST_03 & 04:
-1. Complete Next.js model pages (CHECKLIST_03)
-2. Complete Tauri protocol handler (CHECKLIST_04)
-3. Add unit tests to CHECKLIST_01 (Phase 6 - deferred)
+**CHECKLIST_04 Status (TEAM-413 VERIFIED):**
+- ✅ Phase 1.1: Protocol registration in tauri.conf.json (TEAM-412)
+- ✅ Phase 1.2: Deep link plugin added to Cargo.toml (TEAM-412)
+- ✅ Phase 1.3: Protocol registered in main.rs (TEAM-412)
+- ✅ Phase 2.1: Protocol handler module created (TEAM-412 - 149 LOC)
+- ✅ Phase 2.2: Protocol handler exported (TEAM-412)
+- ✅ Phase 2.3: Protocol handler wired up (TEAM-412)
+- ✅ Unit tests: 4 tests passing (TEAM-412)
+- ❌ Phase 3: Auto-run logic (MISSING)
+- ❌ Phase 4: Frontend integration (MISSING)
+- ❌ Phase 5: Testing (PENDING)
+- ❌ Phase 6: Distribution/installers (MISSING)
+
+**Next Task:** Complete CHECKLIST_03 & 04 (TEAM-413 recommendations):
+
+📝 **SEE: [REMAINING_WORK_CHECKLIST.md](./REMAINING_WORK_CHECKLIST.md)** for detailed task breakdown!
+
+**Summary:**
+1. **Priority 1 (2-3 days):** Models list, workers pages, detection, protocol listener
+2. **Priority 2 (1-2 days):** Auto-run logic, OG images, testing
+3. **Priority 3 (1 day):** Platform installers, deployment
+
+**Total:** 4-5 days of focused work to complete Week 2-3
 
 **Recent Teams Completed:**
 - ✅ TEAM-404: Storybook stories for all 10 marketplace components
-- ✅ TEAM-409: Compatibility matrix (380 LOC, 6 tests) ✨ NEW
-- ✅ TEAM-410: Next.js integration (WASM bindings, UI components) ✨ NEW
-- ✅ TEAM-411: Tauri integration (commands, API wrapper, UI) ✨ NEW
+- ✅ TEAM-409: Compatibility matrix (380 LOC, 6 tests)
+- ✅ TEAM-410: Next.js integration (sitemap, robots.txt, compatibility)
+- ✅ TEAM-411: Tauri integration (commands, API wrapper, UI)
+- ✅ TEAM-412: Protocol handler (149 LOC, 4 tests) - backend only
+- ✅ TEAM-413: Comprehensive review - identified gaps ✨ NEW
 
 **Ad Hoc Work Completed (Not Part of Marketplace):**
 - ✅ TEAM-402: Artifact system refactoring (9/9 phases, eliminates circular deps)

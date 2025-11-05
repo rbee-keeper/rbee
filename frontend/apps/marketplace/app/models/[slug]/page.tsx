@@ -1,8 +1,9 @@
 // TEAM-415: SSG model detail page with slugified URLs
 // TEAM-410: Added compatibility integration
-import { ModelDetailPageTemplate } from '@rbee/ui/marketplace'
+// TEAM-413: Added InstallButton integration
 import { getHuggingFaceModel, listHuggingFaceModels } from '@rbee/marketplace-node'
 import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
+import { ModelDetailWithInstall } from '@/components/ModelDetailWithInstall'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -48,9 +49,8 @@ export default async function ModelPage({ params }: Props) {
     
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <ModelDetailPageTemplate 
+        <ModelDetailWithInstall 
           model={model} 
-          showBackButton={false}
           compatibleWorkers={compatibleWorkers}
         />
       </div>

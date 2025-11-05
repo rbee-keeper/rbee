@@ -5,6 +5,7 @@
 // TEAM-XXX: Added narration listener for Queen iframe events
 // TEAM-350: Log build mode on startup
 // TEAM-405: Added Marketplace pages (LLM Models, Image Models, Rbee Workers)
+// TEAM-413: Added protocol listener for rbee:// URL handling
 
 import { useEffect } from 'react'
 import { SidebarProvider } from '@rbee/ui/atoms'
@@ -21,6 +22,7 @@ import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
 import { ModelDetailsPage } from './pages/ModelDetailsPage'
 import { setupNarrationListener } from './utils/narrationListener'
 import { broadcastThemeChanges } from '@rbee/iframe-bridge'
+import { useProtocol } from './hooks/useProtocol'
 
 // TEAM-350: Log build mode on startup
 const isDev = import.meta.env.DEV
@@ -45,6 +47,9 @@ function App() {
     const cleanupTheme = broadcastThemeChanges()
     return cleanupTheme
   }, [])
+
+  // TEAM-413: Listen for rbee:// protocol events
+  useProtocol()
 
   return (
     <BrowserRouter>

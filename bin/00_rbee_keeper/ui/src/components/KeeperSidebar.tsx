@@ -4,6 +4,7 @@
 // TEAM-340: Added Queen navigation item with iframe page
 // TEAM-342: Added Hives section with dynamic navigation to installed hives
 // TEAM-405: Added Marketplace section with LLM Models, Image Models, Rbee Workers
+// TEAM-413: Added DownloadPanel for tracking model/worker downloads
 
 import { ThemeToggle } from "@rbee/ui/molecules";
 import {
@@ -19,11 +20,16 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useSshHives, useInstalledHives } from "@/store/hiveQueries";
 import type { SshHive } from "@/store/hiveQueries";
+import { DownloadPanel } from "./DownloadPanel";
+import { useDownloadStore } from "@/store/downloadStore";
 
 export function KeeperSidebar() {
   const location = useLocation();
   const { data: hives = [] } = useSshHives();
   const { data: installedHives = [] } = useInstalledHives();
+  
+  // TEAM-413: Download tracking
+  const { downloads, cancelDownload, retryDownload, removeDownload } = useDownloadStore();
 
   // TEAM-367: Filter hives by actual install status from backend
   const installedHivesList = hives.filter((hive: SshHive) =>
@@ -172,6 +178,16 @@ export function KeeperSidebar() {
           </div>
         </div>
       </div>
+
+      {/* TEAM-413: Downloads section */}
+      {downloads.length > 0 && (
+        <DownloadPanel
+          downloads={downloads}
+          onCancel={cancelDownload}
+          onRetry={retryDownload}
+          onClear={removeDownload}
+        />
+      )}
 
       {/* System section */}
       <div className="border-t border-border p-4">

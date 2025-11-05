@@ -67,7 +67,10 @@ impl WorkerCatalogClient {
     /// Create a new worker catalog client
     ///
     /// # Arguments
-    /// * `base_url` - Base URL of the worker catalog API (default: http://localhost:3000)
+    /// * `base_url` - Base URL of the worker catalog API (default: http://localhost:8787)
+    ///
+    /// # Default Port
+    /// The global worker catalog (Hono/Cloudflare Worker) runs on port 8787 by default.
     pub fn new(base_url: impl Into<String>) -> Self {
         Self {
             base_url: base_url.into(),
@@ -76,8 +79,10 @@ impl WorkerCatalogClient {
     }
     
     /// Create a client with default localhost URL
+    ///
+    /// TEAM-421: Changed from port 3000 to 8787 (Hono worker catalog default port)
     pub fn default() -> Self {
-        Self::new("http://localhost:3000")
+        Self::new("http://localhost:8787")
     }
     
     /// List all available workers
@@ -268,10 +273,10 @@ mod tests {
     
     #[test]
     fn test_client_creation() {
-        let client = WorkerCatalogClient::new("http://localhost:3000");
-        assert_eq!(client.base_url, "http://localhost:3000");
+        let client = WorkerCatalogClient::new("http://localhost:8787");
+        assert_eq!(client.base_url, "http://localhost:8787");
         
         let default_client = WorkerCatalogClient::default();
-        assert_eq!(default_client.base_url, "http://localhost:3000");
+        assert_eq!(default_client.base_url, "http://localhost:8787");
     }
 }

@@ -30,10 +30,11 @@ pub async fn auto_run_model(model_id: String, hive_id: String) -> Result<()> {
     });
     
     println!("📥 Downloading model...");
-    client.submit_and_stream(download_op, |line| {
+    let (_job_id, stream_fut) = client.submit_and_stream(download_op, |line| {
         println!("   {}", line);
         Ok(())
     }).await?;
+    stream_fut.await?;
     
     // TEAM-416: Step 2 - Spawn worker with the model
     // Default to CPU worker for maximum compatibility
@@ -45,10 +46,11 @@ pub async fn auto_run_model(model_id: String, hive_id: String) -> Result<()> {
     });
     
     println!("🐝 Spawning worker...");
-    client.submit_and_stream(spawn_op, |line| {
+    let (_job_id, stream_fut) = client.submit_and_stream(spawn_op, |line| {
         println!("   {}", line);
         Ok(())
     }).await?;
+    stream_fut.await?;
     
     println!("✅ Model ready: {}", model_id);
     Ok(())
@@ -79,10 +81,11 @@ pub async fn auto_run_worker(worker_type: String, hive_id: String) -> Result<()>
     });
     
     println!("🐝 Spawning worker...");
-    client.submit_and_stream(spawn_op, |line| {
+    let (_job_id, stream_fut) = client.submit_and_stream(spawn_op, |line| {
         println!("   {}", line);
         Ok(())
     }).await?;
+    stream_fut.await?;
     
     println!("✅ Worker ready: {}", worker_type);
     Ok(())

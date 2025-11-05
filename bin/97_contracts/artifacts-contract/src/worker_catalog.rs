@@ -40,6 +40,7 @@ impl std::fmt::Display for Architecture {
 /// Worker implementation type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum WorkerImplementation {
     /// Rust implementation
@@ -53,6 +54,7 @@ pub enum WorkerImplementation {
 /// Build system
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum BuildSystem {
     /// Cargo (Rust)
@@ -66,6 +68,7 @@ pub enum BuildSystem {
 /// Source repository information
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "camelCase")]
 pub struct SourceInfo {
     /// Source type (git or tarball)
@@ -87,6 +90,7 @@ pub struct SourceInfo {
 /// Build configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "camelCase")]
 pub struct BuildConfig {
     /// Cargo features (for Rust)
@@ -110,6 +114,7 @@ pub struct BuildConfig {
 /// - WorkerBinary = Installed worker (local filesystem)
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "camelCase")]
 pub struct WorkerCatalogEntry {
     // ━━━ Identity ━━━

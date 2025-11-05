@@ -6,18 +6,18 @@ import type { WorkerCatalogEntry } from "./types";
 export const WORKERS: WorkerCatalogEntry[] = [
   {
     id: "llm-worker-rbee-cpu",
-    implementation: "llm-worker-rbee",
-    worker_type: "cpu",
+    implementation: "rust",
+    workerType: "cpu",
     version: "0.1.0",
     platforms: ["linux", "macos", "windows"],
     architectures: ["x86_64", "aarch64"],
     name: "LLM Worker (CPU)",
     description: "Candle-based LLM inference worker with CPU acceleration",
     license: "GPL-3.0-or-later",
-    pkgbuild_url: "/workers/llm-worker-rbee-cpu/PKGBUILD",
-    build_system: "cargo",
+    pkgbuildUrl: "/workers/llm-worker-rbee-cpu/PKGBUILD",
+    buildSystem: "cargo",
     source: {
-      type: "git",
+      sourceType: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/30_llm_worker_rbee"
@@ -28,27 +28,27 @@ export const WORKERS: WorkerCatalogEntry[] = [
     },
     depends: ["gcc"],
     makedepends: ["rust", "cargo"],
-    binary_name: "llm-worker-rbee-cpu",
-    install_path: "/usr/local/bin/llm-worker-rbee-cpu",
-    supported_formats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
-    max_context_length: 32768,
-    supports_streaming: true,
-    supports_batching: false
+    binaryName: "llm-worker-rbee-cpu",
+    installPath: "/usr/local/bin/llm-worker-rbee-cpu",
+    supportedFormats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
+    maxContextLength: 32768,
+    supportsStreaming: true,
+    supportsBatching: false
   },
   {
     id: "llm-worker-rbee-cuda",
-    implementation: "llm-worker-rbee",
-    worker_type: "cuda",
+    implementation: "rust",
+    workerType: "cuda",
     version: "0.1.0",
     platforms: ["linux", "windows"],
     architectures: ["x86_64"],
     name: "LLM Worker (CUDA)",
     description: "Candle-based LLM inference worker with NVIDIA CUDA acceleration",
     license: "GPL-3.0-or-later",
-    pkgbuild_url: "/workers/llm-worker-rbee-cuda/PKGBUILD",
-    build_system: "cargo",
+    pkgbuildUrl: "/workers/llm-worker-rbee-cuda/PKGBUILD",
+    buildSystem: "cargo",
     source: {
-      type: "git",
+      sourceType: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/30_llm_worker_rbee"
@@ -59,27 +59,27 @@ export const WORKERS: WorkerCatalogEntry[] = [
     },
     depends: ["gcc", "cuda"],
     makedepends: ["rust", "cargo"],
-    binary_name: "llm-worker-rbee-cuda",
-    install_path: "/usr/local/bin/llm-worker-rbee-cuda",
-    supported_formats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
-    max_context_length: 32768,
-    supports_streaming: true,
-    supports_batching: false
+    binaryName: "llm-worker-rbee-cuda",
+    installPath: "/usr/local/bin/llm-worker-rbee-cuda",
+    supportedFormats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
+    maxContextLength: 32768,
+    supportsStreaming: true,
+    supportsBatching: false
   },
   {
     id: "llm-worker-rbee-metal",
-    implementation: "llm-worker-rbee",
-    worker_type: "metal",
+    implementation: "rust",
+    workerType: "metal",
     version: "0.1.0",
     platforms: ["macos"],
     architectures: ["aarch64"],
     name: "LLM Worker (Metal)",
     description: "Candle-based LLM inference worker with Apple Metal acceleration",
     license: "GPL-3.0-or-later",
-    pkgbuild_url: "/workers/llm-worker-rbee-metal/PKGBUILD",
-    build_system: "cargo",
+    pkgbuildUrl: "/workers/llm-worker-rbee-metal/PKGBUILD",
+    buildSystem: "cargo",
     source: {
-      type: "git",
+      sourceType: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/30_llm_worker_rbee"
@@ -90,27 +90,27 @@ export const WORKERS: WorkerCatalogEntry[] = [
     },
     depends: ["clang"],
     makedepends: ["rust", "cargo"],
-    binary_name: "llm-worker-rbee-metal",
-    install_path: "/usr/local/bin/llm-worker-rbee-metal",
-    supported_formats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
-    max_context_length: 32768,
-    supports_streaming: true,
-    supports_batching: false
+    binaryName: "llm-worker-rbee-metal",
+    installPath: "/usr/local/bin/llm-worker-rbee-metal",
+    supportedFormats: ["gguf", "safetensors"],  // TEAM-409: ASPIRATIONAL - GGUF needed for competitive parity
+    maxContextLength: 32768,
+    supportsStreaming: true,
+    supportsBatching: false
   },
   {
     id: "sd-worker-rbee-cpu",
-    implementation: "llm-worker-rbee",
-    worker_type: "cpu",
+    implementation: "rust",
+    workerType: "cpu",
     version: "0.1.0",
     platforms: ["linux", "macos", "windows"],
     architectures: ["x86_64", "aarch64"],
     name: "SD Worker (CPU)",
     description: "Candle-based Stable Diffusion inference worker with CPU acceleration",
     license: "GPL-3.0-or-later",
-    pkgbuild_url: "/workers/sd-worker-rbee-cpu/PKGBUILD",
-    build_system: "cargo",
+    pkgbuildUrl: "/workers/sd-worker-rbee-cpu/PKGBUILD",
+    buildSystem: "cargo",
     source: {
-      type: "git",
+      sourceType: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/31_sd_worker_rbee"
@@ -121,26 +121,26 @@ export const WORKERS: WorkerCatalogEntry[] = [
     },
     depends: ["gcc"],
     makedepends: ["rust", "cargo"],
-    binary_name: "sd-worker-rbee-cpu",
-    install_path: "/usr/local/bin/sd-worker-rbee-cpu",
-    supported_formats: ["safetensors"],
-    supports_streaming: true,
-    supports_batching: false
+    binaryName: "sd-worker-rbee-cpu",
+    installPath: "/usr/local/bin/sd-worker-rbee-cpu",
+    supportedFormats: ["safetensors"],
+    supportsStreaming: true,
+    supportsBatching: false
   },
   {
     id: "sd-worker-rbee-cuda",
-    implementation: "llm-worker-rbee",
-    worker_type: "cuda",
+    implementation: "rust",
+    workerType: "cuda",
     version: "0.1.0",
     platforms: ["linux", "windows"],
     architectures: ["x86_64"],
     name: "SD Worker (CUDA)",
     description: "Candle-based Stable Diffusion inference worker with NVIDIA CUDA acceleration",
     license: "GPL-3.0-or-later",
-    pkgbuild_url: "/workers/sd-worker-rbee-cuda/PKGBUILD",
-    build_system: "cargo",
+    pkgbuildUrl: "/workers/sd-worker-rbee-cuda/PKGBUILD",
+    buildSystem: "cargo",
     source: {
-      type: "git",
+      sourceType: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/31_sd_worker_rbee"
@@ -151,26 +151,26 @@ export const WORKERS: WorkerCatalogEntry[] = [
     },
     depends: ["gcc", "cuda"],
     makedepends: ["rust", "cargo"],
-    binary_name: "sd-worker-rbee-cuda",
-    install_path: "/usr/local/bin/sd-worker-rbee-cuda",
-    supported_formats: ["safetensors"],
-    supports_streaming: true,
-    supports_batching: false
+    binaryName: "sd-worker-rbee-cuda",
+    installPath: "/usr/local/bin/sd-worker-rbee-cuda",
+    supportedFormats: ["safetensors"],
+    supportsStreaming: true,
+    supportsBatching: false
   },
   {
     id: "sd-worker-rbee-metal",
-    implementation: "llm-worker-rbee",
-    worker_type: "metal",
+    implementation: "rust",
+    workerType: "metal",
     version: "0.1.0",
     platforms: ["macos"],
     architectures: ["aarch64"],
     name: "SD Worker (Metal)",
     description: "Candle-based Stable Diffusion inference worker with Apple Metal acceleration",
     license: "GPL-3.0-or-later",
-    pkgbuild_url: "/workers/sd-worker-rbee-metal/PKGBUILD",
-    build_system: "cargo",
+    pkgbuildUrl: "/workers/sd-worker-rbee-metal/PKGBUILD",
+    buildSystem: "cargo",
     source: {
-      type: "git",
+      sourceType: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/31_sd_worker_rbee"
@@ -181,10 +181,10 @@ export const WORKERS: WorkerCatalogEntry[] = [
     },
     depends: ["clang"],
     makedepends: ["rust", "cargo"],
-    binary_name: "sd-worker-rbee-metal",
-    install_path: "/usr/local/bin/sd-worker-rbee-metal",
-    supported_formats: ["safetensors"],
-    supports_streaming: true,
-    supports_batching: false
+    binaryName: "sd-worker-rbee-metal",
+    installPath: "/usr/local/bin/sd-worker-rbee-metal",
+    supportedFormats: ["safetensors"],
+    supportsStreaming: true,
+    supportsBatching: false
   }
 ];

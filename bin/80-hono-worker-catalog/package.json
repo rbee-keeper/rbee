@@ -1,5 +1,5 @@
 {
-	"name": "80-hono-worker-catalog",
+	"name": "@rbee/global-worker-catalog",
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",

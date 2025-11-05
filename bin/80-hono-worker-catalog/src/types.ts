@@ -26,18 +26,9 @@ export type Architecture = "x86_64" | "aarch64";
 
 /**
  * Worker implementation type
- * - "llm-worker-rbee": Bespoke Candle-based worker (our implementation)
- * - "llama-cpp-adapter": llama.cpp wrapper (future)
- * - "vllm-adapter": vLLM wrapper (future)
- * - "ollama-adapter": Ollama wrapper (future)
- * - "comfyui-adapter": ComfyUI wrapper (future)
+ * TEAM-421: Must match Rust enum WorkerImplementation in artifacts-contract
  */
-export type WorkerImplementation = 
-  | "llm-worker-rbee"
-  | "llama-cpp-adapter"
-  | "vllm-adapter"
-  | "ollama-adapter"
-  | "comfyui-adapter";
+export type WorkerImplementation = "rust" | "python" | "cpp";
 
 /**
  * Build system type
@@ -56,8 +47,8 @@ export interface WorkerCatalogEntry {
   /** Worker implementation type */
   implementation: WorkerImplementation;
   
-  /** Worker type (backend) */
-  worker_type: WorkerType;
+  /** Worker type (backend) - MUST be camelCase to match Rust */
+  workerType: WorkerType;
   
   /** Version (semver) */
   version: string;
@@ -80,15 +71,16 @@ export interface WorkerCatalogEntry {
   license: string;
   
   // ━━━ Build Instructions ━━━
-  /** URL to PKGBUILD file */
-  pkgbuild_url: string;
+  /** URL to PKGBUILD file - MUST be camelCase */
+  pkgbuildUrl: string;
   
-  /** Build system */
-  build_system: BuildSystem;
+  /** Build system - MUST be camelCase */
+  buildSystem: BuildSystem;
   
   /** Source repository */
   source: {
-    type: "git" | "tarball";
+    /** Source type - MUST be camelCase */
+    sourceType: "git" | "tarball";
     url: string;
     branch?: string;
     tag?: string;
@@ -113,22 +105,22 @@ export interface WorkerCatalogEntry {
   makedepends: string[];
   
   // ━━━ Binary Info ━━━
-  /** Binary name (output) */
-  binary_name: string;
+  /** Binary name (output) - MUST be camelCase */
+  binaryName: string;
   
-  /** Installation path */
-  install_path: string;
+  /** Installation path - MUST be camelCase */
+  installPath: string;
   
   // ━━━ Capabilities ━━━
-  /** Supported model formats */
-  supported_formats: string[];
+  /** Supported model formats - MUST be camelCase */
+  supportedFormats: string[];
   
-  /** Maximum context length */
-  max_context_length?: number;
+  /** Maximum context length - MUST be camelCase */
+  maxContextLength?: number;
   
-  /** Supports streaming */
-  supports_streaming: boolean;
+  /** Supports streaming - MUST be camelCase */
+  supportsStreaming: boolean;
   
-  /** Supports batching */
-  supports_batching: boolean;
+  /** Supports batching - MUST be camelCase */
+  supportsBatching: boolean;
 }

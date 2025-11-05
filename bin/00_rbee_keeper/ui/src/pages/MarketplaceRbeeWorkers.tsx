@@ -1,24 +1,54 @@
-// TEAM-405: Marketplace Rbee Workers page
-// Browse and install rbee worker binaries (placeholder for future implementation)
+// TEAM-405: Marketplace Rbee Workers page - Using reusable components
+// TEAM-421: Implemented with WorkerListTemplate and marketplace_list_workers command
+// DATA LAYER: Tauri commands + React Query
+// PRESENTATION: WorkerListTemplate from rbee-ui
+
+import { invoke } from "@tauri-apps/api/core";
+import { useQuery } from "@tanstack/react-query";
+import { PageContainer } from "@rbee/ui/molecules";
+import { WorkerListTemplate } from "@rbee/ui/marketplace";
+import type { WorkerCatalogEntry } from "@/generated/bindings";
 
 export function MarketplaceRbeeWorkers() {
+  // DATA LAYER: Fetch workers from Tauri
+  const { data: rawWorkers = [], isLoading, error } = useQuery({
+    queryKey: ["marketplace", "rbee-workers"],
+    queryFn: async () => {
+      const result = await invoke<WorkerCatalogEntry[]>("marketplace_list_workers");
+      return result;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // TEAM-421: Transform WorkerCatalogEntry to WorkerCard format
+  const workers = rawWorkers.map((worker) => ({
+    id: worker.id,
+    name: worker.name,
+    description: worker.description,
+    version: worker.version,
+    platform: worker.platforms.map((p: string) => p.toLowerCase()),
+    architecture: worker.architectures.map((a: string) => a.toLowerCase()),
+    workerType: worker.workerType.toLowerCase() as 'cpu' | 'cuda' | 'metal',
+  }));
+
+  // PRESENTATION LAYER: Render with reusable component
   return (
-    <div className="h-full flex flex-col items-center justify-center p-6">
-      <div className="max-w-md text-center space-y-4">
-        <h1 className="text-2xl font-bold">Rbee Workers</h1>
-        <p className="text-muted-foreground">
-          Worker catalog integration coming soon. This will allow you to browse and install rbee worker binaries.
-        </p>
-        <div className="text-sm text-muted-foreground">
-          <p>Planned features:</p>
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>Browse available worker types (CPU, CUDA, Metal)</li>
-            <li>Filter by platform and architecture</li>
-            <li>Install workers to hives</li>
-            <li>View worker versions and changelogs</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <PageContainer
+      title="Rbee Workers"
+      description="Browse and install rbee workers for running AI models on different hardware"
+      padding="default"
+    >
+      {isLoading && <div>Loading workers...</div>}
+      {error && <div>Error: {String(error)}</div>}
+      {!isLoading && !error && (
+        <WorkerListTemplate
+          title="Inference Workers"
+          description="Download workers optimized for your hardware"
+          workers={workers}
+          isLoading={isLoading}
+          error={error ? String(error) : undefined}
+        />
+      )}
+    </PageContainer>
   );
 }

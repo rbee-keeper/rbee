@@ -49,13 +49,16 @@ mod tests {
                 marketplace_list_models,
                 marketplace_search_models,
                 marketplace_get_model,
+                marketplace_list_workers, // TEAM-421: Worker catalog listing
                 // TEAM-420: Removed check_model_compatibility, list_compatible_workers, list_compatible_models (incomplete stubs)
             ])
             .typ::<NarrationEvent>()
             .typ::<lifecycle_local::DaemonStatus>()
             .typ::<marketplace_sdk::Model>()
-            .typ::<marketplace_sdk::ModelSource>()
-            .typ::<marketplace_sdk::CompatibilityResult>();
+            .typ::<marketplace_sdk::WorkerCatalogEntry>() // TEAM-421: Worker catalog type (re-exported from artifacts-contract)
+            .typ::<marketplace_sdk::WorkerType>()
+            .typ::<marketplace_sdk::Platform>()
+            .typ::<marketplace_sdk::Architecture>();
 
         builder
             .export(Typescript::default(), "ui/src/generated/bindings.ts")
@@ -629,6 +632,30 @@ pub async fn marketplace_get_model(
         .map(|model| {
             n!("marketplace_get_model", "✅ Found model: {}", model.name);
             model
+        })
+}
+
+/// List workers from catalog API
+/// TEAM-421: Marketplace integration with worker catalog
+#[tauri::command]
+#[specta::specta]
+pub async fn marketplace_list_workers() -> Result<Vec<marketplace_sdk::WorkerCatalogEntry>, String> {
+    use marketplace_sdk::WorkerCatalogClient;
+    use observability_narration_core::n;
+
+    n!("marketplace_list_workers", "🔍 Listing workers from catalog");
+
+    let client = WorkerCatalogClient::default();
+    client
+        .list_workers()
+        .await
+        .map_err(|e| {
+            n!("marketplace_list_workers", "❌ Error: {}", e);
+            format!("Failed to list workers: {}", e)
+        })
+        .map(|workers| {
+            n!("marketplace_list_workers", "✅ Found {} workers", workers.len());
+            workers
         })
 }
 

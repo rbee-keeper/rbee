@@ -125,6 +125,7 @@ fn launch_gui() {
             marketplace_list_models,
             marketplace_search_models,
             marketplace_get_model,
+            marketplace_list_workers, // TEAM-421: Worker catalog listing
             // TEAM-413: Download commands
             model_download,
             worker_download,

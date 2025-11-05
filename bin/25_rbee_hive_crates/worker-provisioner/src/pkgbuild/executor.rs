@@ -321,25 +321,32 @@ export pkgdir="{pkgdir}"
                 _ = cancel_token.cancelled() => {
                     output_callback("==> Build cancelled, killing process group...");
                     
-                    // TEAM-388: Kill the entire process group (bash + cargo + all subprocesses)
+                    // TEAM-421: Kill the entire process group (bash + cargo + all subprocesses)
+                    // Using nix crate for safe Unix syscalls (no unsafe blocks needed)
                     #[cfg(unix)]
                     {
+                        use nix::sys::signal::{killpg, Signal};
+                        use nix::unistd::Pid;
+                        
                         if let Some(pid) = child.id() {
                             output_callback(&format!("==> Killing process group PGID: {}", pid));
-                            // Kill the process group by sending signal to negative PID
-                            unsafe {
-                                libc::kill(-(pid as i32), libc::SIGTERM);
+                            
+                            // Send SIGTERM to process group (safe wrapper)
+                            if let Err(e) = killpg(Pid::from_raw(pid as i32), Signal::SIGTERM) {
+                                output_callback(&format!("==> Warning: SIGTERM failed: {}", e));
+                            } else {
+                                output_callback("==> SIGTERM sent to process group");
                             }
-                            output_callback("==> SIGTERM sent to process group");
                             
                             // Give it a moment to terminate gracefully
                             tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
                             
                             // If still running, send SIGKILL
-                            unsafe {
-                                libc::kill(-(pid as i32), libc::SIGKILL);
+                            if let Err(e) = killpg(Pid::from_raw(pid as i32), Signal::SIGKILL) {
+                                output_callback(&format!("==> Warning: SIGKILL failed: {}", e));
+                            } else {
+                                output_callback("==> SIGKILL sent to process group");
                             }
-                            output_callback("==> SIGKILL sent to process group");
                         }
                     }
                     

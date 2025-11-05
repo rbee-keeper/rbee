@@ -86,6 +86,14 @@ fn launch_gui() {
     // use rbee_keeper::protocol::handle_protocol_url;
     // use tauri_plugin_deep_link::DeepLinkExt;
 
+    // TEAM-XXX: mac compat - Log what we're trying to load
+    #[cfg(debug_assertions)]
+    eprintln!("🚀 Launching Tauri GUI in DEBUG mode");
+    #[cfg(debug_assertions)]
+    eprintln!("   Expected dev URL: http://localhost:5173");
+    #[cfg(not(debug_assertions))]
+    eprintln!("🚀 Launching Tauri GUI in RELEASE mode");
+
     tauri::Builder::default()
         // TEAM-412: Register deep link plugin for rbee:// protocol
         // TEAM-XXX: mac compat - Temporarily disabled
@@ -127,28 +135,40 @@ fn launch_gui() {
             // Events emitted on "narration" channel for React sidebar
             rbee_keeper::init_gui_tracing(app.handle().clone());
             
-            // TEAM-412: Register rbee:// protocol handler
-            // TEAM-XXX: mac compat - Temporarily disabled deep-link plugin
-            // if let Err(e) = app.deep_link().register("rbee") {
-            //     eprintln!("⚠️  Failed to register rbee:// protocol: {}", e);
-            // }
-            // 
-            // // TEAM-412: Listen for deep link events
-            // let app_handle = app.handle().clone();
-            // app.deep_link().on_open_url(move |event| {
-            //     for url in event.urls() {
-            //         println!("🔗 Protocol URL opened: {}", url);
-            //         
-            //         // Handle the URL (parsing happens inside handle_protocol_url)
-            //         let app = app_handle.clone();
-            //         let url_str = url.to_string();
-            //         tauri::async_runtime::spawn(async move {
-            //             if let Err(e) = handle_protocol_url(&app, &url_str).await {
-            //                 eprintln!("❌ Protocol handler error: {}", e);
-            //             }
-            //         });
-            //     }
-            // });
+            // TEAM-XXX: mac compat - DRASTIC DEBUG - Force load test HTML
+            #[cfg(debug_assertions)]
+            {
+                use tauri::Manager;
+                let windows: Vec<_> = app.webview_windows().keys().cloned().collect();
+                eprintln!("🔍 Available windows: {:?}", windows);
+                
+                if let Some((label, window)) = app.webview_windows().iter().next() {
+                    eprintln!("🔍 Found window: {}", label);
+                    
+                    // DRASTIC: Try to load test HTML directly
+                    let test_html = r#"
+                        <!DOCTYPE html>
+                        <html>
+                        <head><title>WEBVIEW TEST</title></head>
+                        <body style="background: red; color: white; font-size: 48px; padding: 50px;">
+                            <h1>🔥 WEBVIEW IS WORKING!</h1>
+                            <p>If you see this RED screen, the webview works!</p>
+                            <p>The problem is loading from http://localhost:5173</p>
+                        </body>
+                        </html>
+                    "#;
+                    
+                    match window.eval(&format!("document.write(`{}`)", test_html)) {
+                        Ok(_) => eprintln!("✅ Injected test HTML"),
+                        Err(e) => eprintln!("❌ Failed to inject HTML: {}", e),
+                    }
+                    
+                    window.open_devtools();
+                    eprintln!("🔍 DevTools opened");
+                } else {
+                    eprintln!("⚠️  No windows found!");
+                }
+            }
             
             Ok(())
         })

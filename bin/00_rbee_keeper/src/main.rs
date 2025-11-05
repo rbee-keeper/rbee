@@ -82,12 +82,14 @@ async fn main() -> Result<()> {
 // - See: DESKTOP_ENTRY.md for debugging
 fn launch_gui() {
     use rbee_keeper::tauri_commands::*;
-    use rbee_keeper::protocol::handle_protocol_url;
-    use tauri_plugin_deep_link::DeepLinkExt;
+    // TEAM-XXX: mac compat - Temporarily disabled deep-link plugin
+    // use rbee_keeper::protocol::handle_protocol_url;
+    // use tauri_plugin_deep_link::DeepLinkExt;
 
     tauri::Builder::default()
         // TEAM-412: Register deep link plugin for rbee:// protocol
-        .plugin(tauri_plugin_deep_link::init())
+        // TEAM-XXX: mac compat - Temporarily disabled
+        // .plugin(tauri_plugin_deep_link::init())
         .invoke_handler(tauri::generate_handler![
             // TEAM-336: Test command for narration
             test_narration,
@@ -126,26 +128,27 @@ fn launch_gui() {
             rbee_keeper::init_gui_tracing(app.handle().clone());
             
             // TEAM-412: Register rbee:// protocol handler
-            if let Err(e) = app.deep_link().register("rbee") {
-                eprintln!("⚠️  Failed to register rbee:// protocol: {}", e);
-            }
-            
-            // TEAM-412: Listen for deep link events
-            let app_handle = app.handle().clone();
-            app.deep_link().on_open_url(move |event| {
-                for url in event.urls() {
-                    println!("🔗 Protocol URL opened: {}", url);
-                    
-                    // Handle the URL (parsing happens inside handle_protocol_url)
-                    let app = app_handle.clone();
-                    let url_str = url.to_string();
-                    tauri::async_runtime::spawn(async move {
-                        if let Err(e) = handle_protocol_url(&app, &url_str).await {
-                            eprintln!("❌ Protocol handler error: {}", e);
-                        }
-                    });
-                }
-            });
+            // TEAM-XXX: mac compat - Temporarily disabled deep-link plugin
+            // if let Err(e) = app.deep_link().register("rbee") {
+            //     eprintln!("⚠️  Failed to register rbee:// protocol: {}", e);
+            // }
+            // 
+            // // TEAM-412: Listen for deep link events
+            // let app_handle = app.handle().clone();
+            // app.deep_link().on_open_url(move |event| {
+            //     for url in event.urls() {
+            //         println!("🔗 Protocol URL opened: {}", url);
+            //         
+            //         // Handle the URL (parsing happens inside handle_protocol_url)
+            //         let app = app_handle.clone();
+            //         let url_str = url.to_string();
+            //         tauri::async_runtime::spawn(async move {
+            //             if let Err(e) = handle_protocol_url(&app, &url_str).await {
+            //                 eprintln!("❌ Protocol handler error: {}", e);
+            //             }
+            //         });
+            //     }
+            // });
             
             Ok(())
         })

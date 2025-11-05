@@ -16,12 +16,6 @@
       "validation_library": "none",
       "verbose": false,
       "visualize_deps": false
-    },
-    "deep-link": {
-      "schemes": ["rbee"],
-      "mobile": {
-        "appIdBase": "com.rbee"
-      }
     }
   },
   "bundle": {

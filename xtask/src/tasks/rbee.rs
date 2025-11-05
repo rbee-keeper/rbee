@@ -18,7 +18,9 @@ use std::path::PathBuf;
 use std::process::Command;
 
 // const RBEE_KEEPER_BIN: &str = "bin/00_rbee_keeper";
-const TARGET_BINARY: &str = "target/debug/rbee-keeper";
+// TEAM-XXX: mac compat - check both debug and release, prefer release (build-all.sh uses --release)
+const TARGET_BINARY_DEBUG: &str = "target/debug/rbee-keeper";
+const TARGET_BINARY_RELEASE: &str = "target/release/rbee-keeper";
 
 /// Check if rbee-keeper binary needs rebuilding
 /// TEAM-193: Now uses AutoUpdater to check ALL dependencies (including shared crates)
@@ -67,8 +69,21 @@ pub fn run_rbee_keeper(args: Vec<String>) -> Result<()> {
     //     build_rbee_keeper(&workspace_root)?;
     // }
 
-    // Forward command to rbee-keeper
-    let binary_path = workspace_root.join(TARGET_BINARY);
+    // TEAM-XXX: mac compat - check release first (build-all.sh uses --release), fallback to debug
+    let binary_path = {
+        let release_path = workspace_root.join(TARGET_BINARY_RELEASE);
+        let debug_path = workspace_root.join(TARGET_BINARY_DEBUG);
+        
+        if release_path.exists() {
+            release_path
+        } else if debug_path.exists() {
+            debug_path
+        } else {
+            anyhow::bail!(
+                "rbee-keeper binary not found. Run 'cargo build --release' or 'cargo build --bin rbee-keeper'"
+            );
+        }
+    };
 
     let status = Command::new(&binary_path)
         .args(&args)

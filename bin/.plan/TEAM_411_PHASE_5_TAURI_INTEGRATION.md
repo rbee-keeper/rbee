@@ -14,11 +14,240 @@ Integrate compatibility matrix into Tauri Keeper app: show compatibility in mark
 
 ---
 
+## 🏗️ Architecture Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ TAURI INTEGRATION: SDK → Tauri Commands → SPA GUI          │
+└─────────────────────────────────────────────────────────────┘
+
+1. marketplace-sdk (Rust Crate)
+   ├─ compatibility.rs (core logic)
+   ├─ NO WASM (native Rust in Tauri backend)
+   └─ Used by: Tauri commands directly
+
+2. Tauri Commands (Rust)
+   ├─ File: bin/00_rbee_keeper/src/commands/compatibility.rs
+   ├─ Functions:
+   │  ├─ check_model_compatibility(model_id, worker_id) -> CompatibilityResult
+   │  ├─ list_compatible_workers(model_id) -> Vec<Worker>
+   │  └─ list_compatible_models(worker_id) -> Vec<Model>
+   └─ Exposed to: Frontend via #[tauri::command]
+
+3. SPA Frontend (React + TypeScript)
+   ├─ File: bin/00_rbee_keeper/ui/src/api/compatibility.ts
+   ├─ Import: import { invoke } from '@tauri-apps/api/tauri'
+   ├─ Call: await invoke('check_model_compatibility', { modelId, workerId })
+   └─ Components: WorkerSelector, CompatibilityBadge, etc.
+
+4. User Flow
+   ├─ User browses marketplace in Keeper
+   ├─ Frontend calls Tauri commands
+   ├─ Tauri backend uses marketplace-sdk (native Rust)
+   ├─ Results returned to frontend
+   └─ UI updates with compatibility info
+```
+
+**Key Differences from Next.js:**
+- ❌ NO WASM (native Rust instead)
+- ❌ NO marketplace-node wrapper (direct Rust crate usage)
+- ✅ Tauri commands bridge Rust ↔ TypeScript
+- ✅ Runtime compatibility checks (not pre-computed)
+- ✅ Local-first (no network calls for compatibility)
+
+---
+
 ## ✅ Checklist
 
-### Task 5.1: Add Compatibility to Marketplace Page
+### Task 5.1: Create Tauri Compatibility Commands
+- [ ] Create `bin/00_rbee_keeper/src/commands/compatibility.rs`
+- [ ] Add marketplace-sdk dependency to Keeper's Cargo.toml
+- [ ] Implement Tauri commands:
+  - [ ] `check_model_compatibility(model_id, worker_id)`
+  - [ ] `list_compatible_workers(model_id)`
+  - [ ] `list_compatible_models(worker_id)`
+- [ ] Register commands in main.rs
+- [ ] Add TEAM-411 signatures
+- [ ] Commit: "TEAM-411: Add Tauri compatibility commands"
+
+**Implementation:**
+```rust
+// TEAM-411: Tauri compatibility commands
+// bin/00_rbee_keeper/src/commands/compatibility.rs
+
+use marketplace_sdk::{
+    compatibility::check_compatibility,
+    types::{ModelMetadata, Worker, CompatibilityResult},
+};
+use tauri::State;
+
+#[tauri::command]
+pub async fn check_model_compatibility(
+    model_id: String,
+    worker_id: String,
+    state: State<'_, AppState>,
+) -> Result<CompatibilityResult, String> {
+    // Extract model metadata from HuggingFace or local cache
+    let model_metadata = extract_model_metadata(&model_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    // Get worker from catalog
+    let worker = get_worker_by_id(&worker_id, &state)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    // Check compatibility using marketplace-sdk
+    let result = check_compatibility(&model_metadata, &worker);
+    
+    Ok(result)
+}
+
+#[tauri::command]
+pub async fn list_compatible_workers(
+    model_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<Worker>, String> {
+    let model_metadata = extract_model_metadata(&model_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    let all_workers = list_all_workers(&state)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    let compatible = all_workers
+        .into_iter()
+        .filter(|worker| {
+            check_compatibility(&model_metadata, worker).compatible
+        })
+        .collect();
+    
+    Ok(compatible)
+}
+
+#[tauri::command]
+pub async fn list_compatible_models(
+    worker_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<String>, String> {
+    let worker = get_worker_by_id(&worker_id, &state)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    // Get models from cache or HuggingFace
+    let models = fetch_top_models(100)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    let compatible = models
+        .into_iter()
+        .filter(|model| {
+            check_compatibility(model, &worker).compatible
+        })
+        .map(|m| m.id)
+        .collect();
+    
+    Ok(compatible)
+}
+```
+
+**Register in main.rs:**
+```rust
+// bin/00_rbee_keeper/src/main.rs
+
+mod commands;
+
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            // ... existing commands
+            commands::compatibility::check_model_compatibility,
+            commands::compatibility::list_compatible_workers,
+            commands::compatibility::list_compatible_models,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+**Acceptance:**
+- ✅ Tauri commands compile
+- ✅ marketplace-sdk integrated
+- ✅ Commands callable from frontend
+- ✅ No WASM (native Rust)
+
+---
+
+### Task 5.2: Add Frontend API Wrapper
+- [ ] Create `bin/00_rbee_keeper/ui/src/api/compatibility.ts`
+- [ ] Wrap Tauri commands in TypeScript functions
+- [ ] Add proper TypeScript types
+- [ ] Export for use in components
+- [ ] Add TEAM-411 signatures
+- [ ] Commit: "TEAM-411: Add frontend compatibility API wrapper"
+
+**Implementation:**
+```typescript
+// TEAM-411: Frontend compatibility API
+// bin/00_rbee_keeper/ui/src/api/compatibility.ts
+
+import { invoke } from '@tauri-apps/api/tauri'
+
+export interface CompatibilityResult {
+  compatible: boolean
+  confidence: 'high' | 'medium' | 'low' | 'none'
+  reasons: string[]
+  warnings: string[]
+  recommendations: string[]
+}
+
+export interface Worker {
+  id: string
+  name: string
+  worker_type: 'cpu' | 'cuda' | 'metal'
+  platform: 'linux' | 'macos' | 'windows'
+}
+
+/**
+ * Check if a model is compatible with a worker
+ */
+export async function checkModelCompatibility(
+  modelId: string,
+  workerId: string
+): Promise<CompatibilityResult> {
+  return invoke('check_model_compatibility', { modelId, workerId })
+}
+
+/**
+ * List all workers compatible with a model
+ */
+export async function listCompatibleWorkers(
+  modelId: string
+): Promise<Worker[]> {
+  return invoke('list_compatible_workers', { modelId })
+}
+
+/**
+ * List all models compatible with a worker
+ */
+export async function listCompatibleModels(
+  workerId: string
+): Promise<string[]> {
+  return invoke('list_compatible_models', { workerId })
+}
+```
+
+**Acceptance:**
+- ✅ TypeScript types match Rust structs
+- ✅ Functions wrap Tauri invoke calls
+- ✅ Exported for component use
+
+---
+
+### Task 5.3: Add Compatibility to Marketplace Page
 - [ ] Open `bin/00_rbee_keeper/ui/src/pages/MarketplacePage.tsx`
-- [ ] Import compatibility functions from marketplace-node
+- [ ] Import compatibility API functions
 - [ ] Fetch compatible workers for each model
 - [ ] Display compatibility badges
 - [ ] Add TEAM-411 signatures

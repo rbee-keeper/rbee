@@ -1,15 +1,23 @@
 // TEAM-401: Marketplace components exports
 // TEAM-405: Added ModelTable, ModelListTableTemplate, and detail molecules
+// TEAM-410: Added compatibility components
 
 // ============================================================================
 // SSR-SAFE EXPORTS (No hooks, pure presentation)
 // ============================================================================
+
+// Types
+export * from './types/compatibility'
+
+// Atoms (Pure presentation)
+export * from './atoms/CompatibilityBadge'
 
 // Organisms (Pure presentation, no hooks)
 export * from './organisms/ModelCard'
 export * from './organisms/WorkerCard'
 export * from './organisms/MarketplaceGrid'
 export * from './organisms/ModelTable'
+export * from './organisms/WorkerCompatibilityList'
 
 // Molecules (Pure presentation)
 export * from './molecules/ModelMetadataCard'

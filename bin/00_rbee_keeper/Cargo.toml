@@ -73,7 +73,9 @@ marketplace-sdk = { path = "../79_marketplace_core/marketplace-sdk", features = 
 
 # TEAM-293/294: Tauri v2 dependencies for GUI
 # TEAM-297: Using tauri-specta v2.0.0-rc.21 for Tauri v2 support
+# TEAM-412: Added deep-link plugin for rbee:// protocol
 tauri = { version = "2", features = [] }
+tauri-plugin-deep-link = "2"
 specta = { version = "=2.0.0-rc.22" }
 tauri-specta = { version = "=2.0.0-rc.21", features = ["derive", "typescript"] }
 specta-typescript = "=0.0.9"

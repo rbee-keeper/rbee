@@ -10,6 +10,7 @@ pub mod config;
 pub mod handlers;
 pub mod job_client;
 pub mod platform; // TEAM-293: Cross-platform abstraction layer
+pub mod protocol; // TEAM-412: Protocol handler for rbee:// URLs
 pub mod ssh_resolver; // TEAM-332: SSH config resolver middleware
 pub mod tracing_init; // TEAM-336: Consolidated tracing setup for CLI and GUI
 

@@ -1,4 +1,5 @@
 // TEAM-405: Model detail page template
+// TEAM-410: Added compatibility section
 //! Complete presentation layer for model details
 //! SEO-compatible, works with Tauri, Next.js SSG/SSR
 
@@ -6,6 +7,8 @@ import { Button, Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/u
 import { ModelMetadataCard } from '../../molecules/ModelMetadataCard'
 import { ModelStatsCard, Download, Heart, HardDrive } from '../../molecules/ModelStatsCard'
 import { ModelFilesList } from '../../molecules/ModelFilesList'
+import { WorkerCompatibilityList } from '../../organisms/WorkerCompatibilityList'
+import type { CompatibilityResult, Worker } from '../../types/compatibility'
 import { 
   ArrowLeft, 
   ExternalLink, 
@@ -15,7 +18,8 @@ import {
   Calendar,
   Hash,
   Cpu,
-  MessageSquare
+  MessageSquare,
+  CheckCircle2
 } from 'lucide-react'
 
 export interface ModelDetailData {
@@ -70,6 +74,12 @@ export interface ModelDetailPageTemplateProps {
   
   /** Loading state */
   isLoading?: boolean
+  
+  /** TEAM-410: Compatible workers with compatibility results */
+  compatibleWorkers?: Array<{
+    worker: Worker
+    compatibility: CompatibilityResult
+  }>
 }
 
 const formatDate = (dateString: string): string => {
@@ -121,7 +131,8 @@ export function ModelDetailPageTemplate({
   onDownload,
   huggingFaceUrl,
   showBackButton = true,
-  isLoading = false
+  isLoading = false,
+  compatibleWorkers
 }: ModelDetailPageTemplateProps) {
   const hfUrl = huggingFaceUrl || `https://huggingface.co/${model.id}`
 
@@ -233,6 +244,23 @@ export function ModelDetailPageTemplate({
               </CardContent>
             </Card>
           </section>
+
+          {/* TEAM-410: Compatible Workers Section */}
+          {compatibleWorkers && compatibleWorkers.length > 0 && (
+            <section>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-5" />
+                    <CardTitle>Compatible Workers</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <WorkerCompatibilityList workers={compatibleWorkers} />
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
           {/* Basic Info */}
           <section>

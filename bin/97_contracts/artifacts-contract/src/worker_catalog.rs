@@ -12,6 +12,7 @@ use crate::{Platform, WorkerType};
 /// CPU Architecture
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum Architecture {
     /// x86_64 (AMD64)

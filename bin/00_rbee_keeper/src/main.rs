@@ -70,6 +70,7 @@ async fn main() -> Result<()> {
 // TEAM-295: Launch Tauri GUI (synchronous, blocks until window closes)
 // TEAM-334: Cleaned up - only ssh_list command active, rest to be re-implemented
 // TEAM-336: Narration events stream to React sidebar via Tauri events
+// TEAM-412: Added rbee:// protocol handler for one-click installs
 //
 // TEAM-334 NOTE: Desktop entry integration
 // - This function is called when rbee-keeper is launched with no arguments
@@ -81,8 +82,12 @@ async fn main() -> Result<()> {
 // - See: DESKTOP_ENTRY.md for debugging
 fn launch_gui() {
     use rbee_keeper::tauri_commands::*;
+    use rbee_keeper::protocol::{parse_protocol_url, handle_protocol_url};
+    use tauri_plugin_deep_link::DeepLinkExt;
 
     tauri::Builder::default()
+        // TEAM-412: Register deep link plugin for rbee:// protocol
+        .plugin(tauri_plugin_deep_link::init())
         .invoke_handler(tauri::generate_handler![
             // TEAM-336: Test command for narration
             test_narration,
@@ -115,6 +120,35 @@ fn launch_gui() {
             // TEAM-336: Initialize tracing with Tauri event streaming
             // Events emitted on "narration" channel for React sidebar
             rbee_keeper::init_gui_tracing(app.handle().clone());
+            
+            // TEAM-412: Register rbee:// protocol handler
+            if let Err(e) = app.deep_link().register("rbee") {
+                eprintln!("⚠️  Failed to register rbee:// protocol: {}", e);
+            }
+            
+            // TEAM-412: Listen for deep link events
+            let app_handle = app.handle().clone();
+            app.deep_link().on_open_url(move |event| {
+                for url in event.urls() {
+                    println!("🔗 Protocol URL opened: {}", url);
+                    
+                    // Parse and handle the URL
+                    match parse_protocol_url(url) {
+                        Ok(protocol_url) => {
+                            let app = app_handle.clone();
+                            tauri::async_runtime::spawn(async move {
+                                if let Err(e) = handle_protocol_url(app, protocol_url).await {
+                                    eprintln!("❌ Protocol handler error: {}", e);
+                                }
+                            });
+                        }
+                        Err(e) => {
+                            eprintln!("❌ Failed to parse protocol URL: {}", e);
+                        }
+                    }
+                }
+            });
+            
             Ok(())
         })
         .run(tauri::generate_context!())

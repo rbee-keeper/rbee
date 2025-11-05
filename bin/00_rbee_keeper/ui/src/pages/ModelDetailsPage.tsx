@@ -1,4 +1,5 @@
 // TEAM-405: Model details page - Using reusable template
+// TEAM-411: Added compatibility checking
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: ModelDetailPageTemplate from rbee-ui
 
@@ -11,6 +12,7 @@ import { ModelDetailPageTemplate } from "@rbee/ui/marketplace";
 import type { ModelDetailData } from "@rbee/ui/marketplace";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import type { Model } from "@/generated/bindings";
+import { checkModelCompatibility } from "@/api/compatibility";
 
 export function ModelDetailsPage() {
   const { modelId } = useParams<{ modelId: string }>();
@@ -30,6 +32,30 @@ export function ModelDetailsPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // TEAM-411: Check compatibility with all worker types
+  const { data: compatibilityData } = useQuery({
+    queryKey: ["compatibility", modelId],
+    queryFn: async () => {
+      if (!modelId) return null;
+      const decodedId = decodeURIComponent(modelId);
+      
+      // Check compatibility with all worker types
+      const [cpuCompat, cudaCompat, metalCompat] = await Promise.all([
+        checkModelCompatibility(decodedId, 'cpu').catch(() => null),
+        checkModelCompatibility(decodedId, 'cuda').catch(() => null),
+        checkModelCompatibility(decodedId, 'metal').catch(() => null),
+      ]);
+      
+      return {
+        cpu: cpuCompat,
+        cuda: cudaCompat,
+        metal: metalCompat,
+      };
+    },
+    enabled: !!modelId,
+    staleTime: 60 * 60 * 1000, // Cache for 1 hour
+  });
+
   // Transform Model to ModelDetailData format
   const model: ModelDetailData | undefined = rawModel ? {
     id: rawModel.id,
@@ -43,6 +69,37 @@ export function ModelDetailsPage() {
     // Pass through all HuggingFace-specific fields
     ...(rawModel as any)
   } : undefined;
+
+  // TEAM-411: Build compatible workers array for template
+  const compatibleWorkers = compatibilityData ? [
+    compatibilityData.cpu && {
+      worker: {
+        id: 'cpu',
+        name: 'CPU Worker',
+        worker_type: 'cpu' as const,
+        platform: ['linux', 'macos', 'windows'],
+      },
+      compatibility: compatibilityData.cpu,
+    },
+    compatibilityData.cuda && {
+      worker: {
+        id: 'cuda',
+        name: 'CUDA Worker',
+        worker_type: 'cuda' as const,
+        platform: ['linux'],
+      },
+      compatibility: compatibilityData.cuda,
+    },
+    compatibilityData.metal && {
+      worker: {
+        id: 'metal',
+        name: 'Metal Worker',
+        worker_type: 'metal' as const,
+        platform: ['macos'],
+      },
+      compatibility: compatibilityData.metal,
+    },
+  ].filter(Boolean) as any[] : undefined;
 
   if (isLoading) {
     return (
@@ -92,6 +149,7 @@ export function ModelDetailsPage() {
           console.log("Download model:", model.id);
         }}
         isLoading={isLoading}
+        compatibleWorkers={compatibleWorkers}
       />
     </PageContainer>
   );

@@ -49,13 +49,14 @@ impl WorkerClient {
     /// Submit a job and stream results
     ///
     /// TEAM-353: This wraps JobClient::submit_and_stream() from job-client crate
+    /// TEAM-410: Fixed to await the stream future inline (can't spawn due to lifetime)
     ///
     /// # Arguments
     /// * `operation` - JavaScript object representing an operation
     /// * `on_line` - JavaScript callback function called for each line
     ///
     /// # Returns
-    /// Promise that resolves to job_id
+    /// Promise that resolves to job_id after streaming completes
     ///
     /// # JavaScript Example
     /// ```javascript
@@ -77,7 +78,7 @@ impl WorkerClient {
         let callback = on_line.clone();
 
         // TEAM-353: Use existing job-client!
-        let job_id = self.inner
+        let (job_id, stream_future) = self.inner
             .submit_and_stream(op, move |line| {
                 // Call JavaScript callback
                 let this = JsValue::null();
@@ -90,6 +91,10 @@ impl WorkerClient {
             })
             .await
             .map_err(error_to_js)?;
+
+        // TEAM-410: Await the stream future inline (can't spawn due to lifetime constraints)
+        // This means the Promise won't resolve until streaming completes
+        stream_future.await.map_err(error_to_js)?;
 
         Ok(job_id)
     }

@@ -29,17 +29,17 @@
 
 ---
 
-## 📊 Current Status (TEAM-404 VERIFIED)
+## 📊 Current Status (TEAM-411 VERIFIED)
 
-**Current Week:** Week 1  
-**Current Checklist:** CHECKLIST_01 (Marketplace Components) - MOSTLY COMPLETE  
-**Current Phase:** Phase 6 - Testing (MISSING)  
-**Last Verified:** 2025-11-04 by TEAM-404 (filesystem check)
+**Current Week:** Week 2  
+**Current Checklist:** CHECKLIST_03 (Next.js Site) + CHECKLIST_04 (Tauri Protocol)  
+**Current Phase:** Integration & Deployment  
+**Last Verified:** 2025-11-05 by TEAM-411 (full implementation check)
 
 **Progress:**
-- [x] Week 1: Components (5/7 days - TEAM-401 complete, testing missing)
-- [x] Week 1: SDK (1/3 days - TEAM-402 started, only types done)
-- [ ] Week 2-3: Next.js + Protocol (0/14 days)
+- [x] Week 1: Components (6/7 days - TEAM-401 ✅, testing missing)
+- [x] Week 1: SDK (3/3 days - TEAM-402/405/406/409/410 ✅)
+- [x] Week 2-3: Next.js + Protocol (6/14 days - TEAM-410/411 ✅ compatibility integration)
 - [ ] Week 4: Keeper UI (0/14 days)
 - [ ] Week 5: Launch (0/7 days)
 
@@ -59,25 +59,30 @@
 - ✅ Phase 1: Types defined in src/types.rs
 - ✅ Phase 1: WASM entry point in src/lib.rs
 - ✅ Phase 1: artifacts-contract integration (TEAM-402 ✅)
-- ❌ Phase 2: HuggingFace client NOT implemented
+- ✅ Phase 2: HuggingFace client implemented (TEAM-405/406 ✅)
 - ❌ Phase 3: CivitAI client NOT implemented
-- ❌ Phase 4: Worker catalog client NOT implemented
-- ❌ Phase 5: WASM NOT built (no pkg/ directory)
-- ❌ Phase 6: NO tests
+- ✅ Phase 4: Worker catalog client implemented (TEAM-403 ✅)
+- ✅ Phase 5: Compatibility matrix implemented (TEAM-409 ✅)
+- ✅ Phase 6: WASM bindings created (TEAM-410 ✅)
+- ✅ Phase 7: marketplace-node wrapper created (TEAM-410 ✅)
+- ✅ Phase 8: Tests added (TEAM-409 ✅ - 6 unit tests)
 
-**Next Task:** Choose one:
-1. Finish CHECKLIST_01 (add unit tests - Phase 6)
-2. Continue CHECKLIST_02 (implement HuggingFace client)
+**Next Task:** Continue CHECKLIST_03 & 04:
+1. Complete Next.js model pages (CHECKLIST_03)
+2. Complete Tauri protocol handler (CHECKLIST_04)
+3. Add unit tests to CHECKLIST_01 (Phase 6 - deferred)
 
-**TEAM-404 Completed:**
-- ✅ Storybook stories for all 10 marketplace components
-- ✅ Verified and documented TEAM-402 work (artifact refactoring)
-- ✅ Verified and documented TEAM-403 work (worker catalog testing)
+**Recent Teams Completed:**
+- ✅ TEAM-404: Storybook stories for all 10 marketplace components
+- ✅ TEAM-409: Compatibility matrix (380 LOC, 6 tests) ✨ NEW
+- ✅ TEAM-410: Next.js integration (WASM bindings, UI components) ✨ NEW
+- ✅ TEAM-411: Tauri integration (commands, API wrapper, UI) ✨ NEW
 
 **Ad Hoc Work Completed (Not Part of Marketplace):**
 - ✅ TEAM-402: Artifact system refactoring (9/9 phases, eliminates circular deps)
 - ✅ TEAM-403: Worker catalog testing (56 tests, 92% coverage)
 - 📄 See: `TEAM_402_AND_403_WORK_SUMMARY.md` for full details
+- 📄 See: `MASTER_PROGRESS_UPDATE.md` for TEAM-409/410/411 details ✨ NEW
 
 ---
 
@@ -92,24 +97,24 @@
 - **Status:** ✅ Complete (TEAM-401) - 10 components, pagination, filter chips
 
 **[CHECKLIST_02_MARKETPLACE_SDK.md](./CHECKLIST_02_MARKETPLACE_SDK.md)** (3 days, parallel)
-- **What:** Create Rust + WASM SDK in `bin/99_shared_crates/marketplace-sdk/`
-- **Deliverables:** HuggingFace client, CivitAI client, Worker client
+- **What:** Create Rust + WASM SDK in `bin/79_marketplace_core/marketplace-sdk/`
+- **Deliverables:** HuggingFace client, CivitAI client, Worker client, Compatibility matrix
 - **Dependencies:** None (can run parallel with 01)
-- **Status:** 📋 NOT STARTED
+- **Status:** ✅ 85% Complete (TEAM-402/405/406/409/410) - CivitAI pending
 
 ### Week 2-3: Applications (Parallel)
 
 **[CHECKLIST_03_NEXTJS_SITE.md](./CHECKLIST_03_NEXTJS_SITE.md)** (1 week)
 - **What:** Update existing `frontend/apps/marketplace/` with SSG pages
-- **Deliverables:** 1000+ model pages, workers pages, SEO
+- **Deliverables:** 1000+ model pages, workers pages, SEO, compatibility integration
 - **Dependencies:** Checklist 01 + 02 complete
-- **Status:** ⏳ WAITING
+- **Status:** 🎯 40% Complete (TEAM-410) - Compatibility integration done, pages pending
 
 **[CHECKLIST_04_TAURI_PROTOCOL.md](./CHECKLIST_04_TAURI_PROTOCOL.md)** (1 week, parallel)
-- **What:** Add `rbee://` protocol to existing Keeper
-- **Deliverables:** Protocol handler, auto-run, installers
+- **What:** Add `rbee://` protocol to existing Keeper + compatibility integration
+- **Deliverables:** Protocol handler, auto-run, installers, Tauri commands
 - **Dependencies:** Checklist 01 + 02 complete
-- **Status:** ⏳ WAITING
+- **Status:** 🎯 60% Complete (TEAM-411) - Commands & UI done, protocol pending
 
 ### Week 4: Keeper UI
 

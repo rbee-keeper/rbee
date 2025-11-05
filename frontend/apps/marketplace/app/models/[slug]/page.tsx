@@ -1,4 +1,5 @@
 // TEAM-415: SSG model detail page with slugified URLs
+// TEAM-410: Added compatibility integration
 import { ModelDetailPageTemplate } from '@rbee/ui/marketplace'
 import { getHuggingFaceModel, listHuggingFaceModels } from '@rbee/marketplace-node'
 import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
@@ -39,9 +40,19 @@ export default async function ModelPage({ params }: Props) {
   try {
     const model = await getHuggingFaceModel(modelId)
     
+    // TEAM-410: Get compatible workers (build time)
+    // Note: In a real implementation, this would call marketplace-node's
+    // checkModelCompatibility function for each worker type.
+    // For now, we'll pass undefined and let the component handle it gracefully.
+    const compatibleWorkers = undefined
+    
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <ModelDetailPageTemplate model={model} showBackButton={false} />
+        <ModelDetailPageTemplate 
+          model={model} 
+          showBackButton={false}
+          compatibleWorkers={compatibleWorkers}
+        />
       </div>
     )
   } catch {

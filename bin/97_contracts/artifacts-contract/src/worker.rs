@@ -14,6 +14,7 @@ use crate::status::ArtifactStatus;
 /// TEAM-404: Simplified to match Hono catalog types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum WorkerType {
     /// CPU-based worker
@@ -54,6 +55,7 @@ impl WorkerType {
 /// TEAM-404: Matches Hono catalog types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 #[serde(rename_all = "lowercase")]
 pub enum Platform {
     /// Linux

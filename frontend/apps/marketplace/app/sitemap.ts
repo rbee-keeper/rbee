@@ -1,0 +1,35 @@
+// TEAM-410: Sitemap generation for SEO
+import { MetadataRoute } from 'next'
+import { listHuggingFaceModels } from '@rbee/marketplace-node'
+import { modelIdToSlug } from '@/lib/slugify'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = 'https://marketplace.rbee.dev'
+  
+  // Fetch all models for sitemap
+  const models = await listHuggingFaceModels({ limit: 100 })
+  
+  // Generate model URLs
+  const modelUrls = models.map((model) => ({
+    url: `${baseUrl}/models/${modelIdToSlug(model.id)}`,
+    lastModified: model.lastModified ? new Date(model.lastModified) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }))
+  
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/models`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    ...modelUrls,
+  ]
+}

@@ -55,7 +55,11 @@ anyhow = "1.0"
 thiserror = "1.0"
 
 # TEAM-405: Tauri type generation (non-WASM only)
-specta = { version = "=2.0.0-rc.22", optional = true }
+specta = { version = "=2.0.0-rc.22", features = ["derive"], optional = true }
+
+[features]
+# TEAM-405: Enable specta for Tauri bindings
+specta = ["dep:specta"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

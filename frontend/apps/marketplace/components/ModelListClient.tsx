@@ -1,21 +1,13 @@
-// TEAM-405: Client wrapper for interactive table
+// TEAM-415: Client-side model list with routing
 'use client'
 
-import { ModelListTableTemplate } from '@rbee/ui/marketplace'
+import { ModelTableWithRouting } from './ModelTableWithRouting'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
-import { useRouter } from 'next/navigation'
 
-interface ModelListClientProps {
-  initialModels: ModelTableItem[]
+interface Props {
+  models: ModelTableItem[]
 }
 
-export function ModelListClient({ initialModels }: ModelListClientProps) {
-  const router = useRouter()
-  
-  return (
-    <ModelListTableTemplate
-      models={initialModels}
-      onModelClick={(id) => router.push(`/models/${encodeURIComponent(id)}`)}
-    />
-  )
+export function ModelListClient({ models }: Props) {
+  return <ModelTableWithRouting models={models} />
 }

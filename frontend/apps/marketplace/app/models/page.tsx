@@ -1,5 +1,5 @@
-// TEAM-405: Pure SSG page for maximum SEO
-import { fetchTopModels } from '@/lib/huggingface'
+// TEAM-415: Pure SSG page for maximum SEO
+import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 
 export default async function ModelsPage() {
   // SSG: Fetch at build time - pure static HTML
-  const hfModels = await fetchTopModels(100) as any[]
+  const hfModels = await listHuggingFaceModels({ limit: 100 })
   
   const models: ModelTableItem[] = hfModels.map((model) => ({
     id: model.id,
-    name: model.id.split('/').pop() || model.id,
-    description: `${model.author || 'Community'} - ${model.pipeline_tag || 'text-generation'}`,
-    author: model.author || null,
+    name: model.name,
+    description: model.description || `${model.author || 'Community'} model`,
+    author: model.author,
     downloads: model.downloads,
     likes: model.likes,
     tags: model.tags.slice(0, 10)

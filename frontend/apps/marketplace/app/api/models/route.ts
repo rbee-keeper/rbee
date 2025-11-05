@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }
       })
-    } catch (fallbackError) {
+    } catch {
       return NextResponse.json(
         { error: 'Failed to fetch models' },
         { status: 500 }

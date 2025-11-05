@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@opennextjs/cloudflare": "^1.10.1",
+		"@rbee/marketplace-node": "workspace:*",
 		"@rbee/ui": "workspace:*",
 		"lucide-react": "^0.545.0",
 		"next": "15.5.5",

@@ -1,16 +1,15 @@
-// TEAM-405: Dynamic search page
+// TEAM-415: Dynamic search page
 //! Client-side search using Next.js API routes
 //! This page is NOT pre-rendered - it's for dynamic search
 
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ModelListTableTemplate } from '@rbee/ui/marketplace'
+import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 export default function SearchPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [models, setModels] = useState<ModelTableItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -38,7 +37,15 @@ export default function SearchPage() {
         const data = await response.json()
         
         // Transform to ModelTableItem format
-        const transformedModels: ModelTableItem[] = data.map((model: any) => ({
+        interface HFModel {
+          id: string
+          author?: string
+          pipeline_tag?: string
+          downloads: number
+          likes: number
+          tags: string[]
+        }
+        const transformedModels: ModelTableItem[] = (data as HFModel[]).map((model) => ({
           id: model.id,
           name: model.id.split('/').pop() || model.id,
           description: `${model.author || 'Community'} - ${model.pipeline_tag || 'text-generation'}`,
@@ -68,16 +75,24 @@ export default function SearchPage() {
         </p>
       </div>
 
-      <ModelListTableTemplate
-        models={models}
-        isLoading={isLoading}
-        error={error}
-        onModelClick={(modelId) => {
-          router.push(`/models/${encodeURIComponent(modelId)}`)
-        }}
-        emptyMessage="No models found"
-        emptyDescription="Try adjusting your search query"
-      />
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading models...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-destructive">{error}</p>
+        </div>
+      ) : models.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No models found</p>
+          <p className="text-sm text-muted-foreground">Try adjusting your search query</p>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-card p-6">
+          <ModelTableWithRouting models={models} />
+        </div>
+      )}
     </main>
   )
 }

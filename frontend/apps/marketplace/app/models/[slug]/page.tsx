@@ -1,6 +1,6 @@
-// TEAM-405: SSG model detail page with slugified URLs
+// TEAM-415: SSG model detail page with slugified URLs
 import { ModelDetailPageTemplate } from '@rbee/ui/marketplace'
-import { fetchModel, transformToModelDetailData, getStaticModelIds } from '@/lib/huggingface'
+import { getHuggingFaceModel, listHuggingFaceModels } from '@rbee/marketplace-node'
 import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -10,9 +10,9 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const modelIds = await getStaticModelIds(100)
-  return modelIds.map((id: string) => ({ 
-    slug: modelIdToSlug(id) 
+  const models = await listHuggingFaceModels({ limit: 100 })
+  return models.map((model) => ({ 
+    slug: modelIdToSlug(model.id) 
   }))
 }
 
@@ -21,8 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const modelId = slugToModelId(slug)
   
   try {
-    const hfModel = await fetchModel(modelId)
-    const model = transformToModelDetailData(hfModel)
+    const model = await getHuggingFaceModel(modelId)
     
     return {
       title: `${model.name} | AI Model`,
@@ -38,8 +37,7 @@ export default async function ModelPage({ params }: Props) {
   const modelId = slugToModelId(slug)
   
   try {
-    const hfModel = await fetchModel(modelId)
-    const model = transformToModelDetailData(hfModel)
+    const model = await getHuggingFaceModel(modelId)
     
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">

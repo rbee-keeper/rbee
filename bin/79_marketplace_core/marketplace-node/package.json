@@ -11,14 +11,23 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc && pnpm build:wasm",
-    "build:wasm": "cd ../../../bin/99_shared_crates/marketplace-sdk && wasm-pack build --target nodejs --out-dir ../../../../frontend/packages/marketplace-node/wasm",
+    "build:wasm": "cd ../marketplace-sdk && wasm-pack build --target nodejs --out-dir ../marketplace-node/wasm",
     "dev": "tsc --watch",
     "clean": "rm -rf dist wasm"
   },
-  "keywords": ["rbee", "marketplace", "huggingface", "civitai", "wasm", "node"],
+  "keywords": [
+    "rbee",
+    "marketplace",
+    "huggingface",
+    "civitai",
+    "wasm",
+    "node"
+  ],
   "author": "rbee Team",
   "license": "GPL-3.0-or-later",
   "dependencies": {
@@ -26,6 +35,7 @@
     "@rbee/sdk-loader": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^24.10.0",
     "typescript": "^5.9.3"
   }
 }

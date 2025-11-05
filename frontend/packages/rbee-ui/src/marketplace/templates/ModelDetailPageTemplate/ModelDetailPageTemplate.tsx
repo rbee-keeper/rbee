@@ -42,8 +42,8 @@ export interface ModelDetailData {
     architectures?: string[]
     model_type?: string
     tokenizer_config?: {
-      bos_token?: string
-      eos_token?: string
+      bos_token?: string | { content?: string; [key: string]: any }
+      eos_token?: string | { content?: string; [key: string]: any }
       chat_template?: string
     }
   }
@@ -294,12 +294,16 @@ export function ModelDetailPageTemplate({
                   }] : []),
                   ...(model.config.tokenizer_config?.bos_token ? [{ 
                     label: 'BOS Token', 
-                    value: model.config.tokenizer_config.bos_token,
+                    value: typeof model.config.tokenizer_config.bos_token === 'string' 
+                      ? model.config.tokenizer_config.bos_token 
+                      : model.config.tokenizer_config.bos_token.content || JSON.stringify(model.config.tokenizer_config.bos_token),
                     code: true
                   }] : []),
                   ...(model.config.tokenizer_config?.eos_token ? [{ 
                     label: 'EOS Token', 
-                    value: model.config.tokenizer_config.eos_token,
+                    value: typeof model.config.tokenizer_config.eos_token === 'string' 
+                      ? model.config.tokenizer_config.eos_token 
+                      : model.config.tokenizer_config.eos_token.content || JSON.stringify(model.config.tokenizer_config.eos_token),
                     code: true
                   }] : []),
                 ]}

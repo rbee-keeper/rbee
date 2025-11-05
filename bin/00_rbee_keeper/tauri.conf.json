@@ -5,7 +5,7 @@
   "identifier": "com.rbee.keeper",
   "build": {
     "frontendDist": "../ui/dist",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://127.0.0.1:5173",
     "beforeDevCommand": "cargo tauri-typegen generate && cd ../ui && npm run dev",
     "beforeBuildCommand": "cargo tauri-typegen generate && cd ../ui && npm run build"
   },
@@ -42,6 +42,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "fullscreen": false,
         "resizable": true,
         "title": "rbee Keeper",
@@ -50,7 +51,8 @@
         "minWidth": 600,
         "minHeight": 800,
         "decorations": false,
-        "transparent": false
+        "transparent": false,
+        "url": "http://127.0.0.1:5173"
       }
     ],
     "security": {
@@ -60,7 +62,7 @@
           "identifier": "main-capability",
           "description": "Main window capabilities",
           "windows": ["main"],
-          "permissions": ["core:default", "core:event:allow-listen", "core:event:allow-emit"]
+          "permissions": ["core:default", "core:event:allow-listen", "core:event:allow-emit", "core:window:allow-create", "core:webview:allow-create-webview", "core:webview:allow-internal-toggle-devtools"]
         }
       ]
     }

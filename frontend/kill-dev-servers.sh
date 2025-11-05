@@ -5,7 +5,10 @@ echo "KILL DEV SERVERS SCRIPT"
 echo "=========================================="
 echo ""
 
-PORTS=(6006 5173 7822 7811)
+# TEAM-XXX: mac compat - Updated from PORT_CONFIGURATION.md
+# Frontend dev servers: 5173, 5174, 6006, 6007, 7811, 7822, 7823, 7834, 7836, 7837, 7838, 7839
+# Backend APIs: 7833, 7835, 8000, 8080, 8081, 8188, 8787
+PORTS=(5173 5174 6006 6007 7811 7822 7823 7833 7834 7835 7836 7837 7838 7839 8000 8080 8081 8188 8787)
 KILLED_ANY=false
 
 echo "Step 1: Killing processes by name..."
@@ -49,6 +52,26 @@ if pgrep -f "storybook" > /dev/null; then
     sleep 1
 else
     echo "  No other Storybook processes found"
+fi
+
+# Kill Wrangler dev servers (Cloudflare Workers)
+if pgrep -f "wrangler dev" > /dev/null; then
+    echo "  Found Wrangler dev server(s), killing..."
+    pkill -f "wrangler dev"
+    KILLED_ANY=true
+    sleep 1
+else
+    echo "  No Wrangler dev servers found"
+fi
+
+# Kill Turbo dev processes
+if pgrep -f "turbo dev" > /dev/null; then
+    echo "  Found Turbo dev process(es), killing..."
+    pkill -f "turbo dev"
+    KILLED_ANY=true
+    sleep 1
+else
+    echo "  No Turbo dev processes found"
 fi
 
 echo ""

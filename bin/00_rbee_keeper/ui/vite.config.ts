@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: '127.0.0.1', // TEAM-XXX: mac compat - Bind to 127.0.0.1 for Tauri WKWebView
     port: 5173, // Dedicated port for rbee-keeper UI
     strictPort: true, // Fail if port is in use instead of trying another
   },

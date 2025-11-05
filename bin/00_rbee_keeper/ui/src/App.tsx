@@ -35,7 +35,8 @@ if (isDev) {
   console.log('   - Tauri app (embedded)')
 }
 
-function App() {
+// TEAM-XXX: Inner component that has Router context
+function AppRoutes() {
   // TEAM-XXX: Setup listener for narration events from Queen iframe
   useEffect(() => {
     const cleanupNarration = setupNarrationListener()
@@ -48,26 +49,32 @@ function App() {
     return cleanupTheme
   }, [])
 
-  // TEAM-413: Listen for rbee:// protocol events
+  // TEAM-413: Listen for rbee:// protocol events (MUST be inside Router)
   useProtocol()
 
   return (
+    <SidebarProvider>
+      <Shell>
+        <Routes>
+          <Route path="/" element={<KeeperPage />} />
+          <Route path="/queen" element={<QueenPage />} />
+          <Route path="/hive/:hiveId" element={<HivePage />} />
+          <Route path="/marketplace/llm-models" element={<MarketplaceLlmModels />} />
+          <Route path="/marketplace/llm-models/:modelId" element={<ModelDetailsPage />} />
+          <Route path="/marketplace/image-models" element={<MarketplaceImageModels />} />
+          <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/help" element={<HelpPage />} />
+        </Routes>
+      </Shell>
+    </SidebarProvider>
+  )
+}
+
+function App() {
+  return (
     <BrowserRouter>
-      <SidebarProvider>
-        <Shell>
-          <Routes>
-            <Route path="/" element={<KeeperPage />} />
-            <Route path="/queen" element={<QueenPage />} />
-            <Route path="/hive/:hiveId" element={<HivePage />} />
-            <Route path="/marketplace/llm-models" element={<MarketplaceLlmModels />} />
-            <Route path="/marketplace/llm-models/:modelId" element={<ModelDetailsPage />} />
-            <Route path="/marketplace/image-models" element={<MarketplaceImageModels />} />
-            <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/help" element={<HelpPage />} />
-          </Routes>
-        </Shell>
-      </SidebarProvider>
+      <AppRoutes />
     </BrowserRouter>
   )
 }

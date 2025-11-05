@@ -90,7 +90,7 @@ fn launch_gui() {
     #[cfg(debug_assertions)]
     eprintln!("🚀 Launching Tauri GUI in DEBUG mode");
     #[cfg(debug_assertions)]
-    eprintln!("   Expected dev URL: http://127.0.0.1:5173");
+    eprintln!("   Expected dev URL: http://localhost:5173");
     #[cfg(not(debug_assertions))]
     eprintln!("🚀 Launching Tauri GUI in RELEASE mode");
 
@@ -153,7 +153,7 @@ fn launch_gui() {
                         <body style="background: red; color: white; font-size: 48px; padding: 50px;">
                             <h1>🔥 WEBVIEW IS WORKING!</h1>
                             <p>If you see this RED screen, the webview works!</p>
-                            <p>The problem is loading from http://127.0.0.1:5173</p>
+                            <p>The problem is loading from http://localhost:5173</p>
                         </body>
                         </html>
                     "#;

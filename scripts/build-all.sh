@@ -183,6 +183,15 @@ echo ""
 # BUILD
 # ============================================================================
 
+# TEAM-XXX: mac compat - Ensure cargo bin is on PATH and wasm-bindgen is installed to avoid wasm-pack race conditions
+if [[ -d "$HOME/.cargo/bin" ]]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
+if ! command -v wasm-bindgen &> /dev/null; then
+  echo "→ Installing wasm-bindgen CLI (via cargo) to avoid wasm-pack auto-install conflicts..."
+  cargo install wasm-bindgen-cli || true
+fi
+
 # Install dependencies
 echo "→ [BUILD 1/3] Installing dependencies..."
 if ! pnpm install; then

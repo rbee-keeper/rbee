@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && pnpm build:wasm",
+    "build": "pnpm build:wasm && tsc",
     "build:wasm": "cd ../marketplace-sdk && wasm-pack build --target nodejs --out-dir ../marketplace-node/wasm",
     "dev": "tsc --watch",
     "clean": "rm -rf dist wasm"

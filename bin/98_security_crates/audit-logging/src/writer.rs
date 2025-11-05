@@ -120,7 +120,8 @@ impl AuditFileWriter {
             // Try to get filesystem stats
             // Note: This is a best-effort check, not all filesystems support this
             if let Ok(stats) = nix::sys::statvfs::statvfs(&self.file_path) {
-                let available = stats.blocks_available() * stats.block_size();
+                // TEAM-XXX: mac compat - compute as u64 to avoid u32/u64 mismatch on Darwin
+                let available: u64 = u64::from(stats.blocks_available()) * u64::from(stats.block_size());
 
                 if available < MIN_DISK_SPACE {
                     tracing::error!(

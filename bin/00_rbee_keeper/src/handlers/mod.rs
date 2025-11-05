@@ -5,10 +5,13 @@
 //! TEAM-284: DELETED package manager handlers (SSH/remote operations removed)
 //! TEAM-313: Remove hive_check module (moving to rbee-hive)
 //! TEAM-380: Split hive into hive_lifecycle and hive_jobs
+//! TEAM-416: Added auto_run module for marketplace one-click installs
 //!
 //! Each handler module implements the business logic for a specific
 //! command category (queen, hive, worker, model, infer).
 
+// TEAM-416: Auto-run logic for marketplace protocol handler
+pub mod auto_run;
 // TEAM-380: Split hive into lifecycle and jobs
 // TEAM-324: Made public so HiveLifecycleAction can be re-exported from cli/mod.rs
 pub mod hive_lifecycle;
@@ -26,6 +29,8 @@ mod status;
 pub mod worker;
 // TEAM-284: DELETED migrate, package_status, sync, validate handlers
 
+// TEAM-416: Export auto-run functions
+pub use auto_run::{auto_run_model, auto_run_worker};
 // TEAM-380: Export hive lifecycle handler
 pub use hive_lifecycle::handle_hive_lifecycle;
 // TEAM-380: Export hive jobs handler and helpers

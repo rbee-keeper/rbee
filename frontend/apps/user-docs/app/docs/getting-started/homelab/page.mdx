@@ -71,7 +71,7 @@ On your main workstation, start the queen:
 
 ```bash
 # Start queen on all network interfaces
-queen-rbee start --host 0.0.0.0 --port 8500
+rbee queen start --host 0.0.0.0 --port 7833
 ```
 
 Note the IP address of your workstation (e.g., `192.168.1.100`). Remote hives will connect to this address.
@@ -206,7 +206,7 @@ Send requests to the queen. It will route to the appropriate worker:
 
 ```bash
 # Request automatically routed to best available worker
-curl -X POST http://192.168.1.100:8500/v1/chat/completions \\
+curl -X POST http://192.168.1.100:7833/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "llama-3.1-70b",
@@ -314,13 +314,13 @@ queen-rbee worker spawn --hive gaming-pc --model llama-3.1-70b
 
 ### Firewall blocking connections
 
-Open port 8500 (or your custom queen port) on the workstation:
+Open port 7833 (or your custom queen port) on the workstation:
 
 ```bash
 # Ubuntu/Debian
-sudo ufw allow 8500/tcp
+sudo ufw allow 7833/tcp
 
 # Fedora/RHEL
-sudo firewall-cmd --add-port=8500/tcp --permanent
+sudo firewall-cmd --add-port=7833/tcp --permanent
 sudo firewall-cmd --reload
 ```

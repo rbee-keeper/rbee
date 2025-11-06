@@ -286,7 +286,7 @@ Process high-priority requests first:
 
 ```bash
 # Send high-priority request
-curl -X POST http://localhost:8500/v1/chat/completions \\
+curl -X POST http://localhost:7833/v1/chat/completions \\
   -H "X-Priority: high" \\
   -H "Content-Type: application/json" \\
   -d '{"model": "llama-3.1-70b", "messages": [...]}'
@@ -394,24 +394,31 @@ Detects:
 
 ## Pricing
 
-### Pre-launch pricing (limited time)
+**Note:** Premium modules are planned for M2 launch (target Q2 2026). Pricing shown is the planned structure.
 
-- **Premium Queen:** €299 (regular: €599)
-- **Premium Worker:** €199 (regular: €399)
-- **GDPR Auditing:** €499 (regular: €999)
-- **Premium Bundle:** €899 (regular: €1,799)
+### Planned Pricing (M2 Launch)
+
+| Product | Price | Notes |
+|---------|-------|-------|
+| **Premium Queen** | €129 | Standalone - Advanced RHAI scheduling |
+| **GDPR Auditing** | €249 | Standalone - Full compliance module |
+| **Queen + Worker Bundle** | €279 | ⭐ MOST POPULAR - Full smart scheduling |
+| **Queen + Audit Bundle** | €349 | Scheduling + compliance |
+| **Complete Bundle** | €499 | ⭐⭐ BEST VALUE - Everything included |
+
+**Important:** Premium Worker is NOT sold standalone - only available in bundles (requires Premium Queen for telemetry processing).
 
 ### Discounts
 
 - **Academic/research:** 50% off
-- **Open source contributors:** 30% off
+- **Open source contributors:** 30% off  
 - **Startups (< 2 years old):** Free for first year
 
-### Purchase
+### Purchase (Available M2 Launch)
 
 - **Email:** sales@rbee.dev
 - **Include:** Use case, number of GPUs, expected scale
-- **Payment:** Bank transfer, crypto, credit card (post-launch)
+- **Payment:** Bank transfer, crypto, credit card
 
 ## Next steps
 

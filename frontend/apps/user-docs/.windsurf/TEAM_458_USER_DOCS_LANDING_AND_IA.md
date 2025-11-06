@@ -337,6 +337,44 @@ See `.windsurf/CRITICAL_CORRECTIONS_SUMMARY.md` for complete fix list.
 
 **Status:** 10 out of 13 pages have critical errors requiring immediate correction.
 
+## ✅ TECHNICAL CORRECTIONS APPLIED (2025-01-07)
+
+### What Was Fixed
+
+**1. Port Numbers (100% FIXED)**
+- Global replacement: 8500 → 7833, 9000 → 7835
+- All 8 affected files corrected
+- Now matches PORT_CONFIGURATION.md exactly
+
+**2. Premium Pricing (100% FIXED)**
+- Updated from €299-€1,799 to correct €129-€499
+- Added "bundle-only" clarification for Premium Worker
+- Added M2 launch timeline disclaimers
+- Files: reference/licensing.mdx, reference/premium-modules.mdx
+
+**3. Feature Timeline Labels (ADDED)**
+- Landing page: Multi-modal labeled "Planned for M3 (Q1 2026)"
+- Premium pages: "Planned for M2 launch (target Q2 2026)"
+- Removed current-tense descriptions of future features
+
+### What Still Needs Work
+
+**1. CLI Commands (~80 instances)**
+- Wrong: `queen-rbee start`, `rbee-hive start`
+- Correct: `rbee queen start`, `rbee hive start --host localhost`
+- Premium commands need "M2 planned" labels
+
+**2. Premium Feature Examples**
+- Many detailed command examples for M2 features
+- Need disclaimer or removal
+
+**3. Possible Multi-Modal Claims**
+- Need full scan for image/audio/video current-tense claims
+
+See `.windsurf/TECHNICAL_CORRECTIONS_APPLIED.md` for complete details.
+
+**Estimated remaining work:** 4-6 hours for CLI commands and final verification
+
 ## Conclusion
 
 The user-docs app now has:

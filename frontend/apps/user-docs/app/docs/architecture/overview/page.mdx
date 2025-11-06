@@ -65,7 +65,7 @@ The queen is the central orchestrator that manages the entire colony.
 - Provide OpenAI-compatible API endpoint
 
 **Key features:**
-- HTTP API server (default port: 8500)
+- HTTP API server (default port: 7833)
 - SSE (Server-Sent Events) for real-time job updates
 - Hive discovery and health monitoring
 - Worker capability tracking
@@ -129,7 +129,7 @@ A worker is an individual inference process running a specific model.
 ### 1. Startup sequence
 
 ```
-1. Queen starts → Listens on port 8500
+1. Queen starts → Listens on port 7833
 2. Hive starts → Detects GPUs → Registers with queen
 3. Hive sends heartbeat → Queen stores capabilities
 4. Keeper starts → Connects to queen → Shows hive status
@@ -214,9 +214,9 @@ All components on one machine:
 
 ```
 localhost:
-  - queen (port 8500)
-  - hive (connects to localhost:8500)
-  - keeper (connects to localhost:8500)
+  - queen (port 7833)
+  - hive (connects to localhost:7833)
+  - keeper (connects to localhost:7833)
   - workers (spawned by hive)
 ```
 
@@ -228,14 +228,14 @@ Queen on main server, hives on multiple machines:
 
 ```
 server.local:
-  - queen (port 8500)
+  - queen (port 7833)
   - keeper
 
 gaming-pc.local:
-  - hive (connects to server.local:8500)
+  - hive (connects to server.local:7833)
 
 mac.local:
-  - hive (connects to server.local:8500)
+  - hive (connects to server.local:7833)
 ```
 
 **Use case:** Multi-machine homelab, mixed hardware
@@ -258,7 +258,7 @@ Multiple hives across data centers
 
 ### Ports
 
-- **Queen:** 8500 (HTTP API, configurable)
+- **Queen:** 7833 (HTTP API, configurable)
 - **Hive:** No inbound ports (connects to queen)
 - **Worker:** No inbound ports (hive forwards requests)
 
@@ -275,7 +275,7 @@ Multiple hives across data centers
 - No firewall changes needed (all localhost)
 
 **Multi-machine setup:**
-- Allow port 8500 (queen) from hive machines
+- Allow port 7833 (queen) from hive machines
 - Allow SSH (port 22) from queen to hive machines
 
 **Production setup:**

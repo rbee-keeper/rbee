@@ -23,11 +23,11 @@ By the end of this guide, you'll have:
 The queen is the orchestrator that manages your colony. On a single machine, it runs locally:
 
 ```bash
-# Start the queen on default port (8500)
-queen-rbee start
+# Start the queen on default port (7833)
+rbee queen start
 
 # Or specify a custom port
-queen-rbee start --port 8600
+rbee queen start --port 8600
 ```
 
 The queen will:
@@ -38,7 +38,7 @@ The queen will:
 You should see output like:
 
 ```
-🐝 Queen started on http://localhost:8500
+🐝 Queen started on http://localhost:7833
 🐝 Waiting for hives to register...
 ```
 
@@ -48,10 +48,10 @@ The hive runs on the same machine and hosts workers:
 
 ```bash
 # Start the hive (auto-detects queen on localhost)
-rbee-hive start
+rbee hive start
 
 # Or specify the queen URL explicitly
-rbee-hive start --queen-url http://localhost:8500
+rbee hive start --host localhost
 ```
 
 The hive will:
@@ -64,7 +64,7 @@ You should see:
 ```
 🐝 Hive started
 🐝 Detected GPUs: NVIDIA RTX 3090 (24GB VRAM)
-🐝 Registered with queen at http://localhost:8500
+🐝 Registered with queen at http://localhost:7833
 ```
 
 ## Step 3: Download a model
@@ -116,7 +116,7 @@ You should see:
 Now test the system with a chat completion request:
 
 ```bash
-curl -X POST http://localhost:8500/v1/chat/completions \\
+curl -X POST http://localhost:7833/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "llama-3.2-1b",
@@ -212,7 +212,7 @@ rbee-hive model list
 Verify the queen is running:
 
 ```bash
-curl http://localhost:8500/health
+curl http://localhost:7833/health
 ```
 
 Check firewall settings if using a custom port.

@@ -105,9 +105,9 @@ Start the queen with auditing enabled:
 sudo dpkg -i rbee-gdpr-auditing_0.1.0_amd64.deb
 
 # Start queen with auditing
-queen-rbee start \\
+rbee queen start \\
   --host 0.0.0.0 \\
-  --port 8500 \\
+  --port 7833 \\
   --enable-gdpr-auditing \\
   --audit-log-path /var/log/rbee/audit \\
   --audit-retention-days 2555  # 7 years for GDPR

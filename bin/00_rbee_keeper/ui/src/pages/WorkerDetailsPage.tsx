@@ -1,12 +1,13 @@
 // TEAM-421: Worker details page - Shows detailed info about a specific worker
 // DATA LAYER: Tauri commands + React Query
-// PRESENTATION: Custom detail view (TODO: create WorkerDetailTemplate in rbee-ui)
+// PRESENTATION: ArtifactDetailPageTemplate (unified with ModelDetailsPage)
 
 import { useParams, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@rbee/ui/molecules";
 import { Button, Badge, Card, CardContent, CardHeader, CardTitle } from "@rbee/ui/atoms";
+import { ArtifactDetailPageTemplate } from "@rbee/ui/marketplace";
 import { ArrowLeft, Download, Cpu, Package, GitBranch } from "lucide-react";
 import type { WorkerCatalogEntry } from "@/generated/bindings";
 
@@ -67,30 +68,10 @@ export function WorkerDetailsPage() {
 
   const typeConfig = workerTypeConfig[worker.workerType as keyof typeof workerTypeConfig];
 
-  return (
-    <PageContainer
-      title={worker.name}
-      description={worker.description}
-      padding="default"
-    >
-      <div className="space-y-6">
-        {/* Back Button - Consistent with ModelDetailsPage */}
-        <Button onClick={() => navigate("/marketplace/rbee-workers")} variant="ghost" size="sm">
-          <ArrowLeft className="size-4 mr-2" />
-          Back to Workers
-        </Button>
-        {/* Header Info */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Cpu className="size-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">v{worker.version}</span>
-          </div>
-          <Badge variant={typeConfig.variant}>{typeConfig.label}</Badge>
-          <Badge variant="outline">{worker.license}</Badge>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
+  // Render main content cards
+  const mainContent = (
+    <>
+      <div className="grid gap-6 lg:grid-cols-2">
           {/* Platforms & Architecture */}
           <Card>
             <CardHeader>
@@ -214,16 +195,38 @@ export function WorkerDetailsPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Install Button */}
-        <div className="flex justify-center pt-4">
-          <Button size="lg" className="min-w-[200px]">
-            <Download className="size-4 mr-2" />
-            Install Worker
-          </Button>
-        </div>
       </div>
+    </>
+  );
+
+  return (
+    <PageContainer
+      title={worker.name}
+      description={worker.description}
+      padding="default"
+    >
+      <ArtifactDetailPageTemplate
+        name={worker.name}
+        description={worker.description}
+        backButton={{
+          label: "Back to Workers",
+          onClick: () => navigate("/marketplace/rbee-workers"),
+        }}
+        badges={[
+          { label: `v${worker.version}`, variant: 'outline' },
+          { label: typeConfig.label, variant: typeConfig.variant },
+          { label: worker.license, variant: 'outline' },
+        ]}
+        primaryAction={{
+          label: "Install Worker",
+          icon: <Download className="size-4 mr-2" />,
+          onClick: () => {
+            // TODO: Implement worker installation
+            console.log("Install worker:", worker.id);
+          },
+        }}
+        mainContent={mainContent}
+      />
     </PageContainer>
   );
 }

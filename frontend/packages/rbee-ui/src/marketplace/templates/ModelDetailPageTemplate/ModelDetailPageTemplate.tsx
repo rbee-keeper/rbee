@@ -1,15 +1,16 @@
 // TEAM-405: Model detail page template
 // TEAM-410: Added compatibility section
+// TEAM-421: Refactored to use ArtifactDetailPageTemplate for consistency
 //! Complete presentation layer for model details
 //! SEO-compatible, works with Tauri, Next.js SSG/SSR
 
-import { Button, Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { ModelMetadataCard } from '../../molecules/ModelMetadataCard'
 import { ModelFilesList } from '../../molecules/ModelFilesList'
 import { WorkerCompatibilityList } from '../../organisms/WorkerCompatibilityList'
+import { ArtifactDetailPageTemplate } from '../ArtifactDetailPageTemplate'
 import type { CompatibilityResult, Worker } from '../../types/compatibility'
 import { 
-  ArrowLeft, 
   ExternalLink, 
   Code, 
   Languages, 
@@ -138,134 +139,33 @@ export function ModelDetailPageTemplate({
 }: ModelDetailPageTemplateProps) {
   const hfUrl = huggingFaceUrl || `https://huggingface.co/${model.id}`
 
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-64 bg-muted/20 rounded-lg" />
-        <div className="h-32 bg-muted/20 rounded-lg" />
-        <div className="h-48 bg-muted/20 rounded-lg" />
-      </div>
-    )
-  }
+  // Left sidebar content (model files)
+  const leftSidebar = model.siblings && model.siblings.length > 0 ? (
+    <ModelFilesList files={model.siblings} />
+  ) : null;
 
-  return (
-    <div className="space-y-8">
-      {/* Back button */}
-      {showBackButton && onBack && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="mb-4"
-        >
-          <ArrowLeft className="size-4 mr-2" />
-          Back to Models
-        </Button>
+  // Main content sections
+  const mainContent = (
+    <>
+      {/* TEAM-410: Compatible Workers Section */}
+      {compatibleWorkers && compatibleWorkers.length > 0 && (
+        <section>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="size-5" />
+                <CardTitle>Compatible Workers</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <WorkerCompatibilityList workers={compatibleWorkers} />
+            </CardContent>
+          </Card>
+        </section>
       )}
 
-      {/* Hero Header */}
-      <header className="space-y-6">
-        <div className="space-y-4">
-          {/* Model name and author */}
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
-              {model.name}
-            </h1>
-            {model.author && (
-              <p className="text-xl text-muted-foreground">
-                by <span className="font-semibold">{model.author}</span>
-              </p>
-            )}
-          </div>
-
-          {/* Primary stats bar */}
-          <div className="flex flex-wrap items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <Download className="size-4 text-muted-foreground" />
-              <span className="font-semibold">{model.downloads.toLocaleString()}</span>
-              <span className="text-muted-foreground">downloads</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Heart className="size-4 text-muted-foreground" />
-              <span className="font-semibold">{model.likes.toLocaleString()}</span>
-              <span className="text-muted-foreground">likes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <HardDrive className="size-4 text-muted-foreground" />
-              <span className="font-semibold">{model.size}</span>
-            </div>
-            {model.pipeline_tag && (
-              <Badge variant="secondary" className="text-sm">
-                {model.pipeline_tag}
-              </Badge>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-3">
-            {onDownload && (
-              <Button size="lg" onClick={onDownload}>
-                <Download className="size-4 mr-2" />
-                Download Model
-              </Button>
-            )}
-            <Button variant="outline" size="lg" asChild>
-              <a
-                href={hfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="size-4 mr-2" />
-                View on HuggingFace
-              </a>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Model Files */}
-        <aside className="lg:col-span-1 space-y-6">
-          {/* Model Files */}
-          {model.siblings && model.siblings.length > 0 && (
-            <ModelFilesList files={model.siblings} />
-          )}
-        </aside>
-
-        {/* Right column - Details */}
-        <article className="lg:col-span-2 space-y-6">
-          {/* Description */}
-          <section>
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{model.description}</p>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* TEAM-410: Compatible Workers Section */}
-          {compatibleWorkers && compatibleWorkers.length > 0 && (
-            <section>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="size-5" />
-                    <CardTitle>Compatible Workers</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <WorkerCompatibilityList workers={compatibleWorkers} />
-                </CardContent>
-              </Card>
-            </section>
-          )}
-
-          {/* Basic Info */}
-          <section>
+      {/* Basic Info */}
+      <section>
             <ModelMetadataCard
               title="Basic Information"
               items={[
@@ -376,43 +276,70 @@ export function ModelDetailPageTemplate({
             </section>
           )}
 
-          {/* Tags */}
-          <section>
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {model.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-sm">
-                      {tag}
-                    </Badge>
-                  ))}
+      {/* Example Prompts */}
+      {model.widgetData && model.widgetData.length > 0 && (
+        <section>
+          <Card>
+            <CardHeader>
+              <CardTitle>Example Prompts</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {model.widgetData.map((widget, index) => (
+                <div key={index} className="p-3 bg-muted/50 rounded-md">
+                  <p className="text-sm">{widget.text}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </section>
+              ))}
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
-          {/* Widget Data */}
-          {model.widgetData && model.widgetData.length > 0 && (
-            <section>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Example Prompts</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {model.widgetData.map((widget, index) => (
-                    <div key={index} className="p-3 bg-muted/50 rounded-md">
-                      <p className="text-sm">{widget.text}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </section>
-          )}
-        </article>
-      </div>
-    </div>
+      {/* Tags */}
+      {model.tags && model.tags.length > 0 && (
+        <section className="pt-6 border-t">
+          <h2 className="text-lg font-semibold mb-3">Tags</h2>
+          <div className="flex flex-wrap gap-2">
+            {model.tags.map((tag) => (
+              <Badge key={tag} variant="outline" className="text-sm">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
+
+  return (
+    <ArtifactDetailPageTemplate
+      name={model.name}
+      author={model.author}
+      description={model.description}
+      isLoading={isLoading}
+      backButton={showBackButton && onBack ? {
+        label: "Back to Models",
+        onClick: onBack,
+      } : undefined}
+      stats={[
+        { icon: <Download className="size-4" />, value: model.downloads, label: 'downloads' },
+        { icon: <Heart className="size-4" />, value: model.likes, label: 'likes' },
+        { icon: <HardDrive className="size-4" />, value: model.size, label: '' },
+      ]}
+      badges={model.pipeline_tag ? [
+        { label: model.pipeline_tag, variant: 'secondary' },
+      ] : undefined}
+      primaryAction={onDownload ? {
+        label: "Download Model",
+        icon: <Download className="size-4 mr-2" />,
+        onClick: onDownload,
+      } : undefined}
+      secondaryAction={{
+        label: "View on HuggingFace",
+        icon: <ExternalLink className="size-4 mr-2" />,
+        href: hfUrl,
+      }}
+      leftSidebar={leftSidebar}
+      mainContent={mainContent}
+    />
   )
 }

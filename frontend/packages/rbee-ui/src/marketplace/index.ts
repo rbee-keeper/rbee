@@ -29,6 +29,7 @@ export * from './templates/ModelListTemplate'
 export * from './templates/ModelDetailTemplate'
 export * from './templates/WorkerListTemplate'
 export * from './templates/ModelDetailPageTemplate'
+export * from './templates/ArtifactDetailPageTemplate' // TEAM-421: Unified artifact detail template
 
 // Pages (Pure presentation)
 export * from './pages/ModelsPage'

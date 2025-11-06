@@ -8,7 +8,7 @@ By the end of this guide, you'll have:
 
 - A running rbee colony on one machine
 - The keeper GUI connected to your local queen
-- At least one worker running an LLM or image generation model
+- At least one worker running an LLM model
 - The ability to send requests through the OpenAI-compatible API
 
 ## Prerequisites
@@ -26,8 +26,8 @@ The queen is the orchestrator that manages your colony. On a single machine, it 
 # Start the queen on default port (7833)
 rbee queen start
 
-# Or specify a custom port
-rbee queen start --port 8600
+# Note: Port configuration is handled via queen-rbee daemon args
+# See architecture docs for advanced configuration
 ```
 
 The queen will:
@@ -73,10 +73,10 @@ Before spawning a worker, you need a model. rbee can download models from Huggin
 
 ```bash
 # Download a small model for testing (1.3GB)
-rbee-hive model download llama-3.2-1b
+rbee model download llama-3.2-1b
 
 # Or a larger, more capable model (8GB)
-rbee-hive model download llama-3.1-8b
+rbee model download llama-3.1-8b
 ```
 
 Models are stored in `~/.cache/rbee/models/` and shared across all workers.
@@ -86,21 +86,22 @@ Models are stored in `~/.cache/rbee/models/` and shared across all workers.
 Now spawn a worker to run the model:
 
 ```bash
-# Spawn an LLM worker
-rbee-hive worker spawn \\
-  --model llama-3.2-1b \\
-  --device cuda:0
+# Spawn an LLM worker (CUDA)
+rbee worker spawn \
+  --model llama-3.2-1b \
+  --worker cuda \
+  --device 0
 
 # For CPU-only (slower)
-rbee-hive worker spawn \\
-  --model llama-3.2-1b \\
-  --device cpu
+rbee worker spawn \
+  --model llama-3.2-1b \
+  --worker cpu \
+  --device 0
 ```
 
 The worker will:
 - Load the model into GPU/CPU memory
 - Start an inference server
-- Register with the hive
 
 You should see:
 

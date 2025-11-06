@@ -71,7 +71,7 @@ On your main workstation, start the queen:
 
 ```bash
 # Start queen on all network interfaces
-rbee queen start --host 0.0.0.0 --port 7833
+rbee queen start
 ```
 
 Note the IP address of your workstation (e.g., `192.168.1.100`). Remote hives will connect to this address.
@@ -109,13 +109,13 @@ Use the queen to install rbee on each remote machine:
 
 ```bash
 # Install on gaming PC
-queen-rbee hive install gaming-pc
+rbee hive install --host gaming-pc
 
 # Install on Mac
-queen-rbee hive install mac-m3
+rbee hive install --host mac-m3
 
 # Install on home server
-queen-rbee hive install home-server
+rbee hive install --host home-server
 ```
 
 This will:
@@ -130,13 +130,13 @@ Start each hive and connect it to your queen:
 
 ```bash
 # Start gaming PC hive
-queen-rbee hive start gaming-pc
+rbee hive start --host gaming-pc
 
 # Start Mac hive
-queen-rbee hive start mac-m3
+rbee hive start --host mac-m3
 
 # Start home server hive
-queen-rbee hive start home-server
+rbee hive start --host home-server
 ```
 
 Each hive will:
@@ -150,13 +150,13 @@ Check that all hives are connected:
 
 ```bash
 # List all hives
-queen-rbee hive list
+rbee hive status
 
 # Get details for a specific hive
-queen-rbee hive get gaming-pc
+rbee hive status --host gaming-pc
 
 # Check status
-queen-rbee hive status gaming-pc
+rbee hive status --host gaming-pc
 ```
 
 You should see all three hives registered with their GPU information.
@@ -247,7 +247,7 @@ queen-rbee hive stop gaming-pc
 
 ```bash
 queen-rbee hive stop gaming-pc
-queen-rbee hive start gaming-pc
+rbee hive start --host gaming-pc
 ```
 
 ### Remove a hive from the colony

@@ -24,7 +24,8 @@ A production-ready API platform that:
 - Multiple machines with GPUs (or access to cloud GPU instances)
 - rbee installed on all machines (see [Installation](/docs/getting-started/installation))
 - Basic understanding of API products and pricing
-- (Recommended) Premium Queen and Premium Worker licenses for production features
+
+**Note on Premium Features:** This guide describes using Premium Queen and Premium Worker for production deployments. These modules are **planned for M2 launch (target Q2 2026)**. The current M0 release supports basic multi-machine orchestration with manual routing. Premium features (advanced routing, quotas, telemetry, billing) will be available in M2.
 
 ## Architecture for GPU providers
 
@@ -68,17 +69,19 @@ Inventory your hardware and decide on pricing tiers:
 
 ## Step 2: Set up the queen with Premium features
 
-Premium Queen adds production-grade routing and quotas:
+**M2 Planned:** Premium Queen will add production-grade routing and quotas.
 
+Current M0 setup:
 ```bash
-# Start Premium Queen with advanced routing
-premium-queen start \\
-  --host 0.0.0.0 \\
-  --port 7833 \\
-  --routing-strategy weighted-least-loaded \\
-  --enable-quotas \\
-  --enable-telemetry
+# Start queen (M0 - basic routing only)
+rbee queen start
 ```
+
+Planned M2 capabilities (CLI syntax subject to change):
+- Advanced routing strategies (weighted-least-loaded, latency-aware)
+- Per-customer quotas and rate limiting
+- Detailed telemetry and metrics export
+- Automatic failover and retry logic
 
 **Note:** Premium Queen is a paid module. See [Premium modules](/docs/reference/premium-modules) for licensing.
 

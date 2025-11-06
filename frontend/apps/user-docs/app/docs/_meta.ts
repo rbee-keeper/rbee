@@ -2,6 +2,7 @@ export default {
   index: 'Overview',
   'getting-started': 'Getting Started',
   architecture: 'Architecture & Concepts',
+  components: 'Components',
   reference: 'Reference',
-  guides: 'Guides',
+  guide: 'Guides',
 }

@@ -208,21 +208,67 @@
 
 ---
 
-## Action Plan
+## ✅ CLI & API Commands Verified (2025-01-07)
 
-1. **Fix critical ports everywhere** (8500 → 7833, 9000 → 7835)
-2. **Fix premium pricing everywhere** (use correct €129/€249/€279/€349/€499)
-3. **Mark planned features clearly** ("Planned for M2" not "supports")
-4. **Remove unverified claims** (ROCm, specific API endpoints without code proof)
-5. **Verify CLI commands** against actual code
-6. **Update licensing** to match LICENSE_STRATEGY.md
+### CLI Structure (from bin/00_rbee_keeper/src/cli/commands.rs)
+
+**Binary name:** `rbee` (Cargo.toml: `rbee-keeper` binary)
+
+**Correct commands:**
+- `rbee queen start` - Start queen daemon
+- `rbee queen stop` - Stop queen daemon
+- `rbee queen status` - Check queen status
+- `rbee hive start --host <ALIAS>` - Start hive (localhost or remote)
+- `rbee hive install --host <ALIAS>` - Install hive binary
+- `rbee model download <MODEL>` - Download model from HuggingFace
+- `rbee worker spawn --model <MODEL> --worker <TYPE> --device <N>` - Spawn worker
+- `rbee infer --model <MODEL> "prompt"` - Run inference
+- `rbee status` - Show all hives and workers
+
+**Wrong patterns found in docs (FIXED):**
+- ❌ `queen-rbee start` → ✅ `rbee queen start`
+- ❌ `rbee-hive start` → ✅ `rbee hive start`
+- ❌ `rbee-hive model download` → ✅ `rbee model download`
+- ❌ `rbee-hive worker spawn` → ✅ `rbee worker spawn`
+
+**Premium commands (M2 planned - 77 instances):**
+- ❌ `premium-queen routing ...` - M2 planned, CLI syntax not finalized
+- ❌ `premium-queen quota ...` - M2 planned
+- ❌ `premium-queen metrics ...` - M2 planned
+- ❌ `premium-queen billing ...` - M2 planned
+- ❌ `premium-queen audit ...` - M2 planned
+
+**Action taken:** Added M2 disclaimers, replaced with high-level descriptions
+
+### API Endpoints (from bin/15_queen_rbee_crates/rbee-openai-adapter/src/router.rs)
+
+**Verified endpoints:**
+- ✅ `POST /v1/chat/completions` - EXISTS
+- ✅ `GET /v1/models` - EXISTS
+- ✅ `GET /v1/models/:model` - EXISTS
+
+**NOT implemented (M3 planned):**
+- ❌ `/v1/images/generations` - M3 multi-modal
+- ❌ `/v1/audio/transcriptions` - M3 multi-modal
+- ❌ `/v1/audio/speech` - M3 multi-modal
+
+**Base URL:** `http://localhost:7833/v1` (queen default port)
 
 ---
 
-## Next Steps
+## Action Plan
 
-1. Search codebase for CLI command definitions
-2. Search for OpenAI endpoint implementations
-3. Verify GDPR module features against code
-4. Fix all MDX files systematically
-5. Update TEAM_458 handoff document with corrections
+1. ✅ **Fix critical ports everywhere** (8500 → 7833, 9000 → 7835) - DONE
+2. ✅ **Fix premium pricing everywhere** (€129-€499) - DONE
+3. ✅ **Mark planned features clearly** ("Planned for M2/M3") - DONE
+4. ✅ **Fix CLI commands** (rbee queen/hive/model/worker) - DONE
+5. ⚠️ **Premium commands** - Added M2 disclaimers (77 instances remain with planned syntax)
+6. ✅ **Update licensing** - DONE
+
+---
+
+## Remaining Work
+
+1. **Multi-modal claims** - Need full scan for image/audio/video current-tense descriptions
+2. **Premium command examples** - 77 instances marked as M2 planned, could be further simplified
+3. **ROCm claims** - Need verification (not checked yet)

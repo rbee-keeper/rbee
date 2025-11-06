@@ -18,7 +18,8 @@
     "build:docs": "pnpm run build:ui && pnpm --filter @rbee/user-docs run build",
     "build:frontend": "pnpm run build:ui && pnpm --filter @rbee/commercial run build && pnpm --filter @rbee/user-docs run build",
     "format-and-lint": "biome check .",
-    "format-and-lint:fix": "biome check . --write"
+    "format-and-lint:fix": "biome check . --write",
+    "a11y:theme": "node frontend/scripts/a11y/contrast-check.js"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.6",

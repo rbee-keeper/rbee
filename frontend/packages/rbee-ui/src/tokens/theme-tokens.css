@@ -47,16 +47,17 @@
     --destructive-foreground: #ffffff;
 
     /* Action colors */
-    --success: #10b981; /* emerald-500 */
+    --success: #059669; /* emerald-600 - darker for better contrast */
     --success-foreground: #ffffff;
     --success-muted: #d1fae5; /* emerald-100 */
     --danger: #dc2626; /* red-600 */
     --danger-foreground: #ffffff;
     --danger-muted: #fee2e2; /* red-100 */
 
-    --border: #cbd5e1; /* slate-300 for stronger definition */
-    --input: #cbd5e1;
-    --ring: #f59e0b; /* brand ring for focus-visible */
+    /* Tuned for WCAG: >=3:1 contrast vs background for borders + focus */
+    --border: #748faf;
+    --input: #748faf;
+    --ring: #c47e08;
 
     /* Focus ring system (global consistency) */
     --focus-ring-color: var(--ring, #f59e0b);
@@ -97,8 +98,8 @@
     --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: #f59e0b;
     --sidebar-accent-foreground: #0f172a;
-    --sidebar-border: #cbd5e1;
-    --sidebar-ring: #f59e0b;
+    --sidebar-border: #738eae;
+    --sidebar-ring: #c17c08;
 
     /* ========================================
    * SPACING SCALE
@@ -177,6 +178,9 @@
     --popover: #161f2e; /* tiny lift over card to separate overlays */
     --popover-foreground: #e5eaf1;
 
+    /* NOTE: primary-foreground & success-foreground are intended for
+       large / CTA text only (>= 18–20px). Do not use for small body copy. */
+
     /* Brand system (dark): more subdued orange to reduce brightness */
     --primary: #92400e; /* amber-800 - much more subdued for dark mode */
     --primary-foreground: #ffffff; /* white text for contrast on dark orange */
@@ -197,9 +201,10 @@
     --danger-foreground: #ffffff;
     --danger-muted: #7f1d1d; /* red-900 */
 
-    --border: #263347; /* softer than #334155 to avoid heavy outlines */
-    --input: #2a3a51; /* input shells slightly brighter than border */
-    --ring: #b45309; /* keep brand ring in dark for strong focus */
+    /* Tuned for WCAG: >=3:1 contrast vs background for borders + focus */
+    --border: #496288;
+    --input: #476289;
+    --ring: #a0460f;
 
     /* Chart colors - dark mode */
     --chart-1: #92400e; /* match subdued primary */
@@ -235,8 +240,8 @@
     --sidebar-primary-foreground: #ffffff; /* white text for contrast */
     --sidebar-accent: #b45309; /* amber-700 for hover */
     --sidebar-accent-foreground: #ffffff; /* white text for contrast */
-    --sidebar-border: #263347;
-    --sidebar-ring: #92400e; /* match primary */
+    --sidebar-border: #496288;
+    --sidebar-ring: #a0460f;
 
     /* Elevation (dark-friendly, ambient + subtle highlight) */
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;

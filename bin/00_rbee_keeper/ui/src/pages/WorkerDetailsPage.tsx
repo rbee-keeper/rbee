@@ -7,13 +7,23 @@ import { invoke } from "@tauri-apps/api/core";
 import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@rbee/ui/molecules";
 import { Button, Badge, Card, CardContent, CardHeader, CardTitle } from "@rbee/ui/atoms";
-import { ArtifactDetailPageTemplate } from "@rbee/ui/marketplace";
+import { ArtifactDetailPageTemplate, useArtifactActions } from "@rbee/ui/marketplace";
 import { ArrowLeft, Download, Cpu, Package, GitBranch } from "lucide-react";
 import type { WorkerCatalogEntry } from "@/generated/bindings";
 
 export function WorkerDetailsPage() {
   const { workerId } = useParams<{ workerId: string }>();
   const navigate = useNavigate();
+
+  // TEAM-421: Environment-aware actions
+  const actions = useArtifactActions({
+    onActionSuccess: (action) => {
+      console.log(`✅ ${action} started successfully`);
+    },
+    onActionError: (action, error) => {
+      console.error(`❌ ${action} failed:`, error);
+    },
+  });
 
   // Fetch the specific worker by ID
   const { data: worker, isLoading, error } = useQuery({
@@ -218,12 +228,9 @@ export function WorkerDetailsPage() {
           { label: worker.license, variant: 'outline' },
         ]}
         primaryAction={{
-          label: "Install Worker",
+          label: actions.getButtonLabel('install'),
           icon: <Download className="size-4 mr-2" />,
-          onClick: () => {
-            // TODO: Implement worker installation
-            console.log("Install worker:", worker.id);
-          },
+          onClick: () => actions.installWorker(worker.id),
         }}
         mainContent={mainContent}
       />

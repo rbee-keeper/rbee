@@ -42,9 +42,14 @@ export * from './pages/WorkersPage'
 // Import these explicitly in client components only:
 // - ./organisms/FilterBar (uses controlled state)
 // - ./hooks/useModelFilters (React hooks)
+// - ./hooks/useArtifactActions (React hooks, TEAM-421)
 // - ./templates/ModelListTableTemplate (uses useModelFilters)
 //
 // Example:
 // 'use client'
 // import { ModelListTableTemplate } from '@rbee/ui/marketplace/templates/ModelListTableTemplate'
+// import { useArtifactActions } from '@rbee/ui/marketplace/hooks'
 // ============================================================================
+
+// TEAM-421: Environment-aware action hooks (CLIENT-ONLY)
+export * from './hooks/useArtifactActions'

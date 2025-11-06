@@ -1,5 +1,6 @@
 // TEAM-405: Model details page - Using reusable template
 // TEAM-411: Added compatibility checking
+// TEAM-421: Added environment-aware actions
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: ModelDetailPageTemplate from rbee-ui
 
@@ -8,7 +9,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@rbee/ui/molecules";
 import { Button, Card, CardContent } from "@rbee/ui/atoms";
-import { ModelDetailPageTemplate } from "@rbee/ui/marketplace";
+import { ModelDetailPageTemplate, useArtifactActions } from "@rbee/ui/marketplace";
 import type { ModelDetailData } from "@rbee/ui/marketplace";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import type { Model } from "@/generated/bindings";
@@ -17,6 +18,16 @@ import { checkModelCompatibility } from "@/api/compatibility";
 export function ModelDetailsPage() {
   const { modelId } = useParams<{ modelId: string }>();
   const navigate = useNavigate();
+  
+  // TEAM-421: Environment-aware actions
+  const actions = useArtifactActions({
+    onActionSuccess: (action) => {
+      console.log(`✅ ${action} started successfully`);
+    },
+    onActionError: (action, error) => {
+      console.error(`❌ ${action} failed:`, error);
+    },
+  });
 
   // Fetch the specific model by ID
   const { data: rawModel, isLoading, error } = useQuery({
@@ -144,10 +155,7 @@ export function ModelDetailsPage() {
       <ModelDetailPageTemplate
         model={model}
         onBack={() => navigate("/marketplace/llm-models")}
-        onDownload={() => {
-          // TODO: Implement download
-          console.log("Download model:", model.id);
-        }}
+        onDownload={() => actions.downloadModel(model.id)}
         isLoading={isLoading}
         compatibleWorkers={compatibleWorkers}
       />

@@ -13,3 +13,6 @@ export { brandLink, focusRing, focusRingDestructive, focusRingTight } from './fo
 
 // Re-export inline markdown parser
 export { InlineMarkdown, parseInlineMarkdown } from './parse-inline-markdown'
+
+// TEAM-421: Re-export environment detection utilities
+export * from './environment'

@@ -219,3 +219,27 @@ Import design tokens to ensure consistent theming with the commercial site while
 // app/layout.tsx
 import '@rbee/ui/styles';
 ```
+
+---
+
+## ⚠️ Multi-Consumer Package Notice
+
+**This package is used by multiple applications:**
+
+- Commercial site (`frontend/apps/commercial`)
+- Marketplace site (`frontend/apps/marketplace`)
+- Desktop/Tauri app (`bin/00_rbee_keeper`)
+- User documentation site (`frontend/apps/user-docs`)
+
+**Before making changes:**
+
+1. Verify impact across all consumers
+2. Do not blindly rewrite or delete shared components
+3. Breaking changes require coordination across all apps
+4. Test changes in at least commercial + marketplace contexts
+
+**During commercial site rebuild:**
+
+- Shared components must remain stable
+- New commercial-specific components should live in `frontend/apps/commercial/components`
+- Only promote to `@rbee/ui` when proven reusable across multiple apps

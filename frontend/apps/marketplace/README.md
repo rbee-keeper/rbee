@@ -34,3 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## ⚠️ Stability Notice
+
+**This marketplace application is structurally correct and SEO-optimized.**
+
+- Pure SSG architecture with optimal search engine visibility
+- Environment-aware presentation layer (TEAM-421)
+- Consistent component architecture
+
+**Out of scope for destructive refactors during commercial site rebuild.**
+
+Only targeted, intentional changes should be made to this application. The marketplace serves as a stable reference implementation while the commercial site undergoes restructuring.

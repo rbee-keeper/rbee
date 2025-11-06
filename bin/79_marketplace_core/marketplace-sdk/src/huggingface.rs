@@ -3,7 +3,7 @@
 //!
 //! This is the NATIVE Rust implementation (not WASM) for use in Tauri/backend.
 
-use crate::types::{Model, ModelSource};
+use crate::types::{Model, ModelFile, ModelSource};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
@@ -193,6 +193,27 @@ impl HuggingFaceClient {
         // Estimate size (placeholder - would need to fetch from model card)
         let size = "Unknown".to_string();
 
+        // TEAM-421: Parse siblings (model files) from extra fields
+        let siblings = hf_model.extra.get("siblings")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|file_obj| {
+                        let filename = file_obj.get("rfilename")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string())?;
+                        
+                        // Convert u64 to f64 for TypeScript compatibility
+                        let size = file_obj.get("size")
+                            .and_then(|v| v.as_u64())
+                            .map(|s| s as f64);
+                        
+                        Some(ModelFile { filename, size })
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .filter(|v| !v.is_empty()); // Only include if there are files
+
         Model {
             id: hf_model.model_id.clone(),
             name,
@@ -204,6 +225,7 @@ impl HuggingFaceClient {
             likes: hf_model.likes,
             size,
             source: ModelSource::HuggingFace,
+            siblings, // TEAM-421: Include model files
         }
     }
 }

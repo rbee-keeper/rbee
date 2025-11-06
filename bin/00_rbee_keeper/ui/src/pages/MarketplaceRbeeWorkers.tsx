@@ -5,11 +5,13 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@rbee/ui/molecules";
 import { WorkerListTemplate } from "@rbee/ui/marketplace";
 import type { WorkerCatalogEntry } from "@/generated/bindings";
 
 export function MarketplaceRbeeWorkers() {
+  const navigate = useNavigate();
   // DATA LAYER: Fetch workers from Tauri
   const { data: rawWorkers = [], isLoading, error } = useQuery({
     queryKey: ["marketplace", "rbee-workers"],
@@ -47,6 +49,7 @@ export function MarketplaceRbeeWorkers() {
           workers={workers}
           isLoading={isLoading}
           error={error ? String(error) : undefined}
+          onWorkerClick={(workerId) => navigate(`/marketplace/rbee-workers/${encodeURIComponent(workerId)}`)}
         />
       )}
     </PageContainer>

@@ -17,7 +17,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     pkgbuildUrl: "/workers/llm-worker-rbee-cpu/PKGBUILD",
     buildSystem: "cargo",
     source: {
-      sourceType: "git",
+      type: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/30_llm_worker_rbee"
@@ -48,7 +48,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     pkgbuildUrl: "/workers/llm-worker-rbee-cuda/PKGBUILD",
     buildSystem: "cargo",
     source: {
-      sourceType: "git",
+      type: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/30_llm_worker_rbee"
@@ -79,7 +79,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     pkgbuildUrl: "/workers/llm-worker-rbee-metal/PKGBUILD",
     buildSystem: "cargo",
     source: {
-      sourceType: "git",
+      type: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/30_llm_worker_rbee"
@@ -110,7 +110,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     pkgbuildUrl: "/workers/sd-worker-rbee-cpu/PKGBUILD",
     buildSystem: "cargo",
     source: {
-      sourceType: "git",
+      type: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/31_sd_worker_rbee"
@@ -140,7 +140,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     pkgbuildUrl: "/workers/sd-worker-rbee-cuda/PKGBUILD",
     buildSystem: "cargo",
     source: {
-      sourceType: "git",
+      type: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/31_sd_worker_rbee"
@@ -170,7 +170,7 @@ export const WORKERS: WorkerCatalogEntry[] = [
     pkgbuildUrl: "/workers/sd-worker-rbee-metal/PKGBUILD",
     buildSystem: "cargo",
     source: {
-      sourceType: "git",
+      type: "git",
       url: "https://github.com/user/llama-orch.git",
       branch: "main",
       path: "bin/31_sd_worker_rbee"

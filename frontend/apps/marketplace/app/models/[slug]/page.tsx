@@ -1,7 +1,11 @@
 // TEAM-415: SSG model detail page with slugified URLs
 // TEAM-410: Added compatibility integration
 // TEAM-413: Added InstallButton integration
-import { getHuggingFaceModel, listHuggingFaceModels } from '@rbee/marketplace-node'
+// TEAM-421: Pre-build top 100 popular models (WASM filtering doesn't work in SSG)
+import { 
+  getHuggingFaceModel, 
+  listHuggingFaceModels
+} from '@rbee/marketplace-node'
 import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
 import { ModelDetailWithInstall } from '@/components/ModelDetailWithInstall'
 import type { Metadata } from 'next'
@@ -12,9 +16,18 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const models = await listHuggingFaceModels({ limit: 100 })
+  // TEAM-421: WASM doesn't work in Next.js SSG build context
+  // Solution: Pre-build top 100 models, filter client-side at runtime
+  const FETCH_LIMIT = 100
+  
+  console.log(`[SSG] Pre-building top ${FETCH_LIMIT} most popular models (compatibility check happens at runtime)`)
+  
+  const models = await listHuggingFaceModels({ limit: FETCH_LIMIT })
+  
+  console.log(`[SSG] Pre-building ${models.length} model pages`)
+  
   return models.map((model) => ({ 
-    slug: modelIdToSlug(model.id) 
+    slug: modelIdToSlug((model as {id: string}).id) 
   }))
 }
 

@@ -12,6 +12,7 @@ export interface WorkerListTemplateProps {
   sortOptions?: Array<{ value: string; label: string }>
   onFilterChange?: (filters: { search: string; sort: string }) => void
   onWorkerAction?: (workerId: string) => void
+  onWorkerClick?: (workerId: string) => void
   isLoading?: boolean
   error?: string
   emptyMessage?: string

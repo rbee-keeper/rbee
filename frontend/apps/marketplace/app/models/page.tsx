@@ -1,4 +1,5 @@
 // TEAM-415: Pure SSG page for maximum SEO
+// TEAM-421: Show top 100 popular models (WASM filtering doesn't work in SSG)
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
@@ -6,22 +7,32 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'AI Language Models | Marketplace',
-  description: 'Browse top AI language models from HuggingFace. Pre-rendered for instant loading and maximum SEO.',
+  description: 'Browse compatible AI language models from HuggingFace. Pre-rendered for instant loading and maximum SEO.',
 }
 
 export default async function ModelsPage() {
-  // SSG: Fetch at build time - pure static HTML
-  const hfModels = await listHuggingFaceModels({ limit: 100 })
+  // TEAM-421: WASM doesn't work in Next.js SSG - show top 100 popular models
+  // TODO: Add client-side compatibility filtering in the future
+  const FETCH_LIMIT = 100
   
-  const models: ModelTableItem[] = hfModels.map((model) => ({
-    id: model.id,
-    name: model.name,
-    description: model.description || `${model.author || 'Community'} model`,
-    author: model.author,
-    downloads: model.downloads,
-    likes: model.likes,
-    tags: model.tags.slice(0, 10)
-  }))
+  console.log(`[SSG] Fetching top ${FETCH_LIMIT} most popular models`)
+  
+  const hfModels = await listHuggingFaceModels({ limit: FETCH_LIMIT })
+  
+  console.log(`[SSG] Showing ${hfModels.length} models`)
+  
+  const models: ModelTableItem[] = hfModels.map((model) => {
+    const m = model as unknown as Record<string, unknown>
+    return {
+      id: m.id as string,
+      name: (m.name as string) || (m.id as string),
+      description: (m.description as string) || `${(m.author as string) || 'Community'} model`,
+      author: m.author as string | undefined,
+      downloads: (m.downloads as number) ?? 0,
+      likes: (m.likes as number) ?? 0,
+      tags: (m.tags as string[] | undefined)?.slice(0, 10) ?? []
+    }
+  })
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">

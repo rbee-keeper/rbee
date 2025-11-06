@@ -20,6 +20,7 @@ import { MarketplaceLlmModels } from './pages/MarketplaceLlmModels'
 import { MarketplaceImageModels } from './pages/MarketplaceImageModels'
 import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
 import { ModelDetailsPage } from './pages/ModelDetailsPage'
+import { WorkerDetailsPage } from './pages/WorkerDetailsPage'
 import { setupNarrationListener } from './utils/narrationListener'
 import { broadcastThemeChanges } from '@rbee/iframe-bridge'
 import { useProtocol } from './hooks/useProtocol'
@@ -63,6 +64,7 @@ function AppRoutes() {
           <Route path="/marketplace/llm-models/:modelId" element={<ModelDetailsPage />} />
           <Route path="/marketplace/image-models" element={<MarketplaceImageModels />} />
           <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
+          <Route path="/marketplace/rbee-workers/:workerId" element={<WorkerDetailsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/help" element={<HelpPage />} />
         </Routes>

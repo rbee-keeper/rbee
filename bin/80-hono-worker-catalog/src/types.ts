@@ -79,8 +79,8 @@ export interface WorkerCatalogEntry {
   
   /** Source repository */
   source: {
-    /** Source type - MUST be camelCase */
-    sourceType: "git" | "tarball";
+    /** Source type - Rust uses #[serde(rename = "type")] which overrides camelCase */
+    type: "git" | "tarball";
     url: string;
     branch?: string;
     tag?: string;

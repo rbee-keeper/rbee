@@ -12,6 +12,7 @@ export function WorkerListTemplate({
   sortOptions = defaultWorkerSortOptions,
   onFilterChange,
   onWorkerAction,
+  onWorkerClick,
   isLoading,
   error,
   emptyMessage = 'No workers found',
@@ -57,6 +58,7 @@ export function WorkerListTemplate({
             key={worker.id}
             worker={worker}
             onAction={onWorkerAction}
+            onClick={onWorkerClick}
           />
         )}
         isLoading={isLoading}

@@ -31,6 +31,7 @@ export interface WorkerCardProps {
     workerType: WorkerType
   }
   onAction?: (workerId: string) => void
+  onClick?: (workerId: string) => void
   actionButton?: React.ReactNode
 }
 
@@ -40,11 +41,14 @@ const workerTypeConfig = {
   metal: { label: 'Metal', variant: 'accent' as const },
 }
 
-export function WorkerCard({ worker, onAction, actionButton }: WorkerCardProps) {
+export function WorkerCard({ worker, onAction, onClick, actionButton }: WorkerCardProps) {
   const typeConfig = workerTypeConfig[worker.workerType]
 
   return (
-    <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+    <Card 
+      className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => onClick?.(worker.id)}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -93,7 +97,14 @@ export function WorkerCard({ worker, onAction, actionButton }: WorkerCardProps) 
 
       <CardFooter className="border-t pt-4">
         {!actionButton && onAction && (
-          <Button size="sm" className="w-full" onClick={() => onAction(worker.id)}>
+          <Button 
+            size="sm" 
+            className="w-full" 
+            onClick={(e) => {
+              e.stopPropagation() // Prevent card click
+              onAction(worker.id)
+            }}
+          >
             <Download className="size-3.5" />
             Install Worker
           </Button>

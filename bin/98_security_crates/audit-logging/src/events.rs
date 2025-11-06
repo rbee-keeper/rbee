@@ -25,7 +25,7 @@ pub struct ActorInfo {
 
 /// Authentication methods
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum AuthMethod {
     BearerToken,
     ApiKey,
@@ -48,7 +48,7 @@ pub struct ResourceInfo {
 
 /// Audit result
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum AuditResult {
     Success,
     Failure { reason: String },

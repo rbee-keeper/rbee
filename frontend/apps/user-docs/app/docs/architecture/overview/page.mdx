@@ -1,0 +1,359 @@
+# Architecture Overview
+
+rbee is a distributed AI orchestration system built around four core components that work together to create a unified AI colony. This page explains the architecture and how the components interact.
+
+## System architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Your Colony                        │
+│                                                         │
+│  ┌──────────┐                                           │
+│  │  Keeper  │  (GUI - Your control center)             │
+│  └────┬─────┘                                           │
+│       │ HTTP/WebSocket                                  │
+│  ┌────▼─────┐                                           │
+│  │  Queen   │  (Orchestrator - Routes requests)        │
+│  └────┬─────┘                                           │
+│       │ HTTP + SSH                                      │
+│       │                                                 │
+│  ┌────▼─────┬─────────┬─────────┐                      │
+│  │          │         │         │                      │
+│  │  Hive 1  │  Hive 2 │  Hive 3 │  (Worker hosts)      │
+│  │          │         │         │                      │
+│  │ ┌──────┐ │ ┌─────┐ │ ┌─────┐ │                      │
+│  │ │Worker│ │ │Worker│ │Worker│ │  (Inference)         │
+│  │ └──────┘ │ └─────┘ │ └─────┘ │                      │
+│  └──────────┴─────────┴─────────┘                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Core components
+
+### Keeper (GUI)
+
+The keeper is the graphical user interface where you control your entire colony.
+
+**Purpose:**
+- Visual control center for all operations
+- Real-time monitoring of GPUs and workers
+- Chat interface for interacting with models
+- Configuration management
+
+**Key features:**
+- Cross-platform (Windows, macOS, Linux)
+- Real-time GPU utilization graphs
+- Worker lifecycle management (spawn, stop, restart)
+- Model download and management
+- Multi-hive overview
+
+**Technology:**
+- Built with Tauri (Rust + Web)
+- WebSocket connection to queen for real-time updates
+- Embedded web UI with React
+
+**Runs on:** Your workstation or laptop
+
+### Queen (Orchestrator)
+
+The queen is the central orchestrator that manages the entire colony.
+
+**Purpose:**
+- Route inference requests to appropriate workers
+- Manage hive registry and worker state
+- Handle job scheduling and queueing
+- Provide OpenAI-compatible API endpoint
+
+**Key features:**
+- HTTP API server (default port: 8500)
+- SSE (Server-Sent Events) for real-time job updates
+- Hive discovery and health monitoring
+- Worker capability tracking
+- Request routing based on model and load
+
+**Technology:**
+- Built with Rust (Axum web framework)
+- Async/await for high concurrency
+- In-memory state with optional persistence
+
+**Runs on:** Your main server or workstation (one per colony)
+
+### Hive (Worker Host)
+
+A hive is a daemon that runs on each machine and hosts workers.
+
+**Purpose:**
+- Detect and report GPU capabilities
+- Spawn and manage worker processes
+- Download and cache models
+- Send heartbeats to queen with telemetry
+
+**Key features:**
+- GPU detection (NVIDIA, AMD, Apple Silicon)
+- Worker process lifecycle management
+- Model catalog and download management
+- Resource monitoring (GPU utilization, VRAM, temperature)
+- Automatic worker restart on crash
+
+**Technology:**
+- Built with Rust
+- Uses systemd cgroups for resource isolation
+- nvidia-smi integration for GPU monitoring
+
+**Runs on:** Every machine with GPUs you want to use
+
+### Worker (Inference Process)
+
+A worker is an individual inference process running a specific model.
+
+**Purpose:**
+- Load a model into GPU/CPU memory
+- Serve inference requests
+- Report status and metrics to hive
+
+**Key features:**
+- Model-specific (one worker per model instance)
+- GPU-pinned (runs on specific GPU device)
+- Supports LLM, image generation, audio transcription
+- Batching and streaming support
+
+**Technology:**
+- Built with Rust + Candle (ML framework)
+- Direct GPU memory management
+- HTTP API for inference requests
+
+**Runs on:** Spawned by hive on specific GPU devices
+
+## Communication flow
+
+### 1. Startup sequence
+
+```
+1. Queen starts → Listens on port 8500
+2. Hive starts → Detects GPUs → Registers with queen
+3. Hive sends heartbeat → Queen stores capabilities
+4. Keeper starts → Connects to queen → Shows hive status
+```
+
+### 2. Model download
+
+```
+User (Keeper) → Queen → Hive → Downloads from HuggingFace
+                              → Stores in ~/.cache/rbee/models/
+                              → Reports completion to queen
+```
+
+### 3. Worker spawn
+
+```
+User (Keeper) → Queen → Hive → Spawns worker process
+                              → Worker loads model into GPU
+                              → Worker registers with hive
+                              → Hive reports to queen
+```
+
+### 4. Inference request
+
+```
+Client → Queen → Finds worker with model
+              → Routes request to hive
+              → Hive forwards to worker
+              → Worker runs inference
+              → Streams response back through chain
+```
+
+### 5. Monitoring
+
+```
+Worker → Hive (every 1s) → GPU metrics
+Hive → Queen (every 1s) → Heartbeat with all worker metrics
+Queen → Keeper (SSE) → Real-time updates in GUI
+```
+
+## Data flow
+
+### Request routing
+
+When a client sends an inference request:
+
+1. **Queen receives request** at `/v1/chat/completions`
+2. **Queen checks model availability** in hive registry
+3. **Queen selects best worker** based on:
+   - Model match
+   - Worker availability (not busy)
+   - GPU utilization (prefer idle GPUs)
+   - Hive latency (prefer local hives)
+4. **Queen forwards request** to selected hive
+5. **Hive forwards to worker** on the same machine
+6. **Worker processes request** and streams response
+7. **Response flows back** through hive → queen → client
+
+### State management
+
+**Queen state:**
+- Hive registry (which hives are connected, their capabilities)
+- Worker registry (which workers are running, their status)
+- Job queue (pending inference requests)
+- Active connections (SSE streams for real-time updates)
+
+**Hive state:**
+- Worker processes (PIDs, models, GPU assignments)
+- Model catalog (downloaded models, metadata)
+- GPU monitoring data (utilization, VRAM, temperature)
+
+**Worker state:**
+- Loaded model (in GPU memory)
+- Request queue (batching)
+- Inference state (busy/idle)
+
+## Deployment patterns
+
+### Single machine
+
+All components on one machine:
+
+```
+localhost:
+  - queen (port 8500)
+  - hive (connects to localhost:8500)
+  - keeper (connects to localhost:8500)
+  - workers (spawned by hive)
+```
+
+**Use case:** Development, testing, single-GPU setups
+
+### Homelab
+
+Queen on main server, hives on multiple machines:
+
+```
+server.local:
+  - queen (port 8500)
+  - keeper
+
+gaming-pc.local:
+  - hive (connects to server.local:8500)
+
+mac.local:
+  - hive (connects to server.local:8500)
+```
+
+**Use case:** Multi-machine homelab, mixed hardware
+
+### Production (GPU provider)
+
+Queen with load balancer, many hives:
+
+```
+Load Balancer (Cloudflare/nginx)
+  ↓
+Premium Queen (HA setup)
+  ↓
+Multiple hives across data centers
+```
+
+**Use case:** API platforms, GPU rental services
+
+## Network requirements
+
+### Ports
+
+- **Queen:** 8500 (HTTP API, configurable)
+- **Hive:** No inbound ports (connects to queen)
+- **Worker:** No inbound ports (hive forwards requests)
+
+### Protocols
+
+- **Queen ↔ Keeper:** HTTP + WebSocket (for real-time updates)
+- **Queen ↔ Hive:** HTTP (hive polls queen, queen pushes to hive)
+- **Queen ↔ Hive (management):** SSH (for install/start/stop operations)
+- **Hive ↔ Worker:** HTTP (local communication)
+
+### Firewall rules
+
+**Minimal setup (single machine):**
+- No firewall changes needed (all localhost)
+
+**Multi-machine setup:**
+- Allow port 8500 (queen) from hive machines
+- Allow SSH (port 22) from queen to hive machines
+
+**Production setup:**
+- Expose queen behind load balancer (HTTPS)
+- Keep hives on private network
+- Use VPN or SSH tunnels for hive communication
+
+## Scalability
+
+### Horizontal scaling
+
+Add more hives to increase capacity:
+
+```bash
+# Add new hive to colony
+queen-rbee hive install new-hive-01
+queen-rbee hive start new-hive-01
+```
+
+Each hive can run multiple workers (limited by GPU count).
+
+### Vertical scaling
+
+Add more GPUs to existing hives:
+
+```bash
+# Hive auto-detects new GPUs on restart
+queen-rbee hive stop existing-hive
+# Install new GPU
+queen-rbee hive start existing-hive
+```
+
+### Load balancing
+
+**Basic (included):**
+- Round-robin across workers with same model
+- Prefer idle workers over busy ones
+
+**Premium Queen:**
+- Weighted least-loaded routing
+- Latency-aware routing
+- Quota-based routing
+- Automatic failover
+
+## Security model
+
+### Authentication
+
+**Queen API:**
+- Optional API key authentication
+- TLS/HTTPS support
+- Rate limiting (Premium Queen)
+
+**Hive management:**
+- SSH key-based authentication
+- No password authentication
+- Sudo privileges required for install
+
+### Isolation
+
+**Worker isolation:**
+- Each worker runs in separate process
+- systemd cgroups for resource limits
+- No shared memory between workers
+
+**Network isolation:**
+- Workers only accessible through hive
+- Hive only accessible through queen
+- No direct worker-to-worker communication
+
+### Data privacy
+
+- All data stays on your infrastructure
+- No external API calls (except model downloads)
+- Optional audit logging (GDPR Auditing module)
+
+## Next steps
+
+- **[Components deep dive](/docs/architecture/components)** - Detailed component documentation
+- **[Data flow](/docs/architecture/data-flow)** - Request lifecycle and state management
+- **[Deployment patterns](/docs/architecture/deployment)** - Production deployment strategies

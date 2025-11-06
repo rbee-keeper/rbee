@@ -1,0 +1,326 @@
+# Homelab & Power Users
+
+This guide shows how to connect multiple machines into one unified rbee colony. Perfect for homelab enthusiasts who want to use their gaming PC, laptop, Mac, and home server as a single AI system.
+
+## What you'll build
+
+A multi-machine colony where:
+
+- Your workstation runs the keeper (GUI) and queen (orchestrator)
+- Your gaming PC contributes its RTX GPU
+- Your Mac M3 contributes its unified memory
+- Your home server runs CPU workers for background tasks
+- All machines appear as one system in the keeper GUI
+
+## Prerequisites
+
+- rbee installed on all machines (see [Installation](/docs/getting-started/installation))
+- SSH access between machines
+- Network connectivity (same LAN or VPN)
+- At least one machine with a GPU
+
+## Architecture overview
+
+In a multi-machine setup:
+
+```
+┌─────────────────┐
+│  Workstation    │
+│  ┌──────────┐   │
+│  │  Keeper  │   │ (Your control center)
+│  └────┬─────┘   │
+│       │         │
+│  ┌────▼─────┐   │
+│  │  Queen   │   │ (Orchestrator)
+│  └────┬─────┘   │
+│       │         │
+└───────┼─────────┘
+        │
+        ├─────────────────────────────────┐
+        │                                 │
+   ┌────▼─────┐                      ┌────▼─────┐
+   │Gaming PC │                      │ Mac M3   │
+   │  (Hive)  │                      │  (Hive)  │
+   │          │                      │          │
+   │ ┌──────┐ │                      │ ┌──────┐ │
+   │ │Worker│ │ (RTX 3090)           │ │Worker│ │ (Metal)
+   │ └──────┘ │                      │ └──────┘ │
+   └──────────┘                      └──────────┘
+```
+
+## Step 1: Set up SSH access
+
+rbee uses SSH to manage remote hives. Configure passwordless SSH:
+
+```bash
+# Generate SSH key (if you don't have one)
+ssh-keygen -t ed25519 -C "rbee@homelab"
+
+# Copy to each remote machine
+ssh-copy-id user@gaming-pc
+ssh-copy-id user@mac-m3
+ssh-copy-id user@home-server
+
+# Test connectivity
+ssh user@gaming-pc "echo 'SSH works'"
+```
+
+## Step 2: Start the queen (workstation)
+
+On your main workstation, start the queen:
+
+```bash
+# Start queen on all network interfaces
+queen-rbee start --host 0.0.0.0 --port 8500
+```
+
+Note the IP address of your workstation (e.g., `192.168.1.100`). Remote hives will connect to this address.
+
+## Step 3: Configure hive catalog
+
+Create a hive catalog file at `~/.rbee/hives.conf`:
+
+```toml
+# Gaming PC with RTX 3090
+[[hive]]
+alias = "gaming-pc"
+host = "192.168.1.101"
+ssh_user = "user"
+ssh_port = 22
+
+# Mac M3 with unified memory
+[[hive]]
+alias = "mac-m3"
+host = "192.168.1.102"
+ssh_user = "user"
+ssh_port = 22
+
+# Home server (CPU only)
+[[hive]]
+alias = "home-server"
+host = "192.168.1.103"
+ssh_user = "user"
+ssh_port = 22
+```
+
+## Step 4: Install rbee on remote hives
+
+Use the queen to install rbee on each remote machine:
+
+```bash
+# Install on gaming PC
+queen-rbee hive install gaming-pc
+
+# Install on Mac
+queen-rbee hive install mac-m3
+
+# Install on home server
+queen-rbee hive install home-server
+```
+
+This will:
+- SSH into each machine
+- Download the appropriate rbee-hive binary
+- Set up the configuration
+- Return without starting the hive
+
+## Step 5: Start remote hives
+
+Start each hive and connect it to your queen:
+
+```bash
+# Start gaming PC hive
+queen-rbee hive start gaming-pc
+
+# Start Mac hive
+queen-rbee hive start mac-m3
+
+# Start home server hive
+queen-rbee hive start home-server
+```
+
+Each hive will:
+- Detect local GPUs/hardware
+- Connect to the queen at your workstation
+- Send heartbeats with capability information
+
+## Step 6: Verify the colony
+
+Check that all hives are connected:
+
+```bash
+# List all hives
+queen-rbee hive list
+
+# Get details for a specific hive
+queen-rbee hive get gaming-pc
+
+# Check status
+queen-rbee hive status gaming-pc
+```
+
+You should see all three hives registered with their GPU information.
+
+## Step 7: Download models to hives
+
+Download models to specific hives based on their capabilities:
+
+```bash
+# Large model on gaming PC (24GB VRAM)
+queen-rbee model download llama-3.1-70b --hive gaming-pc
+
+# Medium model on Mac (shared memory)
+queen-rbee model download llama-3.1-8b --hive mac-m3
+
+# Small model on home server (CPU)
+queen-rbee model download llama-3.2-1b --hive home-server
+```
+
+## Step 8: Spawn workers across machines
+
+Now spawn workers on different machines:
+
+```bash
+# LLM on gaming PC GPU
+queen-rbee worker spawn \\
+  --hive gaming-pc \\
+  --model llama-3.1-70b \\
+  --device cuda:0
+
+# LLM on Mac Metal
+queen-rbee worker spawn \\
+  --hive mac-m3 \\
+  --model llama-3.1-8b \\
+  --device metal
+
+# Background worker on home server
+queen-rbee worker spawn \\
+  --hive home-server \\
+  --model llama-3.2-1b \\
+  --device cpu
+```
+
+## Step 9: Use the unified API
+
+Send requests to the queen. It will route to the appropriate worker:
+
+```bash
+# Request automatically routed to best available worker
+curl -X POST http://192.168.1.100:8500/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "llama-3.1-70b",
+    "messages": [
+      {"role": "user", "content": "Explain quantum computing"}
+    ]
+  }'
+```
+
+The queen handles routing based on:
+- Model availability
+- Worker capacity
+- GPU utilization
+
+## Step 10: Open the keeper GUI
+
+Start the keeper on your workstation:
+
+```bash
+rbee-keeper
+```
+
+You'll see:
+- All three hives with their hardware specs
+- Workers running on each machine
+- Real-time GPU utilization across all devices
+- Unified chat interface using any worker
+
+## Managing your colony
+
+### Stop a remote hive
+
+```bash
+queen-rbee hive stop gaming-pc
+```
+
+### Restart a hive
+
+```bash
+queen-rbee hive stop gaming-pc
+queen-rbee hive start gaming-pc
+```
+
+### Remove a hive from the colony
+
+```bash
+queen-rbee hive uninstall gaming-pc
+```
+
+### List all workers across all hives
+
+```bash
+queen-rbee worker list
+```
+
+## Advanced: Load balancing
+
+For production use, consider Premium Queen which adds:
+
+- Intelligent routing based on model, load, and latency
+- Automatic failover when workers crash
+- Quota management per hive
+- Detailed telemetry and metrics
+
+See [Premium modules](/docs/reference/premium-modules) for details.
+
+## Next steps
+
+- **[Worker management](/docs/guides/worker-management)** - Advanced worker operations
+- **[Monitoring](/docs/guides/monitoring)** - Track performance across machines
+- **[GPU provider setup](/docs/getting-started/gpu-providers)** - Turn your homelab into an API product
+- **[Premium modules](/docs/reference/premium-modules)** - Production-grade features
+
+## Troubleshooting
+
+### Hive won't connect
+
+Check network connectivity:
+
+```bash
+# From workstation, test connection
+ping 192.168.1.101
+ssh user@gaming-pc "echo 'SSH works'"
+```
+
+Verify the queen URL is correct in hive configuration.
+
+### SSH permission denied
+
+Ensure SSH keys are properly configured:
+
+```bash
+ssh-copy-id user@gaming-pc
+```
+
+Check SSH config on remote machine (`/etc/ssh/sshd_config`).
+
+### Worker spawns on wrong hive
+
+Explicitly specify the hive:
+
+```bash
+queen-rbee worker spawn --hive gaming-pc --model llama-3.1-70b
+```
+
+### Firewall blocking connections
+
+Open port 8500 (or your custom queen port) on the workstation:
+
+```bash
+# Ubuntu/Debian
+sudo ufw allow 8500/tcp
+
+# Fedora/RHEL
+sudo firewall-cmd --add-port=8500/tcp --permanent
+sudo firewall-cmd --reload
+```

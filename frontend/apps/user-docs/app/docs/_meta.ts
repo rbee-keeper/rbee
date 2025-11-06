@@ -1,6 +1,7 @@
 export default {
-  index: 'Welcome',
+  index: 'Overview',
   'getting-started': 'Getting Started',
-  components: 'Shared Components',
-  guide: 'Guide',
+  architecture: 'Architecture & Concepts',
+  reference: 'Reference',
+  guides: 'Guides',
 }

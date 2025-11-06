@@ -1,0 +1,371 @@
+# GPU Providers & Platforms
+
+This guide is for businesses and individuals who want to turn their GPU fleet into an API product. Learn how to use rbee to expose heterogeneous hardware through one OpenAI-compatible endpoint with production-grade routing and telemetry.
+
+## Who this is for
+
+- **GPU rental platforms** - Turn spare capacity into revenue
+- **AI API providers** - Build a competitive inference service
+- **ML infrastructure teams** - Offer internal AI services to other teams
+- **Ex-crypto miners** - Monetize idle GPUs from the crypto era
+
+## What you'll build
+
+A production-ready API platform that:
+
+- Exposes multiple GPU types through one stable endpoint
+- Routes requests based on model, load, and quotas
+- Tracks usage and costs per customer/project
+- Provides detailed telemetry for optimization
+- Handles failures gracefully with automatic retries
+
+## Prerequisites
+
+- Multiple machines with GPUs (or access to cloud GPU instances)
+- rbee installed on all machines (see [Installation](/docs/getting-started/installation))
+- Basic understanding of API products and pricing
+- (Recommended) Premium Queen and Premium Worker licenses for production features
+
+## Architecture for GPU providers
+
+```
+                    ┌─────────────────┐
+                    │  Your Customers │
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   Load Balancer │ (Optional: Cloudflare, nginx)
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  Premium Queen  │ (Routing, quotas, telemetry)
+                    └────────┬────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+   ┌────▼─────┐         ┌────▼─────┐        ┌────▼─────┐
+   │  Hive 1  │         │  Hive 2  │        │  Hive 3  │
+   │ RTX 4090 │         │ A100 80GB│        │ H100 SXM │
+   │          │         │          │        │          │
+   │ ┌──────┐ │         │ ┌──────┐ │        │ ┌──────┐ │
+   │ │Worker│ │         │ │Worker│ │        │ │Worker│ │
+   │ └──────┘ │         │ └──────┘ │        │ └──────┘ │
+   └──────────┘         └──────────┘        └──────────┘
+```
+
+## Step 1: Plan your GPU fleet
+
+Inventory your hardware and decide on pricing tiers:
+
+### Example fleet configuration
+
+| Tier | GPU Type | VRAM | Models Supported | Price/1M tokens |
+|------|----------|------|------------------|-----------------|
+| Budget | RTX 4090 | 24GB | Up to 70B params | $0.50 |
+| Standard | A100 40GB | 40GB | Up to 70B params | $1.00 |
+| Premium | A100 80GB | 80GB | Up to 405B params | $2.00 |
+| Ultra | H100 SXM | 80GB | Any model | $4.00 |
+
+## Step 2: Set up the queen with Premium features
+
+Premium Queen adds production-grade routing and quotas:
+
+```bash
+# Start Premium Queen with advanced routing
+premium-queen start \\
+  --host 0.0.0.0 \\
+  --port 8500 \\
+  --routing-strategy weighted-least-loaded \\
+  --enable-quotas \\
+  --enable-telemetry
+```
+
+**Note:** Premium Queen is a paid module. See [Premium modules](/docs/reference/premium-modules) for licensing.
+
+## Step 3: Configure hive fleet
+
+Create a comprehensive hive catalog at `~/.rbee/hives.conf`:
+
+```toml
+# Budget tier - RTX 4090 fleet
+[[hive]]
+alias = "rtx-4090-01"
+host = "10.0.1.10"
+ssh_user = "rbee"
+tier = "budget"
+cost_per_hour = 0.50
+
+[[hive]]
+alias = "rtx-4090-02"
+host = "10.0.1.11"
+ssh_user = "rbee"
+tier = "budget"
+cost_per_hour = 0.50
+
+# Standard tier - A100 40GB
+[[hive]]
+alias = "a100-40gb-01"
+host = "10.0.2.10"
+ssh_user = "rbee"
+tier = "standard"
+cost_per_hour = 1.50
+
+# Premium tier - A100 80GB
+[[hive]]
+alias = "a100-80gb-01"
+host = "10.0.3.10"
+ssh_user = "rbee"
+tier = "premium"
+cost_per_hour = 3.00
+
+# Ultra tier - H100
+[[hive]]
+alias = "h100-01"
+host = "10.0.4.10"
+ssh_user = "rbee"
+tier = "ultra"
+cost_per_hour = 6.00
+```
+
+## Step 4: Install and start all hives
+
+```bash
+# Install rbee on all hives
+for hive in rtx-4090-01 rtx-4090-02 a100-40gb-01 a100-80gb-01 h100-01; do
+  premium-queen hive install $hive
+done
+
+# Start all hives
+for hive in rtx-4090-01 rtx-4090-02 a100-40gb-01 a100-80gb-01 h100-01; do
+  premium-queen hive start $hive
+done
+
+# Verify all hives are connected
+premium-queen hive list
+```
+
+## Step 5: Deploy models across tiers
+
+Deploy appropriate models to each tier:
+
+```bash
+# Budget tier - small/medium models
+premium-queen model download llama-3.2-3b --hive rtx-4090-01
+premium-queen model download llama-3.1-8b --hive rtx-4090-02
+
+# Standard tier - large models
+premium-queen model download llama-3.1-70b --hive a100-40gb-01
+
+# Premium tier - very large models
+premium-queen model download llama-3.1-405b --hive a100-80gb-01
+
+# Ultra tier - any model with maximum performance
+premium-queen model download llama-3.1-405b --hive h100-01
+premium-queen model download stable-diffusion-xl --hive h100-01
+```
+
+## Step 6: Spawn workers with Premium Worker
+
+Premium Worker adds advanced telemetry and resource management:
+
+```bash
+# Spawn Premium Workers on each hive
+premium-queen worker spawn \\
+  --hive rtx-4090-01 \\
+  --model llama-3.1-8b \\
+  --device cuda:0 \\
+  --worker-type premium \\
+  --max-batch-size 32 \\
+  --enable-metrics
+
+# Repeat for other hives...
+```
+
+**Note:** Premium Worker is a paid module. See [Premium modules](/docs/reference/premium-modules).
+
+## Step 7: Configure routing policies
+
+Set up intelligent routing based on your business logic:
+
+```bash
+# Route by model size
+premium-queen routing add-rule \\
+  --model-pattern "llama-3.2-*" \\
+  --tier budget
+
+premium-queen routing add-rule \\
+  --model-pattern "llama-3.1-70b" \\
+  --tier standard,premium
+
+premium-queen routing add-rule \\
+  --model-pattern "llama-3.1-405b" \\
+  --tier premium,ultra
+
+# Route by customer tier
+premium-queen routing add-rule \\
+  --customer-tier free \\
+  --hive-tier budget \\
+  --max-tokens-per-minute 1000
+
+premium-queen routing add-rule \\
+  --customer-tier paid \\
+  --hive-tier standard,premium \\
+  --max-tokens-per-minute 10000
+```
+
+## Step 8: Set up quotas and rate limiting
+
+Protect your infrastructure with quotas:
+
+```bash
+# Per-customer quotas
+premium-queen quota set \\
+  --customer acme-corp \\
+  --max-requests-per-minute 100 \\
+  --max-tokens-per-day 1000000
+
+# Per-tier quotas
+premium-queen quota set \\
+  --tier free \\
+  --max-concurrent-requests 5 \\
+  --max-tokens-per-minute 1000
+
+premium-queen quota set \\
+  --tier paid \\
+  --max-concurrent-requests 50 \\
+  --max-tokens-per-minute 50000
+```
+
+## Step 9: Expose the API
+
+Your queen is now an OpenAI-compatible API endpoint:
+
+```bash
+# Test the endpoint
+curl -X POST https://api.yourdomain.com/v1/chat/completions \\
+  -H "Authorization: Bearer your-api-key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "llama-3.1-70b",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'
+```
+
+## Step 10: Monitor and optimize
+
+Use Premium Queen's telemetry to optimize your fleet:
+
+```bash
+# View real-time metrics
+premium-queen metrics dashboard
+
+# Export metrics for analysis
+premium-queen metrics export --format prometheus
+
+# View cost breakdown
+premium-queen billing report --period last-30-days
+```
+
+## Production deployment checklist
+
+- [ ] **SSL/TLS** - Use HTTPS with valid certificates (Let's Encrypt, Cloudflare)
+- [ ] **Load balancer** - Put nginx or Cloudflare in front of the queen
+- [ ] **Authentication** - Implement API key management (Premium Queen includes this)
+- [ ] **Monitoring** - Set up Prometheus + Grafana for metrics
+- [ ] **Backups** - Regular backups of queen configuration and state
+- [ ] **Alerting** - Alerts for worker failures, quota breaches, high latency
+- [ ] **DDoS protection** - Cloudflare or similar
+- [ ] **Logging** - Centralized logging (ELK stack, Loki, etc.)
+- [ ] **Documentation** - API docs for your customers
+
+## Pricing strategies
+
+### Token-based pricing
+
+Charge per million tokens (input + output):
+
+```bash
+# Configure token-based billing
+premium-queen billing set-rate \\
+  --tier budget \\
+  --price-per-million-tokens 0.50
+
+premium-queen billing set-rate \\
+  --tier premium \\
+  --price-per-million-tokens 2.00
+```
+
+### Time-based pricing
+
+Charge per GPU-hour:
+
+```bash
+# Configure time-based billing
+premium-queen billing set-rate \\
+  --tier budget \\
+  --price-per-gpu-hour 0.50
+
+premium-queen billing set-rate \\
+  --tier ultra \\
+  --price-per-gpu-hour 6.00
+```
+
+### Hybrid pricing
+
+Combine both for maximum revenue:
+
+- Base fee per request
+- Token-based pricing for usage
+- Minimum monthly commitment for enterprise customers
+
+## Next steps
+
+- **[Premium modules](/docs/reference/premium-modules)** - Deep dive into Premium Queen and Worker features
+- **[API reference](/docs/reference/api-openai-compatible)** - Complete API documentation
+- **[Monitoring guide](/docs/guides/monitoring)** - Set up comprehensive monitoring
+- **[GDPR compliance](/docs/reference/gdpr-compliance)** - For EU-based providers
+
+## Troubleshooting
+
+### High latency
+
+Check worker utilization:
+
+```bash
+premium-queen worker list --show-metrics
+```
+
+Scale horizontally by adding more hives or workers.
+
+### Quota breaches
+
+Review quota settings:
+
+```bash
+premium-queen quota list
+```
+
+Adjust based on actual usage patterns.
+
+### Worker failures
+
+Enable automatic failover:
+
+```bash
+premium-queen routing set-failover \\
+  --enable \\
+  --retry-attempts 3 \\
+  --retry-delay-ms 1000
+```
+
+### Cost optimization
+
+Analyze which models/tiers are most profitable:
+
+```bash
+premium-queen billing analyze --period last-30-days
+```
+
+Adjust pricing or retire unprofitable tiers.

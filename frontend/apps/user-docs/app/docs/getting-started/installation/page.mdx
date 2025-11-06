@@ -1,0 +1,138 @@
+# Installation
+
+This guide covers installing rbee on your system. rbee consists of several components that work together to create your AI colony.
+
+## System requirements
+
+### Minimum requirements
+
+- **Operating system:** Linux (Ubuntu 22.04+, Debian 12+), macOS 13+, or Windows 11 with WSL2
+- **RAM:** 8GB minimum, 16GB recommended
+- **Storage:** 20GB for base system, plus space for models (typically 4-50GB per model)
+- **Network:** SSH access between machines (for multi-machine setups)
+
+### GPU requirements
+
+rbee supports heterogeneous GPU configurations:
+
+- **NVIDIA GPUs:** CUDA 11.8+ (RTX 20/30/40 series, A-series, H-series)
+- **AMD GPUs:** ROCm 5.7+ (experimental support)
+- **Apple Silicon:** M1/M2/M3 series with Metal acceleration
+- **CPU-only:** Supported but significantly slower
+
+## Installation methods
+
+### Quick install (recommended)
+
+The fastest way to get started on a single machine:
+
+```bash
+curl -sSL https://install.rbee.dev | sh
+```
+
+This installs:
+- `rbee-keeper` - The GUI application
+- `queen-rbee` - The orchestrator
+- `rbee-hive` - The worker host daemon
+
+### Manual installation
+
+For more control or air-gapped environments:
+
+1. **Download the latest release:**
+
+   Visit [github.com/veighnsche/llama-orch/releases](https://github.com/veighnsche/llama-orch/releases) and download the appropriate binaries for your platform.
+
+2. **Extract and install:**
+
+   ```bash
+   tar -xzf rbee-*.tar.gz
+   sudo mv rbee-* /usr/local/bin/
+   ```
+
+3. **Verify installation:**
+
+   ```bash
+   rbee-keeper --version
+   queen-rbee --version
+   rbee-hive --version
+   ```
+
+### Building from source
+
+For developers or custom builds:
+
+```bash
+# Clone the repository
+git clone https://github.com/veighnsche/llama-orch.git
+cd llama-orch
+
+# Build all binaries (requires Rust 1.75+)
+cargo build --release
+
+# Binaries will be in target/release/
+```
+
+## Initial configuration
+
+After installation, create the base configuration directory:
+
+```bash
+mkdir -p ~/.rbee
+```
+
+rbee will auto-generate configuration files on first run. For advanced configuration options, see the [Configuration guide](/docs/guides/configuration).
+
+## Verify installation
+
+Check that all components are installed correctly:
+
+```bash
+# Check keeper (GUI)
+rbee-keeper --version
+
+# Check queen (orchestrator)
+queen-rbee --version
+
+# Check hive (worker host)
+rbee-hive --version
+```
+
+## Next steps
+
+- **[Single machine setup](/docs/getting-started/single-machine)** - Run rbee on one computer
+- **[Homelab setup](/docs/getting-started/homelab)** - Connect multiple machines
+- **[GPU provider setup](/docs/getting-started/gpu-providers)** - Build an API platform
+
+## Troubleshooting
+
+### Permission errors
+
+If you encounter permission errors, ensure the binaries are executable:
+
+```bash
+chmod +x /usr/local/bin/rbee-*
+```
+
+### GPU not detected
+
+Verify your GPU drivers are installed:
+
+```bash
+# NVIDIA
+nvidia-smi
+
+# AMD
+rocm-smi
+
+# Apple Silicon (should show GPU info)
+system_profiler SPDisplaysDataType
+```
+
+### Network connectivity issues
+
+For multi-machine setups, ensure SSH is configured and accessible:
+
+```bash
+ssh user@remote-machine "echo 'SSH works'"
+```

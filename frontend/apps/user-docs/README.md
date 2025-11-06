@@ -2,9 +2,17 @@
 
 This is the documentation site for **rbee** (Private LLM Hosting in the Netherlands), built with [Next.js 15](https://nextjs.org) and [Nextra](https://nextra.site).
 
-## ⚠️ SETUP INCOMPLETE
+## ✅ CONTENT COMPLETE
 
-**The Nextra theme layout is not rendering correctly.** See [`NEXTRA_SETUP_ISSUE.md`](./NEXTRA_SETUP_ISSUE.md) for full details and debugging instructions.
+**Documentation structure and content are complete.** The docs now include:
+- Comprehensive landing page with audience segmentation
+- 5 getting-started guides (installation, single-machine, homelab, GPU providers, academic)
+- Architecture overview
+- Complete reference section (licensing, premium modules, API, GDPR compliance)
+
+See [`.windsurf/TEAM_458_USER_DOCS_LANDING_AND_IA.md`](./.windsurf/TEAM_458_USER_DOCS_LANDING_AND_IA.md) for full details.
+
+**Note:** If Nextra theme layout issues persist, they are separate from the content work.
 
 ## Architecture
 

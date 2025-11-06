@@ -1,0 +1,419 @@
+# OpenAI-Compatible API
+
+rbee exposes an OpenAI-compatible HTTP API, allowing you to use existing OpenAI client libraries and tools with your self-hosted infrastructure.
+
+## Base URL
+
+```
+http://localhost:8500/v1
+```
+
+Replace `localhost:8500` with your queen's address.
+
+## Authentication
+
+**Open source queen:** No authentication by default.
+
+**Premium Queen:** API key authentication via `Authorization` header:
+
+```bash
+curl -X POST http://localhost:8500/v1/chat/completions \\
+  -H "Authorization: Bearer your-api-key-here" \\
+  -H "Content-Type: application/json" \\
+  -d '...'
+```
+
+## Endpoints
+
+### Chat completions
+
+**Endpoint:** `POST /v1/chat/completions`
+
+**Description:** Generate a chat completion using a language model.
+
+**Request body:**
+
+```json
+{
+  "model": "llama-3.1-8b",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "Explain quantum computing in simple terms."}
+  ],
+  "temperature": 0.7,
+  "max_tokens": 500,
+  "stream": false
+}
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `model` | string | Yes | Model name (must match a running worker) |
+| `messages` | array | Yes | Array of message objects with `role` and `content` |
+| `temperature` | float | No | Sampling temperature (0.0-2.0, default: 1.0) |
+| `max_tokens` | integer | No | Maximum tokens to generate (default: model max) |
+| `stream` | boolean | No | Enable streaming response (default: false) |
+| `top_p` | float | No | Nucleus sampling (0.0-1.0, default: 1.0) |
+| `frequency_penalty` | float | No | Frequency penalty (-2.0-2.0, default: 0.0) |
+| `presence_penalty` | float | No | Presence penalty (-2.0-2.0, default: 0.0) |
+| `stop` | array | No | Stop sequences (array of strings) |
+
+**Response (non-streaming):**
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1704067200,
+  "model": "llama-3.1-8b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Quantum computing is..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 150,
+    "total_tokens": 175
+  }
+}
+```
+
+**Response (streaming):**
+
+Server-Sent Events (SSE) stream with chunks:
+
+```
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1704067200,"model":"llama-3.1-8b","choices":[{"index":0,"delta":{"role":"assistant","content":"Quantum"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1704067200,"model":"llama-3.1-8b","choices":[{"index":0,"delta":{"content":" computing"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1704067200,"model":"llama-3.1-8b","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+data: [DONE]
+```
+
+### List models
+
+**Endpoint:** `GET /v1/models`
+
+**Description:** List all available models (running workers).
+
+**Response:**
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "llama-3.1-8b",
+      "object": "model",
+      "created": 1704067200,
+      "owned_by": "rbee",
+      "permission": [],
+      "root": "llama-3.1-8b",
+      "parent": null
+    },
+    {
+      "id": "llama-3.2-1b",
+      "object": "model",
+      "created": 1704067200,
+      "owned_by": "rbee",
+      "permission": [],
+      "root": "llama-3.2-1b",
+      "parent": null
+    }
+  ]
+}
+```
+
+### Retrieve model
+
+**Endpoint:** `GET /v1/models/{model}`
+
+**Description:** Get details about a specific model.
+
+**Response:**
+
+```json
+{
+  "id": "llama-3.1-8b",
+  "object": "model",
+  "created": 1704067200,
+  "owned_by": "rbee",
+  "permission": [],
+  "root": "llama-3.1-8b",
+  "parent": null
+}
+```
+
+## Client libraries
+
+rbee works with any OpenAI-compatible client library. Just change the base URL.
+
+### Python (OpenAI SDK)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8500/v1",
+    api_key="not-needed"  # Or your API key for Premium Queen
+)
+
+response = client.chat.completions.create(
+    model="llama-3.1-8b",
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+### Python (streaming)
+
+```python
+stream = client.chat.completions.create(
+    model="llama-3.1-8b",
+    messages=[{"role": "user", "content": "Tell me a story"}],
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="")
+```
+
+### JavaScript/TypeScript
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8500/v1',
+  apiKey: 'not-needed'  // Or your API key
+});
+
+const response = await client.chat.completions.create({
+  model: 'llama-3.1-8b',
+  messages: [
+    { role: 'user', content: 'Hello!' }
+  ]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+### cURL
+
+```bash
+curl -X POST http://localhost:8500/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "llama-3.1-8b",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'
+```
+
+### cURL (streaming)
+
+```bash
+curl -X POST http://localhost:8500/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "llama-3.1-8b",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": true
+  }' \\
+  --no-buffer
+```
+
+## Error responses
+
+rbee returns standard HTTP error codes:
+
+### 400 Bad Request
+
+Invalid request parameters:
+
+```json
+{
+  "error": {
+    "message": "Invalid model: model-xyz not found",
+    "type": "invalid_request_error",
+    "code": "model_not_found"
+  }
+}
+```
+
+### 429 Too Many Requests
+
+**Premium Queen only.** Quota exceeded:
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Try again in 60 seconds.",
+    "type": "rate_limit_error",
+    "code": "quota_exceeded"
+  }
+}
+```
+
+### 500 Internal Server Error
+
+Worker error or system failure:
+
+```json
+{
+  "error": {
+    "message": "Worker crashed during inference",
+    "type": "server_error",
+    "code": "worker_error"
+  }
+}
+```
+
+### 503 Service Unavailable
+
+No workers available for the requested model:
+
+```json
+{
+  "error": {
+    "message": "No workers available for model: llama-3.1-70b",
+    "type": "service_unavailable",
+    "code": "no_workers"
+  }
+}
+```
+
+## Rate limiting
+
+**Premium Queen only.**
+
+Rate limit headers are included in responses:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1704067260
+```
+
+## Request tracing
+
+**Premium Queen only.**
+
+Each request gets a unique trace ID for debugging:
+
+```
+X-Trace-ID: trace-abc-123-def-456
+```
+
+Include this ID when reporting issues.
+
+## Differences from OpenAI API
+
+rbee aims for compatibility but has some differences:
+
+### Supported features
+
+- ✅ Chat completions (streaming and non-streaming)
+- ✅ Model listing
+- ✅ Temperature, top_p, max_tokens
+- ✅ Stop sequences
+- ✅ System/user/assistant roles
+
+### Not supported (yet)
+
+- ❌ Function calling / tool use (roadmap: v0.2)
+- ❌ Vision models (roadmap: v0.3)
+- ❌ Audio transcription via API (use dedicated worker)
+- ❌ Embeddings endpoint (roadmap: v0.2)
+- ❌ Fine-tuning API
+- ❌ Moderation endpoint
+
+### rbee-specific extensions
+
+**Custom headers:**
+
+- `X-Hive-Preference` - Prefer specific hive for request
+- `X-Priority` - Request priority (Premium Worker only)
+- `X-Trace-ID` - Request tracing (Premium Queen only)
+
+**Example:**
+
+```bash
+curl -X POST http://localhost:8500/v1/chat/completions \\
+  -H "X-Hive-Preference: gpu-01" \\
+  -H "X-Priority: high" \\
+  -H "Content-Type: application/json" \\
+  -d '...'
+```
+
+## Performance tips
+
+### Use streaming for long responses
+
+Streaming reduces perceived latency:
+
+```python
+stream = client.chat.completions.create(
+    model="llama-3.1-70b",
+    messages=[...],
+    stream=True  # Enable streaming
+)
+```
+
+### Batch similar requests
+
+**Premium Worker only.** Send multiple requests quickly to benefit from automatic batching:
+
+```python
+import asyncio
+
+async def send_request(prompt):
+    return await client.chat.completions.create(
+        model="llama-3.1-8b",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+# Send 10 requests concurrently
+results = await asyncio.gather(*[
+    send_request(f"Question {i}") for i in range(10)
+])
+```
+
+### Prefer smaller models when possible
+
+- `llama-3.2-1b` - Fast, good for simple tasks
+- `llama-3.1-8b` - Balanced performance
+- `llama-3.1-70b` - High quality, slower
+
+### Set appropriate max_tokens
+
+Don't request more tokens than needed:
+
+```python
+response = client.chat.completions.create(
+    model="llama-3.1-8b",
+    messages=[...],
+    max_tokens=100  # Limit response length
+)
+```
+
+## Next steps
+
+- **[Getting started](/docs/getting-started/single-machine)** - Set up rbee
+- **[Premium modules](/docs/reference/premium-modules)** - Advanced API features
+- **[Architecture](/docs/architecture/overview)** - How requests are routed

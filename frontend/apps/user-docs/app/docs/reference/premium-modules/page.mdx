@@ -1,0 +1,421 @@
+# Premium Modules
+
+Premium modules add production-grade features to rbee for businesses running AI infrastructure as a product. This page provides a detailed comparison and feature breakdown.
+
+**Note:** All premium features are clearly marked throughout the documentation with a **Premium** badge.
+
+## Feature comparison matrix
+
+| Feature | Open Source | Premium Queen | Premium Worker | GDPR Auditing |
+|---------|-------------|---------------|----------------|---------------|
+| **Routing & Scheduling** |
+| Basic round-robin routing | ✅ | ✅ | ✅ | ✅ |
+| Weighted least-loaded routing | ❌ | ✅ | - | - |
+| Latency-aware routing | ❌ | ✅ | - | - |
+| Priority queue support | ❌ | ✅ | ✅ | - |
+| Automatic failover | ❌ | ✅ | - | - |
+| Custom routing policies | ❌ | ✅ | - | - |
+| **Quotas & Limits** |
+| Basic rate limiting | ❌ | ✅ | - | - |
+| Per-customer quotas | ❌ | ✅ | - | - |
+| Per-tier quotas | ❌ | ✅ | - | - |
+| Token-based billing | ❌ | ✅ | ✅ | - |
+| Time-based billing | ❌ | ✅ | ✅ | - |
+| **Telemetry & Metrics** |
+| Basic worker status | ✅ | ✅ | ✅ | ✅ |
+| Detailed performance metrics | ❌ | ✅ | ✅ | - |
+| Prometheus export | ❌ | ✅ | ✅ | - |
+| Per-request metrics | ❌ | - | ✅ | - |
+| Cost tracking | ❌ | ✅ | ✅ | - |
+| **Compliance & Auditing** |
+| Basic request logging | ✅ | ✅ | ✅ | ✅ |
+| Complete audit trail | ❌ | - | - | ✅ |
+| Data lineage tracking | ❌ | - | - | ✅ |
+| Right-to-erasure support | ❌ | - | - | ✅ |
+| Automated compliance reports | ❌ | - | - | ✅ |
+| 7-year log retention | ❌ | - | - | ✅ |
+| **Multi-tenancy** |
+| Single-user mode | ✅ | ✅ | ✅ | ✅ |
+| Multi-user support | ❌ | ✅ | - | ✅ |
+| User authentication | ❌ | ✅ | - | ✅ |
+| API key management | ❌ | ✅ | - | - |
+| Tenant isolation | ❌ | ✅ | - | ✅ |
+| **Performance** |
+| Basic batching | ✅ | ✅ | ✅ | ✅ |
+| Advanced batching | ❌ | - | ✅ | - |
+| Memory optimization | ❌ | - | ✅ | - |
+| Custom model loading | ❌ | - | ✅ | - |
+
+## Premium Queen
+
+Premium Queen replaces the open source queen with production-grade orchestration features.
+
+### Advanced routing
+
+**Weighted least-loaded routing:**
+Distributes requests based on current worker load, weighted by GPU capability.
+
+```bash
+# Configure weighted routing
+premium-queen routing set-strategy weighted-least-loaded \\
+  --weight-by-vram true \\
+  --weight-by-compute true
+```
+
+**Latency-aware routing:**
+Routes requests to workers with lowest historical latency.
+
+```bash
+# Enable latency-aware routing
+premium-queen routing set-strategy latency-aware \\
+  --latency-window-seconds 300 \\
+  --prefer-local-hives true
+```
+
+**Custom routing policies:**
+Define complex routing rules based on model, customer tier, time of day, etc.
+
+```bash
+# Route expensive models to premium GPUs
+premium-queen routing add-rule \\
+  --model-pattern "llama-3.1-405b" \\
+  --hive-tier premium,ultra \\
+  --priority high
+
+# Route free-tier customers to budget GPUs
+premium-queen routing add-rule \\
+  --customer-tier free \\
+  --hive-tier budget \\
+  --max-concurrent-requests 5
+```
+
+### Quota management
+
+**Per-customer quotas:**
+
+```bash
+# Set quota for a specific customer
+premium-queen quota set \\
+  --customer acme-corp \\
+  --max-requests-per-minute 100 \\
+  --max-tokens-per-day 1000000 \\
+  --max-concurrent-requests 10
+```
+
+**Per-tier quotas:**
+
+```bash
+# Set quota for free tier
+premium-queen quota set \\
+  --tier free \\
+  --max-requests-per-minute 10 \\
+  --max-tokens-per-day 10000
+
+# Set quota for paid tier
+premium-queen quota set \\
+  --tier paid \\
+  --max-requests-per-minute 1000 \\
+  --max-tokens-per-day 10000000
+```
+
+**Quota enforcement:**
+- Requests exceeding quota return HTTP 429 (Too Many Requests)
+- Quota resets automatically (per-minute, per-hour, per-day)
+- Soft limits (warnings) and hard limits (rejections)
+
+### Automatic failover
+
+When a worker crashes or becomes unresponsive:
+
+```bash
+# Configure failover
+premium-queen routing set-failover \\
+  --enable true \\
+  --retry-attempts 3 \\
+  --retry-delay-ms 1000 \\
+  --fallback-to-cpu false
+```
+
+Premium Queen will:
+1. Detect worker failure (timeout or error)
+2. Retry on another worker with same model
+3. Queue request if no workers available
+4. Return error after max retries
+
+### Billing integration
+
+**Token-based billing:**
+
+```bash
+# Set token prices per tier
+premium-queen billing set-rate \\
+  --tier budget \\
+  --price-per-million-tokens 0.50
+
+premium-queen billing set-rate \\
+  --tier premium \\
+  --price-per-million-tokens 2.00
+
+# Export billing data
+premium-queen billing export \\
+  --period 2024-01 \\
+  --format csv \\
+  --output billing-jan-2024.csv
+```
+
+**Time-based billing:**
+
+```bash
+# Set GPU-hour prices
+premium-queen billing set-rate \\
+  --tier budget \\
+  --price-per-gpu-hour 0.50
+
+# View cost breakdown
+premium-queen billing report \\
+  --customer acme-corp \\
+  --period last-month
+```
+
+### Telemetry
+
+**Prometheus metrics export:**
+
+```bash
+# Enable Prometheus endpoint
+premium-queen metrics enable-prometheus \\
+  --port 9090 \\
+  --path /metrics
+```
+
+Exported metrics include:
+- `rbee_requests_total` - Total requests by model, customer, status
+- `rbee_request_duration_seconds` - Request latency histogram
+- `rbee_tokens_generated_total` - Total tokens by model, customer
+- `rbee_worker_utilization` - Worker busy percentage
+- `rbee_quota_remaining` - Remaining quota by customer, tier
+
+**Real-time dashboard:**
+
+```bash
+# Open built-in dashboard
+premium-queen metrics dashboard
+```
+
+Web UI showing:
+- Real-time request rate
+- Worker utilization across all hives
+- Cost breakdown by customer
+- Quota usage
+- Error rates
+
+## Premium Worker
+
+Premium Worker replaces the open source worker with performance-optimized inference.
+
+### Advanced batching
+
+**Dynamic batching:**
+Automatically batch multiple requests for better GPU utilization.
+
+```bash
+# Spawn Premium Worker with batching
+premium-queen worker spawn \\
+  --hive gpu-01 \\
+  --model llama-3.1-70b \\
+  --worker-type premium \\
+  --max-batch-size 32 \\
+  --batch-timeout-ms 100
+```
+
+Benefits:
+- 2-5x higher throughput on same GPU
+- Lower latency for batched requests
+- Automatic batch size tuning
+
+### Memory optimization
+
+**Model quantization:**
+Load models in 4-bit or 8-bit precision for lower VRAM usage.
+
+```bash
+# Spawn worker with 4-bit quantization
+premium-queen worker spawn \\
+  --hive gpu-01 \\
+  --model llama-3.1-70b \\
+  --worker-type premium \\
+  --quantization 4bit
+```
+
+**KV cache optimization:**
+Efficient key-value cache management for longer contexts.
+
+```bash
+# Enable KV cache optimization
+premium-queen worker spawn \\
+  --hive gpu-01 \\
+  --model llama-3.1-70b \\
+  --worker-type premium \\
+  --kv-cache-strategy optimized \\
+  --max-context-length 32768
+```
+
+### Per-request metrics
+
+Track detailed metrics for every inference request:
+
+```bash
+# Enable detailed metrics
+premium-queen worker spawn \\
+  --hive gpu-01 \\
+  --model llama-3.1-70b \\
+  --worker-type premium \\
+  --enable-detailed-metrics
+```
+
+Metrics include:
+- Time to first token (TTFT)
+- Tokens per second (TPS)
+- GPU memory usage
+- Batch size used
+- Queue wait time
+
+### Priority queue
+
+Process high-priority requests first:
+
+```bash
+# Send high-priority request
+curl -X POST http://localhost:8500/v1/chat/completions \\
+  -H "X-Priority: high" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "llama-3.1-70b", "messages": [...]}'
+```
+
+Premium Worker will:
+- Queue low-priority requests
+- Process high-priority requests immediately
+- Preempt low-priority requests if needed
+
+## GDPR Auditing Module
+
+GDPR Auditing Module adds comprehensive compliance features for EU-based deployments.
+
+### Complete audit trail
+
+Every inference request is logged with:
+- User identity (if authenticated)
+- Timestamp (with timezone)
+- Model used
+- Input data (optional, configurable)
+- Output data (optional, configurable)
+- Processing location (which hive/worker)
+- Duration and resource usage
+
+```bash
+# Enable audit logging
+premium-queen audit enable \\
+  --log-level detailed \\
+  --log-requests true \\
+  --log-responses true \\
+  --retention-days 2555  # 7 years for GDPR
+```
+
+### Data lineage tracking
+
+Track where data has been processed:
+
+```bash
+# View data lineage for a request
+premium-queen audit lineage --request-id req-abc-123
+```
+
+Output shows:
+- Which hive processed the request
+- Which worker ran the inference
+- Which GPU was used
+- Data transformations applied
+- Timestamps for each step
+
+### Right-to-erasure support
+
+Comply with GDPR Article 17 (right to be forgotten):
+
+```bash
+# Delete all data for a user
+premium-queen audit erase-user-data \\
+  --user alice.smith \\
+  --confirm
+
+# Delete specific requests
+premium-queen audit erase-request \\
+  --request-id req-abc-123 \\
+  --confirm
+```
+
+### Automated compliance reports
+
+Generate compliance reports automatically:
+
+```bash
+# Schedule monthly reports
+premium-queen audit schedule-report \\
+  --frequency monthly \\
+  --format pdf \\
+  --email compliance@company.com \\
+  --include-summary true \\
+  --include-details false
+```
+
+Reports include:
+- Total requests processed
+- Data retention status
+- Erasure requests fulfilled
+- Processing locations
+- User access logs
+
+### PII detection
+
+Automatically detect and flag personally identifiable information:
+
+```bash
+# Enable PII detection
+premium-queen audit enable-pii-detection \\
+  --anonymize-logs true \\
+  --alert-on-pii true
+```
+
+Detects:
+- Email addresses
+- Phone numbers
+- Social security numbers
+- Credit card numbers
+- IP addresses
+
+## Pricing
+
+### Pre-launch pricing (limited time)
+
+- **Premium Queen:** €299 (regular: €599)
+- **Premium Worker:** €199 (regular: €399)
+- **GDPR Auditing:** €499 (regular: €999)
+- **Premium Bundle:** €899 (regular: €1,799)
+
+### Discounts
+
+- **Academic/research:** 50% off
+- **Open source contributors:** 30% off
+- **Startups (< 2 years old):** Free for first year
+
+### Purchase
+
+- **Email:** sales@rbee.dev
+- **Include:** Use case, number of GPUs, expected scale
+- **Payment:** Bank transfer, crypto, credit card (post-launch)
+
+## Next steps
+
+- **[Licensing](/docs/reference/licensing)** - Understand license terms
+- **[GPU provider setup](/docs/getting-started/gpu-providers)** - Deploy with premium modules
+- **[GDPR compliance](/docs/reference/gdpr-compliance)** - Deep dive into auditing features
+- **[Contact sales](mailto:sales@rbee.dev)** - Questions or trial request

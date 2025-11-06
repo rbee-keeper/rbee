@@ -1,0 +1,416 @@
+# GDPR & Compliance
+
+This page explains how rbee supports GDPR compliance for EU-based deployments, particularly with the optional GDPR Auditing Module.
+
+**Note:** This documentation provides technical implementation details. It is not legal advice. Consult with legal counsel for compliance requirements specific to your use case.
+
+## GDPR requirements overview
+
+The General Data Protection Regulation (GDPR) imposes several requirements on organizations processing personal data of EU residents:
+
+1. **Lawful basis** - Legal justification for processing data
+2. **Data minimization** - Collect only necessary data
+3. **Purpose limitation** - Use data only for stated purposes
+4. **Accuracy** - Keep data accurate and up to date
+5. **Storage limitation** - Retain data only as long as necessary
+6. **Integrity and confidentiality** - Secure data against unauthorized access
+7. **Accountability** - Demonstrate compliance
+
+## rbee's GDPR-friendly architecture
+
+### Data sovereignty by default
+
+rbee is designed for on-premises deployment:
+
+- **All data stays on your infrastructure** - No external API calls
+- **No cloud dependencies** - Runs entirely self-hosted
+- **No telemetry** - No phone-home or tracking (unless explicitly enabled)
+- **Air-gap compatible** - Can run in isolated networks
+
+This architecture inherently satisfies several GDPR requirements:
+
+- ✅ Data residency (data stays in EU)
+- ✅ No third-party processors (no DPAs needed)
+- ✅ Full control over data lifecycle
+
+### Open source transparency
+
+The open source components (queen, hive, keeper, workers) are fully auditable:
+
+- **Source code available** - Verify what the software does
+- **No hidden data collection** - All behavior is documented
+- **Community review** - Security and privacy reviewed by community
+
+## GDPR Auditing Module
+
+The GDPR Auditing Module (premium) adds comprehensive compliance features for organizations with strict requirements.
+
+### Complete audit trail
+
+**Requirement:** GDPR Article 30 (Records of processing activities)
+
+The module logs every inference request with:
+
+```json
+{
+  "request_id": "req-abc-123",
+  "timestamp": "2024-01-15T14:30:00Z",
+  "user_id": "alice.smith",
+  "user_email": "alice.smith@university.edu",
+  "model": "llama-3.1-70b",
+  "hive": "neuroscience-gpu-01",
+  "worker": "worker-xyz-789",
+  "gpu_device": "cuda:0",
+  "input_tokens": 25,
+  "output_tokens": 150,
+  "duration_ms": 2500,
+  "input_data": "...",  // Optional, configurable
+  "output_data": "...", // Optional, configurable
+  "processing_location": "EU/Netherlands/Amsterdam"
+}
+```
+
+**Configuration:**
+
+```bash
+# Enable detailed audit logging
+premium-queen audit enable \\
+  --log-level detailed \\
+  --log-requests true \\
+  --log-responses true \\
+  --log-user-actions true \\
+  --retention-days 2555  # 7 years (GDPR recommendation)
+```
+
+### Data lineage tracking
+
+**Requirement:** GDPR Article 30 (Processing records)
+
+Track where data has been processed:
+
+```bash
+# View complete data lineage
+premium-queen audit lineage --request-id req-abc-123
+```
+
+Output shows:
+- Which hive processed the request
+- Which worker ran the inference
+- Which GPU was used
+- Geographic location of processing
+- Timestamps for each step
+- Data transformations applied
+
+### Right to access (Article 15)
+
+Users can request all data processed about them:
+
+```bash
+# Export all data for a user
+premium-queen audit export-user-data \\
+  --user alice.smith \\
+  --format json \\
+  --output alice-smith-data.json
+```
+
+Output includes:
+- All inference requests made by the user
+- Input and output data (if logged)
+- Processing timestamps and locations
+- Models used
+- Resource usage
+
+### Right to erasure (Article 17)
+
+Support "right to be forgotten" requests:
+
+```bash
+# Delete all data for a user
+premium-queen audit erase-user-data \\
+  --user alice.smith \\
+  --confirm \\
+  --reason "User request (GDPR Article 17)"
+```
+
+This will:
+- Delete all audit logs for the user
+- Remove user from authentication system
+- Erase cached data
+- Generate erasure certificate
+
+**Erasure certificate:**
+
+```json
+{
+  "user_id": "alice.smith",
+  "erasure_timestamp": "2024-01-15T14:30:00Z",
+  "erasure_reason": "User request (GDPR Article 17)",
+  "records_deleted": 1523,
+  "performed_by": "admin@university.edu",
+  "verification_hash": "sha256:abc123..."
+}
+```
+
+### Data portability (Article 20)
+
+Export user data in machine-readable format:
+
+```bash
+# Export in JSON format
+premium-queen audit export-user-data \\
+  --user alice.smith \\
+  --format json \\
+  --output alice-data.json
+
+# Export in CSV format
+premium-queen audit export-user-data \\
+  --user alice.smith \\
+  --format csv \\
+  --output alice-data.csv
+```
+
+### Automated compliance reports
+
+**Requirement:** GDPR Article 30 (Records of processing activities)
+
+Generate regular compliance reports:
+
+```bash
+# Schedule monthly reports
+premium-queen audit schedule-report \\
+  --frequency monthly \\
+  --format pdf \\
+  --email dpo@university.edu \\
+  --include-summary true \\
+  --include-statistics true
+```
+
+**Report contents:**
+- Total requests processed
+- Number of unique users
+- Data retention status
+- Erasure requests fulfilled
+- Processing locations
+- Security incidents (if any)
+- Compliance status summary
+
+### PII detection and handling
+
+**Requirement:** GDPR Article 32 (Security of processing)
+
+Automatically detect personally identifiable information:
+
+```bash
+# Enable PII detection
+premium-queen audit enable-pii-detection \\
+  --anonymize-logs true \\
+  --alert-on-pii true \\
+  --pii-types email,phone,ssn,credit_card
+```
+
+When PII is detected:
+- Alert is sent to DPO
+- Data is anonymized in logs (if configured)
+- Incident is recorded in audit trail
+
+### Breach notification
+
+**Requirement:** GDPR Article 33 (Notification of breach)
+
+If a security breach occurs:
+
+```bash
+# Record security incident
+premium-queen audit record-incident \\
+  --type data_breach \\
+  --severity high \\
+  --description "Unauthorized access attempt detected" \\
+  --affected-users alice.smith,bob.jones \\
+  --notify-dpo true
+```
+
+This generates:
+- Incident report with timeline
+- List of affected users
+- Recommended actions
+- Notification template for users
+
+## Compliance checklist
+
+Use this checklist to ensure GDPR compliance:
+
+### Technical measures
+
+- [ ] **Data encryption at rest** - Encrypt audit logs and model data
+- [ ] **Data encryption in transit** - Use HTTPS/TLS for all API communication
+- [ ] **Access controls** - Implement user authentication and authorization
+- [ ] **Audit logging** - Enable comprehensive audit trail
+- [ ] **Data retention policy** - Configure automatic deletion after retention period
+- [ ] **Backup encryption** - Encrypt backups of queen state and audit logs
+- [ ] **Network isolation** - Deploy on isolated network or VPN
+
+### Organizational measures
+
+- [ ] **Data Protection Officer (DPO)** - Appoint DPO if required
+- [ ] **Privacy policy** - Document how rbee processes personal data
+- [ ] **User consent** - Obtain consent for data processing (if required)
+- [ ] **Data processing agreements** - If using external GPU providers
+- [ ] **Staff training** - Train staff on GDPR requirements
+- [ ] **Incident response plan** - Document breach notification procedures
+- [ ] **Regular audits** - Review compliance quarterly
+
+### Documentation
+
+- [ ] **Processing records** - Document what data is processed and why
+- [ ] **Legal basis** - Document legal basis for processing (consent, contract, etc.)
+- [ ] **Data retention schedule** - Document how long data is kept
+- [ ] **Third-party processors** - List any external services (if any)
+- [ ] **Security measures** - Document technical and organizational measures
+- [ ] **Breach procedures** - Document incident response process
+
+## Configuration examples
+
+### Academic institution
+
+```bash
+# Enable GDPR Auditing for research institution
+premium-queen audit enable \\
+  --log-level detailed \\
+  --log-requests true \\
+  --log-responses false \\  # Don't log outputs (research data)
+  --log-user-actions true \\
+  --retention-days 2555 \\  # 7 years
+  --anonymize-pii true \\
+  --processing-location "EU/Netherlands/Amsterdam"
+
+# Set up automated reports
+premium-queen audit schedule-report \\
+  --frequency quarterly \\
+  --format pdf \\
+  --email dpo@university.edu
+```
+
+### Medical research
+
+```bash
+# Strict compliance for medical data
+premium-queen audit enable \\
+  --log-level detailed \\
+  --log-requests true \\
+  --log-responses true \\
+  --log-user-actions true \\
+  --retention-days 3650 \\  # 10 years (medical records)
+  --anonymize-pii true \\
+  --encrypt-logs true \\
+  --processing-location "EU/Netherlands/Amsterdam" \\
+  --require-consent true
+
+# Enable PII detection
+premium-queen audit enable-pii-detection \\
+  --anonymize-logs true \\
+  --alert-on-pii true \\
+  --pii-types all
+```
+
+### Government agency
+
+```bash
+# Government compliance requirements
+premium-queen audit enable \\
+  --log-level detailed \\
+  --log-requests true \\
+  --log-responses true \\
+  --log-user-actions true \\
+  --retention-days 2555 \\
+  --anonymize-pii false \\  # Keep full logs for legal reasons
+  --encrypt-logs true \\
+  --processing-location "EU/Netherlands/Amsterdam" \\
+  --require-mfa true
+
+# Set up incident monitoring
+premium-queen audit enable-incident-monitoring \\
+  --alert-on-unauthorized-access true \\
+  --alert-on-unusual-activity true \\
+  --notify-email security@agency.gov
+```
+
+## Data retention
+
+Configure automatic deletion after retention period:
+
+```bash
+# Set retention policy
+premium-queen audit set-retention-policy \\
+  --audit-logs 2555 \\  # 7 years
+  --user-data 90 \\     # 90 days after last activity
+  --deleted-user-data 30  # 30 days after erasure
+
+# Manual cleanup (if needed)
+premium-queen audit cleanup \\
+  --older-than 2555 \\
+  --dry-run  # Preview what will be deleted
+```
+
+## Encryption
+
+### Encrypt audit logs
+
+```bash
+# Enable log encryption
+premium-queen audit enable-encryption \\
+  --algorithm aes-256-gcm \\
+  --key-file /etc/rbee/audit-encryption-key \\
+  --rotate-key-days 90
+```
+
+### Encrypt backups
+
+```bash
+# Backup with encryption
+premium-queen backup create \\
+  --output /backup/rbee-backup.tar.gz.enc \\
+  --encrypt true \\
+  --encryption-key-file /etc/rbee/backup-key
+```
+
+## User consent management
+
+**Premium Queen only.**
+
+Track user consent for data processing:
+
+```bash
+# Record user consent
+premium-queen user set-consent \\
+  --user alice.smith \\
+  --purpose inference \\
+  --consent-given true \\
+  --consent-timestamp "2024-01-15T14:30:00Z"
+
+# Check consent status
+premium-queen user get-consent --user alice.smith
+
+# Revoke consent
+premium-queen user set-consent \\
+  --user alice.smith \\
+  --purpose inference \\
+  --consent-given false
+```
+
+## Next steps
+
+- **[Premium modules](/docs/reference/premium-modules)** - GDPR Auditing Module features
+- **[Academic setup](/docs/getting-started/academic)** - Deploy for research institutions
+- **[Contact sales](mailto:sales@rbee.dev)** - GDPR Auditing Module trial or purchase
+
+## Legal disclaimer
+
+This documentation provides technical guidance for implementing GDPR compliance features. It is not legal advice. Organizations are responsible for:
+
+- Consulting with legal counsel
+- Conducting Data Protection Impact Assessments (DPIAs)
+- Appointing a Data Protection Officer (if required)
+- Implementing appropriate technical and organizational measures
+- Complying with all applicable laws and regulations
+
+rbee provides tools to support compliance but does not guarantee compliance. Each organization must assess their specific requirements and implement appropriate measures.

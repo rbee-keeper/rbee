@@ -1,0 +1,245 @@
+# Licensing
+
+rbee uses a mixed licensing model designed to keep the core system free and open source while offering premium modules for production use cases.
+
+## Overview
+
+rbee's licensing strategy balances open source principles with sustainable business model:
+
+- **Open core** - Base system is free forever under permissive licenses
+- **Premium modules** - Production-grade features sold as one-time lifetime licenses
+- **No subscriptions** - Pay once, use forever
+- **No feature limits** - Free version is fully functional, not crippled
+
+## Open source components
+
+The following components are open source and free to use:
+
+### GPL-3.0-or-later
+
+These components are licensed under GNU General Public License v3.0 or later:
+
+- **queen-rbee** - The orchestrator
+- **rbee-hive** - The worker host daemon
+- **rbee-keeper** - The GUI application (Tauri frontend)
+
+**What this means:**
+- Free to use for any purpose
+- Free to modify and distribute
+- If you distribute modified versions, you must share source code under GPL-3.0
+- Commercial use is allowed
+
+**Why GPL-3.0:**
+These are the "system" components that benefit from strong copyleft protection, ensuring improvements remain open source.
+
+### MIT License
+
+These components are licensed under MIT License:
+
+- **Shared libraries** - Common Rust crates used across components
+- **Worker implementations** - LLM, image generation, and audio workers
+- **Configuration schemas** - TOML/JSON configuration formats
+
+**What this means:**
+- Free to use for any purpose
+- Free to modify and distribute
+- No requirement to share modifications
+- Can be integrated into proprietary software
+- Commercial use is allowed
+
+**Why MIT:**
+These are library components that benefit from maximum permissiveness, encouraging adoption and integration.
+
+## Premium modules
+
+Premium modules are proprietary software sold as one-time lifetime licenses. They add production-grade features for businesses running rbee as a product.
+
+### Premium Queen
+
+**License:** Proprietary, lifetime license
+**Price:** €299 (pre-launch), €599 (post-launch)
+
+**Features:**
+- Advanced routing (weighted least-loaded, latency-aware)
+- Quota management (per-customer, per-tier)
+- Rate limiting and throttling
+- Automatic failover and retry logic
+- Detailed telemetry and metrics export
+- Multi-tenancy support
+- API key management
+
+**Who needs this:**
+- GPU providers building API platforms
+- Businesses offering AI services to customers
+- Teams needing production-grade reliability
+
+### Premium Worker
+
+**License:** Proprietary, lifetime license
+**Price:** €199 (pre-launch), €399 (post-launch)
+
+**Features:**
+- Advanced batching and scheduling
+- Resource usage tracking (per-request metrics)
+- Custom model loading strategies
+- Priority queue support
+- Detailed performance metrics
+- Memory optimization features
+
+**Who needs this:**
+- High-throughput inference workloads
+- Cost-sensitive deployments
+- Performance optimization scenarios
+
+### GDPR Auditing Module
+
+**License:** Proprietary, lifetime license
+**Price:** €499 (pre-launch), €999 (post-launch)
+
+**Features:**
+- Complete audit trail of all requests
+- Data lineage tracking
+- Automated compliance reports
+- Right-to-erasure support
+- PII detection and handling
+- 7-year log retention (GDPR requirement)
+
+**Who needs this:**
+- Academic institutions handling sensitive data
+- Medical research organizations
+- EU-based businesses with GDPR obligations
+- Government agencies
+
+### Premium Bundle
+
+**License:** Proprietary, lifetime license
+**Price:** €899 (pre-launch), €1,799 (post-launch)
+
+Includes all three premium modules at a discount.
+
+## Licensing FAQ
+
+### Can I use rbee commercially?
+
+**Yes.** Both GPL-3.0 and MIT licenses allow commercial use. You can:
+- Use rbee to run your business
+- Offer AI services using rbee
+- Charge customers for API access
+- Deploy rbee in production
+
+### Do I need premium modules?
+
+**For personal use:** No. The open source version is fully functional.
+
+**For business use:** It depends:
+- **Small scale** (< 10 customers, < 5 GPUs): Open source is fine
+- **Medium scale** (10-100 customers, 5-20 GPUs): Premium Queen recommended
+- **Large scale** (100+ customers, 20+ GPUs): Premium Bundle recommended
+- **GDPR compliance needed:** GDPR Auditing Module required
+
+### What happens if I modify GPL-3.0 components?
+
+If you modify GPL-3.0 components (queen, hive, keeper) and distribute them:
+- You must share your modifications under GPL-3.0
+- You must provide source code to recipients
+- You can charge for your distribution
+
+If you only use rbee internally (not distributing):
+- No requirement to share modifications
+- You can keep changes private
+
+### Can I integrate rbee into my proprietary software?
+
+**Yes, with conditions:**
+
+- **MIT components** (workers, libraries): Yes, freely
+- **GPL-3.0 components** (queen, hive, keeper): Only if your software is also GPL-3.0, or if you use rbee as a separate service (not linked into your code)
+
+**Recommended approach:** Use rbee as a separate service (microservice architecture). Your proprietary app talks to rbee via HTTP API. This avoids GPL-3.0 requirements.
+
+### Are premium modules subscriptions?
+
+**No.** Premium modules are one-time lifetime licenses:
+- Pay once, use forever
+- No recurring fees
+- Free updates for the major version you purchased
+- Includes bug fixes and security patches
+
+### What's included in "lifetime"?
+
+- **Lifetime of the product** - As long as rbee exists
+- **All minor updates** - e.g., v1.0 → v1.1 → v1.9
+- **Major version upgrades** - Discounted upgrade path to v2.0, v3.0, etc.
+
+### Can I transfer my premium license?
+
+**Yes.** Premium licenses can be transferred:
+- Between your own servers (unlimited)
+- To another person/company (one-time transfer fee: €50)
+
+### Do I need a license per server?
+
+**No.** Premium licenses are per-colony, not per-server:
+- One Premium Queen license covers one queen instance
+- One Premium Worker license covers unlimited workers in that colony
+- One GDPR Auditing license covers one queen instance
+
+**Example:**
+- 1 queen + 10 hives + 50 workers = 1 Premium Bundle license
+
+### What if I can't afford premium modules?
+
+**Options:**
+1. **Use open source version** - Fully functional, no limits
+2. **Academic/research discount** - 50% off for educational institutions
+3. **Open source contributor discount** - 30% off if you contribute to rbee
+4. **Startup program** - Free Premium Bundle for first year (apply via email)
+
+### How do I purchase premium modules?
+
+**Pre-launch (current):**
+- Email: sales@rbee.dev
+- Include: use case, number of GPUs, expected scale
+- Payment: Bank transfer or crypto
+
+**Post-launch:**
+- Purchase directly from rbee.dev/pricing
+- Instant license key delivery
+- Payment: Credit card, PayPal, bank transfer, crypto
+
+### Can I try premium modules before buying?
+
+**Yes.** 30-day free trial available:
+- Email: sales@rbee.dev with "Trial Request"
+- Receive trial license key
+- Full features, no credit card required
+- Convert to paid license anytime during trial
+
+## License compliance
+
+### For users
+
+**Open source components:**
+- No registration required
+- No telemetry or phone-home
+- Use freely
+
+**Premium modules:**
+- License key required
+- Online activation (one-time)
+- Offline mode available after activation
+- No telemetry unless explicitly enabled
+
+### For contributors
+
+If you contribute code to rbee:
+- Contributions to GPL-3.0 components must be GPL-3.0
+- Contributions to MIT components must be MIT
+- You retain copyright to your contributions
+- You grant rbee project perpetual license to use your code
+
+## Next steps
+
+- **[Premium modules overview](/docs/reference/premium-modules)** - Detailed feature comparison
+- **[Pricing](https://rbee.dev/pricing)** - Current pricing and purchase options
+- **[Contact sales](mailto:sales@rbee.dev)** - Questions about licensing

@@ -5,8 +5,28 @@ import '@rbee/ui/styles.css'
 import 'nextra-theme-docs/style.css'
 
 export const metadata: Metadata = {
-  title: 'rbee Documentation',
-  description: 'Documentation for rbee - Private LLM Hosting in the Netherlands',
+  title: {
+    default: 'rbee Documentation',
+    template: '%s – rbee Docs'
+  },
+  description: 'Technical documentation for rbee, the self-hosted AI orchestration layer. Learn how to deploy colonies, connect heterogeneous hardware, and use premium modules for routing, telemetry, and GDPR-focused auditing.',
+  keywords: ['rbee', 'AI orchestration', 'self-hosted AI', 'LLM hosting', 'GPU management', 'distributed AI', 'GDPR compliance'],
+  authors: [{ name: 'Vince Liem', url: 'https://www.linkedin.com/in/vincepaulliem/' }],
+  creator: 'rbee',
+  publisher: 'rbee',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://docs.rbee.dev',
+    title: 'rbee Documentation',
+    description: 'Technical documentation for rbee, the self-hosted AI orchestration system.',
+    siteName: 'rbee Documentation',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'rbee Documentation',
+    description: 'Technical documentation for rbee, the self-hosted AI orchestration system.',
+  },
 }
 
 export default function RootLayout({

@@ -1,0 +1,409 @@
+# Academic & Research
+
+This guide is for academic institutions and research teams deploying rbee for on-premises AI infrastructure with data residency guarantees and compliance-focused auditing.
+
+## Who this is for
+
+- **University research labs** - Multi-user AI infrastructure for research projects
+- **Medical research institutions** - GDPR-compliant AI for sensitive data
+- **Government agencies** - On-premises deployment with audit trails
+- **Corporate R&D teams** - Internal AI infrastructure with compliance requirements
+
+## Why rbee for academic & research
+
+### Data sovereignty
+
+All data stays on your infrastructure. No external API calls, no cloud dependencies, no data leaving your network.
+
+### GDPR compliance
+
+Optional GDPR Auditing module provides:
+- Complete audit trails of all inference requests
+- Data lineage tracking
+- Automated compliance reports
+- Right-to-erasure support
+
+### Multi-user support
+
+- Quota management per research group or project
+- Usage tracking and cost allocation
+- Fair-share scheduling across competing workloads
+
+### Heterogeneous hardware
+
+Use what you have:
+- Mix NVIDIA, AMD, and Apple Silicon GPUs
+- Combine workstation GPUs with HPC clusters
+- Utilize idle compute during off-hours
+
+## Prerequisites
+
+- On-premises servers or HPC cluster access
+- Network isolation (air-gapped or VPN)
+- rbee installed on all nodes (see [Installation](/docs/getting-started/installation))
+- (Recommended) GDPR Auditing module for compliance features
+
+## Architecture for academic deployment
+
+```
+                    ┌─────────────────────┐
+                    │  Research Network   │
+                    │  (Isolated/VPN)     │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │   Queen + GDPR      │
+                    │   Auditing Module   │
+                    └──────────┬──────────┘
+                               │
+        ┌──────────────────────┼──────────────────────┐
+        │                      │                      │
+   ┌────▼─────┐          ┌────▼─────┐          ┌────▼─────┐
+   │ Lab A    │          │ Lab B    │          │ HPC Node │
+   │ (Hive)   │          │ (Hive)   │          │ (Hive)   │
+   │          │          │          │          │          │
+   │ ┌──────┐ │          │ ┌──────┐ │          │ ┌──────┐ │
+   │ │Worker│ │          │ │Worker│ │          │ │Worker│ │
+   │ └──────┘ │          │ └──────┘ │          │ └──────┘ │
+   └──────────┘          └──────────┘          └──────────┘
+```
+
+## Step 1: Network setup
+
+Ensure all nodes are on an isolated network:
+
+```bash
+# Verify network isolation
+ping 10.0.0.1  # Should work (internal)
+ping 8.8.8.8   # Should fail (external, if air-gapped)
+
+# Set up VPN if needed (example with WireGuard)
+sudo apt install wireguard
+# Configure WireGuard for secure inter-lab communication
+```
+
+## Step 2: Install rbee on all nodes
+
+For air-gapped environments, use manual installation:
+
+```bash
+# On a machine with internet access, download binaries
+wget https://github.com/veighnsche/llama-orch/releases/download/v0.1.0/rbee-linux-x64.tar.gz
+
+# Transfer to air-gapped network (USB, secure file transfer)
+# Then on each node:
+tar -xzf rbee-linux-x64.tar.gz
+sudo mv rbee-* /usr/local/bin/
+```
+
+## Step 3: Configure the queen with GDPR Auditing
+
+Start the queen with auditing enabled:
+
+```bash
+# Install GDPR Auditing module (requires license)
+sudo dpkg -i rbee-gdpr-auditing_0.1.0_amd64.deb
+
+# Start queen with auditing
+queen-rbee start \\
+  --host 0.0.0.0 \\
+  --port 8500 \\
+  --enable-gdpr-auditing \\
+  --audit-log-path /var/log/rbee/audit \\
+  --audit-retention-days 2555  # 7 years for GDPR
+```
+
+**Note:** GDPR Auditing is a paid module. See [GDPR compliance](/docs/reference/gdpr-compliance) for details.
+
+## Step 4: Configure research groups
+
+Set up quotas per research group:
+
+```bash
+# Create research group quotas
+queen-rbee quota create \\
+  --group neuroscience-lab \\
+  --max-gpu-hours-per-month 1000 \\
+  --max-concurrent-workers 5
+
+queen-rbee quota create \\
+  --group genomics-lab \\
+  --max-gpu-hours-per-month 500 \\
+  --max-concurrent-workers 3
+
+queen-rbee quota create \\
+  --group physics-lab \\
+  --max-gpu-hours-per-month 2000 \\
+  --max-concurrent-workers 10
+```
+
+## Step 5: Set up hives across labs
+
+Configure hives for each lab or HPC node:
+
+```toml
+# ~/.rbee/hives.conf
+
+[[hive]]
+alias = "neuroscience-gpu-01"
+host = "10.0.1.10"
+ssh_user = "rbee"
+research_group = "neuroscience-lab"
+
+[[hive]]
+alias = "genomics-hpc-01"
+host = "10.0.2.10"
+ssh_user = "rbee"
+research_group = "genomics-lab"
+
+[[hive]]
+alias = "physics-cluster-01"
+host = "10.0.3.10"
+ssh_user = "rbee"
+research_group = "physics-lab"
+```
+
+Install and start all hives:
+
+```bash
+# Install on all nodes
+for hive in neuroscience-gpu-01 genomics-hpc-01 physics-cluster-01; do
+  queen-rbee hive install $hive
+  queen-rbee hive start $hive
+done
+```
+
+## Step 6: Deploy models for research
+
+Download models appropriate for research use cases:
+
+```bash
+# Medical imaging models
+queen-rbee model download meditron-70b --hive neuroscience-gpu-01
+
+# Genomics models
+queen-rbee model download biogpt-large --hive genomics-hpc-01
+
+# General-purpose LLMs for literature review
+queen-rbee model download llama-3.1-70b --hive physics-cluster-01
+```
+
+## Step 7: User authentication and access control
+
+Set up user authentication:
+
+```bash
+# Create user accounts per researcher
+queen-rbee user create \\
+  --username alice.smith \\
+  --group neuroscience-lab \\
+  --role researcher
+
+queen-rbee user create \\
+  --username bob.jones \\
+  --group genomics-lab \\
+  --role researcher
+
+# Create admin accounts for lab managers
+queen-rbee user create \\
+  --username lab.manager \\
+  --group neuroscience-lab \\
+  --role admin
+```
+
+## Step 8: Enable audit logging
+
+Configure comprehensive audit logs:
+
+```bash
+# Enable detailed logging
+queen-rbee audit configure \\
+  --log-level detailed \\
+  --log-requests true \\
+  --log-responses true \\
+  --log-user-actions true \\
+  --anonymize-pii false  # Keep full logs for internal use
+
+# Set up automated compliance reports
+queen-rbee audit schedule-report \\
+  --frequency monthly \\
+  --format pdf \\
+  --email compliance@university.edu
+```
+
+## Step 9: Fair-share scheduling
+
+Configure fair-share scheduling to prevent one group from monopolizing resources:
+
+```bash
+# Enable fair-share scheduling
+queen-rbee scheduling set-policy fair-share \\
+  --weight-by-quota true \\
+  --preemption-enabled true \\
+  --preemption-grace-period 300  # 5 minutes
+```
+
+## Step 10: Researcher access
+
+Researchers can now use the API with their credentials:
+
+```bash
+# Researcher authenticates and sends request
+curl -X POST https://rbee.university.edu/v1/chat/completions \\
+  -H "Authorization: Bearer alice.smith:api-key-here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "meditron-70b",
+    "messages": [
+      {"role": "user", "content": "Analyze this medical image..."}
+    ]
+  }'
+```
+
+All requests are logged with:
+- User identity
+- Timestamp
+- Model used
+- Input/output data (if configured)
+- GPU hours consumed
+
+## GDPR compliance features
+
+### Audit trail
+
+Every inference request is logged:
+
+```bash
+# View audit logs
+queen-rbee audit logs --user alice.smith --date 2024-01-15
+
+# Export audit logs for compliance review
+queen-rbee audit export \\
+  --start-date 2024-01-01 \\
+  --end-date 2024-12-31 \\
+  --format csv \\
+  --output audit-2024.csv
+```
+
+### Right to erasure
+
+Support GDPR right-to-erasure requests:
+
+```bash
+# Delete all data for a specific user
+queen-rbee audit erase-user-data \\
+  --user alice.smith \\
+  --confirm
+
+# Delete specific requests by ID
+queen-rbee audit erase-request \\
+  --request-id req-abc-123 \\
+  --confirm
+```
+
+### Data lineage
+
+Track where data has been processed:
+
+```bash
+# View data lineage for a request
+queen-rbee audit lineage --request-id req-abc-123
+```
+
+Output shows:
+- Which hive processed the request
+- Which worker ran the inference
+- Which GPU was used
+- Timestamps and duration
+
+## Cost allocation
+
+Track GPU usage per research group:
+
+```bash
+# View usage report
+queen-rbee billing report \\
+  --group neuroscience-lab \\
+  --period last-month
+
+# Export for internal billing
+queen-rbee billing export \\
+  --period 2024-Q1 \\
+  --format csv \\
+  --output billing-Q1-2024.csv
+```
+
+## Multi-tenant isolation
+
+Ensure research groups can't see each other's data:
+
+```bash
+# Enable strict isolation
+queen-rbee security set-isolation strict \\
+  --enforce-group-boundaries true \\
+  --prevent-cross-group-access true
+```
+
+## Next steps
+
+- **[GDPR compliance](/docs/reference/gdpr-compliance)** - Deep dive into auditing features
+- **[User management](/docs/guides/user-management)** - Advanced user and group configuration
+- **[Monitoring](/docs/guides/monitoring)** - Set up monitoring for research infrastructure
+- **[Premium modules](/docs/reference/premium-modules)** - Overview of Premium Queen and GDPR Auditing
+
+## Troubleshooting
+
+### Quota exceeded errors
+
+Check current usage:
+
+```bash
+queen-rbee quota status --group neuroscience-lab
+```
+
+Adjust quotas if needed:
+
+```bash
+queen-rbee quota update \\
+  --group neuroscience-lab \\
+  --max-gpu-hours-per-month 1500
+```
+
+### Audit logs not appearing
+
+Verify auditing is enabled:
+
+```bash
+queen-rbee audit status
+```
+
+Check log file permissions:
+
+```bash
+ls -la /var/log/rbee/audit/
+```
+
+### Fair-share scheduling not working
+
+Check scheduling policy:
+
+```bash
+queen-rbee scheduling get-policy
+```
+
+Verify quotas are set for all groups:
+
+```bash
+queen-rbee quota list
+```
+
+### Network isolation issues
+
+Test connectivity between nodes:
+
+```bash
+# From queen, test hive connectivity
+ssh rbee@10.0.1.10 "echo 'Connected'"
+```
+
+Verify firewall rules allow internal traffic but block external.

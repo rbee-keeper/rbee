@@ -1,24 +1,64 @@
-# Welcome to rbee Documentation
+# rbee Documentation
 
-**rbee** is a private LLM hosting platform built for the Netherlands, providing secure, compliant, and high-performance AI infrastructure.
+rbee is a self-hosted AI orchestration system that turns every GPU you own—across desktops, laptops, servers, and remote machines—into a single, unified AI cloud. This documentation is for users building and operating rbee systems, from single-machine setups to multi-device fleets.
 
-## What is rbee?
+## Who this documentation is for
 
-rbee enables organizations to run large language models on their own infrastructure or through our managed service, ensuring data sovereignty and GDPR compliance.
+### Homelab & power users
 
-## Key Features
+Run AI models locally across your gaming PC, laptop, and home server. Use all your GPUs together in one interface without juggling ports or manual configuration. Currently supports text inference (LLMs), with multi-modal support (images, audio, video) planned for M3 (Q1 2026).
 
-- **Private & Secure**: Your data never leaves your infrastructure
-- **GDPR Compliant**: Built for European data regulations
-- **High Performance**: Optimized for GPU acceleration
-- **Easy to Deploy**: Simple setup and configuration
+**Start here:** [Getting started: single machine](/docs/getting-started/single-machine) or [Getting started: homelab](/docs/getting-started/homelab)
 
-## Quick Links
+### GPU providers & businesses
 
-- [Getting Started](/getting-started) - Set up rbee in minutes
-- [Deployment Guide](/guide/deployment) - Deploy to production
-- [API Reference](/guide/overview) - Explore the API
+Turn your GPU fleet into an API product. Expose heterogeneous hardware through one OpenAI-compatible endpoint with production-grade routing, telemetry, and scheduling.
 
-## Next Steps
+**Start here:** [Getting started: GPU providers](/docs/getting-started/gpu-providers) or See [Premium Modules](/docs/reference/premium-modules) for advanced routing, telemetry, and GDPR-focused auditing (€129-€499 one-time, planned for M2 launch Q2 2026).
 
-Start by reading the [Getting Started](/getting-started) guide to deploy your first model.
+### Academic & research teams
+
+Deploy on-premises AI infrastructure with data residency guarantees. Use GDPR-focused auditing modules for compliance-sensitive workloads.
+
+**Start here:** [Getting started: academic & research](/docs/getting-started/academic) or [GDPR & compliance](/docs/reference/gdpr-compliance)
+
+## Quickstart paths
+
+- **[Single machine setup](/docs/getting-started/single-machine)** - Run rbee on one computer with one or more GPUs
+- **[Multi-machine homelab](/docs/getting-started/homelab)** - Connect multiple machines into one unified system
+- **[GPU provider platform](/docs/getting-started/gpu-providers)** - Build an API product from your GPU fleet
+- **[Licensing & premium modules](/docs/reference/licensing)** - Understand what's free vs premium
+
+## Core concepts
+
+rbee uses a distributed architecture with four main components:
+
+- **Keeper** - The GUI application where you control everything. Runs on your workstation.
+- **Queen** - The orchestrator that routes requests and manages the system. One per colony.
+- **Hive** - A host machine (physical or virtual) that runs workers. You can have many hives.
+- **Worker** - An inference process running a specific model. Currently supports LLM inference. Each worker uses specific GPU resources.
+
+Together, these form a **colony** - your unified AI system.
+
+**Learn more:** [Architecture overview](/docs/architecture/overview)
+
+## Licensing & premium modules
+
+rbee has a mixed licensing model:
+
+- **Open core** - The base system (keeper, queen, hive, basic workers) is open source under GPL-3.0 and MIT licenses. Free to run forever, no feature limits for personal use.
+- **Premium binaries** - Production-grade modules (Premium Queen, Premium Worker, GDPR Auditing) are proprietary and sold as one-time lifetime licenses. No subscriptions.
+
+Premium modules add advanced routing, deep telemetry, quota management, and compliance features for businesses running rbee as a product.
+
+**All premium features are clearly marked in the documentation.**
+
+**Learn more:** [Licensing details](/docs/reference/licensing) or [Premium modules overview](/docs/reference/premium-modules)
+
+## Where to go next
+
+1. **[Install rbee](/docs/getting-started/installation)** - Download and set up the base system
+2. **[Run your first colony](/docs/getting-started/single-machine)** - Get a single-machine setup working
+3. **[Scale to multiple machines](/docs/getting-started/homelab)** - Connect your devices into one system
+4. **[Use the OpenAI-compatible API](/docs/reference/api-openai-compatible)** - Integrate rbee into your applications
+5. **[Understand GDPR & auditing](/docs/reference/gdpr-compliance)** - Learn about compliance features

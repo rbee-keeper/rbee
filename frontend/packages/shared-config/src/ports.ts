@@ -9,32 +9,50 @@
  * 
  * TEAM-351: Shared port configuration
  * TEAM-351: Bug fixes - Type safety, validation, edge cases
+ * TEAM-XXX: Now uses environment variables with fallback to defaults
  * 
  * @packageDocumentation
  */
 
+// TEAM-XXX: Helper to get port from environment variable or use default
+function getPort(envVar: string, defaultPort: number): number {
+  // @ts-ignore - Vite's import.meta.env is available at runtime
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    // @ts-ignore
+    const envValue = import.meta.env[envVar];
+    if (envValue) {
+      const parsed = parseInt(envValue, 10);
+      if (!isNaN(parsed)) {
+        return parsed;
+      }
+    }
+  }
+  return defaultPort;
+}
+
 /**
  * Port configuration for each service
+ * TEAM-XXX: Now reads from environment variables (VITE_*_PORT)
  */
 export const PORTS = {
   keeper: {
-    dev: 5173,
+    dev: getPort('VITE_KEEPER_DEV_PORT', 5173),
     prod: null,  // Tauri app, no HTTP port
   },
   queen: {
-    dev: 7834,      // Vite dev server
-    prod: 7833,     // Embedded in backend
-    backend: 7833,  // Backend HTTP server
+    dev: getPort('VITE_QUEEN_UI_DEV_PORT', 7834),      // Vite dev server
+    prod: getPort('VITE_QUEEN_PORT', 7833),     // Embedded in backend
+    backend: getPort('VITE_QUEEN_PORT', 7833),  // Backend HTTP server
   },
   hive: {
-    dev: 7836,
-    prod: 7835,
-    backend: 7835,
+    dev: getPort('VITE_HIVE_UI_DEV_PORT', 7836),
+    prod: getPort('VITE_HIVE_PORT', 7835),
+    backend: getPort('VITE_HIVE_PORT', 7835),
   },
   worker: {
-    dev: 7837,
-    prod: 8080,
-    backend: 8080,
+    dev: getPort('VITE_LLM_WORKER_UI_DEV_PORT', 7837),
+    prod: getPort('VITE_LLM_WORKER_PORT', 8080),
+    backend: getPort('VITE_LLM_WORKER_PORT', 8080),
   },
 } as const
 

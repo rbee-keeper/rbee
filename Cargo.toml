@@ -71,6 +71,7 @@ members = [
     # TEAM-284: DELETED daemon-sync and ssh-client (SSH/remote operations removed)
     "bin/99_shared_crates/job-client",          # Workspace automation (cargo xtask)
     "bin/99_shared_crates/ssh-config-parser",   # TEAM-365: SSH config parser for Queen discovery
+    "bin/99_shared_crates/env-config",          # TEAM-XXX: Environment variable configuration
     "bin/79_marketplace_core/marketplace-sdk",  # WASM SDK for marketplace integration
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -45,19 +45,20 @@ use tokio::sync::broadcast; // TEAM-372: For SSE broadcast channel
 #[command(about = "rbee Hive Daemon - Worker and model management")]
 #[command(version)]
 struct Args {
-    /// HTTP server port
-    #[arg(short, long, default_value = "7835")]
-    port: u16,
+    /// HTTP server port (can also be set via HIVE_PORT env var)
+    #[arg(short, long)]
+    port: Option<u16>,
 
-    /// Queen URL for heartbeat reporting
+    /// Queen URL for heartbeat reporting (can also be set via HIVE_QUEEN_URL env var)
     /// TEAM-292: Added to enable hive heartbeat
-    #[arg(long, default_value = "http://localhost:7833")]
-    queen_url: String,
+    /// TEAM-XXX: Now uses env-config with CLI override
+    #[arg(long)]
+    queen_url: Option<String>,
 
-    /// Hive ID (alias)
+    /// Hive ID/alias (can also be set via HIVE_ID env var)
     /// TEAM-292: Added to identify this hive
-    #[arg(long, default_value = "localhost")]
-    hive_id: String,
+    #[arg(long)]
+    hive_id: Option<String>,
 
     /// Print build information and exit
     #[arg(long, hide = true)]
@@ -78,12 +79,17 @@ async fn main() -> anyhow::Result<()> {
     // The narration system handles its own output formatting
     // We don't need to suppress tracing since narration uses its own channels
 
+    // TEAM-XXX: Use env-config for port/URL/ID with CLI overrides
+    let port = args.port.unwrap_or_else(env_config::hive_port);
+    let queen_url = args.queen_url.unwrap_or_else(env_config::hive_queen_url);
+    let hive_id = args.hive_id.unwrap_or_else(env_config::hive_id);
+    
     // TEAM-202: Use narration instead of println!()
     // This automatically goes through job-scoped SSE (if in job context)
     // and uses centralized formatting (TEAM-201)
     // TEAM-261: Simplified - no hive heartbeat (workers send to queen directly)
     // TEAM-340: Migrated to n!() macro
-    n!("startup", "🐝 Starting rbee-hive on port {}", args.port);
+    n!("startup", "🐝 Starting rbee-hive on port {}", port);
 
     // TEAM-261: Initialize job registry for dual-call pattern
     let job_registry: Arc<JobRegistry<String>> = Arc::new(JobRegistry::new());
@@ -109,9 +115,9 @@ async fn main() -> anyhow::Result<()> {
 
     // TEAM-365: Create HiveInfo for heartbeat
     let hive_info = hive_contract::HiveInfo {
-        id: args.hive_id.clone(),
+        id: hive_id.clone(),
         hostname: "127.0.0.1".to_string(),
-        port: args.port,
+        port,
         operational_status: hive_contract::OperationalStatus::Ready,
         health_status: hive_contract::HealthStatus::Healthy,
         version: env!("CARGO_PKG_VERSION").to_string(),
@@ -122,7 +128,7 @@ async fn main() -> anyhow::Result<()> {
         job_registry: job_registry.clone(),
         model_catalog: model_catalog.clone(),
         worker_catalog: worker_catalog.clone(),
-        queen_url: Arc::new(RwLock::new(Some(args.queen_url.clone()))), // TEAM-365: Dynamic queen URL
+        queen_url: Arc::new(RwLock::new(Some(queen_url.clone()))), // TEAM-365: Dynamic queen URL
         heartbeat_running: Arc::new(AtomicBool::new(false)), // TEAM-365: Heartbeat control
         hive_info: hive_info.clone(),
     });
@@ -219,7 +225,7 @@ async fn main() -> anyhow::Result<()> {
     // CRITICAL: Need both /dev and /dev/{*path} to handle root and subpaths
     
     // Extract hostname from queen_url (e.g., "http://localhost:7833" → "localhost")
-    let vite_host = if let Ok(queen_uri) = args.queen_url.parse::<axum::http::Uri>() {
+    let vite_host = if let Ok(queen_uri) = queen_url.parse::<axum::http::Uri>() {
         queen_uri.host().unwrap_or("localhost").to_string()
     } else {
         "localhost".to_string()
@@ -258,7 +264,7 @@ async fn main() -> anyhow::Result<()> {
 
     // TEAM-335: Bind to 0.0.0.0 to allow remote access (needed for remote hives)
     // Localhost-only binding (127.0.0.1) would prevent health checks from remote machines
-    let addr = SocketAddr::from(([0, 0, 0, 0], args.port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
     // TEAM-202: Narrate listen address
     // TEAM-340: Migrated to n!() macro
@@ -275,12 +281,12 @@ async fn main() -> anyhow::Result<()> {
     // TEAM-367: EDGE CASE #2 FIX - queen_url is optional (standalone mode)
     let _heartbeat_handle = heartbeat::start_heartbeat_task(
         hive_info.clone(),
-        Some(args.queen_url.clone()),
+        Some(queen_url.clone()),
         hive_state.heartbeat_running.clone(),
     );
 
     // TEAM-340: Migrated to n!() macro
-    n!("heartbeat_start", "💓 Heartbeat task started (sending to {})", args.queen_url);
+    n!("heartbeat_start", "💓 Heartbeat task started (sending to {})", queen_url);
 
     axum::serve(listener, app).await?;
 

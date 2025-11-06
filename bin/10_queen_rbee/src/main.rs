@@ -43,9 +43,9 @@ use std::sync::Arc;
 #[command(about = "rbee Orchestrator Daemon - Job scheduling and hive management")]
 #[command(version)]
 struct Args {
-    /// HTTP server port
-    #[arg(short, long, default_value = "7833")]
-    port: u16,
+    /// HTTP server port (can also be set via QUEEN_PORT env var)
+    #[arg(short, long)]
+    port: Option<u16>,
 
     /// Print build information and exit
     #[arg(long, hide = true)]
@@ -66,7 +66,10 @@ async fn main() -> Result<()> {
     // TEAM-164: Initialize SSE sink for distributed narration
     // TEAM-204: Removed init() - no global channel, job channels created on-demand
 
-    n!("start", "Queen-rbee starting on port {} (localhost-only mode)", args.port);
+    // TEAM-XXX: Use env-config for port with CLI override
+    let port = args.port.unwrap_or_else(env_config::queen_port);
+    
+    n!("start", "Queen-rbee starting on port {} (localhost-only mode)", port);
 
     // TEAM-290: No config loading (file-based config deprecated)
 
@@ -83,7 +86,8 @@ async fn main() -> Result<()> {
     // - model_registry (SQLite catalog + RAM registry)
 
     // TEAM-365: Start hive discovery after 5s delay
-    let queen_url = format!("http://localhost:{}", args.port);
+    // TEAM-XXX: Use env-config for URL construction
+    let queen_url = env_config::queen_url();
     tokio::spawn(async move {
         if let Err(e) = discovery::discover_hives_on_startup(&queen_url).await {
             n!("discovery_error", "❌ Hive discovery failed: {}", e);
@@ -91,7 +95,7 @@ async fn main() -> Result<()> {
     });
 
     // TEAM-152: Start HTTP server
-    let addr = SocketAddr::from(([0, 0, 0, 0], args.port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let router = create_router(job_server, telemetry);
 
     n!("listen", "Listening on http://{}", addr);

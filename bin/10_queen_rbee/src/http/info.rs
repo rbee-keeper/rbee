@@ -27,6 +27,7 @@ pub struct QueenInfo {
 ///
 /// TEAM-292: Service discovery endpoint
 /// TEAM-CLEANUP: Consolidated /v1/build-info into this endpoint (Rule Zero)
+/// TEAM-XXX: Now uses env-config for dynamic port/URL configuration
 ///
 /// Returns queen's address, version, features, and build info.
 /// Used for:
@@ -46,11 +47,10 @@ pub struct QueenInfo {
 pub async fn handle_info() -> Json<QueenInfo> {
     let features = vec![];
 
-    // TEAM-292: Hardcoded for localhost-only mode
-    // In the future, this could be configurable
+    // TEAM-XXX: Use env-config for dynamic configuration
     Json(QueenInfo {
-        base_url: "http://localhost:7833".to_string(),
-        port: 7833,
+        base_url: env_config::queen_url(),
+        port: env_config::queen_port(),
         version: env!("CARGO_PKG_VERSION").to_string(),
         features,
         build_timestamp: option_env!("BUILD_TIMESTAMP").unwrap_or("unknown").to_string(),
@@ -64,8 +64,9 @@ mod tests {
     #[tokio::test]
     async fn test_handle_info() {
         let response = handle_info().await;
-        assert_eq!(response.0.base_url, "http://localhost:7833");
-        assert_eq!(response.0.port, 7833);
+        // TEAM-XXX: Test uses env-config defaults
+        assert_eq!(response.0.base_url, env_config::queen_url());
+        assert_eq!(response.0.port, env_config::queen_port());
         assert!(!response.0.version.is_empty());
     }
 }

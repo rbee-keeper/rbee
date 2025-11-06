@@ -86,6 +86,9 @@ url = "2.5"
 # TEAM-378: Worker installation dependencies
 tempfile = "3.8"  # Temporary directories for PKGBUILD build process
 
+# TEAM-XXX: Environment variable configuration
+env-config = { path = "../99_shared_crates/env-config" }
+
 # TEAM-334: For process management (Unix only)
 [target.'cfg(unix)'.dependencies]
 nix = { version = "0.27", features = ["signal"] }

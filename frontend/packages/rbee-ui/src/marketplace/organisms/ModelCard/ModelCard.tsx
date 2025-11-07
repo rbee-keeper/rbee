@@ -31,9 +31,7 @@ export interface ModelCardProps {
 }
 
 export function ModelCard({ model, onAction, actionButton, onClick }: ModelCardProps) {
-  const [imageError, setImageError] = React.useState(false)
-  const [, setIsHovered] = React.useState(false)
-
+  // TEAM-422: Removed useState for SSG compatibility
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
@@ -42,20 +40,16 @@ export function ModelCard({ model, onAction, actionButton, onClick }: ModelCardP
 
   return (
     <Card 
-      className="group h-full flex flex-col overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
+      className="group h-full flex flex-col overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
     >
       {/* Image Section with Gradient Overlay */}
-      {model.imageUrl && !imageError ? (
+      {model.imageUrl ? (
         <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-br from-primary/10 via-background to-muted">
           <img
             src={model.imageUrl}
             alt={model.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
-            onError={() => setImageError(true)}
           />
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />

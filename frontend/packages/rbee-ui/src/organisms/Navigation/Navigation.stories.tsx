@@ -1,5 +1,28 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { Navigation } from './Navigation'
+import type { NavigationConfig } from './types'
+import { Code, Building, Server } from 'lucide-react'
+
+// Mock config for Storybook
+const mockConfig: NavigationConfig = {
+  sections: [
+    {
+      type: 'dropdown',
+      title: 'Platform',
+      width: 'sm',
+      links: [
+        { label: 'Features', href: '/features', icon: Code },
+        { label: 'Pricing', href: '/pricing', icon: Building },
+        { label: 'Use Cases', href: '/use-cases', icon: Server },
+      ],
+    },
+  ],
+  actions: {
+    docs: { url: 'https://github.com/veighnsche/llama-orch/tree/main/docs' },
+    github: { url: 'https://github.com/veighnsche/llama-orch' },
+    cta: { label: 'Join Waitlist', onClick: () => alert('Waitlist clicked!') },
+  },
+}
 
 const meta = {
   title: 'Organisms/Navigation',
@@ -73,6 +96,9 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
+  args: {
+    config: mockConfig,
+  },
   parameters: {
     docs: {
       description: {
@@ -84,9 +110,12 @@ export const Default: Story = {
 }
 
 export const WithScrolledPage: Story = {
-  render: () => (
-    <div>
-      <Navigation />
+  args: {
+    config: mockConfig,
+  },
+  render: (args) => (
+    <>
+      <Navigation {...args} />
       <div
         style={{
           height: '200vh',
@@ -100,7 +129,7 @@ export const WithScrolledPage: Story = {
         </p>
         <p>The navigation uses a semi-transparent background with backdrop blur for a modern glass-morphism effect.</p>
       </div>
-    </div>
+    </>
   ),
   parameters: {
     docs: {
@@ -112,9 +141,12 @@ export const WithScrolledPage: Story = {
 }
 
 export const FocusStates: Story = {
-  render: () => (
-    <div>
-      <Navigation />
+  args: {
+    config: mockConfig,
+  },
+  render: (args) => (
+    <>
+      <Navigation {...args} />
       <div style={{ padding: '5rem 2rem' }}>
         <h2
           style={{
@@ -133,21 +165,19 @@ export const FocusStates: Story = {
             lineHeight: '1.8',
           }}
         >
-          <li>Skip to content link (appears on focus)</li>
-          <li>Brand logo</li>
-          <li>Navigation links (Features, Use Cases, etc.)</li>
-          <li>GitHub icon button</li>
-          <li>Theme toggle</li>
-          <li>Join Waitlist button</li>
+          <li>Skip to content link (hidden until focused)</li>
+          <li>Navigation links (Features, Use Cases, Pricing, etc.)</li>
+          <li>Theme toggle button</li>
+          <li>GitHub icon link</li>
+          <li>Join Waitlist CTA button</li>
         </ol>
-        <p style={{ marginTop: '1rem', color: '#666' }}>All elements should have visible focus indicators.</p>
       </div>
-    </div>
+    </>
   ),
   parameters: {
     docs: {
       description: {
-        story: 'Test keyboard navigation and focus states. Use Tab key to navigate through all interactive elements.',
+        story: 'Test keyboard navigation and focus states. All interactive elements should be reachable via Tab key.',
       },
     },
   },

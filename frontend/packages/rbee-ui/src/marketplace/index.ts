@@ -14,6 +14,7 @@ export * from './atoms/CompatibilityBadge'
 
 // Organisms (Pure presentation, no hooks)
 export * from './organisms/ModelCard'
+export * from './organisms/ModelCardVertical'
 export * from './organisms/WorkerCard'
 export * from './organisms/MarketplaceGrid'
 export * from './organisms/ModelTable'

@@ -18,6 +18,7 @@
  */
 
 import { fetchHFModels, fetchHFModel, type HFModel } from './huggingface'
+import { fetchCivitAIModels, fetchCivitAIModel, type CivitAIModel } from './civitai'
 import type { Model, SearchOptions, ModelMetadata, CompatibilityResult } from './types'
 
 // TEAM-413: Lazy-load WASM to avoid build-time issues in Next.js
@@ -33,6 +34,7 @@ async function getWasmModule() {
 
 // Re-export types
 export type { Model, SearchOptions, Worker, ModelFile, ModelMetadata, CompatibilityResult } from './types'
+export type { CivitAIModel } from './civitai'
 
 /**
  * Convert HuggingFace model to our Model type
@@ -43,7 +45,7 @@ function convertHFModel(hf: HFModel): Model {
   const author = parts.length >= 2 ? parts[0] : hf.author || null
   
   // Calculate total size
-  const totalBytes = hf.siblings?.reduce((sum, file) => sum + (file.size || 0), 0) || 0
+  const totalBytes = hf.siblings?.reduce((sum: number, file) => sum + (file.size || 0), 0) || 0
   
   return {
     id: hf.id,
@@ -58,7 +60,7 @@ function convertHFModel(hf: HFModel): Model {
     createdAt: hf.createdAt,
     lastModified: hf.lastModified,
     config: hf.config,
-    siblings: hf.siblings || [],
+    siblings: hf.siblings?.map((s: { rfilename: string; size?: number }) => ({ rfilename: s.rfilename, size: s.size || 0 })) || [],
   }
 }
 
@@ -91,7 +93,7 @@ export async function searchHuggingFaceModels(
 ): Promise<Model[]> {
   const { limit = 50 } = options
   
-  const hfModels = await fetchHFModels(query, 'downloads', limit)
+  const hfModels = await fetchHFModels(query, { limit, sort: 'downloads' })
   return hfModels.map(convertHFModel)
 }
 
@@ -112,7 +114,7 @@ export async function listHuggingFaceModels(
   const { limit = 50, sort = 'popular' } = options
   const sortParam = sort === 'popular' ? 'downloads' : sort
   
-  const hfModels = await fetchHFModels(undefined, sortParam, limit)
+  const hfModels = await fetchHFModels(undefined, { limit, sort: sortParam })
   return hfModels.map(convertHFModel)
 }
 
@@ -144,7 +146,7 @@ export async function getHuggingFaceModel(modelId: string): Promise<Model> {
  */
 function extractModelMetadata(model: HFModel): ModelMetadata | null {
   // Extract architecture from tags or config
-  const architectureTags = model.tags?.filter(t => 
+  const architectureTags = model.tags?.filter((t: string) => 
     ['llama', 'mistral', 'phi', 'qwen', 'gemma'].some(arch => t.toLowerCase().includes(arch))
   ) || []
   
@@ -165,8 +167,8 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
   
   // Detect format from files
   const files = model.siblings || []
-  const hasSafetensors = files.some(f => f.rfilename.endsWith('.safetensors'))
-  const hasGguf = files.some(f => f.rfilename.endsWith('.gguf'))
+  const hasSafetensors = files.some((f: { rfilename: string }) => f.rfilename.endsWith('.safetensors'))
+  const hasGguf = files.some((f: { rfilename: string }) => f.rfilename.endsWith('.gguf'))
   
   let format = 'unknown'
   if (hasSafetensors) format = 'safetensors'
@@ -176,7 +178,7 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
   const maxContextLength = model.config?.max_position_embeddings || 2048
   
   // Calculate size
-  const totalBytes = files.reduce((sum, file) => sum + (file.size || 0), 0)
+  const totalBytes = files.reduce((sum: number, file: { size?: number }) => sum + (file.size || 0), 0)
   
   // Determine parameter count from model ID or config
   let parameters = 'unknown'
@@ -274,7 +276,7 @@ export async function searchCompatibleModels(
   // Fetch more models than requested to account for filtering
   const fetchLimit = onlyCompatible ? limit * 3 : limit
   
-  const hfModels = await fetchHFModels(query, 'downloads', fetchLimit)
+  const hfModels = await fetchHFModels(query, { limit: fetchLimit, sort: 'downloads' })
   
   // Filter compatible models
   const compatible = onlyCompatible 
@@ -306,10 +308,108 @@ export async function listCompatibleModels(
   // Fetch more models to account for filtering
   const fetchLimit = limit * 3
   
-  const hfModels = await fetchHFModels(undefined, sortParam, fetchLimit)
+  const hfModels = await fetchHFModels(undefined, { limit: fetchLimit, sort: sortParam })
   const compatible = await filterCompatibleModels(hfModels)
   
   return compatible.slice(0, limit).map(convertHFModel)
 }
 
-// TODO: Implement CivitAI and Worker Catalog in future phases
+/**
+ * Convert CivitAI model to our Model type
+ */
+function convertCivitAIModel(civitai: CivitAIModel): Model {
+  // TEAM-422: Defensive programming - handle missing/undefined fields
+  // Get the latest version
+  const latestVersion = civitai.modelVersions?.[0]
+  
+  // Calculate total size from all files
+  const totalBytes = latestVersion?.files?.reduce((sum, file) => sum + (file.sizeKB * 1024), 0) || 0
+  
+  // TEAM-422: Get first non-NSFW image from latest version
+  const imageUrl = latestVersion?.images?.find(img => !img.nsfw)?.url
+  
+  // Safe fallbacks for all fields
+  const author = civitai.creator?.username || 'Unknown'
+  const description = civitai.description?.substring(0, 500) || `${civitai.type} model by ${author}`
+  const downloads = civitai.stats?.downloadCount || 0
+  const likes = civitai.stats?.favoriteCount || 0
+  const tags = civitai.tags || []
+  
+  return {
+    id: `civitai-${civitai.id}`,
+    name: civitai.name || 'Unnamed Model',
+    author,
+    description,
+    downloads,
+    likes,
+    size: formatBytes(totalBytes),
+    tags,
+    source: 'civitai' as const,
+    imageUrl,
+    createdAt: latestVersion?.createdAt,
+    lastModified: latestVersion?.updatedAt,
+  }
+}
+
+/**
+ * Get compatible CivitAI models
+ * 
+ * @param options - Search options (limit, types, period, baseModel)
+ * @returns Array of compatible CivitAI models
+ * 
+ * @example
+ * ```typescript
+ * const models = await getCompatibleCivitaiModels({ 
+ *   limit: 100,
+ *   period: 'Month',
+ *   baseModel: 'SDXL 1.0'
+ * })
+ * ```
+ */
+export async function getCompatibleCivitaiModels(options: {
+  limit?: number
+  types?: string[]
+  period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
+  baseModel?: string
+} = {}): Promise<Model[]> {
+  const { 
+    limit = 100, 
+    types = ['Checkpoint', 'LORA'],
+    period,
+    baseModel,
+  } = options
+  
+  try {
+    const civitaiModels = await fetchCivitAIModels({
+      limit,
+      types,
+      sort: 'Most Downloaded',
+      nsfw: false, // Filter out NSFW models
+      period,
+      baseModel,
+    })
+    
+    return civitaiModels.map(convertCivitAIModel)
+  } catch (error) {
+    console.error('[marketplace-node] Failed to fetch CivitAI models:', error)
+    return []
+  }
+}
+
+/**
+ * Get a specific CivitAI model by ID
+ * 
+ * @param modelId - CivitAI model ID
+ * @returns Raw CivitAI model data
+ * 
+ * @example
+ * ```typescript
+ * const model = await getCivitaiModel(257749)
+ * console.log(model.name, model.creator.username)
+ * ```
+ */
+export async function getCivitaiModel(modelId: number): Promise<CivitAIModel> {
+  return fetchCivitAIModel(modelId)
+}
+
+// TODO: Implement Worker Catalog in future phases

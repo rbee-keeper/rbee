@@ -16,6 +16,7 @@ export interface Model {
   size: string
   tags: string[]
   source: 'huggingface' | 'civitai'
+  imageUrl?: string
   createdAt?: string
   lastModified?: string
   config?: any

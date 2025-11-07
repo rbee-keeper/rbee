@@ -59,23 +59,108 @@ pub struct Model {
     pub likes: f64,
     /// Model size (human-readable, e.g., "4.2 GB")
     pub size: String,
-    /// Source marketplace (HuggingFace or CivitAI)
-    pub source: ModelSource,
+    /// Provider - WHERE the model comes from (HuggingFace, Civitai, Local)
+    pub provider: ModelProvider,
+    /// Category - WHAT the model does (LLM, Image, Audio, etc.)
+    pub category: ModelCategory,
     /// TEAM-421: Model files (from HuggingFace siblings)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub siblings: Option<Vec<ModelFile>>,
 }
 
-/// Model source
-#[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
+// TEAM-460: Normalized provider system - all providers are equal
+
+/// Model provider - WHERE the model comes from (all equal)
+#[derive(Debug, Clone, Serialize, Deserialize, Tsify, PartialEq, Eq)]
 #[cfg_attr(all(not(target_arch = "wasm32"), feature = "specta"), derive(specta::Type))]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub enum ModelSource {
-    /// HuggingFace model hub
+#[serde(rename_all = "lowercase")]
+pub enum ModelProvider {
+    #[serde(rename = "huggingface")]
     HuggingFace,
-    /// CivitAI model marketplace
-    CivitAI,
+    #[serde(rename = "civitai")]
+    Civitai,
+    #[serde(rename = "local")]
+    Local,
 }
+
+impl ModelProvider {
+    /// Get provider display name
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            ModelProvider::HuggingFace => "HuggingFace",
+            ModelProvider::Civitai => "Civitai",
+            ModelProvider::Local => "Local",
+        }
+    }
+
+    /// Get provider slug for URLs
+    pub fn slug(&self) -> &'static str {
+        match self {
+            ModelProvider::HuggingFace => "huggingface",
+            ModelProvider::Civitai => "civitai",
+            ModelProvider::Local => "local",
+        }
+    }
+
+    /// Parse provider from slug
+    pub fn from_slug(slug: &str) -> Option<Self> {
+        match slug {
+            "huggingface" => Some(ModelProvider::HuggingFace),
+            "civitai" => Some(ModelProvider::Civitai),
+            "local" => Some(ModelProvider::Local),
+            _ => None,
+        }
+    }
+}
+
+/// Model category - WHAT the model does (orthogonal to provider)
+#[derive(Debug, Clone, Serialize, Deserialize, Tsify, PartialEq, Eq)]
+#[cfg_attr(all(not(target_arch = "wasm32"), feature = "specta"), derive(specta::Type))]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "lowercase")]
+pub enum ModelCategory {
+    /// Language models (text generation, chat, code)
+    #[serde(rename = "llm")]
+    Llm,
+    /// Image generation models (Stable Diffusion, etc.)
+    #[serde(rename = "image")]
+    Image,
+    /// Audio models
+    #[serde(rename = "audio")]
+    Audio,
+    /// Video models
+    #[serde(rename = "video")]
+    Video,
+    /// Other/unknown
+    #[serde(rename = "other")]
+    Other,
+}
+
+impl ModelCategory {
+    /// Get category display name
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            ModelCategory::Llm => "Language Model",
+            ModelCategory::Image => "Image Generation",
+            ModelCategory::Audio => "Audio",
+            ModelCategory::Video => "Video",
+            ModelCategory::Other => "Other",
+        }
+    }
+
+    /// Get category slug for URLs
+    pub fn slug(&self) -> &'static str {
+        match self {
+            ModelCategory::Llm => "llm",
+            ModelCategory::Image => "image",
+            ModelCategory::Audio => "audio",
+            ModelCategory::Video => "video",
+            ModelCategory::Other => "other",
+        }
+    }
+}
+
 
 /// Worker binary info for marketplace display
 /// TEAM-404: Uses canonical WorkerType from artifacts-contract

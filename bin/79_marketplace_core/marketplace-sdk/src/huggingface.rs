@@ -3,7 +3,7 @@
 //!
 //! This is the NATIVE Rust implementation (not WASM) for use in Tauri/backend.
 
-use crate::types::{Model, ModelFile, ModelSource};
+use crate::types::{Model, ModelFile, ModelProvider, ModelCategory};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
@@ -215,7 +215,7 @@ impl HuggingFaceClient {
             .filter(|v| !v.is_empty()); // Only include if there are files
 
         Model {
-            id: hf_model.model_id.clone(),
+            id: format!("huggingface-{}", hf_model.model_id),  // TEAM-460: Consistent prefix
             name,
             description,
             author,
@@ -224,7 +224,8 @@ impl HuggingFaceClient {
             downloads: hf_model.downloads,
             likes: hf_model.likes,
             size,
-            source: ModelSource::HuggingFace,
+            provider: ModelProvider::HuggingFace,
+            category: ModelCategory::Llm,
             siblings, // TEAM-421: Include model files
         }
     }

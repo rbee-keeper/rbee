@@ -1,42 +1,24 @@
 'use client'
 
+// TEAM-460: Navigation organism - config-driven, uses molecules
+// Replaces hardcoded navigation with NavigationDropdown, LinkGroup, NavigationActions
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@rbee/ui/atoms/Accordion'
-import { Button } from '@rbee/ui/atoms/Button'
 import { IconButton } from '@rbee/ui/atoms/IconButton'
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@rbee/ui/atoms/NavigationMenu'
+import { NavigationMenu, NavigationMenuList } from '@rbee/ui/atoms/NavigationMenu'
 import { Separator } from '@rbee/ui/atoms/Separator'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@rbee/ui/atoms/Sheet'
-import { GitHubIcon } from '@rbee/ui/icons'
-import { BrandLogo, NavLink, ThemeToggle } from '@rbee/ui/molecules'
-import {
-  BookOpen,
-  Building,
-  Code,
-  FlaskConical,
-  GraduationCap,
-  Home,
-  Lock,
-  Menu,
-  Rocket,
-  Scale,
-  Server,
-  Settings,
-  Shield,
-  Users,
-  X,
-} from 'lucide-react'
-import Link from 'next/link'
+import { BrandLogo, NavigationDropdown, LinkGroup, NavigationActions, NavLink } from '@rbee/ui/molecules'
+import { Menu, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import type { NavigationConfig } from './types'
 
-export function Navigation() {
+export interface NavigationProps {
+  config: NavigationConfig
+}
+
+export function Navigation({ config }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
 
@@ -60,612 +42,139 @@ export function Navigation() {
               {/* Zone A: Logo + Brand */}
               <BrandLogo priority />
 
-              {/* Zone B: Dropdown Menus (Desktop) */}
-              <div className="hidden md:flex items-center justify-center font-sans">
-                <NavigationMenu viewport={false}>
-                  <NavigationMenuList className="gap-2">
-                    {/* Platform Dropdown */}
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
-                        Platform
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent className="animate-fade-in md:motion-safe:animate-slide-in-down border border-border">
-                        <div className="grid gap-1 p-3 w-[280px]">
-                          <ul className="grid gap-1">
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/features"
-                                  className="block select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/features' ? 'page' : undefined}
-                                >
-                                  <div className="text-sm font-medium leading-none">Features</div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/pricing"
-                                  className="block select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/pricing' ? 'page' : undefined}
-                                >
-                                  <div className="text-sm font-medium leading-none">Pricing</div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/use-cases"
-                                  className="block select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/use-cases' ? 'page' : undefined}
-                                >
-                                  <div className="text-sm font-medium leading-none">Use Cases</div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          </ul>
-                          {/* Quick Start Rail */}
-                          <div className="mt-2 flex items-center justify-between rounded bg-muted/30 p-2 ring-1 ring-border/50">
-                            <Link
-                              href="https://github.com/veighnsche/llama-orch/tree/main/docs"
-                              target="_blank"
-                              rel="noopener"
-                              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <BookOpen className="size-3.5" />
-                              Docs
-                            </Link>
-                            <Button size="sm" className="h-7 text-xs" data-umami-event="cta:join-waitlist-platform">
-                              Join Waitlist
-                            </Button>
-                          </div>
-                        </div>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-
-                    {/* Solutions Dropdown */}
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
-                        Solutions
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent className="animate-fade-in md:motion-safe:animate-slide-in-down border border-border">
-                        <div className="grid gap-1 p-3 w-[280px]">
-                          <ul className="grid gap-1">
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/developers"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/developers' ? 'page' : undefined}
-                                >
-                                  <Code className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Developers</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      Build agents on your own hardware. OpenAI-compatible, drop-in.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/enterprise"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/enterprise' ? 'page' : undefined}
-                                >
-                                  <Building className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Enterprise</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      GDPR-native orchestration with audit trails and controls.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/gpu-providers"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/gpu-providers' ? 'page' : undefined}
-                                >
-                                  <Server className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Providers</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      Monetize idle GPUs. Task-based payouts.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          </ul>
-                          {/* Quick Start Rail */}
-                          <div className="mt-2 flex items-center justify-between rounded bg-muted/30 p-2 ring-1 ring-border/50">
-                            <Link
-                              href="https://github.com/veighnsche/llama-orch/tree/main/docs"
-                              target="_blank"
-                              rel="noopener"
-                              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <BookOpen className="size-3.5" />
-                              Docs
-                            </Link>
-                            <Button size="sm" className="h-7 text-xs" data-umami-event="cta:join-waitlist-solutions">
-                              Join Waitlist
-                            </Button>
-                          </div>
-                        </div>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-
-                    {/* Industries Dropdown */}
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
-                        Industries
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent className="animate-fade-in md:motion-safe:animate-slide-in-down border border-border">
-                        <div className="grid gap-1 p-3 w-[560px]">
-                          <ul className="grid grid-cols-2 gap-1">
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/industries/startups"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/industries/startups' ? 'page' : undefined}
-                                >
-                                  <Rocket className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Startups</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      Prototype fast. Own your stack from day one.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/industries/homelab"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/industries/homelab' ? 'page' : undefined}
-                                >
-                                  <Home className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Homelab</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      Self-hosted LLMs across all your machines.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/industries/research"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/industries/research' ? 'page' : undefined}
-                                >
-                                  <FlaskConical className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Research</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      Reproducible runs with deterministic seeds.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/industries/legal"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/industries/legal' ? 'page' : undefined}
-                                >
-                                  <Scale className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Legal</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      AI for law firms. Document review at scale.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/industries/education"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/industries/education' ? 'page' : undefined}
-                                >
-                                  <GraduationCap className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">Education</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      Teach distributed AI with real infra.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/industries/devops"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/industries/devops' ? 'page' : undefined}
-                                >
-                                  <Settings className="size-5 mt-0.5 shrink-0" />
-                                  <div>
-                                    <div className="text-sm font-medium leading-none mb-1">DevOps</div>
-                                    <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                                      SSH-first lifecycle. No orphaned workers.
-                                    </p>
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          </ul>
-                          {/* Quick Start Rail */}
-                          <div className="mt-2 flex items-center justify-between rounded bg-muted/30 p-2 ring-1 ring-border/50">
-                            <Link
-                              href="https://github.com/veighnsche/llama-orch/tree/main/docs"
-                              target="_blank"
-                              rel="noopener"
-                              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <BookOpen className="size-3.5" />
-                              Docs
-                            </Link>
-                            <Button size="sm" className="h-7 text-xs" data-umami-event="cta:join-waitlist-industries">
-                              Join Waitlist
-                            </Button>
-                          </div>
-                        </div>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-
-                    {/* Resources Dropdown */}
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
-                        Resources
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent className="animate-fade-in md:motion-safe:animate-slide-in-down border border-border">
-                        <div className="grid gap-1 p-3 w-[200px]">
-                          <ul className="grid gap-1">
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/community"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/community' ? 'page' : undefined}
-                                >
-                                  <Users className="size-5 mt-0.5 shrink-0" />
-                                  <div className="text-sm font-medium leading-none">Community</div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/security"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/security' ? 'page' : undefined}
-                                >
-                                  <Lock className="size-5 mt-0.5 shrink-0" />
-                                  <div className="text-sm font-medium leading-none">Security</div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href="/compliance"
-                                  className="flex items-start gap-3 select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-                                  aria-current={pathname === '/compliance' ? 'page' : undefined}
-                                >
-                                  <Shield className="size-5 mt-0.5 shrink-0" />
-                                  <div className="text-sm font-medium leading-none">Compliance</div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          </ul>
-                          {/* Quick Start Rail */}
-                          <div className="mt-2 flex items-center justify-between rounded bg-muted/30 p-2 ring-1 ring-border/50">
-                            <Link
-                              href="https://github.com/veighnsche/llama-orch/tree/main/docs"
-                              target="_blank"
-                              rel="noopener"
-                              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <BookOpen className="size-3.5" />
-                              Docs
-                            </Link>
-                            <Button size="sm" className="h-7 text-xs" data-umami-event="cta:join-waitlist-resources">
-                              Join Waitlist
-                            </Button>
-                          </div>
-                        </div>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
+              {/* Zone B: Navigation (Desktop) - Config-driven */}
+              <div className="hidden md:flex items-center justify-center gap-6 font-sans">
+                {config.sections.some((s) => s.type === 'dropdown') ? (
+                  <NavigationMenu viewport={false}>
+                    <NavigationMenuList className="gap-2">
+                      {config.sections.map((section, index) => {
+                        if (section.type === 'dropdown') {
+                          return (
+                            <NavigationDropdown
+                              key={index}
+                              title={section.title}
+                              links={section.links}
+                              cta={section.cta}
+                              width={section.width}
+                            />
+                          )
+                        }
+                        return null
+                      })}
+                    </NavigationMenuList>
+                  </NavigationMenu>
+                ) : (
+                  <>
+                    {config.sections.map((section, index) => {
+                      if (section.type === 'linkGroup') {
+                        return <LinkGroup key={index} links={section.links} />
+                      }
+                      if (section.type === 'separator') {
+                        return <div key={index} className="h-4 w-px bg-border" />
+                      }
+                      return null
+                    })}
+                  </>
+                )}
               </div>
 
               {/* Zone C: Actions (Desktop) */}
-              <div className="hidden md:flex items-center gap-3 justify-self-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 px-2 gap-1 text-muted-foreground hover:text-foreground"
-                  asChild
-                >
-                  <Link href="https://github.com/veighnsche/llama-orch/tree/main/docs" target="_blank" rel="noopener">
-                    <BookOpen className="size-4" />
-                    Docs
-                  </Link>
-                </Button>
-
-                <div className="flex items-center gap-1 rounded-md p-0.5 bg-muted/40 ring-1 ring-border/60 shadow-[inset_0_0_0_1px_var(--border)]">
-                  <IconButton asChild aria-label="Open rbee on GitHub" title="GitHub">
-                    <a
-                      href="https://github.com/veighnsche/llama-orch"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="motion-safe:hover:animate-pulse"
-                    >
-                      <GitHubIcon size={20} />
-                    </a>
-                  </IconButton>
-
-                  <ThemeToggle />
-                </div>
-                <Button
-                  className="bg-primary hover:bg-primary/85 text-primary-foreground h-9"
-                  data-umami-event="cta:join-waitlist"
-                  aria-label="Join the rbee waitlist"
-                  title="Early access • Zero cost to join"
-                >
-                  Join Waitlist
-                </Button>
-              </div>
+              <NavigationActions
+                docs={config.actions.docs}
+                github={config.actions.github}
+                cta={config.actions.cta}
+              />
 
               {/* Mobile Menu Toggle */}
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <IconButton className="md:hidden" aria-label="Toggle menu">
-                    {mobileMenuOpen ? <X className="size-6" aria-hidden /> : <Menu className="size-6" aria-hidden />}
-                  </IconButton>
-                </SheetTrigger>
-                <SheetContent
-                  side="top"
-                  className="top-16 md:top-14 border-t-0 pt-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] max-h-[calc(100vh-4rem)] md:max-h-[calc(100vh-3.5rem)] overflow-y-auto"
-                >
-                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                  <div className="sr-only" aria-live="polite" aria-atomic="true">
-                    {mobileMenuOpen ? 'Main menu opened' : 'Main menu closed'}
-                  </div>
-                  <div className="motion-safe:animate-fade-in space-y-2">
-                    {/* Sticky CTA Block */}
-                    <div className="sticky top-0 z-10 -mx-2 px-2 pb-2 bg-gradient-to-b from-background to-transparent">
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" className="flex-1 h-10" asChild>
-                          <Link
-                            href="https://github.com/veighnsche/llama-orch/tree/main/docs"
-                            target="_blank"
-                            rel="noopener"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <BookOpen className="size-4 mr-1.5" />
-                            Docs
-                          </Link>
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1 h-10"
-                          data-umami-event="cta:join-waitlist-mobile"
+              <div className="md:hidden justify-self-end">
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                  <SheetTrigger asChild>
+                    <IconButton
+                      aria-label="Open navigation menu"
+                      className="hover:bg-accent"
+                    >
+                      <Menu className="size-5" />
+                    </IconButton>
+                  </SheetTrigger>
+                  <SheetContent
+                    side="right"
+                    className="w-[min(400px,100vw)] sm:w-[400px] p-0 overflow-y-auto"
+                  >
+                    <div className="flex flex-col h-full">
+                      {/* Mobile Header */}
+                      <div className="flex items-center justify-between p-4 border-b border-border">
+                        <SheetTitle className="text-lg font-semibold">Menu</SheetTitle>
+                        <IconButton
                           onClick={() => setMobileMenuOpen(false)}
+                          aria-label="Close menu"
+                          className="hover:bg-accent"
                         >
-                          Join Waitlist
-                        </Button>
+                          <X className="size-5" />
+                        </IconButton>
+                      </div>
+
+                      {/* Mobile Navigation */}
+                      <div className="flex-1 overflow-y-auto p-4">
+                        <Accordion type="multiple" className="w-full">
+                          {config.sections.map((section, index) => {
+                            if (section.type === 'dropdown') {
+                              return (
+                                <AccordionItem key={index} value={`section-${index}`}>
+                                  <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                    {section.title}
+                                  </AccordionTrigger>
+                                  <AccordionContent>
+                                    <div className="flex flex-col gap-2 pt-2">
+                                      {section.links.map((link) => (
+                                        <NavLink
+                                          key={link.href}
+                                          href={link.href}
+                                          className="block rounded-md p-2 text-sm hover:bg-accent"
+                                          onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                          {link.label}
+                                        </NavLink>
+                                      ))}
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              )
+                            }
+
+                            if (section.type === 'linkGroup') {
+                              return (
+                                <div key={index} className="py-2">
+                                  {section.links.map((link) => (
+                                    <NavLink
+                                      key={link.href}
+                                      href={link.href}
+                                      className="block rounded-md p-2 text-sm hover:bg-accent"
+                                      onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                      {link.label}
+                                      {link.badge && (
+                                        <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                          {link.badge}
+                                        </span>
+                                      )}
+                                    </NavLink>
+                                  ))}
+                                </div>
+                              )
+                            }
+
+                            if (section.type === 'separator') {
+                              return <Separator key={index} className="my-2" />
+                            }
+
+                            return null
+                          })}
+                        </Accordion>
                       </div>
                     </div>
-                    <Accordion type="multiple" className="w-full">
-                      {/* Platform Accordion */}
-                      <AccordionItem value="platform">
-                        <AccordionTrigger className="text-base md:text-lg min-h-12">Platform</AccordionTrigger>
-                        <AccordionContent className="motion-safe:animate-slide-in-down space-y-2 pl-4">
-                          <NavLink
-                            href="/features"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/features' ? 'page' : undefined}
-                          >
-                            Features
-                          </NavLink>
-                          <NavLink
-                            href="/pricing"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/pricing' ? 'page' : undefined}
-                          >
-                            Pricing
-                          </NavLink>
-                          <NavLink
-                            href="/use-cases"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/use-cases' ? 'page' : undefined}
-                          >
-                            Use Cases
-                          </NavLink>
-                        </AccordionContent>
-                      </AccordionItem>
-
-                      {/* Solutions Accordion */}
-                      <AccordionItem value="solutions">
-                        <AccordionTrigger className="text-base md:text-lg min-h-12">Solutions</AccordionTrigger>
-                        <AccordionContent className="motion-safe:animate-slide-in-down space-y-2 pl-4">
-                          <NavLink
-                            href="/developers"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/developers' ? 'page' : undefined}
-                          >
-                            Developers
-                          </NavLink>
-                          <NavLink
-                            href="/enterprise"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/enterprise' ? 'page' : undefined}
-                          >
-                            Enterprise
-                          </NavLink>
-                          <NavLink
-                            href="/gpu-providers"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/gpu-providers' ? 'page' : undefined}
-                          >
-                            Providers
-                          </NavLink>
-                        </AccordionContent>
-                      </AccordionItem>
-
-                      {/* Industries Accordion */}
-                      <AccordionItem value="industries">
-                        <AccordionTrigger className="text-base md:text-lg min-h-12">Industries</AccordionTrigger>
-                        <AccordionContent className="motion-safe:animate-slide-in-down space-y-2 pl-4">
-                          <NavLink
-                            href="/industries/startups"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/industries/startups' ? 'page' : undefined}
-                          >
-                            Startups
-                          </NavLink>
-                          <NavLink
-                            href="/industries/homelab"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/industries/homelab' ? 'page' : undefined}
-                          >
-                            Homelab
-                          </NavLink>
-                          <NavLink
-                            href="/industries/research"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/industries/research' ? 'page' : undefined}
-                          >
-                            Research
-                          </NavLink>
-                          <NavLink
-                            href="/industries/legal"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/industries/legal' ? 'page' : undefined}
-                          >
-                            Legal
-                          </NavLink>
-                          <NavLink
-                            href="/industries/education"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/industries/education' ? 'page' : undefined}
-                          >
-                            Education
-                          </NavLink>
-                          <NavLink
-                            href="/industries/devops"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/industries/devops' ? 'page' : undefined}
-                          >
-                            DevOps
-                          </NavLink>
-                        </AccordionContent>
-                      </AccordionItem>
-
-                      {/* Resources Accordion */}
-                      <AccordionItem value="resources">
-                        <AccordionTrigger className="text-base md:text-lg min-h-12">Resources</AccordionTrigger>
-                        <AccordionContent className="motion-safe:animate-slide-in-down space-y-2 pl-4">
-                          <NavLink
-                            href="/community"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/community' ? 'page' : undefined}
-                          >
-                            Community
-                          </NavLink>
-                          <NavLink
-                            href="/security"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/security' ? 'page' : undefined}
-                          >
-                            Security
-                          </NavLink>
-                          <NavLink
-                            href="/compliance"
-                            variant="mobile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="py-3 text-lg min-h-12 flex items-center"
-                            aria-current={pathname === '/compliance' ? 'page' : undefined}
-                          >
-                            Compliance
-                          </NavLink>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-
-                    <Separator className="my-4 opacity-60" />
-
-                    {/* Utility Row */}
-                    <div className="flex items-center gap-3 py-2 px-3 rounded-md ring-1 ring-border/60">
-                      <a
-                        href="https://github.com/veighnsche/llama-orch"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                        aria-label="Open rbee on GitHub"
-                      >
-                        <GitHubIcon size={20} />
-                        <span className="text-sm">GitHub</span>
-                      </a>
-                      <div className="ml-auto">
-                        <ThemeToggle />
-                      </div>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+                  </SheetContent>
+                </Sheet>
+              </div>
             </div>
           </div>
         </div>

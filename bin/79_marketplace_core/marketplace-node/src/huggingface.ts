@@ -1,67 +1,71 @@
-// TEAM-415: HuggingFace API client (centralized in marketplace-node)
-// This wraps HuggingFace API calls until we have native Rust binding via napi-rs
-
-const HF_API_BASE = 'https://huggingface.co/api'
-
-export interface HFModelFile {
-  rfilename: string
-  size: number
-}
+// TEAM-460: HuggingFace API types and fetchers
+// Extracted from index.ts to fix missing module error
 
 export interface HFModel {
   id: string
-  modelId?: string
   author?: string
+  modelId?: string
+  tags?: string[]
   downloads?: number
   likes?: number
-  tags?: string[]
-  pipeline_tag?: string
-  lastModified?: string
-  createdAt?: string
-  siblings?: HFModelFile[]
-  cardData?: { 
-    model_description?: string
-    [key: string]: any
-  }
-  description?: string
-  config?: any
+  siblings?: Array<{
+    rfilename: string
+    size?: number
+  }>
   private?: boolean
+  gated?: boolean | string
+  createdAt?: string
+  lastModified?: string
+  sha?: string
+  pipeline_tag?: string
+  library_name?: string
+  description?: string
+  cardData?: {
+    model_description?: string
+  }
+  config?: {
+    model_type?: string
+    max_position_embeddings?: number
+  }
+}
+
+export interface HFSearchResponse {
+  models: HFModel[]
+  numTotalItems?: number
 }
 
 /**
  * Fetch models from HuggingFace API
  */
 export async function fetchHFModels(
-  query?: string,
-  sort: string = 'downloads',
-  limit: number = 50
+  query: string | undefined,
+  options: { limit?: number; sort?: string; filter?: string } = {}
 ): Promise<HFModel[]> {
-  let url = `${HF_API_BASE}/models?limit=${limit}`
-  
-  if (query) {
-    url += `&search=${encodeURIComponent(query)}`
-  }
-  
-  url += `&sort=${sort}&direction=-1`
-  
-  const response = await fetch(url)
-  
+  const params = new URLSearchParams({
+    ...(query && { search: query }),
+    limit: String(options.limit || 20),
+    ...(options.sort && { sort: options.sort }),
+    ...(options.filter && { filter: options.filter }),
+  })
+
+  const response = await fetch(`https://huggingface.co/api/models?${params}`)
   if (!response.ok) {
     throw new Error(`HuggingFace API error: ${response.statusText}`)
   }
-  
-  return await response.json()
+
+  const data = (await response.json()) as HFModel[]
+  return data
 }
 
 /**
  * Fetch a single model from HuggingFace API
  */
 export async function fetchHFModel(modelId: string): Promise<HFModel> {
-  const response = await fetch(`${HF_API_BASE}/models/${modelId}`)
-  
+  const response = await fetch(`https://huggingface.co/api/models/${modelId}`)
   if (!response.ok) {
-    throw new Error(`Model not found: ${modelId}`)
+    throw new Error(`HuggingFace API error: ${response.statusText}`)
   }
-  
-  return await response.json()
+
+  const data = (await response.json()) as HFModel
+  return data
 }

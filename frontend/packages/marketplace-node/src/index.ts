@@ -319,6 +319,25 @@ export async function checkModelWorkerCompatibility(
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CIVITAI API FUNCTIONS (TEAM-460)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export {
+  listCivitaiModels,
+  getCivitaiModel,
+  getCompatibleCivitaiModels,
+} from './civitai'
+
+export type {
+  CivitaiModel,
+  CivitaiModelVersion,
+  CivitaiFile,
+  CivitaiImage,
+  CivitaiListResponse,
+  ListCivitaiModelsOptions,
+} from './civitai'
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RE-EXPORTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

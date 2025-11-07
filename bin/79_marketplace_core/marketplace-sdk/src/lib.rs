@@ -13,6 +13,10 @@ mod types;
 #[cfg(not(target_arch = "wasm32"))]
 mod huggingface;
 
+// TEAM-460: Native Civitai API client (not WASM)
+#[cfg(not(target_arch = "wasm32"))]
+mod civitai;
+
 // TEAM-408: Worker catalog client
 pub mod worker_catalog;
 
@@ -24,9 +28,25 @@ pub mod compatibility;
 #[cfg(target_arch = "wasm32")]
 mod wasm_worker;
 
+// TEAM-460: WASM bindings for HuggingFace
+#[cfg(target_arch = "wasm32")]
+mod wasm_huggingface;
+
+// TEAM-460: WASM bindings for Civitai
+#[cfg(target_arch = "wasm32")]
+mod wasm_civitai;
+
 // TEAM-408: Re-export WASM worker functions
 #[cfg(target_arch = "wasm32")]
 pub use wasm_worker::*;
+
+// TEAM-460: Re-export WASM HuggingFace functions
+#[cfg(target_arch = "wasm32")]
+pub use wasm_huggingface::*;
+
+// TEAM-460: Re-export WASM Civitai functions
+#[cfg(target_arch = "wasm32")]
+pub use wasm_civitai::*;
 
 // Re-export types
 pub use types::*;
@@ -34,6 +54,14 @@ pub use types::*;
 // TEAM-405: Re-export native clients
 #[cfg(not(target_arch = "wasm32"))]
 pub use huggingface::HuggingFaceClient;
+
+// TEAM-460: Re-export Civitai client
+#[cfg(not(target_arch = "wasm32"))]
+pub use civitai::{
+    CivitaiClient, CivitaiModelResponse, CivitaiModelType, CivitaiStats,
+    CivitaiCreator, CivitaiModelVersion, CivitaiFile, CivitaiImage,
+    CivitaiListResponse, CivitaiMetadata,
+};
 
 // TEAM-408: Re-export worker catalog
 pub use worker_catalog::{WorkerCatalogClient, WorkerFilter};
@@ -50,7 +78,7 @@ pub use compatibility::{
 // Note: Platform is used in wasm_bindgen function below
 #[allow(unused_imports)]
 pub use artifacts_contract::{
-    ModelEntry, ModelType, ModelSource, ModelConfig,
+    ModelEntry, ModelType, ModelConfig,
     WorkerBinary, WorkerType, Platform,
     ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
     WorkerCatalogEntry, Architecture, WorkerImplementation, BuildSystem,

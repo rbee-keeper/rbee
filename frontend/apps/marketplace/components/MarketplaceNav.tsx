@@ -7,6 +7,7 @@ import { GitHubIcon } from '@rbee/ui/icons'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { urls } from '@/lib/env'
 
 export function MarketplaceNav() {
   const pathname = usePathname()
@@ -48,13 +49,16 @@ export function MarketplaceNav() {
                   </Link>
                   <Link
                     href="/models?type=sd"
-                    className="text-sm font-medium text-foreground/60 hover:text-foreground/80 transition-colors cursor-not-allowed"
-                    onClick={(e) => e.preventDefault()}
-                    title="Coming soon"
+                    className={`text-sm font-medium transition-colors hover:text-foreground ${
+                      pathname === '/models' && typeof window !== 'undefined' && window.location.search.includes('type=sd') ? 'text-foreground' : 'text-foreground/80'
+                    }`}
                   >
                     SD Models
-                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
                   </Link>
+                  <span className="text-sm font-medium text-foreground/60 cursor-not-allowed flex items-center gap-1.5">
+                    More models
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
+                  </span>
                 </div>
 
                 {/* Separator */}
@@ -73,13 +77,16 @@ export function MarketplaceNav() {
                   </Link>
                   <Link
                     href="/workers?type=image"
-                    className="text-sm font-medium text-foreground/60 hover:text-foreground/80 transition-colors cursor-not-allowed"
-                    onClick={(e) => e.preventDefault()}
-                    title="Coming soon"
+                    className={`text-sm font-medium transition-colors hover:text-foreground ${
+                      pathname === '/workers' && typeof window !== 'undefined' && window.location.search.includes('type=image') ? 'text-foreground' : 'text-foreground/80'
+                    }`}
                   >
                     Image Workers
-                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
                   </Link>
+                  <span className="text-sm font-medium text-foreground/60 cursor-not-allowed flex items-center gap-1.5">
+                    More workers
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
+                  </span>
                 </div>
               </div>
 
@@ -91,7 +98,7 @@ export function MarketplaceNav() {
                   className="hidden md:flex h-9 px-2 gap-1 text-muted-foreground hover:text-foreground"
                   asChild
                 >
-                  <Link href="https://github.com/veighnsche/llama-orch/tree/main/docs" target="_blank" rel="noopener">
+                  <Link href={urls.github.docs} target="_blank" rel="noopener">
                     <BookOpen className="size-4" />
                     Docs
                   </Link>
@@ -100,7 +107,7 @@ export function MarketplaceNav() {
                 <div className="flex items-center gap-1 rounded-md p-0.5 bg-muted/40 ring-1 ring-border/60 shadow-[inset_0_0_0_1px_var(--border)]">
                   <IconButton asChild aria-label="Open rbee on GitHub" title="GitHub">
                     <a
-                      href="https://github.com/veighnsche/llama-orch"
+                      href={urls.github.repo}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="motion-safe:hover:animate-pulse"
@@ -117,7 +124,7 @@ export function MarketplaceNav() {
                   aria-label="Back to rbee.dev"
                   asChild
                 >
-                  <Link href="https://rbee.dev">
+                  <Link href={urls.commercial}>
                     Back to rbee.dev
                   </Link>
                 </Button>

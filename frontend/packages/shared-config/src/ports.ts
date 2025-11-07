@@ -1,20 +1,21 @@
 /**
- * SINGLE SOURCE OF TRUTH for all port configurations
+ * PROGRAMMATIC SOURCE OF TRUTH for all port configurations
+ * 
+ * CANONICAL SOURCE: /PORT_CONFIGURATION.md
  * 
  * CRITICAL: When adding a new service:
- * 1. Add to PORTS constant
- * 2. Update PORT_CONFIGURATION.md
- * 3. Run `pnpm generate:rust`
+ * 1. Update PORT_CONFIGURATION.md (canonical source)
+ * 2. Update this file to match
+ * 3. Run `pnpm generate:rust` (if applicable)
  * 4. Update backend Cargo.toml default port
  * 
  * TEAM-351: Shared port configuration
- * TEAM-351: Bug fixes - Type safety, validation, edge cases
- * TEAM-XXX: Now uses environment variables with fallback to defaults
+ * TEAM-457: Added commercial, marketplace, user-docs, hono-catalog
  * 
  * @packageDocumentation
  */
 
-// TEAM-XXX: Helper to get port from environment variable or use default
+// TEAM-457: Helper to get port from environment variable or use default
 function getPort(envVar: string, defaultPort: number): number {
   // @ts-ignore - Vite's import.meta.env is available at runtime
   if (typeof import.meta !== 'undefined' && import.meta.env) {
@@ -32,17 +33,14 @@ function getPort(envVar: string, defaultPort: number): number {
 
 /**
  * Port configuration for each service
- * TEAM-XXX: Now reads from environment variables (VITE_*_PORT)
+ * Source: PORT_CONFIGURATION.md
  */
 export const PORTS = {
-  keeper: {
-    dev: getPort('VITE_KEEPER_DEV_PORT', 5173),
-    prod: null,  // Tauri app, no HTTP port
-  },
+  // Backend Services (HTTP APIs)
   queen: {
     dev: getPort('VITE_QUEEN_UI_DEV_PORT', 7834),      // Vite dev server
-    prod: getPort('VITE_QUEEN_PORT', 7833),     // Embedded in backend
-    backend: getPort('VITE_QUEEN_PORT', 7833),  // Backend HTTP server
+    prod: getPort('VITE_QUEEN_PORT', 7833),             // Embedded in backend
+    backend: getPort('VITE_QUEEN_PORT', 7833),          // Backend HTTP server
   },
   hive: {
     dev: getPort('VITE_HIVE_UI_DEV_PORT', 7836),
@@ -50,13 +48,52 @@ export const PORTS = {
     backend: getPort('VITE_HIVE_PORT', 7835),
   },
   worker: {
-    dev: getPort('VITE_LLM_WORKER_UI_DEV_PORT', 7837),
-    prod: getPort('VITE_LLM_WORKER_PORT', 8080),
-    backend: getPort('VITE_LLM_WORKER_PORT', 8080),
+    llm: {
+      dev: getPort('VITE_LLM_WORKER_UI_DEV_PORT', 7837),
+      prod: getPort('VITE_LLM_WORKER_PORT', 8080),
+      backend: getPort('VITE_LLM_WORKER_PORT', 8080),
+    },
+    sd: {
+      dev: getPort('VITE_SD_WORKER_UI_DEV_PORT', 5174),
+      prod: getPort('VITE_SD_WORKER_PORT', 8081),
+      backend: getPort('VITE_SD_WORKER_PORT', 8081),
+    },
+  },
+  
+  // Frontend Services (Development)
+  keeper: {
+    dev: getPort('VITE_KEEPER_DEV_PORT', 5173),
+    prod: null,  // Tauri app, no HTTP port
+  },
+  commercial: {
+    dev: getPort('VITE_COMMERCIAL_PORT', 7822),
+    prod: null,  // Deployed to Cloudflare
+  },
+  marketplace: {
+    dev: getPort('VITE_MARKETPLACE_PORT', 7823),
+    prod: null,  // Deployed to Cloudflare
+  },
+  userDocs: {
+    dev: getPort('VITE_USER_DOCS_PORT', 7811),
+    prod: null,  // Deployed to Cloudflare
+  },
+  
+  // Storybooks
+  storybook: {
+    rbeeUi: getPort('VITE_RBEE_UI_STORYBOOK_PORT', 6006),
+    commercial: getPort('VITE_COMMERCIAL_STORYBOOK_PORT', 6007),
+  },
+  
+  // Cloudflare Workers
+  honoCatalog: {
+    dev: getPort('VITE_HONO_CATALOG_PORT', 8787),
+    prod: null,  // Deployed to Cloudflare
   },
 } as const
 
-export type ServiceName = keyof typeof PORTS
+// TEAM-457: ServiceName for functions that expect simple {dev, prod, backend} structure
+// Excludes: worker (nested), commercial/marketplace/userDocs/honoCatalog (no backend), storybook (no backend)
+export type ServiceName = 'queen' | 'hive' | 'keeper'
 
 /**
  * Generate allowed origins for postMessage listener
@@ -67,15 +104,26 @@ export type ServiceName = keyof typeof PORTS
 export function getAllowedOrigins(includeHttps = false): string[] {
   const origins = new Set<string>()
   
-  const serviceNames: ServiceName[] = ['queen', 'hive', 'worker']
-  
-  for (const service of serviceNames) {
-    const ports = PORTS[service]
-    
+  // Queen and Hive
+  const simpleServices = [PORTS.queen, PORTS.hive]
+  for (const ports of simpleServices) {
     if (ports.dev !== null) {
       origins.add(`http://localhost:${ports.dev}`)
     }
-    
+    if (ports.prod !== null) {
+      origins.add(`http://localhost:${ports.prod}`)
+      if (includeHttps) {
+        origins.add(`https://localhost:${ports.prod}`)
+      }
+    }
+  }
+  
+  // Workers (nested structure)
+  const workerTypes = [PORTS.worker.llm, PORTS.worker.sd]
+  for (const ports of workerTypes) {
+    if (ports.dev !== null) {
+      origins.add(`http://localhost:${ports.dev}`)
+    }
     if (ports.prod !== null) {
       origins.add(`http://localhost:${ports.prod}`)
       if (includeHttps) {
@@ -164,7 +212,8 @@ export function getParentOrigin(currentPort: number): string {
   const isDevPort = (
     currentPort === PORTS.queen.dev ||
     currentPort === PORTS.hive.dev ||
-    currentPort === PORTS.worker.dev ||
+    currentPort === PORTS.worker.llm.dev ||
+    currentPort === PORTS.worker.sd.dev ||
     currentPort === PORTS.keeper.dev
   )
   

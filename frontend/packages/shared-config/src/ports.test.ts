@@ -48,9 +48,12 @@ describe('@rbee/shared-config', () => {
     })
 
     it('should have worker ports', () => {
-      expect(PORTS.worker.dev).toBe(7837)
-      expect(PORTS.worker.prod).toBe(8080)
-      expect(PORTS.worker.backend).toBe(8080)
+      expect(PORTS.worker.llm.dev).toBe(7837)
+      expect(PORTS.worker.llm.prod).toBe(8080)
+      expect(PORTS.worker.llm.backend).toBe(8080)
+      expect(PORTS.worker.sd.dev).toBe(5174)
+      expect(PORTS.worker.sd.prod).toBe(8081)
+      expect(PORTS.worker.sd.backend).toBe(8081)
     })
 
     it('should be readonly (as const)', () => {

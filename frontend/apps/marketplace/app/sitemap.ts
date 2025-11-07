@@ -4,7 +4,8 @@ import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import { modelIdToSlug } from '@/lib/slugify'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://marketplace.rbee.dev'
+  // TEAM-457: Use environment variable with production fallback
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.rbee.dev'
   
   let modelUrls: MetadataRoute.Sitemap = []
   

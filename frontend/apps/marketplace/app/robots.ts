@@ -8,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/api/',
     },
-    sitemap: 'https://marketplace.rbee.dev/sitemap.xml',
+    // TEAM-457: Use environment variable with production fallback
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.rbee.dev'}/sitemap.xml`,
   }
 }

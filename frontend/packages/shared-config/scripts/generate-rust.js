@@ -85,9 +85,13 @@ ${generateRustConstant('HIVE_DEV_PORT', PORTS.hive.dev)}
 ${generateRustConstant('HIVE_PROD_PORT', PORTS.hive.prod)}
 ${generateRustConstant('HIVE_BACKEND_PORT', PORTS.hive.backend)}
 
-${generateRustConstant('WORKER_DEV_PORT', PORTS.worker.dev)}
-${generateRustConstant('WORKER_PROD_PORT', PORTS.worker.prod)}
-${generateRustConstant('WORKER_BACKEND_PORT', PORTS.worker.backend)}
+${generateRustConstant('LLM_WORKER_DEV_PORT', PORTS.worker.llm.dev)}
+${generateRustConstant('LLM_WORKER_PROD_PORT', PORTS.worker.llm.prod)}
+${generateRustConstant('LLM_WORKER_BACKEND_PORT', PORTS.worker.llm.backend)}
+
+${generateRustConstant('SD_WORKER_DEV_PORT', PORTS.worker.sd.dev)}
+${generateRustConstant('SD_WORKER_PROD_PORT', PORTS.worker.sd.prod)}
+${generateRustConstant('SD_WORKER_BACKEND_PORT', PORTS.worker.sd.backend)}
 `
 
 const outputPath = join(__dirname, '..', '..', '..', 'shared-constants.rs')

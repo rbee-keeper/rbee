@@ -38,8 +38,8 @@ describe('@rbee/narration-client - config', () => {
     })
 
     it('should use ports from @rbee/shared-config for worker', () => {
-      expect(SERVICES.worker.devPort).toBe(PORTS.worker.dev)
-      expect(SERVICES.worker.prodPort).toBe(PORTS.worker.prod)
+      expect(SERVICES.worker.devPort).toBe(PORTS.worker.llm.dev)
+      expect(SERVICES.worker.prodPort).toBe(PORTS.worker.llm.prod)
     })
 
     it('should use keeper dev port for all services', () => {

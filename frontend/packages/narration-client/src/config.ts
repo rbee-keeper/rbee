@@ -36,8 +36,8 @@ export const SERVICES: Record<ServiceName, ServiceConfig> = {
   },
   worker: {
     name: 'llm-worker',
-    devPort: PORTS.worker.dev,
-    prodPort: PORTS.worker.prod,
+    devPort: PORTS.worker.llm.dev,
+    prodPort: PORTS.worker.llm.prod,
     keeperDevPort: PORTS.keeper.dev,
     keeperProdOrigin: '*',
   },

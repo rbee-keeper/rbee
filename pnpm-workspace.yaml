@@ -8,6 +8,7 @@ packages:
   - frontend/packages/eslint-config
   - frontend/packages/vite-config
   - frontend/packages/shared-config
+  - frontend/packages/env-config
   - frontend/packages/narration-client
   - frontend/packages/iframe-bridge
   - frontend/packages/dev-utils

@@ -37,7 +37,7 @@
 		"development": {
 			"vars": {
 				"ENVIRONMENT": "development",
-				"CORS_ORIGIN": "http://localhost:3001"
+				"CORS_ORIGIN": "http://localhost:7823"
 			}
 		}
 	}

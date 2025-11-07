@@ -33,35 +33,54 @@ export function MarketplaceNav() {
                 <BrandLogo priority />
               </Link>
 
-              {/* Zone B: Navigation Links (Desktop) */}
+              {/* Zone B: Navigation Links (Desktop) - TEAM-457: Fixed marketplace navigation */}
               <div className="hidden md:flex items-center justify-center gap-6 font-sans">
-                <Link
-                  href="/models"
-                  className={`text-sm font-medium transition-colors hover:text-foreground ${
-                    pathname === '/models' ? 'text-foreground' : 'text-foreground/80'
-                  }`}
-                  aria-current={pathname === '/models' ? 'page' : undefined}
-                >
-                  Models
-                </Link>
-                <Link
-                  href="/datasets"
-                  className={`text-sm font-medium transition-colors hover:text-foreground ${
-                    pathname === '/datasets' ? 'text-foreground' : 'text-foreground/80'
-                  }`}
-                  aria-current={pathname === '/datasets' ? 'page' : undefined}
-                >
-                  Datasets
-                </Link>
-                <Link
-                  href="/spaces"
-                  className={`text-sm font-medium transition-colors hover:text-foreground ${
-                    pathname === '/spaces' ? 'text-foreground' : 'text-foreground/80'
-                  }`}
-                  aria-current={pathname === '/spaces' ? 'page' : undefined}
-                >
-                  Spaces
-                </Link>
+                {/* Models Group */}
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/models"
+                    className={`text-sm font-medium transition-colors hover:text-foreground ${
+                      pathname === '/models' ? 'text-foreground' : 'text-foreground/80'
+                    }`}
+                    aria-current={pathname === '/models' ? 'page' : undefined}
+                  >
+                    LLM Models
+                  </Link>
+                  <Link
+                    href="/models?type=sd"
+                    className="text-sm font-medium text-foreground/60 hover:text-foreground/80 transition-colors cursor-not-allowed"
+                    onClick={(e) => e.preventDefault()}
+                    title="Coming soon"
+                  >
+                    SD Models
+                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
+                  </Link>
+                </div>
+
+                {/* Separator */}
+                <div className="h-4 w-px bg-border" />
+
+                {/* Workers Group */}
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/workers"
+                    className={`text-sm font-medium transition-colors hover:text-foreground ${
+                      pathname === '/workers' ? 'text-foreground' : 'text-foreground/80'
+                    }`}
+                    aria-current={pathname === '/workers' ? 'page' : undefined}
+                  >
+                    LLM Workers
+                  </Link>
+                  <Link
+                    href="/workers?type=image"
+                    className="text-sm font-medium text-foreground/60 hover:text-foreground/80 transition-colors cursor-not-allowed"
+                    onClick={(e) => e.preventDefault()}
+                    title="Coming soon"
+                  >
+                    Image Workers
+                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
+                  </Link>
+                </div>
               </div>
 
               {/* Zone C: Actions (Desktop) */}

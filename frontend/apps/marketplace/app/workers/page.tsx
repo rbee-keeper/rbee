@@ -1,9 +1,10 @@
 // TEAM-413: Workers list page with SSG
 import type { Metadata } from 'next'
 
+// TEAM-457: Updated metadata to clarify LLM workers
 export const metadata: Metadata = {
-  title: 'Workers | rbee Marketplace',
-  description: 'Browse rbee workers for running AI models on different hardware.',
+  title: 'LLM Workers | rbee Marketplace',
+  description: 'Browse rbee LLM workers for running language models on CPU, CUDA, Metal, and ROCm. Image workers for Stable Diffusion coming soon.',
 }
 
 // TEAM-413: Worker type definitions
@@ -55,14 +56,14 @@ const WORKERS: Worker[] = [
 export default async function WorkersPage() {
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
-      {/* Header Section */}
+      {/* Header Section - TEAM-457: Added image workers coming soon notice */}
       <div className="mb-12 space-y-4">
         <div className="space-y-2">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Workers
+            LLM Workers
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl">
-            Browse and install rbee workers for running AI models on different hardware
+            Browse and install rbee workers for running language models on CPU, CUDA, Metal, and ROCm
           </p>
         </div>
         
@@ -70,7 +71,11 @@ export default async function WorkersPage() {
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-primary" />
-            <span>{WORKERS.length} workers available</span>
+            <span>{WORKERS.length} LLM workers available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-muted-foreground/40" />
+            <span>Image workers for Stable Diffusion coming soon</span>
           </div>
         </div>
       </div>

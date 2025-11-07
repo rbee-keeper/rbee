@@ -5,9 +5,10 @@ import type { ModelTableItem } from '@rbee/ui/marketplace'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
 
+// TEAM-457: Updated metadata to clarify LLM models
 export const metadata: Metadata = {
-  title: 'AI Language Models | Marketplace',
-  description: 'Browse compatible AI language models from HuggingFace. Pre-rendered for instant loading and maximum SEO.',
+  title: 'LLM Models | rbee Marketplace',
+  description: 'Browse compatible language models from HuggingFace. Pre-rendered for instant loading and maximum SEO. Stable Diffusion models coming soon.',
 }
 
 export default async function ModelsPage() {
@@ -36,7 +37,7 @@ export default async function ModelsPage() {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
-      {/* Header Section */}
+      {/* Header Section - TEAM-457: Added SD models coming soon notice */}
       <div className="mb-12 space-y-4">
         <div className="space-y-2">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
@@ -51,7 +52,11 @@ export default async function ModelsPage() {
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-primary" />
-            <span>{models.length.toLocaleString()} models available</span>
+            <span>{models.length.toLocaleString()} LLM models available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-muted-foreground/40" />
+            <span>Stable Diffusion models coming soon</span>
           </div>
         </div>
       </div>

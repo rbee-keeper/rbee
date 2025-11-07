@@ -17,6 +17,29 @@
 	},
 	"observability": {
 		"enabled": true
+	},
+	/**
+	 * TEAM-457: Environment Variables for Production
+	 */
+	"vars": {
+		"NEXT_PUBLIC_SITE_URL": "https://rbee.dev",
+		"NEXT_PUBLIC_GITHUB_URL": "https://github.com/veighnsche/llama-orch",
+		"NEXT_PUBLIC_DOCS_URL": "https://docs.rbee.dev"
+	},
+	/**
+	 * Environment-specific overrides
+	 */
+	"env": {
+		"preview": {
+			"vars": {
+				"NEXT_PUBLIC_SITE_URL": "https://preview.rbee.dev"
+			}
+		},
+		"development": {
+			"vars": {
+				"NEXT_PUBLIC_SITE_URL": "http://localhost:3000"
+			}
+		}
 	}
 	/**
 	 * Smart Placement
@@ -29,11 +52,6 @@
 	 * databases, object storage, AI inference, real-time communication and more.
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 */
-	// "vars": { "MY_VARIABLE": "production_value" }
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/

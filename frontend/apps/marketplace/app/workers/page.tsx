@@ -1,69 +1,38 @@
 // TEAM-413: Workers list page with SSG
+// TEAM-461: Added filtering system using CategoryFilterBar
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { WORKERS } from '@/../../../bin/80-hono-worker-catalog/src/data'
+import { WorkerCard, CategoryFilterBar } from '@rbee/ui/marketplace'
+import { 
+  WORKER_FILTER_GROUPS, 
+  PREGENERATED_WORKER_FILTERS, 
+  filterWorkers,
+  buildWorkerFilterUrl,
+  buildFilterDescription 
+} from './filters'
 
-// TEAM-457: Updated metadata to clarify LLM workers
 export const metadata: Metadata = {
-  title: 'LLM Workers | rbee Marketplace',
-  description: 'Browse rbee LLM workers for running language models on CPU, CUDA, Metal, and ROCm. Image workers for Stable Diffusion coming soon.',
+  title: 'Workers | rbee Marketplace',
+  description: 'Browse rbee workers for running language models and image generation on CPU, CUDA, and Metal.',
 }
-
-// TEAM-413: Worker type definitions
-interface Worker {
-  id: string
-  name: string
-  description: string
-  type: 'cpu' | 'cuda' | 'metal' | 'rocm'
-  platform: string[]
-  version: string
-}
-
-// TEAM-413: Static worker catalog (until Worker Catalog API is ready)
-const WORKERS: Worker[] = [
-  {
-    id: 'cpu-llm',
-    name: 'CPU LLM Worker',
-    description: 'Run language models on CPU. Works on any system without GPU requirements.',
-    type: 'cpu',
-    platform: ['linux', 'macos', 'windows'],
-    version: '0.1.0',
-  },
-  {
-    id: 'cuda-llm',
-    name: 'CUDA LLM Worker',
-    description: 'GPU-accelerated language model inference using NVIDIA CUDA.',
-    type: 'cuda',
-    platform: ['linux', 'windows'],
-    version: '0.1.0',
-  },
-  {
-    id: 'metal-llm',
-    name: 'Metal LLM Worker',
-    description: 'GPU-accelerated language model inference using Apple Metal.',
-    type: 'metal',
-    platform: ['macos'],
-    version: '0.1.0',
-  },
-  {
-    id: 'rocm-llm',
-    name: 'ROCm LLM Worker',
-    description: 'GPU-accelerated language model inference using AMD ROCm.',
-    type: 'rocm',
-    platform: ['linux'],
-    version: '0.1.0',
-  },
-]
 
 export default async function WorkersPage() {
+  // Default filter (all workers)
+  const currentFilters = PREGENERATED_WORKER_FILTERS[0].filters
+  const filteredWorkers = filterWorkers(WORKERS, currentFilters)
+  const filterDescription = buildFilterDescription(currentFilters)
+  
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
-      {/* Header Section - TEAM-457: Added image workers coming soon notice */}
-      <div className="mb-12 space-y-4">
+      {/* Header Section */}
+      <div className="mb-8 space-y-4">
         <div className="space-y-2">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            LLM Workers
+            Workers
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl">
-            Browse and install rbee workers for running language models on CPU, CUDA, Metal, and ROCm
+            {filterDescription} · Browse and install rbee workers for LLM inference and image generation
           </p>
         </div>
         
@@ -71,57 +40,38 @@ export default async function WorkersPage() {
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-primary" />
-            <span>{WORKERS.length} LLM workers available</span>
+            <span>{filteredWorkers.length} workers available</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-muted-foreground/40" />
-            <span>Image workers for Stable Diffusion coming soon</span>
+            <div className="size-2 rounded-full bg-blue-500" />
+            <span>CPU, CUDA, and Metal support</span>
           </div>
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <CategoryFilterBar
+        groups={WORKER_FILTER_GROUPS}
+        currentFilters={currentFilters}
+        buildUrl={(filters) => buildWorkerFilterUrl({ ...currentFilters, ...filters })}
+      />
+
       {/* Workers Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {WORKERS.map((worker) => (
-          <a
-            key={worker.id}
-            href={`/workers/${worker.id}`}
-            className="group rounded-lg border border-border bg-card p-6 transition-all hover:border-primary hover:shadow-lg"
-          >
-            <div className="space-y-4">
-              {/* Worker Type Badge */}
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  {worker.type.toUpperCase()}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  v{worker.version}
-                </span>
-              </div>
-
-              {/* Worker Info */}
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
-                  {worker.name}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {worker.description}
-                </p>
-              </div>
-
-              {/* Platforms */}
-              <div className="flex flex-wrap gap-2">
-                {worker.platform.map((platform) => (
-                  <span
-                    key={platform}
-                    className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
-                  >
-                    {platform}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </a>
+        {filteredWorkers.map((worker) => (
+          <Link key={worker.id} href={`/workers/${worker.id}`} className="block">
+            <WorkerCard
+              worker={{
+                id: worker.id,
+                name: worker.name,
+                description: worker.description,
+                version: worker.version,
+                platform: worker.platforms,
+                architecture: worker.architectures,
+                workerType: worker.workerType,
+              }}
+            />
+          </Link>
         ))}
       </div>
     </div>

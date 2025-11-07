@@ -18,7 +18,8 @@ import * as React from 'react'
 // This ensures type consistency across Rust (artifacts-contract), WASM (marketplace-sdk), and React
 // TODO: Once marketplace-sdk is published to npm, import from '@rbee/marketplace-sdk'
 // For now, we use the inline type that matches the generated WASM types
-export type WorkerType = 'cpu' | 'cuda' | 'metal'
+// TEAM-461: Added ROCm support
+export type WorkerType = 'cpu' | 'cuda' | 'metal' | 'rocm'
 
 export interface WorkerCardProps {
   worker: {
@@ -39,6 +40,7 @@ const workerTypeConfig = {
   cpu: { label: 'CPU', variant: 'secondary' as const },
   cuda: { label: 'CUDA', variant: 'default' as const },
   metal: { label: 'Metal', variant: 'accent' as const },
+  rocm: { label: 'ROCm', variant: 'destructive' as const },
 }
 
 export function WorkerCard({ worker, onAction, onClick, actionButton }: WorkerCardProps) {
@@ -47,7 +49,7 @@ export function WorkerCard({ worker, onAction, onClick, actionButton }: WorkerCa
   return (
     <Card 
       className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer"
-      onClick={() => onClick?.(worker.id)}
+      {...(onClick && { onClick: () => onClick(worker.id) })}
     >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">

@@ -3,6 +3,7 @@ import type { NavigationConfig } from '@rbee/ui/organisms/Navigation'
 import { urls } from '@/lib/env'
 
 export const marketplaceNavConfig: NavigationConfig = {
+  logoHref: '/',
   sections: [
     {
       type: 'linkGroup',
@@ -18,9 +19,7 @@ export const marketplaceNavConfig: NavigationConfig = {
     {
       type: 'linkGroup',
       links: [
-        { label: 'LLM Workers', href: '/workers' },
-        { label: 'Image Workers', href: '/workers?type=image' },
-        { label: 'More workers', href: '#', badge: 'Soon', disabled: true },
+        { label: 'Workers', href: '/workers' },
       ],
     },
   ],

@@ -58,4 +58,6 @@ export interface NavigationActions {
 export interface NavigationConfig {
   sections: NavigationSection[]
   actions: NavigationActions
+  /** Optional href for the logo - if provided, logo becomes clickable */
+  logoHref?: string
 }

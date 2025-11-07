@@ -9,8 +9,9 @@
  * Worker type (backend acceleration)
  * CANONICAL SOURCE: artifacts-contract::WorkerType
  * Generated via: marketplace-sdk WASM build
+ * TEAM-461: Added ROCm support for AMD GPUs
  */
-export type WorkerType = "cpu" | "cuda" | "metal";
+export type WorkerType = "cpu" | "cuda" | "metal" | "rocm";
 
 /**
  * Platform (operating system)

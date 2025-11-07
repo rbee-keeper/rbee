@@ -1,11 +1,11 @@
 // TEAM-422: Dynamic filtered CivitAI pages (SSG pre-generated)
+// TEAM-461: Using CategoryFilterBar directly (Rule Zero - no wrapper shims)
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
-import { ModelCardVertical } from '@rbee/ui/marketplace'
+import { ModelCardVertical, CategoryFilterBar } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { modelIdToSlug } from '@/lib/slugify'
-import { FilterBar } from '../FilterBar'
-import { PREGENERATED_FILTERS, getFilterFromPath } from '../filters'
+import { PREGENERATED_FILTERS, CIVITAI_FILTER_GROUPS, getFilterFromPath, buildFilterParams, buildFilterUrl } from '../filters'
 
 interface PageProps {
   params: Promise<{
@@ -51,31 +51,8 @@ export default async function FilteredCivitaiPage({ params }: PageProps) {
   
   console.log(`[SSG] Fetching CivitAI models with filter: ${filterPath}`)
   
-  // TEAM-422: Pass filter parameters to API
-  const apiParams: {
-    limit?: number
-    types?: string[]
-    period?: 'AllTime' | 'Month' | 'Week' | 'Day'
-    baseModel?: string
-  } = {
-    limit: 100,
-  }
-  
-  // Model types
-  if (currentFilter.modelType !== 'All') {
-    apiParams.types = [currentFilter.modelType]
-  }
-  
-  // Time period
-  if (currentFilter.timePeriod !== 'AllTime') {
-    apiParams.period = currentFilter.timePeriod as 'Month' | 'Week' | 'Day'
-  }
-  
-  // Base model
-  if (currentFilter.baseModel !== 'All') {
-    apiParams.baseModel = currentFilter.baseModel
-  }
-  
+  // TEAM-461: Use buildFilterParams helper
+  const apiParams = buildFilterParams(currentFilter)
   const civitaiModels = await getCompatibleCivitaiModels(apiParams)
   
   console.log(`[SSG] Showing ${civitaiModels.length} Civitai models (${filterPath})`)
@@ -129,7 +106,11 @@ export default async function FilteredCivitaiPage({ params }: PageProps) {
       </div>
 
       {/* Filter Bar */}
-      <FilterBar currentFilter={currentFilter} />
+      <CategoryFilterBar
+        groups={CIVITAI_FILTER_GROUPS}
+        currentFilters={currentFilter}
+        buildUrl={(filters) => buildFilterUrl({ ...currentFilter, ...filters })}
+      />
 
       {/* Vertical Card Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

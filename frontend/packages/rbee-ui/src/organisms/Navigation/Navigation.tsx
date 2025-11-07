@@ -10,6 +10,7 @@ import { Separator } from '@rbee/ui/atoms/Separator'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@rbee/ui/atoms/Sheet'
 import { BrandLogo, NavigationDropdown, LinkGroup, NavigationActions, NavLink } from '@rbee/ui/molecules'
 import { Menu, X } from 'lucide-react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { NavigationConfig } from './types'
@@ -40,7 +41,13 @@ export function Navigation({ config }: NavigationProps) {
           <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
             <div className="grid grid-cols-[auto_1fr_auto] items-center h-16 md:h-14">
               {/* Zone A: Logo + Brand */}
-              <BrandLogo priority />
+              {config.logoHref ? (
+                <Link href={config.logoHref} aria-label="Go to homepage">
+                  <BrandLogo priority />
+                </Link>
+              ) : (
+                <BrandLogo priority />
+              )}
 
               {/* Zone B: Navigation (Desktop) - Config-driven */}
               <div className="hidden md:flex items-center justify-center gap-6 font-sans">

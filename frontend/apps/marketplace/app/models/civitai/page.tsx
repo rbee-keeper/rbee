@@ -1,13 +1,13 @@
 // TEAM-460: Civitai models marketplace page
 // TEAM-422: Changed to vertical card grid layout for CivitAI's portrait images
 // TEAM-422: Added SSG-based filtering with pre-generated pages
+// TEAM-461: Using CategoryFilterBar directly (Rule Zero - no wrapper shims)
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
-import { ModelCardVertical } from '@rbee/ui/marketplace'
+import { ModelCardVertical, CategoryFilterBar } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { modelIdToSlug } from '@/lib/slugify'
-import { FilterBar } from './FilterBar'
-import { PREGENERATED_FILTERS } from './filters'
+import { PREGENERATED_FILTERS, CIVITAI_FILTER_GROUPS, buildFilterUrl } from './filters'
 
 export const metadata: Metadata = {
   title: 'Civitai Models | rbee Marketplace',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function CivitaiModelsPage() {
   // Default filter (All Time, All Types, All Models)
-  const currentFilter = PREGENERATED_FILTERS[0]
+  const currentFilter = PREGENERATED_FILTERS[0].filters
   
   console.log('[SSG] Fetching top 100 compatible Civitai models')
   
@@ -69,7 +69,11 @@ export default async function CivitaiModelsPage() {
       </div>
 
       {/* Filter Bar */}
-      <FilterBar currentFilter={currentFilter} />
+      <CategoryFilterBar
+        groups={CIVITAI_FILTER_GROUPS}
+        currentFilters={currentFilter}
+        buildUrl={(filters) => buildFilterUrl({ ...currentFilter, ...filters })}
+      />
 
       {/* Vertical Card Grid - Portrait aspect ratio for CivitAI images */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

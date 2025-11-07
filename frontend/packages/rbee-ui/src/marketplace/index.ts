@@ -8,6 +8,7 @@
 
 // Types
 export * from './types/compatibility'
+export * from './types/filters'
 
 // Atoms (Pure presentation)
 export * from './atoms/CompatibilityBadge'
@@ -19,6 +20,7 @@ export * from './organisms/WorkerCard'
 export * from './organisms/MarketplaceGrid'
 export * from './organisms/ModelTable'
 export * from './organisms/WorkerCompatibilityList'
+export * from './organisms/CategoryFilterBar'
 
 // Molecules (Pure presentation)
 export * from './molecules/ModelMetadataCard'

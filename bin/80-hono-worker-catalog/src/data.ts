@@ -186,5 +186,67 @@ export const WORKERS: WorkerCatalogEntry[] = [
     supportedFormats: ["safetensors"],
     supportsStreaming: true,
     supportsBatching: false
+  },
+  // TEAM-461: ROCm workers for AMD GPU acceleration
+  {
+    id: "llm-worker-rbee-rocm",
+    implementation: "rust",
+    workerType: "rocm",
+    version: "0.1.0",
+    platforms: ["linux"],
+    architectures: ["x86_64"],
+    name: "LLM Worker (ROCm)",
+    description: "Candle-based LLM inference worker with AMD ROCm acceleration",
+    license: "GPL-3.0-or-later",
+    pkgbuildUrl: "/workers/llm-worker-rbee-rocm/PKGBUILD",
+    buildSystem: "cargo",
+    source: {
+      type: "git",
+      url: "https://github.com/user/llama-orch.git",
+      branch: "main",
+      path: "bin/30_llm_worker_rbee"
+    },
+    build: {
+      features: ["rocm"],
+      profile: "release"
+    },
+    depends: ["gcc", "rocm"],
+    makedepends: ["rust", "cargo"],
+    binaryName: "llm-worker-rbee-rocm",
+    installPath: "/usr/local/bin/llm-worker-rbee-rocm",
+    supportedFormats: ["gguf", "safetensors"],
+    maxContextLength: 32768,
+    supportsStreaming: true,
+    supportsBatching: false
+  },
+  {
+    id: "sd-worker-rbee-rocm",
+    implementation: "rust",
+    workerType: "rocm",
+    version: "0.1.0",
+    platforms: ["linux"],
+    architectures: ["x86_64"],
+    name: "SD Worker (ROCm)",
+    description: "Candle-based Stable Diffusion inference worker with AMD ROCm acceleration",
+    license: "GPL-3.0-or-later",
+    pkgbuildUrl: "/workers/sd-worker-rbee-rocm/PKGBUILD",
+    buildSystem: "cargo",
+    source: {
+      type: "git",
+      url: "https://github.com/user/llama-orch.git",
+      branch: "main",
+      path: "bin/31_sd_worker_rbee"
+    },
+    build: {
+      features: ["rocm"],
+      profile: "release"
+    },
+    depends: ["gcc", "rocm"],
+    makedepends: ["rust", "cargo"],
+    binaryName: "sd-worker-rbee-rocm",
+    installPath: "/usr/local/bin/sd-worker-rbee-rocm",
+    supportedFormats: ["safetensors"],
+    supportsStreaming: true,
+    supportsBatching: false
   }
 ];

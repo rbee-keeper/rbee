@@ -167,13 +167,13 @@ Download models to specific hives based on their capabilities:
 
 ```bash
 # Large model on gaming PC (24GB VRAM)
-queen-rbee model download llama-3.1-70b --hive gaming-pc
+rbee model download llama-3.1-70b --hive gaming-pc
 
 # Medium model on Mac (shared memory)
-queen-rbee model download llama-3.1-8b --hive mac-m3
+rbee model download llama-3.1-8b --hive mac-m3
 
 # Small model on home server (CPU)
-queen-rbee model download llama-3.2-1b --hive home-server
+rbee model download llama-3.2-1b --hive home-server
 ```
 
 ## Step 8: Spawn workers across machines
@@ -182,22 +182,25 @@ Now spawn workers on different machines:
 
 ```bash
 # LLM on gaming PC GPU
-queen-rbee worker spawn \\
+rbee worker spawn \\
   --hive gaming-pc \\
   --model llama-3.1-70b \\
-  --device cuda:0
+  --worker cuda \\
+  --device 0
 
 # LLM on Mac Metal
-queen-rbee worker spawn \\
+rbee worker spawn \\
   --hive mac-m3 \\
   --model llama-3.1-8b \\
-  --device metal
+  --worker metal \\
+  --device 0
 
 # Background worker on home server
-queen-rbee worker spawn \\
+rbee worker spawn \\
   --hive home-server \\
   --model llama-3.2-1b \\
-  --device cpu
+  --worker cpu \\
+  --device 0
 ```
 
 ## Step 9: Use the unified API
@@ -240,26 +243,26 @@ You'll see:
 ### Stop a remote hive
 
 ```bash
-queen-rbee hive stop gaming-pc
+rbee hive stop --host gaming-pc
 ```
 
 ### Restart a hive
 
 ```bash
-queen-rbee hive stop gaming-pc
+rbee hive stop --host gaming-pc
 rbee hive start --host gaming-pc
 ```
 
 ### Remove a hive from the colony
 
 ```bash
-queen-rbee hive uninstall gaming-pc
+rbee hive uninstall --host gaming-pc
 ```
 
 ### List all workers across all hives
 
 ```bash
-queen-rbee worker list
+rbee worker list
 ```
 
 ## Advanced: Load balancing

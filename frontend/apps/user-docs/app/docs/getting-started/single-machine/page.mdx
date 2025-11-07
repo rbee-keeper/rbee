@@ -150,13 +150,13 @@ Check that everything is running:
 
 ```bash
 # List all workers
-rbee-hive worker list
+rbee worker list
 
-# Check worker status
-rbee-hive worker get worker-abc123
+# Check worker status (view details)
+rbee status
 
 # View hive status
-rbee-hive status
+rbee hive status --host localhost
 ```
 
 ## What you've built
@@ -205,7 +205,7 @@ nvidia-smi  # For NVIDIA GPUs
 Ensure the model is downloaded:
 
 ```bash
-rbee-hive model list
+rbee model list
 ```
 
 ### Connection refused errors

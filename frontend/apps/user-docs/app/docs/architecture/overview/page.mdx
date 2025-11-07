@@ -114,7 +114,8 @@ A worker is an individual inference process running a specific model.
 **Key features:**
 - Model-specific (one worker per model instance)
 - GPU-pinned (runs on specific GPU device)
-- Supports LLM, image generation, audio transcription
+- Currently supports: LLM inference
+- Planned (M3): Image generation, audio transcription, video processing
 - Batching and streaming support
 
 **Technology:**
@@ -291,8 +292,8 @@ Add more hives to increase capacity:
 
 ```bash
 # Add new hive to colony
-queen-rbee hive install new-hive-01
-queen-rbee hive start new-hive-01
+rbee hive install --host new-hive-01
+rbee hive start --host new-hive-01
 ```
 
 Each hive can run multiple workers (limited by GPU count).
@@ -303,9 +304,9 @@ Add more GPUs to existing hives:
 
 ```bash
 # Hive auto-detects new GPUs on restart
-queen-rbee hive stop existing-hive
+rbee hive stop --host existing-hive
 # Install new GPU
-queen-rbee hive start existing-hive
+rbee hive start --host existing-hive
 ```
 
 ### Load balancing

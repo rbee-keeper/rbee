@@ -2,6 +2,8 @@
 
 This guide is for academic institutions and research teams deploying rbee for on-premises AI infrastructure with data residency guarantees and compliance-focused auditing.
 
+**⚠️ Note on Premium Features:** This guide describes using Premium Queen and GDPR Auditing Module for multi-user deployments. These modules are **planned for M2 launch (target Q2 2026)**. The current M0 release supports basic single-user and multi-machine deployments without quotas, auditing, or advanced user management. Commands shown are planned CLI syntax and subject to change.
+
 ## Who this is for
 
 - **University research labs** - Multi-user AI infrastructure for research projects
@@ -32,7 +34,7 @@ Optional GDPR Auditing module provides:
 ### Heterogeneous hardware
 
 Use what you have:
-- Mix NVIDIA, AMD, and Apple Silicon GPUs
+- Mix NVIDIA and Apple Silicon GPUs (AMD/ROCm planned for future release)
 - Combine workstation GPUs with HPC clusters
 - Utilize idle compute during off-hours
 

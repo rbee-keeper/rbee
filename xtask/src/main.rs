@@ -3,6 +3,7 @@ use clap::Parser;
 
 mod chaos; // TEAM-252: Chaos testing infrastructure
 mod cli;
+mod deploy; // TEAM-451: Cloudflare deployment
 mod e2e; // TEAM-160: End-to-end integration tests
 mod integration; // TEAM-251: Integration testing infrastructure
 mod release; // TEAM-451: Release management
@@ -178,6 +179,10 @@ fn main() -> Result<()> {
         // TEAM-451: Release management
         Cmd::Release { tier, r#type, dry_run } => {
             release::run(tier, r#type, dry_run)?
+        }
+        // TEAM-451: Cloudflare deployment
+        Cmd::Deploy { app, dry_run } => {
+            deploy::run(&app, dry_run)?
         }
     }
     Ok(())

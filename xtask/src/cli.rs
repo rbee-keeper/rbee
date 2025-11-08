@@ -112,6 +112,16 @@ pub enum Cmd {
         #[arg(long)]
         dry_run: bool,
     },
+    // TEAM-451: Cloudflare deployment
+    #[command(name = "deploy")]
+    Deploy {
+        /// App to deploy (worker, commercial, marketplace, docs)
+        #[arg(long)]
+        app: String,
+        /// Dry run (preview commands without executing)
+        #[arg(long)]
+        dry_run: bool,
+    },
     #[command(name = "bdd:progress")]
     BddProgress {
         /// Compare with previous run (requires .bdd-progress.json)

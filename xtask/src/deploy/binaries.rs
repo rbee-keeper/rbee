@@ -89,16 +89,17 @@ fn deploy_binary(binary_name: &str, tier: &str, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
-fn get_tier_version(tier: &str) -> Result<String> {
-    let tier_file = format!(".version-tiers/{}.toml", tier);
-    let content = std::fs::read_to_string(&tier_file)?;
+fn get_tier_version(_tier: &str) -> Result<String> {
+    // All tiers use the workspace version from root Cargo.toml
+    let cargo_toml = std::fs::read_to_string("Cargo.toml")?;
+    let config: toml::Value = toml::from_str(&cargo_toml)?;
     
-    // Parse TOML to get version
-    let config: toml::Value = toml::from_str(&content)?;
     let version = config
-        .get("version")
+        .get("workspace")
+        .and_then(|w| w.get("package"))
+        .and_then(|p| p.get("version"))
         .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Version not found in {}", tier_file))?;
+        .ok_or_else(|| anyhow::anyhow!("Version not found in Cargo.toml [workspace.package]"))?;
     
     Ok(version.to_string())
 }

@@ -12,6 +12,7 @@ use crate::status::ArtifactStatus;
 
 /// Worker type (canonical source of truth)
 /// TEAM-404: Simplified to match Hono catalog types
+/// TEAM-423: Added ROCm support for AMD GPUs
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
@@ -23,16 +24,20 @@ pub enum WorkerType {
     Cuda,
     /// Metal-based worker (Apple GPU)
     Metal,
+    /// ROCm-based worker (AMD GPU)
+    Rocm,
 }
 
 impl WorkerType {
     /// Get the binary name for this worker type
     /// TEAM-404: Updated to match simplified enum
+    /// TEAM-423: Added ROCm support
     pub fn binary_name(&self) -> &str {
         match self {
             WorkerType::Cpu => "llm-worker-rbee-cpu",
             WorkerType::Cuda => "llm-worker-rbee-cuda",
             WorkerType::Metal => "llm-worker-rbee-metal",
+            WorkerType::Rocm => "llm-worker-rbee-rocm",
         }
     }
 
@@ -42,11 +47,13 @@ impl WorkerType {
     }
 
     /// Get the features needed to build this worker type
+    /// TEAM-423: Added ROCm support
     pub fn build_features(&self) -> Option<&str> {
         match self {
             WorkerType::Cpu => Some("cpu"),
             WorkerType::Cuda => Some("cuda"),
             WorkerType::Metal => Some("metal"),
+            WorkerType::Rocm => Some("rocm"),
         }
     }
 }

@@ -21,6 +21,7 @@ export * from './organisms/MarketplaceGrid'
 export * from './organisms/ModelTable'
 export * from './organisms/WorkerCompatibilityList'
 export * from './organisms/CategoryFilterBar'
+export * from './organisms/UniversalFilterBar' // TEAM-423: Works in both SSG and GUI
 
 // Molecules (Pure presentation)
 export * from './molecules/ModelMetadataCard'

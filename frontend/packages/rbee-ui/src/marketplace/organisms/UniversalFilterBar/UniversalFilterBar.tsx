@@ -1,6 +1,5 @@
-// TEAM-461: Dropdown-based filter bar with proper SSR support
-// TEAM-423: Made compatible with both Next.js and Tauri using environment detection
-// Reusable for workers, models, or any catalog with categorical filters
+// TEAM-423: Universal filter bar that works in both SSG (URL-based) and GUI (state-based) modes
+// Automatically detects environment and adapts behavior
 import { cn } from '@rbee/ui/utils'
 import { isTauriEnvironment } from '@rbee/ui/utils/environment'
 import type { FilterGroup, FilterOption } from '../../types/filters'
@@ -16,13 +15,11 @@ import {
 interface FilterGroupComponentProps {
   group: FilterGroup
   currentValue: string
-  buildUrl: (value: string) => string
-  onFilterChange?: (value: string) => void
+  onChange: (value: string) => void
 }
 
-function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }: FilterGroupComponentProps) {
+function FilterGroupComponent({ group, currentValue, onChange }: FilterGroupComponentProps) {
   const activeOption = group.options.find(opt => opt.value === currentValue)
-  const isTauri = isTauriEnvironment()
   
   return (
     <DropdownMenu>
@@ -40,21 +37,11 @@ function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }:
       <DropdownMenuContent align="start" className="w-48">
         {group.options.map((option: FilterOption) => {
           const isActive = currentValue === option.value
-          const url = buildUrl(option.value)
           
           return (
             <DropdownMenuItem 
               key={option.value}
-              onClick={() => {
-                // TEAM-423: Environment-aware navigation
-                if (isTauri && onFilterChange) {
-                  // Tauri: Use callback to update state
-                  onFilterChange(option.value)
-                } else if (!isTauri && url !== '#') {
-                  // Next.js: Navigate to URL
-                  window.location.href = url
-                }
-              }}
+              onClick={() => onChange(option.value)}
               className={cn(
                 "flex items-center justify-between w-full cursor-pointer",
                 isActive && "font-semibold"
@@ -70,45 +57,64 @@ function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }:
   )
 }
 
-export interface CategoryFilterBarProps<T = Record<string, string>> {
+export interface UniversalFilterBarProps<T = Record<string, string>> {
   /** Array of filter groups to display (left side) */
   groups: FilterGroup[]
   /** Optional sort group to display (right side) */
   sortGroup?: FilterGroup
   /** Current filter values (e.g., { category: 'llm', backend: 'cuda' }) */
   currentFilters: T
-  /** Function to build URL for partial filter changes */
-  buildUrl: (filters: Partial<T>) => string
-  /** Optional callback for filter changes (Tauri mode) - if provided, disables URL navigation */
-  onFilterChange?: (filters: Partial<T>) => void
+  /** 
+   * Callback when filters change
+   * - In Tauri: Updates local state
+   * - In Next.js: Navigates to new URL
+   */
+  onFiltersChange: (filters: Partial<T>) => void
   /** Additional CSS classes */
   className?: string
 }
 
 /**
- * CategoryFilterBar - Dropdown-based filter bar with proper SSR support
+ * UniversalFilterBar - Works in both SSG and GUI environments
  * 
- * Used for SSG-compatible filtering with Link-based navigation.
- * Filters on the left, sorting on the right.
+ * Automatically adapts to environment:
+ * - Tauri: Uses state-based filtering (callbacks)
+ * - Next.js: Uses URL-based filtering (navigation)
  * 
- * @example
+ * @example Tauri (state-based)
  * ```tsx
- * <CategoryFilterBar
+ * const [filters, setFilters] = useState({ category: 'all', backend: 'all' })
+ * 
+ * <UniversalFilterBar
  *   groups={WORKER_FILTER_GROUPS}
- *   sortGroup={WORKER_SORT_GROUP}
- *   currentFilters={{ category: 'llm', backend: 'cuda', sort: 'downloads' }}
- *   buildUrl={(filters) => buildWorkerFilterUrl({ ...currentFilters, ...filters })}
+ *   currentFilters={filters}
+ *   onFiltersChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
+ * />
+ * ```
+ * 
+ * @example Next.js (URL-based)
+ * ```tsx
+ * <UniversalFilterBar
+ *   groups={WORKER_FILTER_GROUPS}
+ *   currentFilters={{ category: 'llm', backend: 'cuda' }}
+ *   onFiltersChange={(filters) => {
+ *     const url = buildWorkerFilterUrl({ ...currentFilters, ...filters })
+ *     router.push(url)
+ *   }}
  * />
  * ```
  */
-export function CategoryFilterBar<T = Record<string, string>>({
+export function UniversalFilterBar<T = Record<string, string>>({
   groups,
   sortGroup,
   currentFilters,
-  buildUrl,
-  onFilterChange,
+  onFiltersChange,
   className
-}: CategoryFilterBarProps<T>) {
+}: UniversalFilterBarProps<T>) {
+  const handleFilterChange = (groupId: string, value: string) => {
+    onFiltersChange({ [groupId]: value } as Partial<T>)
+  }
+
   return (
     <div className={cn(
       "flex flex-wrap items-center justify-between gap-4 mb-6",
@@ -121,8 +127,7 @@ export function CategoryFilterBar<T = Record<string, string>>({
             key={group.id}
             group={group}
             currentValue={(currentFilters as Record<string, string>)[group.id] || 'all'}
-            buildUrl={(value) => buildUrl({ [group.id]: value } as Partial<T>)}
-            onFilterChange={onFilterChange ? (value) => onFilterChange({ [group.id]: value } as Partial<T>) : undefined}
+            onChange={(value) => handleFilterChange(group.id, value)}
           />
         ))}
       </div>
@@ -134,7 +139,7 @@ export function CategoryFilterBar<T = Record<string, string>>({
             key={sortGroup.id}
             group={sortGroup}
             currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value}
-            buildUrl={(value) => buildUrl({ [sortGroup.id]: value } as Partial<T>)}
+            onChange={(value) => handleFilterChange(sortGroup.id, value)}
           />
         </div>
       )}

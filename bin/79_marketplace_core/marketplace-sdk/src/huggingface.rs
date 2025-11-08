@@ -107,13 +107,7 @@ impl HuggingFaceClient {
             .await
             .context("Failed to get response text")?;
 
-        // TEAM-405: Print the COMPLETE RAW JSON - no filtering!
-        println!("\n🔍 RAW HuggingFace API List Response");
-        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        println!("{}", raw_json);
-        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-
-        // Now parse it
+        // Parse response
         let hf_models: Vec<HFModelResponse> = serde_json::from_str(&raw_json)
             .context("Failed to parse HuggingFace response")?;
 
@@ -146,23 +140,14 @@ impl HuggingFaceClient {
             .await
             .context("Failed to fetch model from HuggingFace")?;
 
-        // TEAM-405: Get RAW JSON text first so we can print it
         let raw_json = response
             .text()
             .await
             .context("Failed to get response text")?;
 
-        // TEAM-405: Print the COMPLETE RAW JSON - no filtering!
-        println!("\n🔍 RAW HuggingFace API Response for: {}", model_id);
-        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        println!("{}", raw_json);
-        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-
-        // Now parse it
         let hf_model: HFModelResponse = serde_json::from_str(&raw_json)
-            .context("Failed to parse HuggingFace response")?;
+            .context("Failed to parse HuggingFace model response")?;
 
-        // Check if model is private
         if hf_model.private {
             anyhow::bail!("Model is private");
         }

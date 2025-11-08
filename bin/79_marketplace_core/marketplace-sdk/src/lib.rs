@@ -95,12 +95,14 @@ pub fn init() {
 // These ensure tsify generates the types even though they're re-exported from artifacts-contract
 
 /// Get WorkerType as string (forces TypeScript type generation)
+/// TEAM-423: Added ROCm support
 #[wasm_bindgen]
 pub fn worker_type_to_string(worker_type: WorkerType) -> String {
     match worker_type {
         WorkerType::Cpu => "cpu".to_string(),
         WorkerType::Cuda => "cuda".to_string(),
         WorkerType::Metal => "metal".to_string(),
+        WorkerType::Rocm => "rocm".to_string(),
     }
 }
 

@@ -110,24 +110,16 @@ impl WorkerCatalogClient {
             );
         }
         
-        // TEAM-421: Debug JSON parsing - get raw text first
+        // TEAM-423: Parse response (removed verbose logging)
         let response_text = response
             .text()
             .await
             .context("Failed to read response body as text")?;
         
-        eprintln!("[DEBUG] Raw response from {}: {}", url, response_text);
-        eprintln!("[DEBUG] Response length: {} bytes", response_text.len());
-        
         // TEAM-408: Hono API returns { workers: [...] } wrapper
         let response_data: WorkersListResponse = serde_json::from_str(&response_text)
-            .map_err(|e| {
-                eprintln!("[DEBUG] JSON parse error: {}", e);
-                eprintln!("[DEBUG] First 500 chars: {}", &response_text.chars().take(500).collect::<String>());
-                anyhow::anyhow!("Failed to parse worker catalog response: {} (response: {})", e, &response_text.chars().take(200).collect::<String>())
-            })?;
+            .context("Failed to parse worker catalog response")?;
         
-        eprintln!("[DEBUG] Successfully parsed {} workers", response_data.workers.len());
         Ok(response_data.workers)
     }
     

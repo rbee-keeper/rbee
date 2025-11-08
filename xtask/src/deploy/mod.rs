@@ -83,15 +83,22 @@ fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
 }
 
 pub fn run(app: &str, bump: Option<&str>, dry_run: bool) -> Result<()> {
-    // Step 1: Bump version if requested
-    if let Some(bump_type) = bump {
-        println!("📦 Bumping version ({})...", bump_type);
-        bump_version(app, bump_type, dry_run)?;
-        println!();
-    } else {
-        println!("⚠️  Deploying current version (no version bump)");
-        println!();
-    }
+    // Step 1: Version bump is REQUIRED for production deploys
+    let bump_type = bump.ok_or_else(|| {
+        anyhow::anyhow!(
+            "Version bump is REQUIRED for deployment!\n\n\
+            Usage:\n\
+              cargo xtask deploy --app {} --bump patch   # Bug fixes\n\
+              cargo xtask deploy --app {} --bump minor   # New features\n\
+              cargo xtask deploy --app {} --bump major   # Breaking changes\n\n\
+            This prevents deploying the same version twice.",
+            app, app, app
+        )
+    })?;
+    
+    println!("📦 Bumping version ({})...", bump_type);
+    bump_version(app, bump_type, dry_run)?;
+    println!();
 
     // Step 2: Run deployment gates (unless dry run)
     if !dry_run {

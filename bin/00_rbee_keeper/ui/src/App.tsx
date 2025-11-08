@@ -5,6 +5,7 @@
 // TEAM-XXX: Added narration listener for Queen iframe events
 // TEAM-350: Log build mode on startup
 // TEAM-405: Added Marketplace pages (LLM Models, Image Models, Rbee Workers)
+// TEAM-423: Renamed to HuggingFace and Civitai for clarity
 // TEAM-413: Added protocol listener for rbee:// URL handling
 
 import { useEffect } from 'react'
@@ -16,8 +17,8 @@ import HivePage from './pages/HivePage'
 import QueenPage from './pages/QueenPage'
 import KeeperPage from './pages/ServicesPage'
 import SettingsPage from './pages/SettingsPage'
-import { MarketplaceLlmModels } from './pages/MarketplaceLlmModels'
-import { MarketplaceImageModels } from './pages/MarketplaceImageModels'
+import { MarketplaceHuggingFace } from './pages/MarketplaceHuggingFace'
+import { MarketplaceCivitai } from './pages/MarketplaceCivitai'
 import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
 import { ModelDetailsPage } from './pages/ModelDetailsPage'
 import { WorkerDetailsPage } from './pages/WorkerDetailsPage'
@@ -60,9 +61,9 @@ function AppRoutes() {
           <Route path="/" element={<KeeperPage />} />
           <Route path="/queen" element={<QueenPage />} />
           <Route path="/hive/:hiveId" element={<HivePage />} />
-          <Route path="/marketplace/llm-models" element={<MarketplaceLlmModels />} />
-          <Route path="/marketplace/llm-models/:modelId" element={<ModelDetailsPage />} />
-          <Route path="/marketplace/image-models" element={<MarketplaceImageModels />} />
+          <Route path="/marketplace/huggingface" element={<MarketplaceHuggingFace />} />
+          <Route path="/marketplace/huggingface/:modelId" element={<ModelDetailsPage />} />
+          <Route path="/marketplace/civitai" element={<MarketplaceCivitai />} />
           <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
           <Route path="/marketplace/rbee-workers/:workerId" element={<WorkerDetailsPage />} />
           <Route path="/settings" element={<SettingsPage />} />

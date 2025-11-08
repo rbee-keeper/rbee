@@ -5,6 +5,7 @@
 // TEAM-342: Added Hives section with dynamic navigation to installed hives
 // TEAM-405: Added Marketplace section with LLM Models, Image Models, Rbee Workers
 // TEAM-413: Added DownloadPanel for tracking model/worker downloads
+// TEAM-423: Renamed LLM Models → HuggingFace Models, Image Models → Civitai Models for clarity
 
 import { ThemeToggle } from "@rbee/ui/molecules";
 import {
@@ -105,28 +106,28 @@ export function KeeperSidebar() {
             </h3>
             <nav className="space-y-1">
               <Link
-                to="/marketplace/llm-models"
-                title="Browse LLM models from HuggingFace"
+                to="/marketplace/huggingface"
+                title="Browse language models from HuggingFace"
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === "/marketplace/llm-models"
+                  location.pathname === "/marketplace/huggingface"
                     ? "bg-primary text-primary-foreground"
                     : "text-foreground hover:bg-muted"
                 }`}
               >
                 <BrainIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">LLM Models</span>
+                <span className="truncate">HuggingFace Models</span>
               </Link>
               <Link
-                to="/marketplace/image-models"
-                title="Browse image models from CivitAI"
+                to="/marketplace/civitai"
+                title="Browse image models from Civitai"
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === "/marketplace/image-models"
+                  location.pathname === "/marketplace/civitai"
                     ? "bg-primary text-primary-foreground"
                     : "text-foreground hover:bg-muted"
                 }`}
               >
                 <ImageIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">Image Models</span>
+                <span className="truncate">Civitai Models</span>
               </Link>
               <Link
                 to="/marketplace/rbee-workers"

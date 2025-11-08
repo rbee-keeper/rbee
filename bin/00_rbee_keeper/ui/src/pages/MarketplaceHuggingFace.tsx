@@ -1,5 +1,6 @@
 // TEAM-405: Marketplace LLM Models page - Using reusable components
 // TEAM-413: Fixed to use ModelTable instead of non-existent ModelListTableTemplate
+// TEAM-423: Renamed to MarketplaceHuggingFace for clarity
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: ModelTable from rbee-ui
 
@@ -10,7 +11,7 @@ import { PageContainer } from "@rbee/ui/molecules";
 import { ModelTable } from "@rbee/ui/marketplace";
 import type { Model } from "@/generated/bindings";
 
-export function MarketplaceLlmModels() {
+export function MarketplaceHuggingFace() {
   const navigate = useNavigate();
 
   // DATA LAYER: Fetch models from Tauri

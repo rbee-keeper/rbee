@@ -1,7 +1,8 @@
 // TEAM-405: Marketplace Image Models page
+// TEAM-423: Renamed to MarketplaceCivitai for clarity
 // Browse and search CivitAI models (placeholder for future implementation)
 
-export function MarketplaceImageModels() {
+export function MarketplaceCivitai() {
   return (
     <div className="h-full flex flex-col items-center justify-center p-6">
       <div className="max-w-md text-center space-y-4">

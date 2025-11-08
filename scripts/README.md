@@ -79,6 +79,22 @@ Turborepo and Cargo workspaces handle all the dependency ordering automatically!
 
 Installs deps and builds @rbee/ui, then shows dev commands.
 
+## GitHub Setup
+
+### `setup-github-branches.sh` ⭐ NEW
+
+**TEAM-451:** Setup development and production branches with optional protection rules.
+
+```bash
+# Create branches only
+./scripts/setup-github-branches.sh
+
+# Create branches + configure protection (requires admin)
+./scripts/setup-github-branches.sh --protect
+```
+
+See `.docs/BRANCH_STRATEGY.md` for workflow details.
+
 ## Other Scripts
 
 ### `check-build-status.sh`

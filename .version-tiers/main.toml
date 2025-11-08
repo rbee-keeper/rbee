@@ -59,7 +59,7 @@ shared_crates = [
 ]
 
 [javascript]
-packages = [
-    "@rbee/queen-rbee-sdk",
-    "@rbee/rbee-hive-sdk",
-]
+# Note: WASM SDKs (@rbee/queen-rbee-sdk, @rbee/rbee-hive-sdk) are build artifacts
+# generated during Rust compilation, not separate source packages.
+# They don't need version bumping - they inherit version from their parent binaries.
+packages = []

@@ -1,0 +1,20 @@
+# Frontend Tier - Cloudflare deployments (independent versioning)
+# Created by: TEAM-451
+# Frontend apps can release independently from main binaries
+
+name = "frontend"
+description = "Frontend applications and Cloudflare Workers"
+
+[rust]
+# No Rust crates in this tier
+crates = []
+shared_crates = []
+
+[javascript]
+# Frontend applications deployed to Cloudflare
+packages = [
+    "@rbee/commercial",              # Commercial site (Cloudflare Pages)
+    "@rbee/marketplace",             # Marketplace (Cloudflare Pages)
+    "@rbee/user-docs",               # User documentation (Cloudflare Pages)
+    "@rbee/global-worker-catalog",   # Worker catalog API (Cloudflare Workers)
+]

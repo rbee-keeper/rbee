@@ -105,13 +105,13 @@ impl<T: HeartbeatItem> HeartbeatRegistry<T> {
     ///
     /// Upserts item - creates if new, updates if exists.
     pub fn update(&self, heartbeat: T) {
-        let mut items = self.items.write().unwrap();
+        let mut items = self.items.write().unwrap_or_else(|e| e.into_inner());
         items.insert(heartbeat.id().to_string(), heartbeat);
     }
 
     /// Get item by ID
     pub fn get(&self, id: &str) -> Option<T::Info> {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.get(id).map(|hb| hb.info())
     }
 
@@ -119,13 +119,13 @@ impl<T: HeartbeatItem> HeartbeatRegistry<T> {
     ///
     /// Returns true if item was removed, false if not found.
     pub fn remove(&self, id: &str) -> bool {
-        let mut items = self.items.write().unwrap();
+        let mut items = self.items.write().unwrap_or_else(|e| e.into_inner());
         items.remove(id).is_some()
     }
 
     /// List all items (including stale ones)
     pub fn list_all(&self) -> Vec<T::Info> {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.values().map(|hb| hb.info()).collect()
     }
 
@@ -133,7 +133,7 @@ impl<T: HeartbeatItem> HeartbeatRegistry<T> {
     ///
     /// Only returns items that sent heartbeat within timeout window.
     pub fn list_online(&self) -> Vec<T::Info> {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.values().filter(|hb| hb.is_recent()).map(|hb| hb.info()).collect()
     }
 
@@ -143,7 +143,7 @@ impl<T: HeartbeatItem> HeartbeatRegistry<T> {
     /// 1. Online (recent heartbeat)
     /// 2. Available (ready for work)
     pub fn list_available(&self) -> Vec<T::Info> {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items
             .values()
             .filter(|hb| hb.is_recent() && hb.is_available())
@@ -153,26 +153,26 @@ impl<T: HeartbeatItem> HeartbeatRegistry<T> {
 
     /// Get count of online items
     pub fn count_online(&self) -> usize {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.values().filter(|hb| hb.is_recent()).count()
     }
 
     /// Get count of available items
     pub fn count_available(&self) -> usize {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.values().filter(|hb| hb.is_recent() && hb.is_available()).count()
     }
 
     /// Get total count (including stale items)
     pub fn count_total(&self) -> usize {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.len()
     }
 
     /// Check if item is online
     pub fn is_online(&self, id: &str) -> bool {
-        let items = self.items.read().unwrap();
-        items.get(id).map(|hb| hb.is_recent()).unwrap_or(false)
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
+        items.get(id).is_some_and(|hb| hb.is_recent())
     }
 
     /// Cleanup stale items
@@ -180,17 +180,17 @@ impl<T: HeartbeatItem> HeartbeatRegistry<T> {
     /// Removes items that haven't sent heartbeat within timeout window.
     /// Returns number of items removed.
     pub fn cleanup_stale(&self) -> usize {
-        let mut items = self.items.write().unwrap();
+        let mut items = self.items.write().unwrap_or_else(|e| e.into_inner());
         let before_count = items.len();
         items.retain(|_, hb| hb.is_recent());
-        before_count - items.len()
+        before_count.saturating_sub(items.len())
     }
 
     /// Get all heartbeats (for advanced queries)
     ///
     /// Returns a snapshot of all heartbeats for custom filtering.
     pub fn get_all_heartbeats(&self) -> Vec<T> {
-        let items = self.items.read().unwrap();
+        let items = self.items.read().unwrap_or_else(|e| e.into_inner());
         items.values().cloned().collect()
     }
 }
@@ -204,7 +204,7 @@ impl<T: HeartbeatItem> Default for HeartbeatRegistry<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::{Duration, SystemTime};
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     // Test heartbeat implementation
     #[derive(Clone)]
@@ -222,7 +222,7 @@ mod tests {
         fn with_old_timestamp(id: &str, available: bool) -> Self {
             Self {
                 id: id.to_string(),
-                timestamp: SystemTime::now() - Duration::from_secs(120),
+                timestamp: UNIX_EPOCH,
                 available,
             }
         }
@@ -272,8 +272,11 @@ mod tests {
         let heartbeat = TestHeartbeat::new("item-1", true);
         registry.update(heartbeat);
 
-        let info = registry.get("item-1").unwrap();
-        assert_eq!(info, "item-1");
+        let info = registry.get("item-1");
+        assert!(info.is_some());
+        if let Some(info_val) = info {
+            assert_eq!(info_val, "item-1");
+        }
 
         assert!(registry.get("nonexistent").is_none());
     }
@@ -311,7 +314,7 @@ mod tests {
 
         let online = registry.list_online();
         assert_eq!(online.len(), 1);
-        assert_eq!(online[0], "item-1");
+        assert_eq!(online.first(), Some(&"item-1".to_string()));
     }
 
     #[test]
@@ -329,7 +332,7 @@ mod tests {
 
         let available = registry.list_available();
         assert_eq!(available.len(), 1);
-        assert_eq!(available[0], "item-1");
+        assert_eq!(available.first(), Some(&"item-1".to_string()));
     }
 
     #[test]
@@ -383,6 +386,9 @@ mod tests {
 
         assert_eq!(registry.count_total(), 1);
         let heartbeats = registry.get_all_heartbeats();
-        assert!(heartbeats[0].is_available());
+        assert_eq!(heartbeats.len(), 1);
+        if let Some(hb) = heartbeats.first() {
+            assert!(hb.is_available());
+        }
     }
 }

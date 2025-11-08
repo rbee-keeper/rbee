@@ -5,86 +5,47 @@
 
 ---
 
-## 📋 Pre-Deployment Checklist
+## 🤖 Automated Pre-Deployment (Deployment Gates)
 
-### ✅ 1. Code Quality
+**All these checks run automatically when you deploy!**
 
-- [ ] All tests passing
+The deployment gates will automatically verify:
+
+1. ✅ **TypeScript type check** - Code compiles
+2. ✅ **Lint check** - Code quality standards
+3. ✅ **Unit tests** - All tests pass (data validation + API tests)
+4. ✅ **Build test** - Production build succeeds
+5. ✅ **PKGBUILD validation** - All 16 package files exist
+6. ✅ **Install script validation** - install.sh exists and is executable
+
+**You don't need to run these manually!** Just run the deploy command and the gates will check everything.
+
+---
+
+## 👤 Manual Pre-Deployment Checks
+
+These are the ONLY things you need to check manually:
+
+### ✅ 1. Environment Variables
+
+- [ ] `CLOUDFLARE_API_TOKEN` is set
   ```bash
-  cd bin/80-hono-worker-catalog
-  pnpm test
+  echo $CLOUDFLARE_API_TOKEN
+  # Should show your API token
   ```
 
-- [ ] TypeScript type check passing
+- [ ] `CLOUDFLARE_ACCOUNT_ID` is set (if needed)
   ```bash
-  pnpm type-check
+  echo $CLOUDFLARE_ACCOUNT_ID
+  # Should show your account ID
   ```
 
-- [ ] Lint check passing
+### ✅ 2. Wrangler Authentication
+
+- [ ] Logged into wrangler
   ```bash
-  pnpm lint
-  ```
-
-- [ ] Build succeeds
-  ```bash
-  pnpm build
-  ```
-
-### ✅ 2. Data Validation
-
-- [ ] All 5 worker variants exist in `src/data.ts`:
-  - `llm-worker-rbee-cpu`
-  - `llm-worker-rbee-cuda`
-  - `llm-worker-rbee-metal`
-  - `sd-worker-rbee-cpu`
-  - `sd-worker-rbee-cuda`
-
-- [ ] All PKGBUILDs exist (16 files):
-  - `arch/prod/` - 5 files ✓
-  - `arch/dev/` - 5 files ✓
-  - `homebrew/prod/` - 3 files ✓
-  - `homebrew/dev/` - 3 files ✓
-
-- [ ] Install script exists:
-  - `public/install.sh` ✓
-
-### ✅ 3. API Endpoints
-
-Test locally first:
-
-- [ ] Start dev server
-  ```bash
-  pnpm dev
-  ```
-
-- [ ] Test `/health` endpoint
-  ```bash
-  curl http://localhost:8787/health
-  # Should return: {"status":"ok","service":"worker-catalog","version":"0.1.0"}
-  ```
-
-- [ ] Test `/workers` endpoint
-  ```bash
-  curl http://localhost:8787/workers
-  # Should return: {"workers":[...]} with 5 workers
-  ```
-
-- [ ] Test `/workers/:id` endpoint
-  ```bash
-  curl http://localhost:8787/workers/llm-worker-rbee-cpu
-  # Should return worker details
-  ```
-
-- [ ] Test `/install.sh` endpoint
-  ```bash
-  curl http://localhost:8787/install.sh
-  # Should return the install script
-  ```
-
-- [ ] Test 404 handling
-  ```bash
-  curl http://localhost:8787/workers/invalid-worker
-  # Should return: {"error":"Worker not found"} with 404 status
+  wrangler whoami
+  # Should show your Cloudflare account
   ```
 
 ---

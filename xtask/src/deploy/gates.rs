@@ -54,6 +54,105 @@ fn check_worker_catalog_gates() -> Result<()> {
     println!("  4. Build test...");
     run_command("pnpm", &["build"], "bin/80-hono-worker-catalog")?;
     
+    // Gate 5: Validate PKGBUILDs exist
+    println!("  5. PKGBUILD validation...");
+    validate_pkgbuilds()?;
+    
+    // Gate 6: Validate install script exists
+    println!("  6. Install script validation...");
+    validate_install_script()?;
+    
+    Ok(())
+}
+
+fn validate_pkgbuilds() -> Result<()> {
+    use std::path::Path;
+    
+    let base = Path::new("bin/80-hono-worker-catalog/public/pkgbuilds");
+    
+    // Check arch/prod (5 files)
+    let arch_prod_files = vec![
+        "llm-worker-rbee-cpu.PKGBUILD",
+        "llm-worker-rbee-cuda.PKGBUILD",
+        "llm-worker-rbee-metal.PKGBUILD",
+        "sd-worker-rbee-cpu.PKGBUILD",
+        "sd-worker-rbee-cuda.PKGBUILD",
+    ];
+    
+    for file in &arch_prod_files {
+        let path = base.join("arch/prod").join(file);
+        if !path.exists() {
+            anyhow::bail!("Missing PKGBUILD: arch/prod/{}", file);
+        }
+    }
+    println!("    ✅ arch/prod: 5 PKGBUILDs");
+    
+    // Check arch/dev (5 files)
+    for file in &arch_prod_files {
+        let path = base.join("arch/dev").join(file);
+        if !path.exists() {
+            anyhow::bail!("Missing PKGBUILD: arch/dev/{}", file);
+        }
+    }
+    println!("    ✅ arch/dev: 5 PKGBUILDs");
+    
+    // Check homebrew/prod (3 files - no CUDA on macOS)
+    let homebrew_files = vec![
+        "llm-worker-rbee-cpu.rb",
+        "llm-worker-rbee-metal.rb",
+        "sd-worker-rbee-cpu.rb",
+    ];
+    
+    for file in &homebrew_files {
+        let path = base.join("homebrew/prod").join(file);
+        if !path.exists() {
+            anyhow::bail!("Missing Homebrew formula: homebrew/prod/{}", file);
+        }
+    }
+    println!("    ✅ homebrew/prod: 3 Formulas");
+    
+    // Check homebrew/dev (3 files)
+    for file in &homebrew_files {
+        let path = base.join("homebrew/dev").join(file);
+        if !path.exists() {
+            anyhow::bail!("Missing Homebrew formula: homebrew/dev/{}", file);
+        }
+    }
+    println!("    ✅ homebrew/dev: 3 Formulas");
+    
+    println!("    ✅ Total: 16 package files validated");
+    
+    Ok(())
+}
+
+fn validate_install_script() -> Result<()> {
+    use std::path::Path;
+    
+    let script_path = Path::new("bin/80-hono-worker-catalog/public/install.sh");
+    
+    if !script_path.exists() {
+        anyhow::bail!("Install script not found: {}", script_path.display());
+    }
+    
+    // Check if executable
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let metadata = std::fs::metadata(script_path)?;
+        let permissions = metadata.permissions();
+        let mode = permissions.mode();
+        
+        // Check if any execute bit is set
+        if mode & 0o111 == 0 {
+            println!("    ⚠️  Install script is not executable, making it executable...");
+            let mut perms = permissions;
+            perms.set_mode(0o755);
+            std::fs::set_permissions(script_path, perms)?;
+        }
+    }
+    
+    println!("    ✅ install.sh exists and is executable");
+    
     Ok(())
 }
 

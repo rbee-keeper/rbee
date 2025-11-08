@@ -1,8 +1,13 @@
 # Production Marketplace Plan (AUR-Like)
 
-**Purpose:** Transform worker catalog into production-ready marketplace  
+**Purpose:** THE complete plan for worker catalog marketplace  
 **Model:** AUR (Arch User Repository) - Community-driven package system  
-**Status:** Consolidation of existing plans + AUR research
+**Status:** RULE ZERO - This is THE ONLY worker catalog plan document
+
+**Related docs:**
+- `bin/00_rbee_keeper/GITHUB_RELEASES_INSTALL_PLAN.md` - GitHub releases implementation
+- `../../CLOUDFLARE_DEPLOY_USAGE.md` - Deployment commands
+- `../../MANUAL_RELEASE_GUIDE.md` - Release workflow
 
 ---
 

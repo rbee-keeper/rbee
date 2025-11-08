@@ -1,7 +1,4 @@
-// TEAM-460: HuggingFace models marketplace page (migrated from /models)
-// TEAM-415: Pure SSG page for maximum SEO
-// TEAM-421: Show top 100 popular models (WASM filtering doesn't work in SSG)
-// TEAM-461: Added CategoryFilterBar for filtering
+// TEAM-461: Dynamic filtered HuggingFace pages (SSG pre-generated)
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
 import { CategoryFilterBar } from '@rbee/ui/marketplace'
@@ -11,28 +8,52 @@ import {
   HUGGINGFACE_FILTER_GROUPS,
   HUGGINGFACE_SORT_GROUP,
   PREGENERATED_HF_FILTERS, 
+  getHFFilterFromPath,
   buildHFFilterUrl,
-  buildHFFilterDescription 
-} from './filters'
+  buildHFFilterDescription,
+  buildHFFilterParams
+} from '../filters'
 
-export const metadata: Metadata = {
-  title: 'HuggingFace LLM Models | rbee Marketplace',
-  description: 'Browse compatible language models from HuggingFace. Pre-rendered for instant loading and maximum SEO.',
+interface PageProps {
+  params: Promise<{
+    filter: string[]
+  }>
 }
 
-export default async function HuggingFaceModelsPage() {
-  // Default filter (downloads, all sizes, all licenses)
-  const currentFilter = PREGENERATED_HF_FILTERS[0].filters
+// Pre-generate static pages for all filter combinations
+export async function generateStaticParams() {
+  return PREGENERATED_HF_FILTERS
+    .filter(f => f.path !== '') // Exclude default (handled by main page)
+    .map(f => ({
+      filter: f.path.split('/').filter(Boolean), // Remove empty strings
+    }))
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { filter } = await params
+  const filterPath = filter.join('/')
+  const currentFilter = getHFFilterFromPath(filterPath)
+  const description = buildHFFilterDescription(currentFilter)
+  
+  return {
+    title: `${description} | HuggingFace Models | rbee Marketplace`,
+    description: `Browse ${description.toLowerCase()} language models from HuggingFace.`,
+  }
+}
+
+export default async function FilteredHuggingFacePage({ params }: PageProps) {
+  const { filter } = await params
+  const filterPath = filter.join('/')
+  const currentFilter = getHFFilterFromPath(filterPath)
   const filterDescription = buildHFFilterDescription(currentFilter)
   
-  // TEAM-421: WASM doesn't work in Next.js SSG - show top 100 popular models
-  const FETCH_LIMIT = 100
+  console.log(`[SSG] Fetching HuggingFace models with filter: ${filterPath}`)
   
-  console.log(`[SSG] Fetching top ${FETCH_LIMIT} most popular HuggingFace models`)
+  // Build API parameters from filter
+  const apiParams = buildHFFilterParams(currentFilter)
+  const hfModels = await listHuggingFaceModels(apiParams)
   
-  const hfModels = await listHuggingFaceModels({ limit: FETCH_LIMIT })
-  
-  console.log(`[SSG] Showing ${hfModels.length} HuggingFace models`)
+  console.log(`[SSG] Showing ${hfModels.length} HuggingFace models (${filterPath})`)
   
   const models: ModelTableItem[] = hfModels.map((model) => {
     const m = model as unknown as Record<string, unknown>
@@ -64,7 +85,7 @@ export default async function HuggingFaceModelsPage() {
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-primary" />
-            <span>{models.length.toLocaleString()} LLM models</span>
+            <span>{models.length.toLocaleString()} models</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-orange-500" />
@@ -81,10 +102,18 @@ export default async function HuggingFaceModelsPage() {
         buildUrl={(filters) => buildHFFilterUrl({ ...currentFilter, ...filters })}
       />
 
-      {/* Table with client-side routing (minimal JS for navigation only) */}
-      <div className="rounded-lg border border-border bg-card p-6">
-        <ModelTableWithRouting models={models} />
-      </div>
+      {/* Table with client-side routing */}
+      {models.length > 0 ? (
+        <div className="rounded-lg border border-border bg-card p-6">
+          <ModelTableWithRouting models={models} />
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-lg">
+            No models match the selected filters.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

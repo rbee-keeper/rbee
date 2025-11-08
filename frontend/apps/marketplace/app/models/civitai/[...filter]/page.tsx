@@ -5,7 +5,7 @@ import { ModelCardVertical, CategoryFilterBar } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { modelIdToSlug } from '@/lib/slugify'
-import { PREGENERATED_FILTERS, CIVITAI_FILTER_GROUPS, getFilterFromPath, buildFilterParams, buildFilterUrl } from '../filters'
+import { PREGENERATED_FILTERS, CIVITAI_FILTER_GROUPS, CIVITAI_SORT_GROUP, getFilterFromPath, buildFilterParams, buildFilterUrl } from '../filters'
 
 interface PageProps {
   params: Promise<{
@@ -108,6 +108,7 @@ export default async function FilteredCivitaiPage({ params }: PageProps) {
       {/* Filter Bar */}
       <CategoryFilterBar
         groups={CIVITAI_FILTER_GROUPS}
+        sortGroup={CIVITAI_SORT_GROUP}
         currentFilters={currentFilter}
         buildUrl={(filters) => buildFilterUrl({ ...currentFilter, ...filters })}
       />

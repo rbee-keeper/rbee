@@ -5,14 +5,16 @@ import type { FilterGroup, FilterConfig as GenericFilterConfig } from '@/lib/fil
 export type TimePeriod = 'AllTime' | 'Month' | 'Week' | 'Day'
 export type ModelType = 'All' | 'Checkpoint' | 'LORA'
 export type BaseModel = 'All' | 'SDXL 1.0' | 'SD 1.5' | 'SD 2.1'
+export type SortBy = 'downloads' | 'likes' | 'newest'
 
 export interface CivitaiFilters {
   timePeriod: TimePeriod
   modelType: ModelType
   baseModel: BaseModel
+  sort: SortBy
 }
 
-// Filter group definitions (new generic pattern)
+// Filter group definitions (left side - actual filters)
 export const CIVITAI_FILTER_GROUPS: FilterGroup[] = [
   {
     id: 'timePeriod',
@@ -45,6 +47,17 @@ export const CIVITAI_FILTER_GROUPS: FilterGroup[] = [
   },
 ]
 
+// Sort group definition (right side - sorting only)
+export const CIVITAI_SORT_GROUP: FilterGroup = {
+  id: 'sort',
+  label: 'Sort By',
+  options: [
+    { label: 'Most Downloads', value: 'downloads' },
+    { label: 'Most Likes', value: 'likes' },
+    { label: 'Newest', value: 'newest' },
+  ],
+}
+
 // Legacy export for backwards compatibility (deprecated)
 export const CIVITAI_FILTERS = {
   timePeriod: CIVITAI_FILTER_GROUPS[0].options,
@@ -56,24 +69,24 @@ export const CIVITAI_FILTERS = {
 // TEAM-460: Added 'filter/' prefix to avoid route conflicts with [slug]
 export const PREGENERATED_FILTERS: GenericFilterConfig<CivitaiFilters>[] = [
   // Default view
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All' }, path: '' },
+  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads' }, path: '' },
   
   // Popular time periods
-  { filters: { timePeriod: 'Month', modelType: 'All', baseModel: 'All' }, path: 'filter/month' },
-  { filters: { timePeriod: 'Week', modelType: 'All', baseModel: 'All' }, path: 'filter/week' },
+  { filters: { timePeriod: 'Month', modelType: 'All', baseModel: 'All', sort: 'downloads' }, path: 'filter/month' },
+  { filters: { timePeriod: 'Week', modelType: 'All', baseModel: 'All', sort: 'downloads' }, path: 'filter/week' },
   
   // Model type filters
-  { filters: { timePeriod: 'AllTime', modelType: 'Checkpoint', baseModel: 'All' }, path: 'filter/checkpoints' },
-  { filters: { timePeriod: 'AllTime', modelType: 'LORA', baseModel: 'All' }, path: 'filter/loras' },
+  { filters: { timePeriod: 'AllTime', modelType: 'Checkpoint', baseModel: 'All', sort: 'downloads' }, path: 'filter/checkpoints' },
+  { filters: { timePeriod: 'AllTime', modelType: 'LORA', baseModel: 'All', sort: 'downloads' }, path: 'filter/loras' },
   
   // Base model filters
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'SDXL 1.0' }, path: 'filter/sdxl' },
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'SD 1.5' }, path: 'filter/sd15' },
+  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'SDXL 1.0', sort: 'downloads' }, path: 'filter/sdxl' },
+  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'SD 1.5', sort: 'downloads' }, path: 'filter/sd15' },
   
   // Popular combinations
-  { filters: { timePeriod: 'Month', modelType: 'Checkpoint', baseModel: 'SDXL 1.0' }, path: 'filter/month/checkpoints/sdxl' },
-  { filters: { timePeriod: 'Month', modelType: 'LORA', baseModel: 'SDXL 1.0' }, path: 'filter/month/loras/sdxl' },
-  { filters: { timePeriod: 'Week', modelType: 'Checkpoint', baseModel: 'SDXL 1.0' }, path: 'filter/week/checkpoints/sdxl' },
+  { filters: { timePeriod: 'Month', modelType: 'Checkpoint', baseModel: 'SDXL 1.0', sort: 'downloads' }, path: 'filter/month/checkpoints/sdxl' },
+  { filters: { timePeriod: 'Month', modelType: 'LORA', baseModel: 'SDXL 1.0', sort: 'downloads' }, path: 'filter/month/loras/sdxl' },
+  { filters: { timePeriod: 'Week', modelType: 'Checkpoint', baseModel: 'SDXL 1.0', sort: 'downloads' }, path: 'filter/week/checkpoints/sdxl' },
 ]
 
 // Helper to build API parameters from filter config
@@ -82,7 +95,7 @@ export function buildFilterParams(filters: CivitaiFilters) {
     limit?: number
     types?: string[]
     sort?: string
-    period?: string
+    period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
     baseModel?: string
   } = {
     limit: 100,

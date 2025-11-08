@@ -1,5 +1,5 @@
 import { IconPlate } from '@rbee/ui/molecules'
-import { cn } from '@rbee/ui/utils'
+import { cn, type IconName } from '@rbee/ui/utils'
 import type * as React from 'react'
 
 export interface StatItem {
@@ -7,8 +7,8 @@ export interface StatItem {
   value: string | number
   /** Stat label/description */
   label: string
-  /** Optional rendered icon component */
-  icon?: React.ReactNode
+  /** Optional icon name string or rendered icon component */
+  icon?: IconName | React.ReactNode
   /** Optional help text for accessibility */
   helpText?: string
   /** Optional color tone for the value */

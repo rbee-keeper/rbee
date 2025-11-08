@@ -11,8 +11,9 @@ export function cn(...inputs: ClassValue[]) {
 // Re-export focus ring utilities
 export { brandLink, focusRing, focusRingDestructive, focusRingTight } from './focus-ring'
 
-// Re-export inline markdown parser
-export { InlineMarkdown, parseInlineMarkdown } from './parse-inline-markdown'
+// Re-export utilities
+export * from './iconMap'
+export * from './parse-inline-markdown'
 
 // TEAM-421: Re-export environment detection utilities
 export * from './environment'

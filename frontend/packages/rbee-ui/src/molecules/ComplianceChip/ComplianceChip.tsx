@@ -1,9 +1,9 @@
-import { cn } from '@rbee/ui/utils'
+import { cn, renderIcon, type IconName } from '@rbee/ui/utils'
 import type { ReactNode } from 'react'
 
 export interface ComplianceChipProps {
-  /** Icon element (e.g., Lucide icon) */
-  icon?: ReactNode
+  /** Icon name string or icon element */
+  icon?: IconName | ReactNode
   /** Chip label */
   children: ReactNode
   /** Accessible label for screen readers */
@@ -20,14 +20,16 @@ export function ComplianceChip({ icon, children, ariaLabel, className }: Complia
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border/60 bg-card/40 px-3 py-1.5 text-xs',
-        'transition-all duration-200 hover:border-border/80 hover:bg-card/60',
+        'inline-flex items-center gap-1.5 rounded border border-border/60 bg-background/50 px-2 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:border-border hover:bg-background/80',
         className,
       )}
-      role="status"
       aria-label={ariaLabel}
     >
-      {icon && <span className="flex-shrink-0">{icon}</span>}
+      {icon && (
+        <div className="shrink-0">
+          {typeof icon === 'string' ? renderIcon(icon as IconName, 'size-3') : icon}
+        </div>
+      )}
       <span>{children}</span>
     </div>
   )

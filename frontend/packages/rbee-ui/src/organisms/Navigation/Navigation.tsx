@@ -11,7 +11,6 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@rbee/ui/atoms/Sh
 import { BrandLogo, NavigationDropdown, LinkGroup, NavigationActions, NavLink } from '@rbee/ui/molecules'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { NavigationConfig } from './types'
 
@@ -21,7 +20,6 @@ export interface NavigationProps {
 
 export function Navigation({ config }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
 
   return (
     <>

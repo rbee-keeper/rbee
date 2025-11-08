@@ -30,7 +30,7 @@ export interface ModelCardProps {
   onClick?: () => void
 }
 
-export function ModelCard({ model, onAction, actionButton, onClick }: ModelCardProps) {
+export function ModelCard({ model, onAction, actionButton }: ModelCardProps) {
   // TEAM-422: Removed useState for SSG compatibility
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`

@@ -121,7 +121,7 @@ export function filterWorkers(
     }
     
     // Platform filter
-    if (filters.platform !== 'all' && !worker.platforms.includes(filters.platform as any)) {
+    if (filters.platform !== 'all' && !worker.platforms.includes(filters.platform as 'linux' | 'macos' | 'windows')) {
       return false
     }
     

@@ -37,7 +37,7 @@ pub async fn list_huggingface_models(
 
     let response = fetch_json(&url)
         .await
-        .map_err(|e| JsValue::from_str(&format!("Failed to fetch HuggingFace models: {}", e)))?;
+        .map_err(|e| JsValue::from_str(&format!("Failed to fetch HuggingFace models: {:?}", e)))?;
 
     Ok(response)
 }
@@ -55,7 +55,7 @@ pub async fn get_huggingface_model(model_id: String) -> Result<JsValue, JsValue>
 
     fetch_json(&url)
         .await
-        .map_err(|e| JsValue::from_str(&format!("Failed to fetch HuggingFace model: {}", e)))
+        .map_err(|e| JsValue::from_str(&format!("Failed to fetch HuggingFace model: {:?}", e)))
 }
 
 /// Get compatible HuggingFace models for rbee (WASM binding)
@@ -103,9 +103,9 @@ async fn fetch_json(url: &str) -> Result<JsValue, JsValue> {
     use wasm_bindgen_futures::JsFuture;
     use web_sys::{Request, RequestInit, RequestMode, Response};
 
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
     request.headers().set("Content-Type", "application/json")?;

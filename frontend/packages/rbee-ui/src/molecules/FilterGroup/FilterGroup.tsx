@@ -1,7 +1,7 @@
 // FilterGroup molecule - renders a single filter category with pill-style options
 import { cn } from '@rbee/ui/utils'
 import Link from 'next/link'
-import type { FilterGroup as FilterGroupType } from '@/lib/filters/types'
+import type { FilterGroup as FilterGroupType, FilterOption } from '../../marketplace/types/filters'
 
 export interface FilterGroupProps {
   /** Filter group configuration (id, label, options) */
@@ -33,15 +33,15 @@ export function FilterGroup({
   className 
 }: FilterGroupProps) {
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-2", className)}>
       {/* Filter Group Label */}
-      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         {group.label}
       </h3>
       
       {/* Filter Options */}
-      <div className="flex flex-wrap gap-2">
-        {group.options.map((option) => {
+      <div className="flex flex-wrap gap-1.5">
+        {group.options.map((option: FilterOption) => {
           const isActive = currentValue === option.value
           const url = buildUrl(option.value)
           
@@ -50,9 +50,9 @@ export function FilterGroup({
               key={option.value}
               href={url}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                 isActive 
-                  ? "bg-primary text-primary-foreground shadow-md" 
+                  ? "bg-primary text-primary-foreground shadow-sm" 
                   : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
               )}
             >

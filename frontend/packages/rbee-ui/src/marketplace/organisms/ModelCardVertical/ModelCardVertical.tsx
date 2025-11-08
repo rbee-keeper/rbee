@@ -1,12 +1,12 @@
 // TEAM-422: Vertical model card for CivitAI-style portrait images
+// TEAM-461: Added automatic image fallback handling
 import { Badge } from '@rbee/ui/atoms/Badge'
 import {
   Card,
-  CardContent,
   CardFooter,
-  CardHeader,
 } from '@rbee/ui/atoms/Card'
 import { Download, Heart, User, Sparkles } from 'lucide-react'
+import { ImageWithFallback } from './ImageWithFallback'
 
 export interface ModelCardVerticalProps {
   model: {
@@ -15,6 +15,7 @@ export interface ModelCardVerticalProps {
     description: string
     author?: string
     imageUrl?: string
+    fallbackImages?: string[]
     tags: string[]
     downloads: number
     likes: number
@@ -36,11 +37,11 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
       <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-br from-primary/10 via-background to-muted">
         {model.imageUrl ? (
           <>
-            <img
+            <ImageWithFallback
               src={model.imageUrl}
               alt={model.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
+              fallbackImages={model.fallbackImages}
             />
             {/* Gradient overlay for better text readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />

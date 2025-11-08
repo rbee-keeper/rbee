@@ -107,7 +107,7 @@ pub async fn list_civitai_models(
 
     let response = fetch_json(&url)
         .await
-        .map_err(|e| JsValue::from_str(&format!("Failed to fetch Civitai models: {}", e)))?;
+        .map_err(|e| JsValue::from_str(&format!("Failed to fetch Civitai models: {:?}", e)))?;
 
     // Extract items array from response
     let items = js_sys::Reflect::get(&response, &JsValue::from_str("items"))
@@ -129,7 +129,7 @@ pub async fn get_civitai_model(model_id: i64) -> Result<JsValue, JsValue> {
 
     fetch_json(&url)
         .await
-        .map_err(|e| JsValue::from_str(&format!("Failed to fetch Civitai model: {}", e)))
+        .map_err(|e| JsValue::from_str(&format!("Failed to fetch Civitai model: {:?}", e)))
 }
 
 /// Get compatible Civitai models for rbee (WASM binding)
@@ -188,9 +188,9 @@ async fn fetch_json(url: &str) -> Result<JsValue, JsValue> {
     use wasm_bindgen_futures::JsFuture;
     use web_sys::{Request, RequestInit, RequestMode, Response};
 
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
     request.headers().set("Content-Type", "application/json")?;

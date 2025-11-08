@@ -7,7 +7,7 @@ import { ModelCardVertical, CategoryFilterBar } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { modelIdToSlug } from '@/lib/slugify'
-import { PREGENERATED_FILTERS, CIVITAI_FILTER_GROUPS, buildFilterUrl } from './filters'
+import { PREGENERATED_FILTERS, CIVITAI_FILTER_GROUPS, CIVITAI_SORT_GROUP, buildFilterUrl } from './filters'
 
 export const metadata: Metadata = {
   title: 'Civitai Models | rbee Marketplace',
@@ -71,6 +71,7 @@ export default async function CivitaiModelsPage() {
       {/* Filter Bar */}
       <CategoryFilterBar
         groups={CIVITAI_FILTER_GROUPS}
+        sortGroup={CIVITAI_SORT_GROUP}
         currentFilters={currentFilter}
         buildUrl={(filters) => buildFilterUrl({ ...currentFilter, ...filters })}
       />

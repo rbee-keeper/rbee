@@ -1,4 +1,5 @@
 import { AuditReadinessCTA, type AuditReadinessCTAProps } from '@rbee/ui/molecules/AuditReadinessCTA'
+import { Badge } from '@rbee/ui/atoms/Badge'
 import { CTARail } from '@rbee/ui/molecules/CTARail'
 import { Disclaimer } from '@rbee/ui/molecules/Disclaimer'
 import { FooterCTA } from '@rbee/ui/molecules/FooterCTA'
@@ -21,7 +22,7 @@ export interface TemplateContainerProps {
   title: string | ReactNode | null
   /** Optional description */
   description?: string | ReactNode
-  /** Small badge/label above title */
+  /** Small badge/label above title (string will be rendered as Badge component) */
   eyebrow?: string | ReactNode
   /** Short lead-in sentence between eyebrow and title */
   kicker?: string | ReactNode
@@ -254,8 +255,12 @@ export function TemplateContainer({
             >
               <div className={cn(layout === 'split' && actions ? 'md:col-span-8 space-y-3' : 'space-y-3')}>
                 {eyebrow && (
-                  <div className="text-xs font-medium text-primary uppercase tracking-wide animate-fade-in">
-                    {eyebrow}
+                  <div className="animate-fade-in">
+                    {typeof eyebrow === 'string' ? (
+                      <Badge variant="secondary">{eyebrow}</Badge>
+                    ) : (
+                      eyebrow
+                    )}
                   </div>
                 )}
 

@@ -1,15 +1,15 @@
-import { cn } from '@rbee/ui/utils'
+import { cn, renderIcon, type IconName } from '@rbee/ui/utils'
 import type * as React from 'react'
 
 export interface IconPlateProps {
-  /** Rendered icon component (e.g., <Database className="w-6 h-6" />) */
-  icon: React.ReactNode
+  /** Icon name string or rendered icon component */
+  icon: IconName | React.ReactNode
   /** Size variant */
   size?: 'sm' | 'md' | 'lg' | 'xl'
   /** Color tone - supports both tone names and chart colors */
-  tone?: 'primary' | 'muted' | 'success' | 'warning' | 'chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5'
+  tone?: 'primary' | 'muted' | 'destructive' | 'success' | 'warning' | 'chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5'
   /** Shape variant */
-  shape?: 'square' | 'rounded' | 'circle'
+  shape?: 'square' | 'circle' | 'rounded'
   /** Additional CSS classes */
   className?: string
 }
@@ -26,21 +26,22 @@ export function IconPlate({ icon, size = 'md', tone = 'primary', shape = 'square
     sm: 'h-8 w-8',
     md: 'h-10 w-10',
     lg: 'h-12 w-12',
-    xl: 'h-14 w-14',
+    xl: 'h-16 w-16',
   }
 
   const iconSizeClasses = {
-    sm: '[&>svg]:h-4 [&>svg]:w-4',
-    md: '[&>svg]:h-5 [&>svg]:w-5',
-    lg: '[&>svg]:h-6 [&>svg]:w-6',
-    xl: '[&>svg]:h-7 [&>svg]:w-7',
+    sm: 'size-4',
+    md: 'size-6',
+    lg: 'size-7',
+    xl: 'size-10',
   }
 
   const toneClasses = {
     primary: 'bg-primary/10 text-primary',
     muted: 'bg-muted text-muted-foreground',
-    success: 'bg-emerald-500/10 text-emerald-500',
-    warning: 'bg-amber-500/10 text-amber-500',
+    destructive: 'bg-destructive/10 text-destructive',
+    success: 'bg-chart-3/10 text-chart-3',
+    warning: 'bg-chart-4/10 text-chart-4',
     'chart-1': 'bg-chart-1/10 text-chart-1',
     'chart-2': 'bg-chart-2/10 text-chart-2',
     'chart-3': 'bg-chart-3/10 text-chart-3',
@@ -49,23 +50,23 @@ export function IconPlate({ icon, size = 'md', tone = 'primary', shape = 'square
   }
 
   const shapeClasses = {
-    square: 'rounded-none',
-    rounded: 'rounded',
+    square: 'rounded',
     circle: 'rounded-full',
+    rounded: 'rounded-lg',
   }
 
   return (
     <div
       className={cn(
-        'flex items-center justify-center',
+        'flex shrink-0 items-center justify-center transition-colors',
         sizeClasses[size],
-        iconSizeClasses[size],
         toneClasses[tone],
         shapeClasses[shape],
         className,
       )}
+      aria-hidden="true"
     >
-      {icon}
+      {typeof icon === 'string' ? renderIcon(icon as IconName, iconSizeClasses[size]) : icon}
     </div>
   )
 }

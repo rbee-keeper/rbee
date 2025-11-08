@@ -9,17 +9,17 @@ console.log()
 console.log(`Total Pages: ${PREGENERATED_FILTERS.length}`)
 console.log()
 
-PREGENERATED_FILTERS.forEach((filter, index) => {
-  const url = filter.path ? `/models/civitai/${filter.path}` : '/models/civitai'
+PREGENERATED_FILTERS.forEach((filterConfig, index) => {
+  const url = filterConfig.path ? `/models/civitai/${filterConfig.path}` : '/models/civitai'
   const description = [
-    filter.timePeriod !== 'AllTime' ? filter.timePeriod : null,
-    filter.modelType !== 'All' ? filter.modelType : null,
-    filter.baseModel !== 'All' ? filter.baseModel : null,
+    filterConfig.filters.timePeriod !== 'AllTime' ? filterConfig.filters.timePeriod : null,
+    filterConfig.filters.modelType !== 'All' ? filterConfig.filters.modelType : null,
+    filterConfig.filters.baseModel !== 'All' ? filterConfig.filters.baseModel : null,
   ].filter(Boolean).join(' · ') || 'All Models'
   
   console.log(`${index + 1}. ${url}`)
   console.log(`   Filter: ${description}`)
-  console.log(`   Config: ${JSON.stringify(filter)}`)
+  console.log(`   Config: ${JSON.stringify(filterConfig)}`)
   console.log()
 })
 

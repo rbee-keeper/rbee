@@ -10,7 +10,7 @@ import { PORTS } from '@rbee/shared-config'
 export interface ServiceConfig {
   name: string           // Full service name (e.g., 'queen-rbee')
   devPort: number        // Vite dev server port
-  prodPort: number       // Production embedded port
+  prodPort: number | null // Production embedded port (null for dynamic allocation)
   keeperDevPort: number  // Keeper dev server port
   keeperProdOrigin: string // Keeper prod origin ('*' for Tauri)
 }
@@ -55,6 +55,7 @@ for (const serviceName of Object.keys(SERVICES)) {
  * Get parent origin based on current service location
  * 
  * TEAM-351: Bug fixes - Handle missing port, validation
+ * TEAM-XXX: Handle dynamic port allocation (prodPort can be null)
  * 
  * @param serviceConfig - Service configuration
  * @returns Parent origin for postMessage
@@ -64,6 +65,8 @@ export function getParentOrigin(serviceConfig: ServiceConfig): string {
   const currentPort = window.location.port || '80'
   const isOnDevServer = currentPort === serviceConfig.devPort.toString()
   
+  // TEAM-XXX: For workers with dynamic ports, always use dev origin in dev mode
+  // In production, workers don't use narration client (managed by hive)
   return isOnDevServer
     ? `http://localhost:${serviceConfig.keeperDevPort}`
     : serviceConfig.keeperProdOrigin
@@ -72,6 +75,7 @@ export function getParentOrigin(serviceConfig: ServiceConfig): string {
 /**
  * Validate service configuration
  * TEAM-351: Runtime validation
+ * TEAM-XXX: Allow null prodPort for dynamic allocation
  */
 export function isValidServiceConfig(config: any): config is ServiceConfig {
   return (
@@ -79,7 +83,7 @@ export function isValidServiceConfig(config: any): config is ServiceConfig {
     typeof config === 'object' &&
     typeof config.name === 'string' && config.name.length > 0 &&
     typeof config.devPort === 'number' && config.devPort > 0 &&
-    typeof config.prodPort === 'number' && config.prodPort > 0 &&
+    (typeof config.prodPort === 'number' && config.prodPort > 0 || config.prodPort === null) &&
     typeof config.keeperDevPort === 'number' && config.keeperDevPort > 0 &&
     typeof config.keeperProdOrigin === 'string' && config.keeperProdOrigin.length > 0
   )

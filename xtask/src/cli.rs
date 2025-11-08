@@ -118,6 +118,9 @@ pub enum Cmd {
         /// App to deploy (worker, commercial, marketplace, docs)
         #[arg(long)]
         app: String,
+        /// Version bump type (patch, minor, major) - bumps version before deploying
+        #[arg(long)]
+        bump: Option<String>,
         /// Dry run (preview commands without executing)
         #[arg(long)]
         dry_run: bool,

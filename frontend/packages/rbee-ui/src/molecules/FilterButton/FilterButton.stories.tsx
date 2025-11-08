@@ -29,44 +29,32 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    children: 'All Workers',
-    isActive: false,
+    label: 'All Workers',
+    active: false,
   },
 }
 
 export const Active: Story = {
   args: {
-    children: 'Language Models',
-    isActive: true,
-  },
-}
-
-export const WithIcon: Story = {
-  args: {
-    children: (
-      <>
-        <Check className="size-4" />
-        Selected Filter
-      </>
-    ),
-    isActive: true,
+    label: 'Language Models',
+    active: true,
   },
 }
 
 export const LongLabel: Story = {
   args: {
-    children: 'CUDA (NVIDIA Graphics)',
-    isActive: false,
+    label: 'CUDA (NVIDIA Graphics)',
+    active: false,
   },
 }
 
 export const Group: Story = {
   render: () => (
     <div className="flex flex-wrap gap-2">
-      <FilterButton isActive={true}>All</FilterButton>
-      <FilterButton isActive={false}>Language Models</FilterButton>
-      <FilterButton isActive={false}>Image Generation</FilterButton>
-      <FilterButton isActive={false}>Audio Processing</FilterButton>
+      <FilterButton label="All" active={true} />
+      <FilterButton label="Language Models" active={false} />
+      <FilterButton label="Image Generation" active={false} />
+      <FilterButton label="Audio Processing" active={false} />
     </div>
   ),
 }

@@ -28,41 +28,29 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    heading: 'Ready to get started?',
-    description: 'Join thousands of developers using rbee for their AI infrastructure.',
-    primaryAction: {
-      label: 'Get Started',
-      href: '/signup',
-    },
-    secondaryAction: {
-      label: 'View Documentation',
-      href: '/docs',
-    },
+    message: 'Ready to get started? Join thousands of developers using rbee for their AI infrastructure.',
+    ctas: [
+      { label: 'Get Started', href: '/signup', variant: 'default' },
+      { label: 'View Documentation', href: '/docs', variant: 'outline' },
+    ],
   },
 }
 
 export const SingleAction: Story = {
   args: {
-    heading: 'Join the Waitlist',
-    description: 'Be the first to know when we launch new features.',
-    primaryAction: {
-      label: 'Join Waitlist',
-      href: '/waitlist',
-    },
+    message: 'Join the Waitlist - Be the first to know when we launch new features.',
+    ctas: [
+      { label: 'Join Waitlist', href: '/waitlist', variant: 'default' },
+    ],
   },
 }
 
-export const WithLongDescription: Story = {
+export const WithLongMessage: Story = {
   args: {
-    heading: 'Transform Your AI Infrastructure',
-    description: 'Deploy language models and image generation workers across your infrastructure with ease. Get started in minutes with our comprehensive documentation and support.',
-    primaryAction: {
-      label: 'Start Free Trial',
-      href: '/trial',
-    },
-    secondaryAction: {
-      label: 'Talk to Sales',
-      href: '/contact',
-    },
+    message: 'Transform Your AI Infrastructure - Deploy language models and image generation workers across your infrastructure with ease. Get started in minutes with our comprehensive documentation and support.',
+    ctas: [
+      { label: 'Start Free Trial', href: '/trial', variant: 'default' },
+      { label: 'Talk to Sales', href: '/contact', variant: 'outline' },
+    ],
   },
 }

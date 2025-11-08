@@ -29,51 +29,58 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    step: 1,
+    index: 1,
     title: 'Install rbee',
-    description: 'Download and install the rbee CLI tool on your system',
-    icon: Download,
+    intro: 'Download and install the rbee CLI tool on your system',
+    items: ['Download CLI', 'Run installer', 'Verify installation'],
+    icon: <Download className="size-6" />,
   },
 }
 
 export const WithoutIcon: Story = {
   args: {
-    step: 2,
+    index: 2,
     title: 'Configure Settings',
-    description: 'Set up your preferences and API keys in the configuration file',
+    intro: 'Set up your preferences and API keys in the configuration file',
+    items: ['Edit config file', 'Add API keys', 'Set preferences'],
   },
 }
 
 export const LongDescription: Story = {
   args: {
-    step: 3,
+    index: 3,
     title: 'Deploy Your First Model',
-    description: 'Choose a model from the marketplace, configure your deployment settings, and launch your first inference endpoint. Monitor the deployment status in real-time.',
-    icon: Rocket,
+    intro: 'Choose a model from the marketplace, configure your deployment settings, and launch your first inference endpoint. Monitor the deployment status in real-time.',
+    items: ['Select model', 'Configure settings', 'Launch endpoint', 'Monitor status'],
+    icon: <Rocket className="size-6" />,
   },
 }
 
 export const StepSequence: Story = {
   render: () => (
-    <div className="space-y-4 max-w-2xl">
+    <ol className="space-y-4 max-w-2xl">
       <StepCard
-        step={1}
+        index={1}
         title="Install rbee"
-        description="Download and install the rbee CLI tool"
-        icon={Download}
+        intro="Download and install the rbee CLI tool"
+        items={['Download CLI', 'Run installer']}
+        icon={<Download className="size-6" />}
       />
       <StepCard
-        step={2}
+        index={2}
         title="Configure Settings"
-        description="Set up your preferences and API keys"
-        icon={Settings}
+        intro="Set up your preferences and API keys"
+        items={['Edit config', 'Add keys']}
+        icon={<Settings className="size-6" />}
       />
       <StepCard
-        step={3}
+        index={3}
         title="Deploy Model"
-        description="Launch your first inference endpoint"
-        icon={Rocket}
+        intro="Launch your first inference endpoint"
+        items={['Select model', 'Launch']}
+        icon={<Rocket className="size-6" />}
+        isLast={true}
       />
-    </div>
+    </ol>
   ),
 }

@@ -73,7 +73,7 @@ export const Default: Story = {
   args: {
     groups: workerFilterGroups,
     currentFilters: { category: 'all', backend: 'all' },
-    buildUrl: (filters) => {
+    buildUrl: (filters: Record<string, string>) => {
       const parts = Object.entries(filters)
         .filter(([_, v]) => v && v !== 'all')
         .map(([_, v]) => v)
@@ -86,7 +86,7 @@ export const WithActiveFilters: Story = {
   args: {
     groups: workerFilterGroups,
     currentFilters: { category: 'llm', backend: 'cuda' },
-    buildUrl: (filters) => {
+    buildUrl: (filters: Record<string, string>) => {
       const parts = Object.entries(filters)
         .filter(([_, v]) => v && v !== 'all')
         .map(([_, v]) => v)
@@ -100,7 +100,7 @@ export const WithSorting: Story = {
     groups: workerFilterGroups,
     sortGroup,
     currentFilters: { category: 'llm', backend: 'cuda', sort: 'downloads' },
-    buildUrl: (filters) => {
+    buildUrl: (filters: Record<string, string>) => {
       const parts = Object.entries(filters)
         .filter(([_, v]) => v && v !== 'all')
         .map(([_, v]) => v)
@@ -150,7 +150,7 @@ export const ModelsFilters: Story = {
       ],
     },
     currentFilters: { period: 'month', type: 'checkpoints', base: 'sdxl', sort: 'downloads' },
-    buildUrl: (filters) => {
+    buildUrl: (filters: Record<string, string>) => {
       const parts = Object.entries(filters)
         .filter(([_, v]) => v && v !== 'all')
         .map(([_, v]) => v)

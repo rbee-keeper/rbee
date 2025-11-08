@@ -30,11 +30,11 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {
     value: 'option1',
-    onValueChange: (value) => console.log('Selected:', value),
+    onChange: (value: string) => console.log('Selected:', value),
     options: [
-      { value: 'option1', label: 'Option 1' },
-      { value: 'option2', label: 'Option 2' },
-      { value: 'option3', label: 'Option 3' },
+      { key: 'option1', label: 'Option 1' },
+      { key: 'option2', label: 'Option 2' },
+      { key: 'option3', label: 'Option 3' },
     ],
   },
 }
@@ -42,10 +42,10 @@ export const Default: Story = {
 export const TwoOptions: Story = {
   args: {
     value: 'grid',
-    onValueChange: (value) => console.log('View:', value),
+    onChange: (value: string) => console.log('View:', value),
     options: [
-      { value: 'grid', label: 'Grid View' },
-      { value: 'list', label: 'List View' },
+      { key: 'grid', label: 'Grid View' },
+      { key: 'list', label: 'List View' },
     ],
   },
 }
@@ -53,13 +53,13 @@ export const TwoOptions: Story = {
 export const ManyOptions: Story = {
   args: {
     value: 'day',
-    onValueChange: (value) => console.log('Period:', value),
+    onChange: (value: string) => console.log('Period:', value),
     options: [
-      { value: 'hour', label: 'Hour' },
-      { value: 'day', label: 'Day' },
-      { value: 'week', label: 'Week' },
-      { value: 'month', label: 'Month' },
-      { value: 'year', label: 'Year' },
+      { key: 'hour', label: 'Hour' },
+      { key: 'day', label: 'Day' },
+      { key: 'week', label: 'Week' },
+      { key: 'month', label: 'Month' },
+      { key: 'year', label: 'Year' },
     ],
   },
 }
@@ -71,11 +71,11 @@ export const Interactive: Story = {
       <div className="space-y-4">
         <SegmentedControl
           value={value}
-          onValueChange={setValue}
+          onChange={setValue}
           options={[
-            { value: 'cpu', label: 'CPU' },
-            { value: 'cuda', label: 'CUDA' },
-            { value: 'metal', label: 'Metal' },
+            { key: 'cpu', label: 'CPU' },
+            { key: 'cuda', label: 'CUDA' },
+            { key: 'metal', label: 'Metal' },
           ]}
         />
         <p className="text-sm text-muted-foreground">Selected: {value}</p>

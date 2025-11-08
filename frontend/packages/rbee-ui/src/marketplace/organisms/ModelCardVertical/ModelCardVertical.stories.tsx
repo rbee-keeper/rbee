@@ -30,27 +30,31 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {
     model: {
-      id: 123456,
+      id: '123456',
       name: 'Realistic Vision v5.0',
+      description: 'High quality realistic model',
       imageUrl: 'https://picsum.photos/seed/model1/400/600',
-      creator: 'SG_161222',
+      author: 'SG_161222',
+      tags: ['realistic', 'photography'],
       downloads: 1250000,
       likes: 45000,
-      nsfw: false,
+      size: '2.1 GB',
     },
   },
 }
 
-export const WithNSFW: Story = {
+export const WithTags: Story = {
   args: {
     model: {
-      id: 789012,
+      id: '789012',
       name: 'Artistic Style XL',
+      description: 'Artistic style model with enhanced details',
       imageUrl: 'https://picsum.photos/seed/model2/400/600',
-      creator: 'ArtistName',
+      author: 'ArtistName',
+      tags: ['artistic', 'style', 'xl', 'enhanced'],
       downloads: 850000,
       likes: 32000,
-      nsfw: true,
+      size: '3.5 GB',
     },
   },
 }
@@ -58,13 +62,15 @@ export const WithNSFW: Story = {
 export const HighStats: Story = {
   args: {
     model: {
-      id: 345678,
+      id: '345678',
       name: 'Popular Model SDXL',
+      description: 'Most popular SDXL model',
       imageUrl: 'https://picsum.photos/seed/model3/400/600',
-      creator: 'TopCreator',
+      author: 'TopCreator',
+      tags: ['sdxl', 'popular'],
       downloads: 5000000,
       likes: 150000,
-      nsfw: false,
+      size: '6.9 GB',
     },
   },
 }
@@ -72,13 +78,15 @@ export const HighStats: Story = {
 export const LongName: Story = {
   args: {
     model: {
-      id: 901234,
+      id: '901234',
       name: 'Ultra Realistic Photography Model with Enhanced Details v2.1',
+      description: 'Professional photography model with ultra-realistic results',
       imageUrl: 'https://picsum.photos/seed/model4/400/600',
-      creator: 'DetailedArtist',
+      author: 'DetailedArtist',
+      tags: ['realistic', 'photography', 'professional'],
       downloads: 500000,
       likes: 25000,
-      nsfw: false,
+      size: '4.2 GB',
     },
   },
 }
@@ -88,35 +96,41 @@ export const Grid: Story = {
     <div className="grid grid-cols-3 gap-4 max-w-4xl">
       <ModelCardVertical
         model={{
-          id: 1,
+          id: '1',
           name: 'Realistic Vision',
+          description: 'Realistic model',
           imageUrl: 'https://picsum.photos/seed/grid1/400/600',
-          creator: 'Creator1',
+          author: 'Creator1',
+          tags: ['realistic'],
           downloads: 1000000,
           likes: 40000,
-          nsfw: false,
+          size: '2.1 GB',
         }}
       />
       <ModelCardVertical
         model={{
-          id: 2,
+          id: '2',
           name: 'Anime Style',
+          description: 'Anime style model',
           imageUrl: 'https://picsum.photos/seed/grid2/400/600',
-          creator: 'Creator2',
+          author: 'Creator2',
+          tags: ['anime'],
           downloads: 800000,
           likes: 35000,
-          nsfw: false,
+          size: '1.8 GB',
         }}
       />
       <ModelCardVertical
         model={{
-          id: 3,
+          id: '3',
           name: 'Fantasy Art',
+          description: 'Fantasy art model',
           imageUrl: 'https://picsum.photos/seed/grid3/400/600',
-          creator: 'Creator3',
+          author: 'Creator3',
+          tags: ['fantasy'],
           downloads: 600000,
           likes: 28000,
-          nsfw: false,
+          size: '2.5 GB',
         }}
       />
     </div>

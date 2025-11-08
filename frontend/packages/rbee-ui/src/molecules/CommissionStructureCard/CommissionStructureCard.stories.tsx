@@ -28,48 +28,38 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    tier: 'Standard',
-    percentage: 15,
-    description: 'For most providers with moderate usage',
-  },
-}
-
-export const Highlighted: Story = {
-  args: {
-    tier: 'Premium',
-    percentage: 10,
-    description: 'For high-volume providers with enterprise support',
-    highlighted: true,
+    title: 'Standard Commission',
+    standardCommissionLabel: 'Platform Fee',
+    standardCommissionValue: '15%',
+    standardCommissionDescription: 'Covers marketplace operations and support',
+    youKeepLabel: 'You Keep',
+    youKeepValue: '85%',
+    youKeepDescription: 'No hidden fees or charges',
+    exampleItems: [
+      { label: 'Customer pays', value: '€100.00' },
+      { label: 'Platform fee (15%)', value: '-€15.00' },
+    ],
+    exampleTotalLabel: 'Your earnings',
+    exampleTotalValue: '€85.00',
+    exampleBadgeText: 'Effective take-home: 85%',
   },
 }
 
 export const LowCommission: Story = {
   args: {
-    tier: 'Enterprise',
-    percentage: 5,
-    description: 'Custom pricing for large-scale deployments',
+    title: 'Enterprise Commission',
+    standardCommissionLabel: 'Platform Fee',
+    standardCommissionValue: '10%',
+    standardCommissionDescription: 'Reduced rate for enterprise customers',
+    youKeepLabel: 'You Keep',
+    youKeepValue: '90%',
+    youKeepDescription: 'Premium support included',
+    exampleItems: [
+      { label: 'Customer pays', value: '€100.00' },
+      { label: 'Platform fee (10%)', value: '-€10.00' },
+    ],
+    exampleTotalLabel: 'Your earnings',
+    exampleTotalValue: '€90.00',
+    exampleBadgeText: 'Effective take-home: 90%',
   },
-}
-
-export const AllTiers: Story = {
-  render: () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
-      <CommissionStructureCard
-        tier="Starter"
-        percentage={20}
-        description="Perfect for getting started"
-      />
-      <CommissionStructureCard
-        tier="Professional"
-        percentage={15}
-        description="For growing businesses"
-        highlighted={true}
-      />
-      <CommissionStructureCard
-        tier="Enterprise"
-        percentage={10}
-        description="Custom solutions at scale"
-      />
-    </div>
-  ),
 }

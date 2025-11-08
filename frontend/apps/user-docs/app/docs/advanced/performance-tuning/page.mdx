@@ -1,0 +1,71 @@
+# Performance Tuning
+
+**Status:** 🚧 Coming Soon
+
+<Callout variant="info">
+This page is under construction. Check back soon for performance optimization guide.
+</Callout>
+
+<Separator />
+
+## Overview
+
+Optimize rbee for maximum performance and efficiency.
+
+**Topics to be covered:**
+- Worker resource limits (CPU, memory, GPU)
+- Cgroup configuration
+- Batch size tuning
+- Concurrent request handling
+- Model loading optimization
+- VRAM management
+- Network optimization
+- Database tuning
+- Monitoring and profiling
+- Benchmarking
+
+<Separator />
+
+## Quick Tips
+
+**Resource limits (Linux):**
+```bash
+# Limit worker to 2 CPU cores and 4GB RAM
+rbee-hive spawn-worker \
+  --model llama-3-8b \
+  --worker cuda \
+  --device 0 \
+  --cpu-limit "200%" \
+  --memory-limit "4G"
+```
+
+**Monitor performance:**
+```bash
+# Watch telemetry stream
+curl -N http://localhost:7833/v1/heartbeats/stream
+```
+
+<Separator />
+
+## Coming Soon
+
+This documentation is planned for a future release. In the meantime, refer to:
+
+<CardGrid columns={2}>
+  <LinkCard
+    title="Heartbeat Architecture"
+    description="Telemetry and monitoring"
+    href="/docs/architecture/heartbeats"
+  />
+  <LinkCard
+    title="Worker Types"
+    description="Hardware selection"
+    href="/docs/getting-started/worker-types"
+  />
+</CardGrid>
+
+---
+
+**STUB:** Created by TEAM-426  
+**Priority:** LOW  
+**Estimated effort:** 3 hours

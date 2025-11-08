@@ -1,0 +1,63 @@
+# Hive Configuration
+
+**Status:** 🚧 Coming Soon
+
+<Callout variant="info">
+This page is under construction. Check back soon for complete Hive configuration reference.
+</Callout>
+
+<Separator />
+
+## Overview
+
+Complete configuration reference for `rbee-hive`, the worker management daemon.
+
+**Topics to be covered:**
+- Command-line flags
+- Environment variables
+- Configuration file format
+- Port configuration (default: 7835)
+- Queen URL configuration
+- Worker spawn settings
+- Resource limits (cgroup)
+- Device detection
+- Logging configuration
+
+<Separator />
+
+## Quick Reference
+
+**Start Hive:**
+```bash
+rbee-hive --port 7835 --queen-url http://localhost:7833 --hive-id localhost
+```
+
+**Standalone mode (no Queen):**
+```bash
+rbee-hive --port 7835
+```
+
+<Separator />
+
+## Coming Soon
+
+This documentation is planned for a future release. In the meantime, refer to:
+
+<CardGrid columns={2}>
+  <LinkCard
+    title="Remote Hives Setup"
+    description="Connect multiple machines"
+    href="/docs/getting-started/remote-hives"
+  />
+  <LinkCard
+    title="Heartbeat Architecture"
+    description="Hive telemetry system"
+    href="/docs/architecture/heartbeats"
+  />
+</CardGrid>
+
+---
+
+**STUB:** Created by TEAM-426  
+**Priority:** MEDIUM  
+**Estimated effort:** 3 hours

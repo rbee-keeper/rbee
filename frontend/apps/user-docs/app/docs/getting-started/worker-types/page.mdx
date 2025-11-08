@@ -1,0 +1,355 @@
+# Worker Types Guide
+
+Choose the right worker binary for your hardware and workload.
+
+<Separator />
+
+## Available Worker Types
+
+rbee supports multiple worker types for different hardware platforms and use cases.
+
+### LLM Workers (Inference)
+
+<Accordion type="single" collapsible>
+  <AccordionItem value="cpu">
+    <AccordionTrigger>CPU Worker (llm-worker-cpu)</AccordionTrigger>
+    <AccordionContent>
+      **Platform:** All (Linux, macOS, Windows)
+      
+      **Use Case:** Development, testing, low-volume inference
+      
+      **Performance:** Slower but universally compatible
+      
+      **Best For:**
+      - Testing and development
+      - Machines without GPU
+      - Small models (1B-3B parameters)
+      - Low-volume production workloads
+      
+      ```bash
+      rbee-hive spawn-worker \
+        --model meta-llama/Llama-3.2-1B \
+        --worker cpu \
+        --device 0
+      ```
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="cuda">
+    <AccordionTrigger>CUDA Worker (llm-worker-cuda)</AccordionTrigger>
+    <AccordionContent>
+      **Platform:** NVIDIA GPUs (Linux, Windows)
+      
+      **Requirements:** CUDA 11.8+ drivers
+      
+      **Performance:** Fast inference on NVIDIA hardware
+      
+      **Best For:**
+      - Production inference
+      - Gaming PCs with NVIDIA GPU
+      - Data centers with NVIDIA hardware
+      - Models up to GPU VRAM capacity
+      
+      ```bash
+      rbee-hive spawn-worker \
+        --model meta-llama/Llama-3.2-1B \
+        --worker cuda \
+        --device 0
+      ```
+      
+      <Callout variant="info" title="Multiple GPUs">
+      Use `--device` flag to select GPU index (0, 1, 2...). Each worker runs on one GPU.
+      </Callout>
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="metal">
+    <AccordionTrigger>Metal Worker (llm-worker-metal)</AccordionTrigger>
+    <AccordionContent>
+      **Platform:** Apple Silicon (M1, M2, M3, M4)
+      
+      **Requirements:** macOS 12+
+      
+      **Performance:** Optimized for Apple GPUs
+      
+      **Best For:**
+      - MacBook Pro/Air with Apple Silicon
+      - Mac Studio/Mini with M1/M2/M3
+      - Development on macOS
+      - Unified memory architecture (RAM = VRAM)
+      
+      ```bash
+      rbee-hive spawn-worker \
+        --model meta-llama/Llama-3.2-1B \
+        --worker metal \
+        --device 0
+      ```
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="rocm">
+    <AccordionTrigger>ROCm Worker (llm-worker-rocm) - Coming Soon</AccordionTrigger>
+    <AccordionContent>
+      **Platform:** AMD GPUs (Linux)
+      
+      **Requirements:** ROCm 5.0+ drivers
+      
+      **Status:** In development
+      
+      **Performance:** Fast inference on AMD hardware
+      
+      **Best For:**
+      - AMD Radeon GPUs
+      - Data centers with AMD hardware
+      - Alternative to CUDA
+      
+      <Callout variant="warning" title="Not Yet Available">
+      ROCm worker support is planned but not yet implemented. Follow project updates for availability.
+      </Callout>
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+
+<Separator />
+
+## Future Worker Types
+
+rbee is building a **complete AI suite** with specialized workers for different tasks:
+
+### Planned Worker Types
+
+<CardGrid columns={2}>
+  <LinkCard
+    title="Image Generation"
+    description="Stable Diffusion, ComfyUI workflows"
+    href="#"
+  />
+  <LinkCard
+    title="Video Generation"
+    description="Video synthesis and processing"
+    href="#"
+  />
+  <LinkCard
+    title="Audio Processing"
+    description="Speech synthesis and recognition"
+    href="#"
+  />
+  <LinkCard
+    title="Fine-tuning Workers"
+    description="Train and fine-tune models"
+    href="#"
+  />
+</CardGrid>
+
+<Callout variant="info" title="Expanding Ecosystem">
+More worker types are being added regularly. Each worker type follows the same simple contract, making it easy to add new capabilities.
+</Callout>
+
+<Separator />
+
+## Worker Marketplace
+
+<Callout variant="success" title="Like Steam for AI Workers">
+The rbee Marketplace is a central hub where you can discover, install, and manage workers for any AI task.
+</Callout>
+
+### What You Can Find
+
+**Official Workers:**
+- LLM inference (CPU, CUDA, Metal, ROCm)
+- Image generation (Stable Diffusion, FLUX)
+- Video generation
+- Audio processing
+- Fine-tuning workers
+
+**Community Workers:**
+- Custom model implementations
+- Specialized inference engines
+- Domain-specific optimizations
+- Niche AI tasks
+
+**Commercial Workers:**
+- Premium models
+- Enterprise features
+- Professional support
+- Advanced optimizations
+
+### Coming Soon
+
+The marketplace is currently in development. When launched, you'll be able to:
+
+- **Browse workers** by category (LLM, image, video, audio)
+- **Install with one click** - automatic download and setup
+- **Rate and review** - community feedback
+- **Publish your own** - share or sell custom workers
+- **Auto-updates** - keep workers up to date
+
+<LinkCard
+  title="Visit Marketplace (Coming Soon)"
+  description="marketplace.rbee.dev"
+  href="https://marketplace.rbee.dev"
+/>
+
+<Separator />
+
+## Building Custom Workers
+
+Want to create your own worker? rbee makes it easy!
+
+### The Worker Contract
+
+All workers implement a simple HTTP contract defined in `/bin/97_contracts/worker-contract/`.
+
+**Required endpoints:**
+- `GET /health` - Health check
+- `GET /info` - Worker information  
+- `POST /v1/infer` - Execute inference/task
+
+**Required behavior:**
+- Send heartbeat to Queen every 30 seconds
+- Report status (Starting → Ready → Busy → Ready)
+- Handle graceful shutdown
+
+### Implementation Checklist
+
+When building a custom worker:
+
+```bash
+# 1. Clone the worker-contract
+cd /bin/97_contracts/worker-contract/
+cat README.md  # Read the complete specification
+
+# 2. Implement required endpoints
+# - GET /health
+# - GET /info
+# - POST /v1/infer
+
+# 3. Implement heartbeat
+# - Send to Queen every 30 seconds
+# - POST /v1/worker-heartbeat
+
+# 4. Test locally
+rbee-hive spawn-worker --worker your-worker --device 0
+
+# 5. Package and distribute
+# - Via marketplace (coming soon)
+# - Via GitHub releases
+# - Via custom distribution
+```
+
+### Example: Minimal Worker Structure
+
+```rust
+use worker_contract::{WorkerInfo, WorkerStatus, InferRequest, InferResponse};
+use axum::{routing::{get, post}, Router, Json};
+
+// Health check
+async fn health() -> &'static str {
+    "ok"
+}
+
+// Worker info
+async fn info() -> Json<WorkerInfo> {
+    Json(WorkerInfo {
+        id: "my-worker-123".to_string(),
+        model_id: "my-model".to_string(),
+        device: "GPU-0".to_string(),
+        port: 9301,
+        status: WorkerStatus::Ready,
+        implementation: "my-custom-worker".to_string(),
+        version: "1.0.0".to_string(),
+    })
+}
+
+// Inference
+async fn infer(Json(req): Json<InferRequest>) -> Json<InferResponse> {
+    // Your inference logic here
+    Json(InferResponse {
+        text: "Generated output".to_string(),
+        tokens_generated: 42,
+        duration_ms: 1500,
+    })
+}
+
+// HTTP server
+let app = Router::new()
+    .route("/health", get(health))
+    .route("/info", get(info))
+    .route("/v1/infer", post(infer));
+```
+
+### Contract Reference
+
+<Callout variant="info" title="Worker Contract Documentation">
+Complete API specification and examples available at:
+`/bin/97_contracts/worker-contract/README.md`
+</Callout>
+
+**Key types:**
+- `WorkerInfo` - Worker metadata and status
+- `WorkerStatus` - Current state (Starting, Ready, Busy, Stopped)
+- `WorkerHeartbeat` - Periodic status update
+- `InferRequest` - Inference parameters
+- `InferResponse` - Inference result
+
+**Extension points:**
+- Multi-model workers (vLLM, ComfyUI)
+- Dynamic VRAM reporting
+- Workflow progress tracking
+- Batch inference support
+
+<Separator />
+
+## Device Selection
+
+### Single GPU
+
+```bash
+# Use device 0 (first GPU)
+rbee-hive spawn-worker --worker cuda --device 0
+```
+
+### Multiple GPUs
+
+```bash
+# Spawn workers on different GPUs
+rbee-hive spawn-worker --worker cuda --device 0 --model llama-3-8b
+rbee-hive spawn-worker --worker cuda --device 1 --model llama-3-70b
+```
+
+### Mixed Hardware
+
+```bash
+# Gaming PC: CUDA on GPU 0, CPU as fallback
+rbee-hive spawn-worker --worker cuda --device 0
+rbee-hive spawn-worker --worker cpu --device 0
+
+# Mac M3: Metal only
+rbee-hive spawn-worker --worker metal --device 0
+```
+
+<Callout variant="info" title="Device Index">
+Device indices start at 0. For GPUs, use `nvidia-smi` (CUDA) or check System Settings (Metal) to see available devices.
+</Callout>
+
+<Separator />
+
+## Next Steps
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Remote Hives Setup"
+    description="Connect multiple machines"
+    href="/docs/getting-started/remote-hives"
+  />
+  <LinkCard
+    title="Job-Based Pattern"
+    description="How operations work"
+    href="/docs/architecture/job-based-pattern"
+  />
+  <LinkCard
+    title="Worker Contract"
+    description="Build custom workers"
+    href="https://github.com/rbee-dev/rbee/tree/main/bin/97_contracts/worker-contract"
+  />
+</CardGrid>

@@ -1,0 +1,566 @@
+# rbee CLI Reference
+
+Complete command reference for the `rbee` CLI tool.
+
+<Callout variant="info">
+The `rbee` command is provided by `rbee-keeper`, a thin HTTP client that communicates with `queen-rbee`.
+</Callout>
+
+<Separator />
+
+## Installation
+
+```bash
+curl -sSL https://install.rbee.dev | sh
+```
+
+Or install manually:
+
+```bash
+# Install to user paths (~/.local/bin)
+rbee install
+
+# Install to system paths (/usr/local/bin) - requires sudo
+sudo rbee install --system
+```
+
+<Separator />
+
+## Core Commands
+
+### Inference
+
+Run inference on a model with automatic worker provisioning.
+
+```bash
+rbee infer \
+  --node gpu-0 \
+  --model meta-llama/Llama-3.2-1B \
+  --prompt "Hello, world!" \
+  --max-tokens 100
+```
+
+**Options:**
+- `--node` - Target hive ID (e.g., `gpu-0`, `localhost`)
+- `--model` - Model name or HuggingFace ID
+- `--prompt` - Input prompt text
+- `--max-tokens` - Maximum tokens to generate (default: 100)
+- `--temperature` - Sampling temperature (default: 0.7)
+- `--stream` - Enable streaming output
+
+**Output:**
+
+<TerminalWindow title="Streaming Output">
+{`Hello! How can I help you today?`}
+</TerminalWindow>
+
+<Callout variant="info" title="Automatic Worker Provisioning">
+If no worker exists for the model, Queen automatically spawns one on the target hive.
+</Callout>
+
+<Separator />
+
+## Node Management
+
+### Add Node
+
+Register a remote hive node in the Queen registry.
+
+```bash
+rbee setup add-node gpu-node-1 \
+  --ssh-host 192.168.1.100 \
+  --ssh-user admin
+```
+
+**Options:**
+- `node-name` - Unique identifier for the node
+- `--ssh-host` - IP address or hostname
+- `--ssh-user` - SSH username
+- `--ssh-port` - SSH port (default: 22)
+- `--ssh-key` - Path to SSH private key (optional)
+
+**What this does:**
+1. Registers node in Queen's hive registry
+2. Queen can now SSH to this node to start hive daemon
+3. Workers on this node can send heartbeats to Queen
+
+### List Nodes
+
+Show all registered nodes in the Queen registry.
+
+```bash
+rbee setup list-nodes
+```
+
+**Output:**
+
+<TerminalWindow title="Registered Nodes">
+{`localhost     127.0.0.1      Online    2 workers
+gpu-node-1    192.168.1.100  Online    4 workers
+gpu-node-2    192.168.1.101  Offline   0 workers`}
+</TerminalWindow>
+
+### Remove Node
+
+Unregister a node from the Queen registry.
+
+```bash
+rbee setup remove-node gpu-node-1
+```
+
+<Callout variant="warning" title="Data Loss">
+This removes the node from the registry. Workers on this node will no longer send heartbeats to Queen.
+</Callout>
+
+<Separator />
+
+## Worker Management
+
+### List Workers
+
+Show all workers across all hives.
+
+```bash
+# List all workers
+rbee workers list
+
+# List workers on specific node
+rbee workers list --node gpu-0
+```
+
+**Output:**
+
+<TerminalWindow title="Workers">
+{`WORKER ID       NODE       MODEL              STATUS    PORT
+worker-abc123   gpu-0      llama-3.2-1b      Ready     9301
+worker-def456   gpu-0      llama-3.2-3b      Busy      9302
+worker-ghi789   localhost  llama-3.2-1b      Ready     9303`}
+</TerminalWindow>
+
+### Worker Health
+
+Check health of workers on a specific node.
+
+```bash
+rbee workers health --node gpu-0
+```
+
+**Output:**
+
+<TerminalWindow title="Health Check">
+{`worker-abc123: Healthy (200ms)
+worker-def456: Healthy (150ms)
+All workers operational`}
+</TerminalWindow>
+
+### Shutdown Worker
+
+Gracefully shutdown a specific worker.
+
+```bash
+rbee workers shutdown --id worker-abc123
+```
+
+<Callout variant="info" title="Graceful Shutdown">
+Workers receive SIGTERM and have 30 seconds to complete ongoing requests before SIGKILL.
+</Callout>
+
+<Separator />
+
+## Log Viewing
+
+### View Logs
+
+View logs from a specific node or worker.
+
+```bash
+# View node logs
+rbee logs --node gpu-0
+
+# Follow logs in real-time
+rbee logs --node gpu-0 --follow
+
+# View specific worker logs
+rbee logs --worker worker-abc123
+```
+
+**Options:**
+- `--node` - Node ID to view logs from
+- `--worker` - Worker ID to view logs from
+- `--follow` - Stream logs in real-time (like `tail -f`)
+- `--lines` - Number of lines to show (default: 100)
+
+<Separator />
+
+## Global Flags
+
+<APIParameterTable
+  parameters={[
+    {
+      name: '--help',
+      type: 'flag',
+      required: false,
+      description: 'Show help for any command'
+    },
+    {
+      name: '--version',
+      type: 'flag',
+      required: false,
+      description: 'Show rbee version'
+    },
+    {
+      name: '--config',
+      type: 'string',
+      required: false,
+      description: 'Path to config file (default: ~/.config/rbee/config.toml)'
+    },
+    {
+      name: '--queen-url',
+      type: 'string',
+      required: false,
+      description: 'Override Queen URL (default: http://localhost:7833)'
+    }
+  ]}
+/>
+
+**Examples:**
+
+```bash
+# Show version
+rbee --version
+
+# Use custom config
+rbee --config ~/my-rbee.toml infer --prompt "Hello"
+
+# Connect to remote Queen
+rbee --queen-url http://192.168.1.50:7833 workers list
+```
+
+<Separator />
+
+## How It Works
+
+### Architecture Overview
+
+```
+User → rbee-keeper (CLI) → queen-rbee (Orchestrator) → rbee-hive → llm-worker
+```
+
+**Key principles:**
+
+1. **rbee-keeper is a thin client** - All logic in Queen
+2. **Automatic Queen lifecycle** - Starts if needed, stops when done
+3. **No SSH from CLI** - Only Queen uses SSH for remote nodes
+4. **Streaming by default** - Real-time output via SSE
+
+### Queen Lifecycle Management
+
+**Ephemeral Mode (Default):**
+
+```bash
+# When you run a command
+rbee infer --prompt "Hello"
+
+# Behind the scenes:
+1. Check if Queen is running
+2. If not: Start Queen daemon (ephemeral mode)
+3. Submit request to Queen
+4. Stream response back to you
+5. Shutdown Queen (only if we started it)
+```
+
+**Daemon Mode:**
+
+```bash
+# Start Queen manually (persistent)
+queen-rbee --port 7833 &
+
+# rbee-keeper detects existing Queen
+rbee infer --prompt "Hello"
+# (leaves Queen running after command)
+```
+
+<Callout variant="info" title="Smart Lifecycle">
+rbee-keeper only shuts down Queens that it started. Pre-existing Queens are left running.
+</Callout>
+
+<Separator />
+
+## Configuration
+
+### Config File Location
+
+Default: `~/.config/rbee/config.toml`
+
+### Example Config
+
+```toml
+# Queen connection
+queen_port = 7833
+queen_host = "localhost"
+
+# For remote Queen
+# queen_host = "192.168.1.50"
+
+# SSH settings (for remote nodes)
+[ssh]
+default_user = "admin"
+default_port = 22
+key_path = "~/.ssh/id_rsa"
+
+# Inference defaults
+[defaults]
+max_tokens = 100
+temperature = 0.7
+stream = true
+```
+
+<Separator />
+
+## Common Workflows
+
+### First-Time Setup
+
+<Accordion type="single" collapsible>
+  <AccordionItem value="single-machine">
+    <AccordionTrigger>Single Machine Setup</AccordionTrigger>
+    <AccordionContent>
+      **For one machine (laptop, workstation):**
+      
+      ```bash
+      # 1. Install rbee
+      curl -sSL https://install.rbee.dev | sh
+      
+      # 2. Run inference (automatic setup)
+      rbee infer \
+        --node localhost \
+        --model meta-llama/Llama-3.2-1B \
+        --prompt "Hello!"
+      ```
+      
+      **What happens:**
+      - Queen starts automatically
+      - Hive starts on localhost
+      - Worker spawns for the model
+      - Inference runs
+      - Everything shuts down cleanly
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="multi-machine">
+    <AccordionTrigger>Multi-Machine Setup</AccordionTrigger>
+    <AccordionContent>
+      **For multiple machines (homelab, cluster):**
+      
+      ```bash
+      # 1. Install rbee on main machine
+      curl -sSL https://install.rbee.dev | sh
+      
+      # 2. Add remote nodes
+      rbee setup add-node gpu-1 \
+        --ssh-host 192.168.1.100 \
+        --ssh-user admin
+      
+      rbee setup add-node gpu-2 \
+        --ssh-host 192.168.1.101 \
+        --ssh-user admin
+      
+      # 3. Run inference on remote node
+      rbee infer \
+        --node gpu-1 \
+        --model meta-llama/Llama-3.2-7B \
+        --prompt "Hello from remote GPU!"
+      ```
+      
+      <Callout variant="info" title="Automatic Remote Setup">
+      Queen automatically SSH to remote nodes, installs rbee, and starts hive daemons.
+      </Callout>
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="gpu-providers">
+    <AccordionTrigger>Cloud GPU Setup</AccordionTrigger>
+    <AccordionContent>
+      **For cloud providers (Vast.ai, Lambda Labs, RunPod):**
+      
+      ```bash
+      # 1. Get SSH credentials from provider
+      # 2. Add node with provider's IP
+      rbee setup add-node vastai-1 \
+        --ssh-host 123.45.67.89 \
+        --ssh-user root \
+        --ssh-port 12345
+      
+      # 3. Run inference
+      rbee infer \
+        --node vastai-1 \
+        --model meta-llama/Llama-3.2-70B \
+        --prompt "Hello from cloud GPU!"
+      ```
+      
+      **See also:** [GPU Providers Guide](/docs/getting-started/gpu-providers)
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+
+<Separator />
+
+## Troubleshooting
+
+<Accordion type="single" collapsible>
+  <AccordionItem value="queen-not-starting">
+    <AccordionTrigger>Queen Won't Start</AccordionTrigger>
+    <AccordionContent>
+      **Symptom:** `Error: Failed to start Queen daemon`
+      
+      **Solution:**
+      
+      ```bash
+      # Check if Queen is already running
+      curl http://localhost:7833/health
+      
+      # If running, use existing Queen
+      rbee --queen-url http://localhost:7833 infer --prompt "test"
+      
+      # If not running, check port availability
+      lsof -i :7833
+      ```
+      
+      **Common causes:**
+      - Port 7833 already in use
+      - Permission issues
+      - Missing dependencies
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="ssh-connection-failed">
+    <AccordionTrigger>SSH Connection Failed</AccordionTrigger>
+    <AccordionContent>
+      **Symptom:** `Error: Failed to connect to node gpu-0`
+      
+      **Solution:**
+      
+      ```bash
+      # Test SSH manually
+      ssh admin@192.168.1.100
+      
+      # Check SSH key
+      ssh-add -l
+      
+      # Add node with explicit key
+      rbee setup add-node gpu-0 \
+        --ssh-host 192.168.1.100 \
+        --ssh-user admin \
+        --ssh-key ~/.ssh/id_rsa
+      ```
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="worker-not-spawning">
+    <AccordionTrigger>Worker Not Spawning</AccordionTrigger>
+    <AccordionContent>
+      **Symptom:** `Error: No available workers for model`
+      
+      **Solution:**
+      
+      ```bash
+      # Check hive status
+      curl http://localhost:7835/health
+      
+      # Check available worker binaries
+      rbee workers list
+      
+      # Manually spawn worker
+      rbee-hive spawn-worker \
+        --model meta-llama/Llama-3.2-1B \
+        --worker cuda \
+        --device 0
+      ```
+      
+      **See also:** [Worker Types Guide](/docs/getting-started/worker-types)
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+
+<Separator />
+
+## Next Steps
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Getting Started"
+    description="Installation and first inference"
+    href="/docs/getting-started/installation"
+  />
+  <LinkCard
+    title="Worker Types"
+    description="Choose the right worker"
+    href="/docs/getting-started/worker-types"
+  />
+  <LinkCard
+    title="Job Operations API"
+    description="HTTP API reference"
+    href="/docs/reference/job-operations"
+  />
+</CardGrid>
+
+<Separator />
+
+## Advanced Usage
+
+### Scripting
+
+Use rbee in scripts with proper error handling:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Run inference and capture output
+OUTPUT=$(rbee infer \
+  --node gpu-0 \
+  --model llama-3-8b \
+  --prompt "Summarize: $INPUT_TEXT" \
+  2>&1)
+
+# Check exit code
+if [ $? -eq 0 ]; then
+  echo "Success: $OUTPUT"
+else
+  echo "Error: $OUTPUT"
+  exit 1
+fi
+```
+
+### CI/CD Integration
+
+```yaml
+# .github/workflows/inference-test.yml
+name: Test Inference
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install rbee
+        run: curl -sSL https://install.rbee.dev | sh
+      
+      - name: Run inference test
+        run: |
+          rbee infer \
+            --node localhost \
+            --model meta-llama/Llama-3.2-1B \
+            --prompt "Test prompt" \
+            --max-tokens 10
+```
+
+### Environment Variables
+
+Override config with environment variables:
+
+```bash
+export RBEE_QUEEN_URL=http://localhost:7833
+export RBEE_CONFIG_PATH=~/.config/rbee/config.toml
+
+rbee infer --prompt "Hello"
+```

@@ -1,0 +1,113 @@
+# Common Issues & Troubleshooting
+
+**Status:** 🚧 Coming Soon
+
+<Callout variant="info">
+This page is under construction. Check back soon for comprehensive troubleshooting guide.
+</Callout>
+
+<Separator />
+
+## Overview
+
+Solutions to common issues and debugging tips for rbee.
+
+**Topics to be covered:**
+- Connection issues (Queen ↔ Hive)
+- Worker spawn failures
+- Model download problems
+- GPU detection issues
+- Memory/VRAM errors
+- Performance problems
+- Network configuration
+- SSH connection issues
+- Build/compilation errors
+- Runtime errors
+
+<Separator />
+
+## Quick Troubleshooting
+
+<Accordion type="single" collapsible>
+  <AccordionItem value="queen-not-starting">
+    <AccordionTrigger>Queen Won't Start</AccordionTrigger>
+    <AccordionContent>
+      **Check if port is in use:**
+      ```bash
+      lsof -i :7833
+      ```
+      
+      **Check logs:**
+      ```bash
+      queen-rbee --port 7833
+      # Look for error messages
+      ```
+      
+      **See:** [CLI Reference](/docs/reference/cli) for more details
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="hive-connection">
+    <AccordionTrigger>Hive Can't Connect to Queen</AccordionTrigger>
+    <AccordionContent>
+      **Verify Queen is running:**
+      ```bash
+      curl http://localhost:7833/health
+      ```
+      
+      **Check Hive configuration:**
+      ```bash
+      rbee-hive --queen-url http://localhost:7833 --hive-id localhost
+      ```
+      
+      **See:** [Heartbeat Architecture](/docs/architecture/heartbeats) for discovery protocol
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="worker-spawn">
+    <AccordionTrigger>Worker Won't Spawn</AccordionTrigger>
+    <AccordionContent>
+      **Check worker binary exists:**
+      ```bash
+      which llm-worker-cpu
+      ```
+      
+      **Check device availability:**
+      ```bash
+      nvidia-smi  # For CUDA workers
+      ```
+      
+      **See:** [Worker Types Guide](/docs/getting-started/worker-types) for requirements
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+
+<Separator />
+
+## Coming Soon
+
+This documentation is planned for a future release. In the meantime, refer to:
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="CLI Reference"
+    description="Command troubleshooting"
+    href="/docs/reference/cli"
+  />
+  <LinkCard
+    title="Heartbeat Architecture"
+    description="Connection issues"
+    href="/docs/architecture/heartbeats"
+  />
+  <LinkCard
+    title="Worker Types"
+    description="Worker requirements"
+    href="/docs/getting-started/worker-types"
+  />
+</CardGrid>
+
+---
+
+**STUB:** Created by TEAM-426  
+**Priority:** HIGH  
+**Estimated effort:** 4 hours

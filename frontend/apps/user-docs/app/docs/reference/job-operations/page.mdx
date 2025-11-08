@@ -1,0 +1,640 @@
+# Job Operations Reference
+
+Complete reference for all job operations in the rbee system.
+
+<Callout variant="warning" title="Critical Architecture">
+Queen's job API handles ONLY orchestration operations (Status, Infer). Worker/Model management operations go directly to Hive's job server.
+</Callout>
+
+<Separator />
+
+## Architecture Overview
+
+### API Split
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Queen Job API (Port 7833)                           │
+│  - Status (query registries)                        │
+│  - Infer (schedule and route to workers)            │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│ Hive Job API (Port 7835)                            │
+│  - WorkerSpawn, WorkerProcessList, WorkerProcessGet │
+│  - WorkerProcessDelete                              │
+│  - ModelDownload, ModelList, ModelGet, ModelDelete  │
+└─────────────────────────────────────────────────────┘
+```
+
+**Key principle:** NO PROXYING. Talk to Queen for orchestration, talk to Hive for worker/model management.
+
+<Separator />
+
+## Queen Operations
+
+### Status
+
+Query live status of all hives and workers from registries.
+
+**Endpoint:** `POST http://localhost:7833/v1/jobs`
+
+**Request:**
+
+```json
+{
+  "operation": "status"
+}
+```
+
+**Response (via SSE):**
+
+<TerminalWindow title="Status Output">
+{`data: {"action":"status_start","message":"Querying registries..."}
+
+data: {"action":"status_hives","message":"Hives: 2 online, 2 available"}
+
+data: {"action":"status_workers","message":"Workers: 4 online, 3 available"}
+
+data: {"action":"status_complete","message":"Status query complete"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+**Use case:** Check cluster health, see what's online
+
+---
+
+### Infer
+
+Run inference with automatic worker provisioning.
+
+**Endpoint:** `POST http://localhost:7833/v1/jobs`
+
+**Request:**
+
+```json
+{
+  "operation": "infer",
+  "hive_id": "localhost",
+  "model": "meta-llama/Llama-3.2-1B",
+  "prompt": "Hello, how are you?",
+  "max_tokens": 100,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "stream": true
+}
+```
+
+**Parameters:**
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'operation',
+      type: 'string',
+      required: true,
+      description: 'Must be "infer"'
+    },
+    {
+      name: 'hive_id',
+      type: 'string',
+      required: true,
+      description: 'Target hive ID (e.g., "localhost", "gpu-0")'
+    },
+    {
+      name: 'model',
+      type: 'string',
+      required: true,
+      description: 'Model name or HuggingFace ID'
+    },
+    {
+      name: 'prompt',
+      type: 'string',
+      required: true,
+      description: 'Input prompt text'
+    },
+    {
+      name: 'max_tokens',
+      type: 'number',
+      required: false,
+      description: 'Maximum tokens to generate (default: 100)'
+    },
+    {
+      name: 'temperature',
+      type: 'number',
+      required: false,
+      description: 'Sampling temperature 0.0-2.0 (default: 0.7)'
+    },
+    {
+      name: 'top_p',
+      type: 'number',
+      required: false,
+      description: 'Nucleus sampling threshold (default: 0.9)'
+    },
+    {
+      name: 'stream',
+      type: 'boolean',
+      required: false,
+      description: 'Enable streaming output (default: true)'
+    }
+  ]}
+/>
+
+**Response (streaming):**
+
+<TerminalWindow title="Inference Output">
+{`data: {"action":"infer_start","message":"Starting inference..."}
+
+data: {"action":"token","message":"Hello"}
+
+data: {"action":"token","message":"!"}
+
+data: {"action":"token","message":" How"}
+
+data: {"action":"token","message":" can"}
+
+data: {"action":"token","message":" I"}
+
+data: {"action":"token","message":" help"}
+
+data: {"action":"token","message":" you"}
+
+data: {"action":"token","message":" today"}
+
+data: {"action":"token","message":"?"}
+
+data: {"action":"infer_complete","message":"Inference complete"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+**Flow:**
+
+1. Queen checks worker registry for available worker
+2. If no worker: Queen internally sends `WorkerSpawn` to hive, waits for heartbeat
+3. Queen routes request DIRECTLY to worker (bypassing hive)
+4. Queen relays SSE stream back to client
+
+<Callout variant="info" title="Automatic Worker Provisioning">
+If no worker exists for the model, Queen automatically spawns one on the target hive. You don't need to manually spawn workers!
+</Callout>
+
+<Separator />
+
+## Hive Operations
+
+**Hive Job Server:** `http://localhost:7835/v1/jobs`
+
+<Callout variant="warning" title="Direct Access Required">
+These operations are NOT available through Queen's API. Connect directly to Hive's job server.
+</Callout>
+
+### Worker Operations
+
+#### WorkerSpawn
+
+Spawn a new worker process on the hive.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "worker_spawn",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B",
+    "worker": "cpu",
+    "device": 0
+  }'
+```
+
+**Parameters:**
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'operation',
+      type: 'string',
+      required: true,
+      description: 'Must be "worker_spawn"'
+    },
+    {
+      name: 'hive_id',
+      type: 'string',
+      required: true,
+      description: 'Target hive ID'
+    },
+    {
+      name: 'model',
+      type: 'string',
+      required: true,
+      description: 'Model to load'
+    },
+    {
+      name: 'worker',
+      type: 'string',
+      required: true,
+      description: 'Worker type: "cpu", "cuda", "metal"'
+    },
+    {
+      name: 'device',
+      type: 'number',
+      required: true,
+      description: 'Device index (0, 1, 2...)'
+    }
+  ]}
+/>
+
+**Response:**
+
+<TerminalWindow title="Worker Spawn">
+{`data: {"action":"worker_spawn_start","message":"Spawning worker..."}
+
+data: {"action":"worker_spawn_health_check","message":"Waiting for worker to start..."}
+
+data: {"action":"worker_spawn_complete","message":"Worker spawned (PID: 1234, port: 9301)"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+---
+
+#### WorkerProcessList
+
+List all running worker processes on the hive.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "worker_process_list",
+    "hive_id": "localhost"
+  }'
+```
+
+**Response:**
+
+<TerminalWindow title="Worker List">
+{`data: {"action":"worker_proc_list_entry","message":"PID 1234 | llama-3.2-1b | GPU 0 | running"}
+
+data: {"action":"worker_proc_list_entry","message":"PID 1235 | llama-3.2-3b | GPU 1 | running"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+---
+
+#### WorkerProcessGet
+
+Get details of a specific worker process.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "worker_process_get",
+    "hive_id": "localhost",
+    "worker_id": "worker-123"
+  }'
+```
+
+---
+
+#### WorkerProcessDelete
+
+Kill a worker process (SIGTERM → SIGKILL).
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "worker_process_delete",
+    "hive_id": "localhost",
+    "worker_id": "worker-123"
+  }'
+```
+
+**Response:**
+
+<TerminalWindow title="Worker Delete">
+{`data: {"action":"worker_proc_del_start","message":"Killing worker PID 1234"}
+
+data: {"action":"worker_proc_del_sigterm","message":"Sent SIGTERM"}
+
+data: {"action":"worker_proc_del_ok","message":"Worker killed successfully"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+<Separator />
+
+### Model Operations
+
+#### ModelDownload
+
+Download a model from HuggingFace.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "model_download",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B"
+  }'
+```
+
+**Response:**
+
+<TerminalWindow title="Model Download">
+{`data: {"action":"model_download_start","message":"Downloading llama-3.2-1b"}
+
+data: {"action":"model_download_progress","message":"Downloaded 123 MB / 1230 MB (10%)"}
+
+data: {"action":"model_download_progress","message":"Downloaded 246 MB / 1230 MB (20%)"}
+
+data: {"action":"model_download_complete","message":"Download complete"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+---
+
+#### ModelList
+
+List all models available on the hive.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "model_list",
+    "hive_id": "localhost"
+  }'
+```
+
+**Response:**
+
+<TerminalWindow title="Model List">
+{`data: {"action":"model_list_entry","message":"llama-3.2-1b | 1.23 GB | available"}
+
+data: {"action":"model_list_entry","message":"llama-3.2-3b | 3.45 GB | available"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+---
+
+#### ModelGet
+
+Get details of a specific model.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "model_get",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B"
+  }'
+```
+
+---
+
+#### ModelDelete
+
+Delete a model from disk.
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "model_delete",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B"
+  }'
+```
+
+**Response:**
+
+<TerminalWindow title="Model Delete">
+{`data: {"action":"model_delete_complete","message":"Model deleted successfully"}
+
+data: [DONE]`}
+</TerminalWindow>
+
+<Separator />
+
+## Usage Examples
+
+### Example 1: Manual Worker Management
+
+```bash
+# 1. Spawn worker (talk to HIVE directly)
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "worker_spawn",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B",
+    "worker": "cpu",
+    "device": 0
+  }'
+
+# 2. Wait for worker heartbeat (automatic)
+
+# 3. Run inference (talk to QUEEN)
+curl -X POST http://localhost:7833/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "infer",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B",
+    "prompt": "Hello!",
+    "max_tokens": 50,
+    "stream": true
+  }'
+```
+
+### Example 2: Automatic Worker Management
+
+```bash
+# Just run inference - Queen spawns worker if needed
+curl -X POST http://localhost:7833/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "infer",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B",
+    "prompt": "Hello!",
+    "max_tokens": 50,
+    "stream": true
+  }'
+
+# Queen internally:
+# 1. Checks worker registry
+# 2. If no worker: sends WorkerSpawn to hive (internal)
+# 3. Waits for worker heartbeat
+# 4. Routes inference directly to worker
+```
+
+<Callout variant="success" title="Recommended Approach">
+Let Queen handle worker provisioning automatically. Only manually spawn workers for advanced use cases.
+</Callout>
+
+<Separator />
+
+## Job Pattern
+
+All operations follow the same pattern:
+
+### 1. Submit Job
+
+```bash
+POST /v1/jobs
+Content-Type: application/json
+
+{
+  "operation": "...",
+  ...parameters...
+}
+```
+
+**Response:**
+
+```json
+{
+  "job_id": "abc-123-def-456",
+  "sse_url": "/v1/jobs/abc-123-def-456/stream"
+}
+```
+
+### 2. Connect to SSE Stream
+
+```bash
+GET /v1/jobs/abc-123-def-456/stream
+Accept: text/event-stream
+```
+
+**Response:**
+
+```
+data: {"action":"...","message":"..."}
+data: {"action":"...","message":"..."}
+data: [DONE]
+```
+
+### 3. Process Events
+
+Parse SSE events and handle based on `action` field.
+
+**See:** [Job-Based Pattern](/docs/architecture/job-based-pattern) for complete details
+
+<Separator />
+
+## Operation Summary
+
+### Queen Operations (Port 7833)
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'Status',
+      type: 'operation',
+      required: false,
+      description: 'Query registries for cluster status'
+    },
+    {
+      name: 'Infer',
+      type: 'operation',
+      required: false,
+      description: 'Run inference with automatic worker provisioning'
+    }
+  ]}
+/>
+
+### Hive Operations (Port 7835)
+
+**Worker Management:**
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'WorkerSpawn',
+      type: 'operation',
+      required: false,
+      description: 'Spawn new worker process'
+    },
+    {
+      name: 'WorkerProcessList',
+      type: 'operation',
+      required: false,
+      description: 'List all running workers'
+    },
+    {
+      name: 'WorkerProcessGet',
+      type: 'operation',
+      required: false,
+      description: 'Get worker details'
+    },
+    {
+      name: 'WorkerProcessDelete',
+      type: 'operation',
+      required: false,
+      description: 'Kill worker process'
+    }
+  ]}
+/>
+
+**Model Management:**
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'ModelDownload',
+      type: 'operation',
+      required: false,
+      description: 'Download model from HuggingFace'
+    },
+    {
+      name: 'ModelList',
+      type: 'operation',
+      required: false,
+      description: 'List available models'
+    },
+    {
+      name: 'ModelGet',
+      type: 'operation',
+      required: false,
+      description: 'Get model details'
+    },
+    {
+      name: 'ModelDelete',
+      type: 'operation',
+      required: false,
+      description: 'Delete model from disk'
+    }
+  ]}
+/>
+
+<Separator />
+
+## Next Steps
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Job-Based Pattern"
+    description="How operations work"
+    href="/docs/architecture/job-based-pattern"
+  />
+  <LinkCard
+    title="API Split Architecture"
+    description="Queen vs Hive explained"
+    href="/docs/architecture/api-split"
+  />
+  <LinkCard
+    title="CLI Reference"
+    description="Use rbee CLI instead"
+    href="/docs/reference/cli"
+  />
+</CardGrid>

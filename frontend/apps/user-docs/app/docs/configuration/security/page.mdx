@@ -1,0 +1,70 @@
+# Security Configuration
+
+**Status:** 🚧 Coming Soon
+
+<Callout variant="info">
+This page is under construction. Check back soon for complete security configuration guide.
+</Callout>
+
+<Separator />
+
+## Overview
+
+Security best practices and configuration for production rbee deployments.
+
+**Topics to be covered:**
+- Authentication setup
+- API key management
+- TLS/SSL configuration
+- Network security
+- Firewall rules
+- SSH key management
+- Access control
+- Audit logging
+- Security hardening
+
+<Separator />
+
+## Quick Security Tips
+
+<Callout variant="warning" title="Production Security">
+Never expose rbee services directly to the internet without proper authentication and TLS.
+</Callout>
+
+**Loopback-only binding (default):**
+```bash
+# Services bind to localhost by default
+queen-rbee --port 7833  # Binds to 127.0.0.1:7833
+```
+
+**Non-loopback requires API token:**
+```bash
+# For remote access, set API token
+export LLORCH_API_TOKEN="your-secure-token"
+queen-rbee --bind 0.0.0.0 --port 7833
+```
+
+<Separator />
+
+## Coming Soon
+
+This documentation is planned for a future release. In the meantime, refer to:
+
+<CardGrid columns={2}>
+  <LinkCard
+    title="Remote Hives Setup"
+    description="SSH configuration"
+    href="/docs/getting-started/remote-hives"
+  />
+  <LinkCard
+    title="Port Configuration"
+    description="Network setup"
+    href="https://github.com/rbee-dev/rbee/blob/main/PORT_CONFIGURATION.md"
+  />
+</CardGrid>
+
+---
+
+**STUB:** Created by TEAM-426  
+**Priority:** HIGH  
+**Estimated effort:** 4 hours

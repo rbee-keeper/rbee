@@ -21,7 +21,8 @@ This pattern applies to ALL operations: inference, worker spawn, model download,
 
 ## Example: Submit Job
 
-<CodeBlock code={`curl -X POST http://localhost:7833/v1/jobs \\
+```bash
+curl -X POST http://localhost:7833/v1/jobs \\
   -H "Content-Type: application/json" \\
   -d '{
     "operation": "infer",
@@ -31,23 +32,28 @@ This pattern applies to ALL operations: inference, worker spawn, model download,
     "temperature": 0.7,
     "top_p": 0.9,
     "stream": true
-  }'`} language="bash" />
+  }'
+```
 
 **Response:**
-<CodeBlock code={`{
+```json
+{
   "job_id": "abc-123-def-456",
   "sse_url": "/v1/jobs/abc-123-def-456/stream"
-}`} language="json" />
+}
+```
 
 ---
 
 ## Example: Connect to SSE Stream
 
-<CodeBlock code={`curl http://localhost:7833/v1/jobs/abc-123-def-456/stream`} language="bash" />
+```bash
+curl http://localhost:7833/v1/jobs/abc-123-def-456/stream
+```
 
 **Stream Output:**
 <TerminalWindow title="SSE Stream">
-data: {"action":"infer_start","message":"Starting inference..."}
+{`data: {"action":"infer_start","message":"Starting inference..."}
 
 data: {"action":"token","message":"Hello"}
 
@@ -59,7 +65,7 @@ data: {"action":"token","message":"'m"}
 
 data: {"action":"infer_complete","message":"Inference complete"}
 
-data: [DONE]
+data: [DONE]`}
 </TerminalWindow>
 
 ---
@@ -287,15 +293,19 @@ Jobs can fail at submission OR during execution. Always check for error events i
 
 ### Submission Errors (HTTP 400/500)
 
-<CodeBlock code={`{
+```json
+{
   "error": "Invalid operation",
   "details": "Unknown operation: invalid_op"
-}`} language="json" />
+}
+```
 
 ### Execution Errors (SSE Stream)
 
-<CodeBlock code={`data: {"action":"error","message":"Worker crashed during inference"}
-data: [DONE]`} language="bash" />
+```bash
+data: {"action":"error","message":"Worker crashed during inference"}
+data: [DONE]
+```
 
 ---
 
@@ -307,7 +317,8 @@ Even for operations that seem "instant", always connect to the SSE stream to get
 
 ### 2. Handle Disconnections
 
-<CodeBlock code={`# Implement retry logic
+```python
+# Implement retry logic
 max_retries = 3
 for attempt in range(max_retries):
     try:
@@ -319,15 +330,18 @@ for attempt in range(max_retries):
         if attempt < max_retries - 1:
             time.sleep(2 ** attempt)  # Exponential backoff
         else:
-            raise`} language="python" />
+            raise
+```
 
 ### 3. Set Appropriate Timeouts
 
-<CodeBlock code={`# Long-running operations (model download, inference)
+```python
+# Long-running operations (model download, inference)
 stream_response = requests.get(sse_url, stream=True, timeout=600)
 
 # Quick operations (status check)
-stream_response = requests.get(sse_url, stream=True, timeout=30)`} language="python" />
+stream_response = requests.get(sse_url, stream=True, timeout=30)
+```
 
 ---
 

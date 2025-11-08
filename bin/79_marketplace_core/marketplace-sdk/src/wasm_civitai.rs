@@ -9,17 +9,27 @@ use tsify::Tsify;
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct CivitaiModel {
+    /// Model ID
     pub id: i64,
+    /// Model name
     pub name: String,
+    /// Model description
     pub description: String,
+    /// Model type (Checkpoint, LORA, etc.)
     #[serde(rename = "type")]
     pub model_type: String,
+    /// Whether model is NSFW
     pub nsfw: bool,
+    /// Commercial use permission
     #[serde(rename = "allowCommercialUse")]
     pub allow_commercial_use: String,
+    /// Model statistics
     pub stats: CivitaiStats,
+    /// Model creator
     pub creator: CivitaiCreator,
+    /// Model tags
     pub tags: Vec<String>,
+    /// Model versions
     #[serde(rename = "modelVersions")]
     pub model_versions: Vec<CivitaiModelVersion>,
 }
@@ -28,14 +38,19 @@ pub struct CivitaiModel {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct CivitaiStats {
+    /// Download count
     #[serde(rename = "downloadCount")]
     pub download_count: i64,
+    /// Favorite count
     #[serde(rename = "favoriteCount")]
     pub favorite_count: i64,
+    /// Comment count
     #[serde(rename = "commentCount")]
     pub comment_count: i64,
+    /// Rating count
     #[serde(rename = "ratingCount")]
     pub rating_count: i64,
+    /// Average rating
     pub rating: f64,
 }
 
@@ -43,7 +58,9 @@ pub struct CivitaiStats {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct CivitaiCreator {
+    /// Creator username
     pub username: String,
+    /// Creator avatar image URL
     pub image: Option<String>,
 }
 
@@ -51,15 +68,22 @@ pub struct CivitaiCreator {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct CivitaiModelVersion {
+    /// Version ID
     pub id: i64,
+    /// Parent model ID
     #[serde(rename = "modelId")]
     pub model_id: i64,
+    /// Version name
     pub name: String,
+    /// Base model (SDXL, SD 1.5, etc.)
     #[serde(rename = "baseModel")]
     pub base_model: String,
+    /// Trained trigger words
     #[serde(rename = "trainedWords")]
     pub trained_words: Vec<String>,
+    /// Model files
     pub files: Vec<CivitaiFile>,
+    /// Preview images
     pub images: Vec<CivitaiImage>,
 }
 
@@ -67,12 +91,17 @@ pub struct CivitaiModelVersion {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct CivitaiFile {
+    /// File name
     pub name: String,
+    /// File ID
     pub id: i64,
+    /// File size in KB
     #[serde(rename = "sizeKB")]
     pub size_kb: f64,
+    /// Download URL
     #[serde(rename = "downloadUrl")]
     pub download_url: String,
+    /// Whether this is the primary file
     pub primary: bool,
 }
 
@@ -80,9 +109,13 @@ pub struct CivitaiFile {
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct CivitaiImage {
+    /// Image URL
     pub url: String,
+    /// Whether image is NSFW
     pub nsfw: bool,
+    /// Image width
     pub width: i32,
+    /// Image height
     pub height: i32,
 }
 

@@ -49,6 +49,7 @@ mod tests {
                 marketplace_list_models,
                 marketplace_search_models,
                 marketplace_get_model,
+                marketplace_list_civitai_models, // TEAM-423: Civitai models
                 marketplace_list_workers, // TEAM-421: Worker catalog listing
                 // TEAM-420: Removed check_model_compatibility, list_compatible_workers, list_compatible_models (incomplete stubs)
             ])
@@ -632,6 +633,37 @@ pub async fn marketplace_get_model(
         .map(|model| {
             n!("marketplace_get_model", "✅ Found model: {}", model.name);
             model
+        })
+}
+
+/// List models from Civitai
+/// TEAM-423: Marketplace integration with Civitai API
+#[tauri::command]
+#[specta::specta]
+pub async fn marketplace_list_civitai_models(
+    limit: Option<u32>,
+) -> Result<Vec<marketplace_sdk::Model>, String> {
+    use marketplace_sdk::CivitaiClient;
+    use observability_narration_core::n;
+
+    n!("marketplace_list_civitai_models", "🔍 Listing Civitai models");
+
+    let client = CivitaiClient::new();
+    client
+        .get_compatible_models()
+        .await
+        .map_err(|e| {
+            n!("marketplace_list_civitai_models", "❌ Error: {}", e);
+            format!("Failed to list Civitai models: {}", e)
+        })
+        .map(|response| {
+            let models: Vec<marketplace_sdk::Model> = response.items
+                .into_iter()
+                .take(limit.unwrap_or(100) as usize)
+                .map(|civitai_model| client.to_marketplace_model(&civitai_model))
+                .collect();
+            n!("marketplace_list_civitai_models", "✅ Found {} models", models.len());
+            models
         })
 }
 

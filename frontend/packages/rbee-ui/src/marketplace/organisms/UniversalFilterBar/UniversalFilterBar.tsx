@@ -1,7 +1,6 @@
 // TEAM-423: Universal filter bar that works in both SSG (URL-based) and GUI (state-based) modes
-// Automatically detects environment and adapts behavior
+// Uses callback pattern - parent decides behavior (no environment detection needed)
 import { cn } from '@rbee/ui/utils'
-import { isTauriEnvironment } from '@rbee/ui/utils/environment'
 import type { FilterGroup, FilterOption } from '../../types/filters'
 import { ChevronDown, Check } from 'lucide-react'
 import { Button } from '@rbee/ui/atoms/Button'

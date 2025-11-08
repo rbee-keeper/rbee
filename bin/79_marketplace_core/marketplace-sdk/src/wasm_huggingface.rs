@@ -9,13 +9,21 @@ use tsify::Tsify;
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct HuggingFaceModel {
+    /// Model ID
     pub id: String,
+    /// Model name
     pub name: Option<String>,
+    /// Model description
     pub description: Option<String>,
+    /// Model author
     pub author: Option<String>,
+    /// Download count
     pub downloads: f64,
+    /// Like count
     pub likes: f64,
+    /// Model tags
     pub tags: Vec<String>,
+    /// Last modified timestamp
     #[serde(rename = "lastModified")]
     pub last_modified: Option<String>,
 }

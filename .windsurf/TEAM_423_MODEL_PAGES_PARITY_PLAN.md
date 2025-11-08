@@ -344,6 +344,7 @@ const marketplaceNavigation = [
 4. Add filter description
 5. Implement client-side filtering
 6. Update layout to match Next.js
+7. Use useArtifactActions for environment-aware download buttons
 
 ### Phase 3: Civitai Page ✅ HIGH
 1. Add Tauri command (marketplace_list_civitai_models)

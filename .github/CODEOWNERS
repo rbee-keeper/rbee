@@ -1,0 +1,53 @@
+# CODEOWNERS - Require review from code owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global fallback - all files require review from vince
+* @vince
+
+# Rust Backend
+/bin/**/*.rs @vince
+/contracts/**/*.rs @vince
+/xtask/**/*.rs @vince
+Cargo.toml @vince
+Cargo.lock @vince
+rust-toolchain.toml @vince
+
+# Frontend
+/frontend/**/*.ts @vince
+/frontend/**/*.tsx @vince
+/frontend/**/*.js @vince
+/frontend/**/*.jsx @vince
+package.json @vince
+pnpm-lock.yaml @vince
+pnpm-workspace.yaml @vince
+turbo.json @vince
+
+# CI/CD - Critical for security
+/.github/workflows/*.yml @vince
+/.github/workflows/*.yaml @vince
+/.github/CODEOWNERS @vince
+
+# Scripts - Can execute code
+/scripts/*.sh @vince
+/scripts/*.py @vince
+/ci/scripts/*.sh @vince
+/tools/*.sh @vince
+
+# Configuration - Critical settings
+/.windsurf/rules/*.md @vince
+/.llorch.toml.example @vince
+/.env.example @vince
+/biome.json @vince
+/.clippy.toml @vince
+/rustfmt.toml @vince
+
+# Documentation - Important for contributors
+/docs/**/*.md @vince
+/.docs/**/*.md @vince
+/README.md @vince
+/CONTRIBUTING.md @vince
+/LICENSE @vince
+
+# Security
+/.github/dependabot.yml @vince
+/.github/security.md @vince

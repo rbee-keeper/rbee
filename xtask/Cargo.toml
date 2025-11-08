@@ -48,3 +48,9 @@ futures = "0.3"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 observability-narration-core = { path = "../bin/99_shared_crates/narration-core" }
+
+# TEAM-451: Release management dependencies
+inquire = "0.7"           # Interactive prompts
+toml_edit = "0.22"        # TOML parsing (preserves formatting)
+semver = "1.0"            # Semantic versioning
+toml = "0.8"              # TOML deserialization for tier configs

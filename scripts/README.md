@@ -83,17 +83,46 @@ Installs deps and builds @rbee/ui, then shows dev commands.
 
 ### `setup-github-branches.sh` ⭐ NEW
 
-**TEAM-451:** Setup development and production branches with optional protection rules.
+**TEAM-451:** Setup development and production branches.
 
 ```bash
-# Create branches only
+# Create branches and set development as default
 ./scripts/setup-github-branches.sh
-
-# Create branches + configure protection (requires admin)
-./scripts/setup-github-branches.sh --protect
 ```
 
-See `.docs/BRANCH_STRATEGY.md` for workflow details.
+### `configure-branch-protection.sh` ⭐ NEW
+
+**TEAM-451:** Configure branch protection rules.
+
+```bash
+# Protect production, free pushing on development
+./scripts/configure-branch-protection.sh
+```
+
+**Configuration:**
+- `production`: Protected (PR required, CI must pass, triggers releases)
+- `development`: Free pushing (no restrictions)
+
+### `release.sh` ⭐ NEW
+
+**TEAM-451:** Bump version using existing tools (Rule Zero).
+
+```bash
+# One-time setup
+cargo install cargo-workspaces
+
+# Bump version
+./scripts/release.sh patch   # 0.1.0 → 0.1.1
+./scripts/release.sh minor   # 0.1.0 → 0.2.0
+./scripts/release.sh major   # 0.1.0 → 1.0.0
+```
+
+**Uses existing tools:**
+- `pnpm version` for JavaScript packages
+- `cargo workspaces` for Rust crates
+- Simple wrapper (not custom bash logic)
+
+See `.docs/VERSION_MANAGEMENT.md` for details.
 
 ## Other Scripts
 

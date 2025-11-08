@@ -1,0 +1,20 @@
+# LLM Worker Tier - LLM inference worker (independent versioning)
+# Created by: TEAM-451
+
+name = "llm-worker"
+description = "LLM inference worker with CPU/CUDA/Metal backends"
+
+[rust]
+crates = [
+    "bin/30_llm_worker_rbee",
+    "bin/32_shared_worker_rbee",
+]
+
+shared_crates = []
+
+[javascript]
+packages = [
+    "@rbee/llm-worker-sdk",
+    "@rbee/llm-worker-ui",
+    "@rbee/llm-worker-react",
+]

@@ -228,8 +228,22 @@ gh api repos/rbee-keeper/rbee/branches/development/protection \
 - Re-authenticate: `gh auth login`
 - Check status: `gh auth status`
 
+## Security & Protection
+
+For comprehensive repository protection (trolls, accidents, unauthorized changes), see:
+- **[REPOSITORY_PROTECTION.md](.docs/REPOSITORY_PROTECTION.md)** - Full protection guide
+
+Quick checklist:
+- ✅ Branch protection on `production` (2 approvals required)
+- ✅ Branch protection on `development` (1 approval required)
+- ✅ CODEOWNERS file (`.github/CODEOWNERS`)
+- ✅ Required status checks (CI must pass)
+- ✅ No force push on `production`
+- ✅ 2FA enabled for admins
+
 ## References
 
 - [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
 - [GitHub CLI Manual](https://cli.github.com/manual/)
 - [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/)
+- [Repository Protection Guide](REPOSITORY_PROTECTION.md)

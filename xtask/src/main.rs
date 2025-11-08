@@ -5,6 +5,7 @@ mod chaos; // TEAM-252: Chaos testing infrastructure
 mod cli;
 mod e2e; // TEAM-160: End-to-end integration tests
 mod integration; // TEAM-251: Integration testing infrastructure
+mod release; // TEAM-451: Release management
 mod tasks;
 mod util;
 
@@ -149,8 +150,8 @@ fn main() -> Result<()> {
         Cmd::BddGrep { pattern, ignore_case } => tasks::bdd::bdd_grep(pattern, ignore_case)?,
         Cmd::BddCheckDuplicates => tasks::bdd::check_duplicate_steps()?,
         Cmd::BddFixDuplicates => tasks::bdd::fix_all_duplicates()?,
-        Cmd::BddAnalyze { detailed, stubs_only, format } => {
-            handle_bdd_analyze(detailed, stubs_only, &format)?
+        Cmd::BddAnalyze { detailed, stubs_only } => {
+            handle_bdd_analyze(detailed, stubs_only, "text")?
         }
         Cmd::BddProgress { compare } => handle_bdd_progress(compare)?,
         Cmd::BddStubs { file, min_stubs } => handle_bdd_stubs(file, min_stubs)?,
@@ -174,6 +175,10 @@ fn main() -> Result<()> {
         Cmd::E2eHive => tokio::runtime::Runtime::new()?.block_on(e2e::test_hive_lifecycle())?,
         Cmd::E2eCascade => tokio::runtime::Runtime::new()?.block_on(e2e::test_cascade_shutdown())?,
         Cmd::Rbee { args } => tasks::rbee::run_rbee_keeper(args)?,
+        // TEAM-451: Release management
+        Cmd::Release { tier, r#type, dry_run } => {
+            release::run(tier, r#type, dry_run)?
+        }
     }
     Ok(())
 }

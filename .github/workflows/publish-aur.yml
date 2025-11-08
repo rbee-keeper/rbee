@@ -1,0 +1,81 @@
+name: Publish to AUR
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 0.2.0)'
+        required: true
+
+jobs:
+  publish-aur:
+    name: Publish to AUR
+    runs-on: self-hosted
+    # This will run on your Arch machine
+    # You need to set up a self-hosted runner with label: arch
+    
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"  # Remove 'v' prefix
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Clone AUR repository
+        run: |
+          # Clone your AUR package repository
+          # You'll need to set up SSH keys for AUR
+          git clone ssh://aur@aur.archlinux.org/rbee.git aur-rbee || true
+          cd aur-rbee
+          git pull
+          
+      - name: Update PKGBUILD
+        run: |
+          cd aur-rbee
+          
+          # Update version
+          sed -i "s/^pkgver=.*/pkgver=${{ steps.version.outputs.version }}/" PKGBUILD
+          
+          # Update source URL
+          sed -i "s|source=(.*)|source=(\"https://github.com/rbee-keeper/rbee/archive/v${{ steps.version.outputs.version }}.tar.gz\")|" PKGBUILD
+          
+          # Generate new checksums
+          updpkgsums
+          
+          # Update .SRCINFO
+          makepkg --printsrcinfo > .SRCINFO
+          
+      - name: Test build
+        run: |
+          cd aur-rbee
+          makepkg -sf --noconfirm
+          
+      - name: Commit and push to AUR
+        run: |
+          cd aur-rbee
+          git config user.name "rbee-bot"
+          git config user.email "bot@rbee.dev"
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to version ${{ steps.version.outputs.version }}"
+          git push
+          
+      - name: Comment on release
+        if: github.event_name == 'release'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              issue_number: context.payload.release.id,
+              body: '✅ Published to AUR: https://aur.archlinux.org/packages/rbee'
+            })

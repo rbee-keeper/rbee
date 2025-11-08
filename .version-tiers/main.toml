@@ -1,0 +1,65 @@
+# Main Tier - User-facing binaries (synchronized versioning)
+# Created by: TEAM-451
+# All components in this tier share the same version
+
+name = "main"
+description = "User-facing binaries (rbee-keeper, queen-rbee, rbee-hive)"
+
+[rust]
+# Main binaries
+crates = [
+    "bin/00_rbee_keeper",
+    "bin/10_queen_rbee",
+    "bin/20_rbee_hive",
+]
+
+# Shared crates (all get bumped together with main)
+shared_crates = [
+    "bin/15_queen_rbee_crates/telemetry-registry",
+    "bin/15_queen_rbee_crates/scheduler",
+    "bin/25_rbee_hive_crates/artifact-catalog",
+    "bin/25_rbee_hive_crates/model-catalog",
+    "bin/25_rbee_hive_crates/model-provisioner",
+    "bin/25_rbee_hive_crates/monitor",
+    "bin/25_rbee_hive_crates/device-detection",
+    "bin/25_rbee_hive_crates/vram-checker",
+    "bin/25_rbee_hive_crates/worker-catalog",
+    "bin/25_rbee_hive_crates/worker-provisioner",
+    "bin/25_rbee_hive_crates/port-assigner",
+    "bin/96_lifecycle/health-poll",
+    "bin/96_lifecycle/lifecycle-shared",
+    "bin/96_lifecycle/lifecycle-local",
+    "bin/96_lifecycle/lifecycle-ssh",
+    "bin/97_contracts/artifacts-contract",
+    "bin/97_contracts/shared-contract",
+    "bin/97_contracts/worker-contract",
+    "bin/97_contracts/hive-contract",
+    "bin/97_contracts/operations-contract",
+    "bin/97_contracts/jobs-contract",
+    "bin/97_contracts/keeper-config-contract",
+    "bin/98_security_crates/audit-logging",
+    "bin/98_security_crates/auth-min",
+    "bin/98_security_crates/deadline-propagation",
+    "bin/98_security_crates/input-validation",
+    "bin/98_security_crates/jwt-guardian",
+    "bin/98_security_crates/secrets-management",
+    "bin/99_shared_crates/narration-core",
+    "bin/99_shared_crates/heartbeat-registry",
+    "bin/99_shared_crates/job-server",
+    "bin/99_shared_crates/timeout-enforcer",
+    "bin/99_shared_crates/auto-update",
+    "bin/99_shared_crates/job-client",
+    "bin/99_shared_crates/ssh-config-parser",
+    "bin/99_shared_crates/env-config",
+    "contracts/api-types",
+    "contracts/config-schema",
+    "tools/openapi-client",
+    "tools/readme-index",
+    "tools/spec-extract",
+]
+
+[javascript]
+packages = [
+    "@rbee/queen-rbee-sdk",
+    "@rbee/rbee-hive-sdk",
+]

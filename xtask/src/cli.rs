@@ -98,9 +98,19 @@ pub enum Cmd {
         /// Show only files with stubs
         #[arg(long)]
         stubs_only: bool,
-        /// Output format (text, json, markdown)
-        #[arg(long, default_value = "text")]
-        format: String,
+    },
+    // TEAM-451: Release management
+    #[command(name = "release")]
+    Release {
+        /// Tier to release (main, llm-worker, sd-worker, commercial)
+        #[arg(long)]
+        tier: Option<String>,
+        /// Bump type (patch, minor, major)
+        #[arg(long)]
+        r#type: Option<String>,
+        /// Dry run (preview changes without applying)
+        #[arg(long)]
+        dry_run: bool,
     },
     #[command(name = "bdd:progress")]
     BddProgress {

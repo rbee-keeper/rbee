@@ -1,0 +1,15 @@
+# Commercial Tier - Frontend apps (independent versioning)
+# Created by: TEAM-451
+
+name = "commercial"
+description = "Marketing site and frontend applications"
+
+[rust]
+crates = []
+
+shared_crates = []
+
+[javascript]
+packages = [
+    "@rbee/commercial",
+]

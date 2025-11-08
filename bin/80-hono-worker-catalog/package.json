@@ -16,8 +16,8 @@
 		"hono": "^4.10.4"
 	},
 	"devDependencies": {
-		"@vitest/coverage-v8": "^4.0.6",
-		"vitest": "^4.0.6",
-		"wrangler": "^4.45.3"
+		"@vitest/coverage-v8": "^4.0.8",
+		"vitest": "^4.0.8",
+		"wrangler": "^4.46.0"
 	}
 }

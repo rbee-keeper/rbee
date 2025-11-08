@@ -10,28 +10,37 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
-  "keywords": ["rbee", "queen", "react", "hooks", "wasm", "llm"],
+  "keywords": [
+    "rbee",
+    "queen",
+    "react",
+    "hooks",
+    "wasm",
+    "llm"
+  ],
   "author": "rbee Team",
   "license": "GPL-3.0-or-later",
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@rbee/queen-rbee-sdk": "workspace:*",
-    "@rbee/sdk-loader": "workspace:*",
-    "@rbee/react-hooks": "workspace:*",
     "@rbee/narration-client": "workspace:*",
-    "@tanstack/react-query": "^5.0.0"
+    "@rbee/queen-rbee-sdk": "workspace:*",
+    "@rbee/react-hooks": "workspace:*",
+    "@rbee/sdk-loader": "workspace:*",
+    "@tanstack/react-query": "^5.90.7"
   },
   "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@types/react": "^19.2.2",
-    "@tanstack/react-query-devtools": "^5.0.0",
     "typescript": "^5.9.3"
   }
 }

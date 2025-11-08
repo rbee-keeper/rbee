@@ -22,10 +22,10 @@
     "a11y:theme": "node frontend/scripts/a11y/contrast-check.js"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.6",
+    "@biomejs/biome": "^2.3.4",
     "concurrently": "^9.2.1",
     "playwright": "^1.56.1",
-    "turbo": "^2.5.8"
+    "turbo": "^2.6.0"
   },
   "packageManager": "pnpm@10.20.0",
   "engines": {

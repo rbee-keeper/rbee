@@ -1,0 +1,225 @@
+# Component Test Page
+
+This page tests all the new MDX components.
+
+---
+
+## Callout Component
+
+### Info Callout
+
+<Callout variant="info" title="Information">
+This is an info callout with a title.
+</Callout>
+
+### Warning Callout
+
+<Callout variant="warning" title="Warning">
+This is a warning callout. Pay attention!
+</Callout>
+
+### Error Callout
+
+<Callout variant="error" title="Error">
+This is an error callout. Something went wrong!
+</Callout>
+
+### Success Callout
+
+<Callout variant="success" title="Success">
+This is a success callout. Everything worked!
+</Callout>
+
+### Callout Without Title
+
+<Callout variant="info">
+This is a callout without a title.
+</Callout>
+
+---
+
+## LinkCard & CardGrid Components
+
+### Two Column Grid
+
+<CardGrid columns={2}>
+  <LinkCard
+    title="Remote Hive Setup"
+    description="Learn how to connect remote machines to your rbee colony"
+    href="/docs/getting-started/remote-hives"
+  />
+  <LinkCard
+    title="Job-Based Pattern"
+    description="Understand the job submission and SSE streaming pattern"
+    href="/docs/architecture/job-based-pattern"
+  />
+</CardGrid>
+
+### Three Column Grid
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Installation"
+    description="Get started with rbee"
+    href="/docs/getting-started/installation"
+  />
+  <LinkCard
+    title="Architecture"
+    description="System architecture overview"
+    href="/docs/architecture/overview"
+  />
+  <LinkCard
+    title="API Reference"
+    description="Complete API documentation"
+    href="/docs/reference/api-openai-compatible"
+  />
+</CardGrid>
+
+---
+
+## Existing Components from @rbee/ui
+
+### CodeSnippet
+
+<CodeSnippet language="bash">
+curl -sSL https://install.rbee.dev | sh
+</CodeSnippet>
+
+### TerminalWindow
+
+<TerminalWindow title="Installation">
+$ curl -sSL https://install.rbee.dev | sh
+Downloading rbee v0.1.0...
+✓ Installation complete
+$ rbee --version
+rbee 0.1.0
+</TerminalWindow>
+
+### Badge
+
+<Badge>Default</Badge> <Badge variant="secondary">Secondary</Badge> <Badge variant="destructive">Destructive</Badge>
+
+### Separator
+
+Above the separator
+
+<Separator />
+
+Below the separator
+
+---
+
+## CodeTabs Component
+
+### Multi-Language Example
+
+<CodeTabs
+  tabs={[
+    {
+      label: 'Python',
+      language: 'python',
+      code: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:7833/openai",
+    api_key="not-needed"
+)
+
+response = client.chat.completions.create(
+    model="llama-3-8b",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.choices[0].message.content)`
+    },
+    {
+      label: 'JavaScript',
+      language: 'javascript',
+      code: `import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:7833/openai',
+  apiKey: 'not-needed'
+});
+
+const response = await client.chat.completions.create({
+  model: 'llama-3-8b',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);`
+    },
+    {
+      label: 'cURL',
+      language: 'bash',
+      code: `curl -X POST http://localhost:7833/openai/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "llama-3-8b",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'`
+    }
+  ]}
+/>
+
+---
+
+## APIParameterTable Component
+
+### Example API Parameters
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'model',
+      type: 'string',
+      required: true,
+      description: 'Model ID to use for inference (e.g., "llama-3-8b")'
+    },
+    {
+      name: 'prompt',
+      type: 'string',
+      required: true,
+      description: 'Input text prompt for the model'
+    },
+    {
+      name: 'temperature',
+      type: 'float',
+      required: false,
+      default: '0.7',
+      description: 'Sampling temperature (0.0-2.0). Higher values make output more random.'
+    },
+    {
+      name: 'max_tokens',
+      type: 'integer',
+      required: false,
+      default: '100',
+      description: 'Maximum number of tokens to generate'
+    },
+    {
+      name: 'top_p',
+      type: 'float',
+      required: false,
+      default: '0.9',
+      description: 'Nucleus sampling parameter (0.0-1.0)'
+    },
+    {
+      name: 'stream',
+      type: 'boolean',
+      required: false,
+      default: 'false',
+      description: 'Enable streaming response via SSE'
+    }
+  ]}
+/>
+
+---
+
+## Test Complete
+
+All 5 components are working! ✅
+
+- ✅ Callout (4 variants)
+- ✅ LinkCard + CardGrid
+- ✅ CodeTabs (with syntax highlighting + copy)
+- ✅ APIParameterTable (with search)

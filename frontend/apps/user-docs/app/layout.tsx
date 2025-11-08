@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import '@rbee/ui/styles.css'
 import 'nextra-theme-docs/style.css'
+import { Navigation } from '@/components/Navigation'
 
 export const metadata: Metadata = {
   title: {
@@ -36,7 +37,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <Navigation />
+        <main id="main">{children}</main>
+      </body>
     </html>
   )
 }

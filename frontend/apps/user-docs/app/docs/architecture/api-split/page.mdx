@@ -1,0 +1,351 @@
+# Queen vs Hive: API Split
+
+rbee has TWO separate job servers. Understanding which to use is critical.
+
+<Separator />
+
+## Why Two Servers?
+
+<Callout variant="info">
+**Queen** handles orchestration (inference, status).  
+**Hive** handles lifecycle (workers, models).
+</Callout>
+
+This separation keeps concerns clean:
+- Queen focuses on **routing and scheduling**
+- Hive focuses on **resource management**
+- Workers focus on **inference execution**
+
+<Separator />
+
+## Queen Job Server (Port 7833)
+
+**Operations:** 2 only
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'Status',
+      type: 'operation',
+      required: false,
+      description: 'Query worker and hive registries for current state'
+    },
+    {
+      name: 'Infer',
+      type: 'operation',
+      required: false,
+      description: 'Schedule inference request (Queen routes directly to worker)'
+    }
+  ]}
+/>
+
+### Status Operation
+
+<CodeBlock code={`curl -X POST http://localhost:7833/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{"operation": "status"}'`} language="bash" />
+
+**Returns:** Current state of all hives and workers from registries.
+
+### Infer Operation
+
+<CodeBlock code={`curl -X POST http://localhost:7833/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "operation": "infer",
+    "model": "llama-3-8b",
+    "prompt": "Hello!",
+    "max_tokens": 50
+  }'`} language="bash" />
+
+**Flow:**
+1. Queen checks worker registry for available worker
+2. If no worker: sends `WorkerSpawn` job to hive (internal), waits for heartbeat
+3. Queen routes request **DIRECTLY** to worker (bypassing hive)
+4. Queen relays SSE stream back to client
+
+<Callout variant="warning" title="Critical">
+Inference NEVER goes through hive. Queen routes directly to worker.
+</Callout>
+
+### OpenAI-Compatible Endpoints
+
+Queen also provides OpenAI-compatible endpoints:
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'POST /openai/v1/chat/completions',
+      type: 'endpoint',
+      required: false,
+      description: 'OpenAI chat completions (streaming supported)'
+    },
+    {
+      name: 'GET /openai/v1/models',
+      type: 'endpoint',
+      required: false,
+      description: 'List available models'
+    },
+    {
+      name: 'GET /openai/v1/models/{model}',
+      type: 'endpoint',
+      required: false,
+      description: 'Get model details'
+    },
+    {
+      name: 'GET /v1/heartbeats/stream',
+      type: 'endpoint',
+      required: false,
+      description: 'SSE stream of all heartbeat events'
+    }
+  ]}
+/>
+
+---
+
+## Hive Job Server (Port 7835)
+
+**Operations:** 8 operations for worker and model management
+
+### Worker Operations
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'WorkerSpawn',
+      type: 'operation',
+      required: false,
+      description: 'Spawn a new worker process'
+    },
+    {
+      name: 'WorkerProcessList',
+      type: 'operation',
+      required: false,
+      description: 'List all worker processes on this hive'
+    },
+    {
+      name: 'WorkerProcessGet',
+      type: 'operation',
+      required: false,
+      description: 'Get details of a specific worker'
+    },
+    {
+      name: 'WorkerProcessDelete',
+      type: 'operation',
+      required: false,
+      description: 'Kill a worker process'
+    }
+  ]}
+/>
+
+#### Example: Spawn Worker
+
+<CodeBlock code={`curl -X POST http://localhost:7835/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "operation": "worker_spawn",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B",
+    "worker": "cpu",
+    "device": 0
+  }'`} language="bash" />
+
+#### Example: List Workers
+
+<CodeBlock code={`curl -X POST http://localhost:7835/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "operation": "worker_process_list",
+    "hive_id": "localhost"
+  }'`} language="bash" />
+
+### Model Operations
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'ModelDownload',
+      type: 'operation',
+      required: false,
+      description: 'Download a model from HuggingFace'
+    },
+    {
+      name: 'ModelList',
+      type: 'operation',
+      required: false,
+      description: 'List all models in local catalog'
+    },
+    {
+      name: 'ModelGet',
+      type: 'operation',
+      required: false,
+      description: 'Get details of a specific model'
+    },
+    {
+      name: 'ModelDelete',
+      type: 'operation',
+      required: false,
+      description: 'Delete a model from local catalog'
+    }
+  ]}
+/>
+
+#### Example: Download Model
+
+<CodeBlock code={`curl -X POST http://localhost:7835/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "operation": "model_download",
+    "hive_id": "localhost",
+    "model": "meta-llama/Llama-3.2-1B"
+  }'`} language="bash" />
+
+#### Example: List Models
+
+<CodeBlock code={`curl -X POST http://localhost:7835/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "operation": "model_list",
+    "hive_id": "localhost"
+  }'`} language="bash" />
+
+---
+
+## Architecture Summary
+
+### rbee-keeper CLI
+
+```
+rbee-keeper CLI
+  ├─→ Queen Job Server (http://localhost:7833/v1/jobs)
+  │   ├─ Status
+  │   └─ Infer
+  │
+  └─→ Hive Job Server (http://localhost:7835/v1/jobs)
+      ├─ WorkerSpawn, WorkerProcessList, WorkerProcessGet, WorkerProcessDelete
+      └─ ModelDownload, ModelList, ModelGet, ModelDelete
+```
+
+<Callout variant="warning" title="No Proxying">
+rbee-keeper talks directly to queen AND hive. There is no proxying.
+</Callout>
+
+### rbee-keeper GUI
+
+```
+rbee-keeper GUI
+  ├─→ Queen Web UI (iframe: http://localhost:7833/)
+  ├─→ Hive Web UI (iframe: http://localhost:7835/)
+  └─→ Worker Web UI (iframe: http://localhost:8080/)
+```
+
+**Direct SDK access** - GUI opens web UIs in iframes, uses SDK directly.
+
+### Inference Flow
+
+```
+Client → Queen (scheduling) → Worker (DIRECT)
+      ↘ Hive (internal: spawn worker if needed)
+```
+
+<Callout variant="error" title="Critical">
+- Hive is NEVER in the inference path
+- Queen routes directly to worker
+- Hive only used for worker lifecycle (internal queen operation)
+</Callout>
+
+---
+
+## Decision Tree: Which Server?
+
+### Use Queen (7833) when:
+- ✅ Running inference
+- ✅ Checking system status
+- ✅ Using OpenAI-compatible API
+- ✅ Monitoring heartbeats
+
+### Use Hive (7835) when:
+- ✅ Managing workers manually
+- ✅ Managing models manually
+- ✅ Checking local hive status
+- ✅ Debugging worker issues
+
+---
+
+## Port Reference
+
+<APIParameterTable
+  parameters={[
+    {
+      name: '7833',
+      type: 'port',
+      required: true,
+      default: 'Queen',
+      description: 'Queen job server and OpenAI-compatible API'
+    },
+    {
+      name: '7835',
+      type: 'port',
+      required: true,
+      default: 'Hive',
+      description: 'Hive job server for worker/model management'
+    },
+    {
+      name: '9000+',
+      type: 'port',
+      required: false,
+      default: 'Workers',
+      description: 'Worker inference servers (9001, 9002, 9003, ...)'
+    }
+  ]}
+/>
+
+---
+
+## Examples
+
+### Example 1: Manual Worker Management
+
+<CodeBlock code={`# 1. Spawn worker (talk to HIVE directly)
+curl -X POST http://localhost:7835/v1/jobs \\
+  -d '{"operation": "worker_spawn", "hive_id": "localhost", "model": "llama-3-8b"}'
+
+# 2. Wait for worker heartbeat (automatic)
+
+# 3. Run inference (talk to QUEEN)
+curl -X POST http://localhost:7833/v1/jobs \\
+  -d '{"operation": "infer", "model": "llama-3-8b", "prompt": "Hello!"}'`} language="bash" />
+
+### Example 2: Automatic Worker Management
+
+<CodeBlock code={`# Just run inference - queen spawns worker if needed
+curl -X POST http://localhost:7833/v1/jobs \\
+  -d '{"operation": "infer", "model": "llama-3-8b", "prompt": "Hello!"}'
+
+# Queen internally:
+# 1. Checks worker registry
+# 2. If no worker: sends WorkerSpawn to hive (internal)
+# 3. Waits for worker heartbeat
+# 4. Routes inference directly to worker`} language="bash" />
+
+---
+
+## Next Steps
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Job-Based Pattern"
+    description="Understand job submission and SSE streaming"
+    href="/docs/architecture/job-based-pattern"
+  />
+  <LinkCard
+    title="Job Operations Reference"
+    description="Complete API documentation"
+    href="/docs/reference/job-operations"
+  />
+  <LinkCard
+    title="Heartbeat Architecture"
+    description="How monitoring works"
+    href="/docs/architecture/heartbeats"
+  />
+</CardGrid>

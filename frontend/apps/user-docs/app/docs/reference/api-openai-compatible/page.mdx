@@ -2,13 +2,24 @@
 
 rbee exposes an OpenAI-compatible HTTP API, allowing you to use existing OpenAI client libraries and tools with your self-hosted infrastructure.
 
+<Callout variant="warning" title="Critical: /openai Prefix Required">
+The OpenAI-compatible endpoints are at `/openai/v1/*`, not `/v1/*`.
+
+❌ Wrong: `http://localhost:7833/v1/chat/completions`  
+✅ Right: `http://localhost:7833/openai/v1/chat/completions`
+</Callout>
+
 ## Base URL
 
 ```
-http://localhost:7833/v1
+http://localhost:7833/openai/v1
 ```
 
 Replace `localhost:7833` with your queen's address.
+
+<Callout variant="info">
+Note the `/openai` prefix! This distinguishes OpenAI-compatible endpoints from rbee's native job-based API.
+</Callout>
 
 ## Authentication
 
@@ -17,7 +28,7 @@ Replace `localhost:7833` with your queen's address.
 **Premium Queen:** API key authentication via `Authorization` header:
 
 ```bash
-curl -X POST http://localhost:7833/v1/chat/completions \\
+curl -X POST http://localhost:7833/openai/v1/chat/completions \\
   -H "Authorization: Bearer your-api-key-here" \\
   -H "Content-Type: application/json" \\
   -d '...'
@@ -27,7 +38,7 @@ curl -X POST http://localhost:7833/v1/chat/completions \\
 
 ### Chat completions
 
-**Endpoint:** `POST /v1/chat/completions`
+**Endpoint:** `POST /openai/v1/chat/completions`
 
 **Description:** Generate a chat completion using a language model.
 
@@ -102,7 +113,7 @@ data: [DONE]
 
 ### List models
 
-**Endpoint:** `GET /v1/models`
+**Endpoint:** `GET /openai/v1/models`
 
 **Description:** List all available models (running workers).
 
@@ -136,7 +147,7 @@ data: [DONE]
 
 ### Retrieve model
 
-**Endpoint:** `GET /v1/models/{model}`
+**Endpoint:** `GET /openai/v1/models/{model}`
 
 **Description:** Get details about a specific model.
 
@@ -156,15 +167,17 @@ data: [DONE]
 
 ## Client libraries
 
-rbee works with any OpenAI-compatible client library. Just change the base URL.
+rbee works with any OpenAI-compatible client library. Just change the base URL to include `/openai`.
 
-### Python (OpenAI SDK)
-
-```python
-from openai import OpenAI
+<CodeTabs
+  tabs={[
+    {
+      label: 'Python',
+      language: 'python',
+      code: `from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://localhost:7833/v1",
+    base_url="http://localhost:7833/openai",  # ← /openai prefix!
     api_key="not-needed"  # Or your API key for Premium Queen
 )
 
@@ -175,30 +188,15 @@ response = client.chat.completions.create(
     ]
 )
 
-print(response.choices[0].message.content)
-```
-
-### Python (streaming)
-
-```python
-stream = client.chat.completions.create(
-    model="llama-3.1-8b",
-    messages=[{"role": "user", "content": "Tell me a story"}],
-    stream=True
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="")
-```
-
-### JavaScript/TypeScript
-
-```typescript
-import OpenAI from 'openai';
+print(response.choices[0].message.content)`
+    },
+    {
+      label: 'JavaScript',
+      language: 'javascript',
+      code: `import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'http://localhost:7833/v1',
+  baseURL: 'http://localhost:7833/openai',  // ← /openai prefix!
   apiKey: 'not-needed'  // Or your API key
 });
 
@@ -209,34 +207,67 @@ const response = await client.chat.completions.create({
   ]
 });
 
-console.log(response.choices[0].message.content);
-```
-
-### cURL
-
-```bash
-curl -X POST http://localhost:7833/v1/chat/completions \\
+console.log(response.choices[0].message.content);`
+    },
+    {
+      label: 'cURL',
+      language: 'bash',
+      code: `curl -X POST http://localhost:7833/openai/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "llama-3.1-8b",
     "messages": [
       {"role": "user", "content": "Hello!"}
     ]
-  }'
-```
+  }'`
+    }
+  ]}
+/>
 
-### cURL (streaming)
+### Streaming Example
 
-```bash
-curl -X POST http://localhost:7833/v1/chat/completions \\
+<CodeTabs
+  tabs={[
+    {
+      label: 'Python',
+      language: 'python',
+      code: `stream = client.chat.completions.create(
+    model="llama-3.1-8b",
+    messages=[{"role": "user", "content": "Tell me a story"}],
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="")`
+    },
+    {
+      label: 'JavaScript',
+      language: 'javascript',
+      code: `const stream = await client.chat.completions.create({
+  model: 'llama-3.1-8b',
+  messages: [{ role: 'user', content: 'Tell me a story' }],
+  stream: true
+});
+
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || '');
+}`
+    },
+    {
+      label: 'cURL',
+      language: 'bash',
+      code: `curl -X POST http://localhost:7833/openai/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "llama-3.1-8b",
-    "messages": [{"role": "user", "content": "Hello!"}],
+    "messages": [{"role": "user", "content": "Tell me a story"}],
     "stream": true
   }' \\
-  --no-buffer
-```
+  --no-buffer`
+    }
+  ]}
+/>
 
 ## Error responses
 

@@ -1,0 +1,252 @@
+# Remote Hive Setup
+
+Learn how to connect remote machines to your rbee colony.
+
+<Callout variant="warning" title="Critical Configuration">
+Remote hives MUST use Queen's public IP address, not `localhost`. 
+This is the **#1 cause** of "worker not found" errors.
+</Callout>
+
+---
+
+## The Problem
+
+When you spawn a remote hive, workers need to know WHERE to send heartbeats.
+
+### ❌ What Goes Wrong
+
+<CodeBlock code={`# Remote hive spawned with localhost queen URL
+ssh remote-machine "rbee-hive --queen-url http://localhost:7833"`} language="bash" />
+
+**Result:**
+- ❌ Worker sends heartbeat to `localhost` (its own machine!)
+- ❌ Queen never receives heartbeat
+- ❌ Queen thinks worker is offline
+- ❌ Inference requests fail with "no worker available"
+
+### ✅ The Solution
+
+<CodeBlock code={`# Remote hive spawned with Queen's public IP
+ssh remote-machine "rbee-hive --queen-url http://192.168.1.100:7833"`} language="bash" />
+
+**Result:**
+- ✅ Worker sends heartbeat to Queen's IP
+- ✅ Queen receives heartbeat
+- ✅ Worker appears in registry
+- ✅ Inference works
+
+<Separator />
+
+## Queen Configuration
+
+### Step 1: Find Your Queen's IP Address
+
+<CodeBlock code={`# On the machine running Queen
+ip addr show | grep "inet " | grep -v "127.0.0.1"`} language="bash" />
+
+<TerminalWindow title="Output">
+inet 192.168.1.100/24 brd 192.168.1.255 scope global eth0
+</TerminalWindow>
+
+Your Queen's IP is `192.168.1.100`.
+
+### Step 2: Configure Queen's Public Address
+
+**File:** `~/.config/rbee/config.toml`
+
+<CodeBlock 
+  code={`[queen]
+port = 7833
+public_address = "192.168.1.100"  # ← Your Queen's IP
+
+# OR use hostname
+# public_hostname = "queen.local"`}
+  language="toml"
+  title="~/.config/rbee/config.toml"
+/>
+
+<Callout variant="info">
+For local-only setups (single machine), you can omit `public_address`. 
+It defaults to `localhost`.
+</Callout>
+
+### Step 3: Restart Queen
+
+<CodeBlock code={`# Restart Queen to apply config
+rbee queen stop
+rbee queen start`} language="bash" />
+
+<Separator />
+
+## Remote Hive Setup
+
+### Prerequisites
+
+- SSH access to remote machine
+- Queen's public IP configured
+- Firewall allows port 7833
+
+### Step 1: Install rbee on Remote Machine
+
+<CodeBlock code={`# SSH into remote machine
+ssh user@192.168.1.101
+
+# Install rbee
+curl -sSL https://install.rbee.dev | sh`} language="bash" />
+
+### Step 2: Start Hive with Queen URL
+
+<CodeBlock code={`# On remote machine
+rbee-hive --queen-url http://192.168.1.100:7833`} language="bash" />
+
+<Callout variant="success">
+The hive will automatically register with Queen and start sending heartbeats.
+</Callout>
+
+### Step 3: Verify Registration
+
+<CodeBlock code={`# On Queen machine, check registered hives
+curl http://localhost:7833/v1/jobs \\
+  -H "Content-Type: application/json" \\
+  -d '{"operation": "status"}'`} language="bash" />
+
+You should see your remote hive in the output.
+
+<Separator />
+
+## Troubleshooting
+
+<Accordion type="single" collapsible>
+  <AccordionItem value="heartbeat">
+    <AccordionTrigger>Worker Heartbeat Not Received</AccordionTrigger>
+    <AccordionContent>
+      <Callout variant="error" title="Symptoms">
+        - Worker spawns successfully
+        - Worker doesn't appear in Queen's registry
+        - Inference fails with "no worker available"
+      </Callout>
+
+      **Diagnosis:**
+
+      <CodeBlock code={`# On remote machine, check worker logs
+journalctl -u rbee-worker -f
+
+# Look for heartbeat attempts
+# Should see: "Sending heartbeat to http://192.168.1.100:7833"`} language="bash" />
+
+      **Common Causes:**
+
+      1. **Wrong queen_url** - Worker using `localhost` instead of Queen's IP
+      2. **Firewall blocking port 7833** - Queen not reachable from remote machine
+      3. **Queen not running** - Check Queen status on main machine
+
+      **Fix:**
+
+      <CodeBlock code={`# 1. Verify Queen is reachable from remote machine
+curl http://192.168.1.100:7833/health
+
+# 2. Check firewall
+sudo ufw status
+sudo ufw allow 7833/tcp
+
+# 3. Restart hive with correct queen_url
+rbee-hive stop
+rbee-hive --queen-url http://192.168.1.100:7833`} language="bash" />
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="firewall">
+    <AccordionTrigger>Firewall Configuration</AccordionTrigger>
+    <AccordionContent>
+      <CodeBlock code={`# On Queen machine, allow port 7833
+sudo ufw allow 7833/tcp
+
+# Verify
+sudo ufw status`} language="bash" />
+    </AccordionContent>
+  </AccordionItem>
+
+  <AccordionItem value="connectivity">
+    <AccordionTrigger>Network Connectivity Test</AccordionTrigger>
+    <AccordionContent>
+      <CodeBlock code={`# From remote machine, test Queen connectivity
+curl http://192.168.1.100:7833/health
+
+# Should return: {"status": "ok"}`} language="bash" />
+
+      <TerminalWindow title="Expected Output">
+{`{"status": "ok"}`}
+      </TerminalWindow>
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+
+<Separator />
+
+## Multi-Machine Example
+
+### Architecture
+
+```
+┌─────────────────────────────────────────┐
+│ Main Server (192.168.1.100)            │
+│  - Queen (port 7833)                    │
+│  - rbee-keeper (GUI)                    │
+└─────────────────────────────────────────┘
+           ↓ Heartbeats
+    ┌──────┴──────┬──────────────┐
+    │             │              │
+┌───▼────┐  ┌────▼─────┐  ┌────▼─────┐
+│Gaming  │  │ Mac M3   │  │ Server   │
+│PC      │  │          │  │          │
+│GPU 0,1 │  │ Metal    │  │ CPU only │
+└────────┘  └──────────┘  └──────────┘
+192.168.1.101  .102         .103
+```
+
+### Configuration
+
+**Queen (192.168.1.100):**
+<CodeBlock 
+  code={`[queen]
+port = 7833
+public_address = "192.168.1.100"`}
+  language="toml"
+  title="~/.config/rbee/config.toml"
+/>
+
+**Gaming PC (192.168.1.101):**
+<CodeBlock code={`rbee-hive --queen-url http://192.168.1.100:7833`} language="bash" />
+
+**Mac M3 (192.168.1.102):**
+<CodeBlock code={`rbee-hive --queen-url http://192.168.1.100:7833`} language="bash" />
+
+**Server (192.168.1.103):**
+<CodeBlock code={`rbee-hive --queen-url http://192.168.1.100:7833`} language="bash" />
+
+<Separator />
+
+## Next Steps
+
+<CardGrid columns={2}>
+  <LinkCard
+    title="Worker Types Guide"
+    description="Choose the right worker binary for your hardware"
+    href="/docs/getting-started/worker-types"
+  />
+  <LinkCard
+    title="Heartbeat Architecture"
+    description="Understand the monitoring system"
+    href="/docs/architecture/heartbeats"
+  />
+  <LinkCard
+    title="Troubleshooting"
+    description="More debugging tips and common issues"
+    href="/docs/troubleshooting/common-issues"
+  />
+  <LinkCard
+    title="API Reference"
+    description="Complete job operations documentation"
+    href="/docs/reference/job-operations"
+  />
+</CardGrid>

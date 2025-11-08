@@ -54,8 +54,26 @@ fn bump_cargo_toml(
     let content = fs::read_to_string(path)?;
     let mut doc = content.parse::<DocumentMut>()?;
 
+    // Check if using workspace version
+    let version_value = &doc["package"]["version"];
+    
+    // Skip crates that use workspace version (they inherit from workspace Cargo.toml)
+    if version_value.is_table() || version_value.as_str() == Some("workspace") {
+        // Read workspace version to report it
+        let workspace_toml = fs::read_to_string("Cargo.toml")?;
+        let workspace_doc = workspace_toml.parse::<DocumentMut>()?;
+        let workspace_version = workspace_doc["workspace"]["package"]["version"]
+            .as_str()
+            .unwrap_or("0.1.0");
+        let version = Version::parse(workspace_version)?;
+        
+        // Return current version twice (no bump for workspace-inherited versions)
+        // The workspace Cargo.toml will be bumped separately if it's in the tier
+        return Ok((version.clone(), version));
+    }
+
     // Get current version
-    let current_version = doc["package"]["version"]
+    let current_version = version_value
         .as_str()
         .ok_or_else(|| anyhow::anyhow!("No version found in {}", path.display()))?;
 

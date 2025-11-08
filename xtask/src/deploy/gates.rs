@@ -68,8 +68,12 @@ fn check_commercial_gates() -> Result<()> {
     println!("  2. Lint check...");
     run_command("pnpm", &["lint"], "frontend/apps/commercial")?;
     
-    // Gate 3: Build test
-    println!("  3. Build test...");
+    // Gate 3: Unit tests
+    println!("  3. Unit tests...");
+    run_command("pnpm", &["test"], "frontend/apps/commercial")?;
+    
+    // Gate 4: Build test
+    println!("  4. Build test...");
     run_command("pnpm", &["build"], "frontend/apps/commercial")?;
     
     Ok(())
@@ -86,8 +90,12 @@ fn check_marketplace_gates() -> Result<()> {
     println!("  2. Lint check...");
     run_command("pnpm", &["lint"], "frontend/apps/marketplace")?;
     
-    // Gate 3: Build test
-    println!("  3. Build test...");
+    // Gate 3: Unit tests
+    println!("  3. Unit tests...");
+    run_command("pnpm", &["test"], "frontend/apps/marketplace")?;
+    
+    // Gate 4: Build test
+    println!("  4. Build test...");
     run_command("pnpm", &["build"], "frontend/apps/marketplace")?;
     
     Ok(())
@@ -104,8 +112,12 @@ fn check_docs_gates() -> Result<()> {
     println!("  2. Lint check...");
     run_command("pnpm", &["lint"], "frontend/apps/user-docs")?;
     
-    // Gate 3: Build test
-    println!("  3. Build test...");
+    // Gate 3: Unit tests
+    println!("  3. Unit tests...");
+    run_command("pnpm", &["test"], "frontend/apps/user-docs")?;
+    
+    // Gate 4: Build test
+    println!("  4. Build test...");
     run_command("pnpm", &["build"], "frontend/apps/user-docs")?;
     
     Ok(())

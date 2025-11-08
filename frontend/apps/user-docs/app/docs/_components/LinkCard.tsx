@@ -1,3 +1,4 @@
+import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription } from '@rbee/ui/atoms'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'

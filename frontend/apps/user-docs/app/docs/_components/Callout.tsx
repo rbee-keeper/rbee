@@ -1,3 +1,4 @@
+import React from 'react'
 import { Alert, AlertTitle, AlertDescription } from '@rbee/ui/atoms'
 import { Info, AlertTriangle, XCircle, CheckCircle } from 'lucide-react'
 

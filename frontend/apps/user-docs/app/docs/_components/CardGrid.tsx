@@ -1,3 +1,5 @@
+import React from 'react'
+
 interface CardGridProps {
   columns?: 2 | 3 | 4
   children: React.ReactNode

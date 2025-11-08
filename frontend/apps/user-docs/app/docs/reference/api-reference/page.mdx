@@ -73,7 +73,7 @@ curl -X POST http://localhost:7833/v1/jobs \
 
 ---
 
-**GET /v1/jobs/{job_id}/stream**
+**GET /v1/jobs/\{job_id\}/stream**
 
 Stream job events via Server-Sent Events (SSE).
 
@@ -92,7 +92,7 @@ data: {"event":"job_completed","result":{"worker_id":"worker_xyz"}}
 
 ---
 
-**DELETE /v1/jobs/{job_id}**
+**DELETE /v1/jobs/\{job_id\}**
 
 Cancel a running job.
 
@@ -191,7 +191,7 @@ curl -X POST http://localhost:7835/v1/jobs \
 
 ---
 
-**GET /v1/jobs/{job_id}/stream**
+**GET /v1/jobs/\{job_id\}/stream**
 
 Stream job events (SSE).
 
@@ -201,7 +201,7 @@ curl -N http://localhost:7835/v1/jobs/job_xyz/stream
 
 ---
 
-**DELETE /v1/jobs/{job_id}**
+**DELETE /v1/jobs/\{job_id\}**
 
 Cancel a job.
 

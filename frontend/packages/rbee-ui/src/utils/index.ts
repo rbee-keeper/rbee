@@ -17,3 +17,4 @@ export * from './parse-inline-markdown'
 
 // TEAM-421: Re-export environment detection utilities
 export * from './environment'
+export { renderIcon } from './renderIcon'

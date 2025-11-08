@@ -1,6 +1,5 @@
 // TEAM-424: User docs navigation config
 import type { NavigationConfig } from '@rbee/ui/organisms/Navigation'
-import { Book, Code, Rocket, Settings } from 'lucide-react'
 
 export const userDocsNavConfig: NavigationConfig = {
   logoHref: '/docs',

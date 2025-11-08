@@ -6,7 +6,7 @@ export interface NavigationLink {
   label: string
   href: string
   description?: string
-  icon?: LucideIcon
+  icon?: LucideIcon | string // Support both component and string name for SSG
 }
 
 export interface NavigationCTA {

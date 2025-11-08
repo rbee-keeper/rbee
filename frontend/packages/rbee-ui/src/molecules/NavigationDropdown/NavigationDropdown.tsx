@@ -15,6 +15,7 @@ import type { NavigationLink, NavigationCTA } from '@rbee/ui/organisms/Navigatio
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { renderIcon } from '../../utils/renderIcon'
 
 export interface NavigationDropdownProps {
   title: string
@@ -53,7 +54,7 @@ export function NavigationDropdown({ title, links, cta, width = 'sm' }: Navigati
                     } select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2`}
                     aria-current={pathname === link.href ? 'page' : undefined}
                   >
-                    {link.icon && <link.icon className="size-5 mt-0.5 shrink-0" />}
+                    {link.icon && renderIcon(link.icon, { className: 'size-5 mt-0.5 shrink-0' })}
                     <div>
                       <div className="text-sm font-medium leading-none mb-1">{link.label}</div>
                       {link.description && (

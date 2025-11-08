@@ -50,6 +50,139 @@ fn check_worker_catalog_gates() -> Result<()> {
     println!("  3. Build test...");
     run_command("pnpm", &["build"], "bin/80-hono-worker-catalog")?;
     
+    // Gate 4: Data validation - verify worker catalog data is valid
+    println!("  4. Data validation...");
+    validate_worker_catalog_data()?;
+    
+    // Gate 5: Start dev server and test endpoints
+    println!("  5. API endpoint tests...");
+    test_worker_catalog_endpoints()?;
+    
+    Ok(())
+}
+
+fn validate_worker_catalog_data() -> Result<()> {
+    use std::fs;
+    
+    // Read and parse data.ts to verify it's valid
+    let data_path = "bin/80-hono-worker-catalog/src/data.ts";
+    let data_content = fs::read_to_string(data_path)?;
+    
+    // Check for required worker variants
+    let required_workers = vec![
+        "llm-worker-rbee-cpu",
+        "llm-worker-rbee-cuda",
+        "llm-worker-rbee-metal",
+        "sd-worker-rbee-cpu",
+        "sd-worker-rbee-cuda",
+    ];
+    
+    for worker_id in required_workers {
+        if !data_content.contains(worker_id) {
+            anyhow::bail!("Missing required worker variant: {}", worker_id);
+        }
+    }
+    
+    // Verify all workers have required fields
+    let required_fields = vec![
+        "id:",
+        "implementation:",
+        "workerType:",
+        "version:",
+        "platforms:",
+        "architectures:",
+        "name:",
+        "description:",
+        "license:",
+    ];
+    
+    for field in required_fields {
+        if !data_content.contains(field) {
+            anyhow::bail!("Worker data missing required field: {}", field);
+        }
+    }
+    
+    println!("    ✅ All worker variants present");
+    println!("    ✅ All required fields present");
+    
+    Ok(())
+}
+
+fn test_worker_catalog_endpoints() -> Result<()> {
+    use std::process::{Child, Stdio};
+    use std::thread;
+    use std::time::Duration;
+    
+    // Start dev server in background
+    println!("    Starting dev server...");
+    let mut server = Command::new("pnpm")
+        .args(&["dev"])
+        .current_dir("bin/80-hono-worker-catalog")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()?;
+    
+    // Wait for server to start
+    thread::sleep(Duration::from_secs(3));
+    
+    // Test endpoints
+    let test_result = (|| -> Result<()> {
+        // Test 1: Health check
+        println!("    Testing /health endpoint...");
+        test_endpoint("http://localhost:8787/health", "status")?;
+        
+        // Test 2: List all workers
+        println!("    Testing /workers endpoint...");
+        test_endpoint("http://localhost:8787/workers", "workers")?;
+        
+        // Test 3: Get specific worker
+        println!("    Testing /workers/:id endpoint...");
+        test_endpoint("http://localhost:8787/workers/llm-worker-rbee-cpu", "id")?;
+        
+        // Test 4: 404 for invalid worker
+        println!("    Testing 404 handling...");
+        test_endpoint_404("http://localhost:8787/workers/invalid-worker")?;
+        
+        println!("    ✅ All endpoints responding correctly");
+        
+        Ok(())
+    })();
+    
+    // Kill server
+    server.kill()?;
+    
+    test_result
+}
+
+fn test_endpoint(url: &str, expected_field: &str) -> Result<()> {
+    let output = Command::new("curl")
+        .args(&["-s", "-f", url])
+        .output()?;
+    
+    if !output.status.success() {
+        anyhow::bail!("Endpoint {} returned error", url);
+    }
+    
+    let response = String::from_utf8(output.stdout)?;
+    
+    if !response.contains(expected_field) {
+        anyhow::bail!("Endpoint {} missing expected field: {}", url, expected_field);
+    }
+    
+    Ok(())
+}
+
+fn test_endpoint_404(url: &str) -> Result<()> {
+    let output = Command::new("curl")
+        .args(&["-s", "-w", "%{http_code}", "-o", "/dev/null", url])
+        .output()?;
+    
+    let status_code = String::from_utf8(output.stdout)?;
+    
+    if status_code != "404" {
+        anyhow::bail!("Expected 404 for {}, got {}", url, status_code);
+    }
+    
     Ok(())
 }
 

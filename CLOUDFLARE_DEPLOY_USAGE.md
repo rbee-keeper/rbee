@@ -1,10 +1,27 @@
-# Cloudflare Deployment - Quick Usage
+# Deployment Commands - Quick Usage
 
 **Created by:** TEAM-451
 
 ---
 
-## 🚀 Individual Deployment Commands
+## 🎯 All 9 Deployment Commands
+
+### Cloudflare (4 apps)
+- `cargo xtask deploy --app worker` → gwc.rbee.dev
+- `cargo xtask deploy --app commercial` → rbee.dev
+- `cargo xtask deploy --app marketplace` → marketplace.rbee.dev
+- `cargo xtask deploy --app docs` → docs.rbee.dev
+
+### GitHub Releases (5 binaries)
+- `cargo xtask deploy --app keeper` → rbee-keeper (macOS + Linux)
+- `cargo xtask deploy --app queen` → queen-rbee (macOS + Linux)
+- `cargo xtask deploy --app hive` → rbee-hive (macOS + Linux)
+- `cargo xtask deploy --app llm-worker` → llm-worker-rbee (macOS + Linux)
+- `cargo xtask deploy --app sd-worker` → sd-worker-rbee (macOS + Linux)
+
+---
+
+## 🚀 Cloudflare Deployment Commands
 
 ### 1. Deploy Worker Catalog (FIRST!)
 
@@ -231,10 +248,139 @@ curl https://docs.rbee.dev
 
 ---
 
+## 🔨 Rust Binary Deployment Commands
+
+### Deploy Individual Binaries
+
+Each command builds on both mac (ARM64) and blep (x86_64), then uploads to GitHub Releases:
+
+```bash
+# rbee-keeper (main tier)
+cargo xtask deploy --app keeper
+
+# queen-rbee (main tier)
+cargo xtask deploy --app queen
+
+# rbee-hive (main tier)
+cargo xtask deploy --app hive
+
+# llm-worker-rbee (llm-worker tier)
+cargo xtask deploy --app llm-worker
+
+# sd-worker-rbee (sd-worker tier)
+cargo xtask deploy --app sd-worker
+```
+
+### What Each Binary Deployment Does
+
+1. **Gets version** from tier config (`.version-tiers/*.toml`)
+2. **Builds on mac** via SSH: `cargo build --release --package <binary>`
+3. **Packages mac binary**: `tar -czf <binary>-macos-arm64-<version>.tar.gz`
+4. **Downloads** from mac to blep
+5. **Builds on blep**: `cargo build --release --package <binary>`
+6. **Packages blep binary**: `tar -czf <binary>-linux-x86_64-<version>.tar.gz`
+7. **Creates GitHub release** (if doesn't exist)
+8. **Uploads both tarballs** to release
+
+### Complete Binary Release Workflow
+
+```bash
+# 1. Bump version
+cargo xtask release --tier main --type minor
+
+# 2. Commit
+git add .
+git commit -m "chore: release main v0.2.0"
+git push origin development
+
+# 3. Deploy all main tier binaries
+cargo xtask deploy --app keeper
+cargo xtask deploy --app queen
+cargo xtask deploy --app hive
+
+# 4. Deploy worker binaries (if updated)
+cargo xtask release --tier llm-worker --type patch
+cargo xtask deploy --app llm-worker
+
+cargo xtask release --tier sd-worker --type patch
+cargo xtask deploy --app sd-worker
+```
+
+### Download Released Binaries
+
+```bash
+# Download latest release
+gh release download v0.2.0
+
+# Download specific binary
+gh release download v0.2.0 --pattern '*keeper*'
+
+# Download only macOS binaries
+gh release download v0.2.0 --pattern '*macos*'
+
+# Download only Linux binaries
+gh release download v0.2.0 --pattern '*linux*'
+```
+
+### Dry Run (Preview)
+
+Test what will happen without actually deploying:
+
+```bash
+cargo xtask deploy --app keeper --dry-run
+cargo xtask deploy --app queen --dry-run
+cargo xtask deploy --app hive --dry-run
+cargo xtask deploy --app llm-worker --dry-run
+cargo xtask deploy --app sd-worker --dry-run
+```
+
+### Binary Deployment Troubleshooting
+
+**Build fails on mac:**
+```bash
+# Check Rust version
+ssh mac "rustc --version"
+
+# Clean and rebuild
+ssh mac "cd ~/Projects/rbee && cargo clean && cargo build --release --package rbee-keeper"
+```
+
+**Build fails on blep:**
+```bash
+# Check Rust version
+rustc --version
+
+# Clean and rebuild
+cargo clean
+cargo build --release --package rbee-keeper
+```
+
+**Release creation fails:**
+```bash
+# Check gh CLI auth
+gh auth status
+
+# Check if release already exists
+gh release list
+
+# View specific release
+gh release view v0.2.0
+```
+
+**Upload fails:**
+```bash
+# Delete and recreate release
+gh release delete v0.2.0 --yes
+cargo xtask deploy --app keeper
+```
+
+---
+
 ## 🎯 Summary
 
-**4 individual commands, deploy in order:**
+**9 deployment commands total:**
 
+### Cloudflare (4 apps)
 ```bash
 cargo xtask deploy --app worker       # gwc.rbee.dev
 cargo xtask deploy --app commercial   # rbee.dev
@@ -242,4 +388,13 @@ cargo xtask deploy --app marketplace  # marketplace.rbee.dev
 cargo xtask deploy --app docs         # docs.rbee.dev
 ```
 
-**All run on mac, all automatic!** 🚀
+### GitHub Releases (5 binaries)
+```bash
+cargo xtask deploy --app keeper       # rbee-keeper (macOS + Linux)
+cargo xtask deploy --app queen        # queen-rbee (macOS + Linux)
+cargo xtask deploy --app hive         # rbee-hive (macOS + Linux)
+cargo xtask deploy --app llm-worker   # llm-worker-rbee (macOS + Linux)
+cargo xtask deploy --app sd-worker    # sd-worker-rbee (macOS + Linux)
+```
+
+**All automated, all individual!** 🚀

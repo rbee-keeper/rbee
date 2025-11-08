@@ -37,7 +37,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-input data-[placeholder]:text-slate-400 dark:data-[placeholder]:text-[#8b9bb0] [&_svg:not([class*='text-'])]:text-muted-foreground bg-white dark:bg-[color:var(--background)] hover:border-slate-400 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border px-3 text-sm transition-[color,box-shadow,border-color] disabled:cursor-not-allowed *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "border-input data-[placeholder]:text-slate-400 dark:data-[placeholder]:text-[#8b9bb0] [&_svg:not([class*='text-'])]:text-muted-foreground bg-white dark:bg-[var(--background)] hover:border-slate-400 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border px-3 text-sm transition-[color,box-shadow,border-color] disabled:cursor-not-allowed *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         // Vertical padding based on size
         "data-[size=default]:py-2.5 data-[size=sm]:py-2",
         // Min height to ensure proper spacing for multiline content

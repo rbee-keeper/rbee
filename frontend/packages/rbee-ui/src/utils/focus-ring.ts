@@ -31,22 +31,27 @@ export const focusRingDestructive =
  * Apply to: Button link variant, NavLink, inline CTAs
  * Dark mode: default text-[color:var(--accent)], hover text-white with decoration-amber-400
  * Visited: uses brand 700 (#b45309) to communicate state
+ * 
+ * TEAM-450: Removed typed arbitrary values ([length:...], [color:...]) 
+ * because they cause Turbopack CSS parsing errors. Using untyped arbitrary values instead.
  */
 export const brandLink =
-  'text-[color:var(--accent)] underline underline-offset-2 decoration-amber-400 ' +
+  'text-[var(--accent)] underline underline-offset-2 decoration-amber-400 ' +
   'hover:text-white hover:decoration-amber-300 ' +
   'visited:text-[#b45309] ' +
   'focus-visible:outline-none ' +
-  'focus-visible:ring-[length:var(--focus-ring-width)] ' +
-  'focus-visible:ring-[color:var(--ring)] ' +
-  'focus-visible:ring-offset-[length:var(--focus-ring-offset)] ' +
-  'focus-visible:ring-offset-[color:var(--background)] ' +
+  'focus-visible:ring-[var(--focus-ring-width)] ' +
+  'focus-visible:ring-[var(--ring)] ' +
+  'focus-visible:ring-offset-[var(--focus-ring-offset)] ' +
+  'focus-visible:ring-offset-[var(--background)] ' +
   'transition-colors'
 
 /**
  * Inverse-contrast focus for amber surfaces (opt-in)
  * Use when element bg ~ amber (e.g., Badge accent variant in dark)
  * Swaps ring to white to prevent blending with amber fills
+ * 
+ * TEAM-450: Removed typed arbitrary value ([color:...]) to fix Turbopack CSS parsing errors
  */
 export const focusInverse =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--background)]'
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]'

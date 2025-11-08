@@ -47,7 +47,7 @@ export function parseInlineMarkdown(text: string): ReactNode[] {
         <a
           key={keyCounter++}
           href={url}
-          className="text-[color:var(--primary)] underline underline-offset-2 decoration-amber-300 hover:text-[color:var(--accent)] hover:decoration-amber-400"
+          className="text-[var(--primary)] underline underline-offset-2 decoration-amber-300 hover:text-[var(--accent)] hover:decoration-amber-400"
           target={url?.startsWith('http') ? '_blank' : undefined}
           rel={url?.startsWith('http') ? 'noopener noreferrer' : undefined}
         >

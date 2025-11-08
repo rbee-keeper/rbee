@@ -24,6 +24,9 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+  // TEAM-450: Next.js 16 requires explicit turbopack config when webpack config exists
+  // Empty config allows Turbopack to work with default settings
+  turbopack: {},
 };
 
 // Fix for WASM chunks in Next.js

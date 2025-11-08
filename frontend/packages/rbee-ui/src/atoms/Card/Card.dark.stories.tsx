@@ -244,7 +244,7 @@ export const BrandProgression: Story = {
             <div className="space-y-1">
               <a
                 href="#"
-                className="text-[color:var(--accent)] underline underline-offset-2 decoration-amber-400 text-sm"
+                className="text-[var(--accent)] underline underline-offset-2 decoration-amber-400 text-sm"
               >
                 Default link (#d97706)
               </a>

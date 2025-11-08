@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 7811",
-    "build": "next build",
+    "build": "next build --webpack",
+    "comment": "TEAM-450: --webpack flag needed due to Nextra v4 + Next.js 16 Turbopack incompatibility (not a Tailwind issue)",
     "start": "next start",
     "lint": "next lint",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",

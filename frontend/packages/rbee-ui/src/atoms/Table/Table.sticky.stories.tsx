@@ -30,7 +30,7 @@ type Story = StoryObj<typeof Table>
  *
  * Demonstrates:
  * - Sticky headers: backdrop-blur-[2px] + bg-[rgba(20,28,42,0.85)]
- * - Row focus: ring-[color:var(--ring)] with proper offset
+ * - Row focus: ring-[var(--ring)] with proper offset
  * - Keyboard navigation: Clear focus path without amber flooding
  */
 
@@ -111,7 +111,7 @@ export const KeyboardFocus: Story = {
       <div className="bg-card border border-border rounded-md p-6">
         <h3 className="text-lg font-semibold mb-4">Keyboard Navigation</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Tab through the rows to see the focus ring. Uses ring-[color:var(--ring)] with proper offset for clear
+          Tab through the rows to see the focus ring. Uses ring-[var(--ring)] with proper offset for clear
           keyboard path without amber flooding the grid.
         </p>
 
@@ -142,9 +142,9 @@ export const KeyboardFocus: Story = {
           <p className="text-sm font-medium mb-2">Focus Ring Details</p>
           <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground">
             <li>focus-visible:ring-2 (2px ring width)</li>
-            <li>focus-visible:ring-[color:var(--ring)] (uses token)</li>
+            <li>focus-visible:ring-[var(--ring)] (uses token)</li>
             <li>focus-visible:ring-offset-2 (2px offset)</li>
-            <li>focus-visible:ring-offset-[color:var(--background)] (canvas color)</li>
+            <li>focus-visible:ring-offset-[var(--background)] (canvas color)</li>
             <li>Amber ring (#b45309) for brand consistency</li>
           </ul>
         </div>
@@ -201,7 +201,7 @@ export const SelectedAndFocused: Story = {
             <TableRow
               data-state="selected"
               tabIndex={0}
-              className="ring-2 ring-[color:var(--ring)] ring-offset-2 ring-offset-[color:var(--background)]"
+              className="ring-2 ring-[var(--ring)] ring-offset-2 ring-offset-[var(--background)]"
             >
               <TableCell className="font-medium">Selected + Focused</TableCell>
               <TableCell>{mockData[3].model}</TableCell>

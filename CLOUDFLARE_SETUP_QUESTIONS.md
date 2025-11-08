@@ -10,12 +10,12 @@
 ### 1. Cloudflare Account
 
 **Do you have a Cloudflare account?**
-- [ ] Yes
+- [X] Yes
 - [ ] No (I'll help you create one)
 
 **If yes, what's the account email?**
 ```
-Answer: ___________________________
+Answer: vincepaul.liem@gmail.com
 ```
 
 ---
@@ -25,7 +25,7 @@ Answer: ___________________________
 **Do these projects already exist in Cloudflare?**
 - [ ] Yes, all of them
 - [ ] Yes, some of them
-- [ ] No, none exist yet
+- [X] No, none exist yet
 
 **If they exist, what are the project names?**
 ```
@@ -43,26 +43,25 @@ Worker catalog: ___________________________
 
 **Commercial site:**
 ```
-Domain: ___________________________ (e.g., rbee.dev, commercial.rbee.dev)
-```
+Domain: rbee.dev
 
 **Marketplace:**
 ```
-Domain: ___________________________ (e.g., marketplace.rbee.dev)
+Domain: marketplace.rbee.dev
 ```
 
 **User documentation:**
 ```
-Domain: ___________________________ (e.g., docs.rbee.dev)
+Domain: docs.rbee.dev
 ```
 
 **Worker catalog API:**
 ```
-Domain: ___________________________ (e.g., api.rbee.dev, workers.rbee.dev)
+Domain: gwc.rbee.dev
 ```
 
 **Do you own these domains?**
-- [ ] Yes, they're in Cloudflare
+- [X] Yes, they're in Cloudflare
 - [ ] Yes, but not in Cloudflare yet
 - [ ] No, I need to buy them
 
@@ -85,13 +84,18 @@ Domain: ___________________________ (e.g., api.rbee.dev, workers.rbee.dev)
 **Your choice:**
 - [ ] Manual (I'll run wrangler deploy)
 - [ ] Automated (Git push deploys)
+- [X] Use a deployment helper script through xtask
 
 ---
 
 ### 5. Current Setup
 
 **Do you have wrangler CLI installed?**
-- [ ] Yes
+- [X] Yes
+❯ wrangler -v
+
+ ⛅️ wrangler 4.46.0
+───────────────────
 - [ ] No
 
 **If yes, are you logged in?**
@@ -99,7 +103,41 @@ Domain: ___________________________ (e.g., api.rbee.dev, workers.rbee.dev)
 # Check with:
 wrangler whoami
 ```
-- [ ] Yes, logged in
+- [X] Yes, logged in
+❯ wrangler whoami
+
+ ⛅️ wrangler 4.46.0
+───────────────────
+Getting User settings...
+👋 You are logged in with an OAuth Token, associated with the email vincepaul.liem@gmail.com.
+┌────────────────────────────────────┬──────────────────────────────────┐
+│ Account Name                       │ Account ID                       │
+├────────────────────────────────────┼──────────────────────────────────┤
+│ Junebonnet@hotmail.nl's Account    │ bce75e6d72016186da22d710ef811e77 │ <- ABSOLUTELY NO IDEA WHERE THIS COMES FROM, please ignore
+├────────────────────────────────────┼──────────────────────────────────┤
+│ Vincepaul.liem@gmail.com's Account │ cf772d0960afaac63a91ba755590e524 │
+└────────────────────────────────────┴──────────────────────────────────┘
+🔓 Token Permissions:
+Scope (Access)
+- account (read)
+- user (read)
+- workers (write)
+- workers_kv (write)
+- workers_routes (write)
+- workers_scripts (write)
+- workers_tail (read)
+- d1 (write)
+- pages (write)
+- zone (read)
+- ssl_certs (write)
+- ai (write)
+- queues (write)
+- pipelines (write)
+- secrets_store (write)
+- containers (write)
+- cloudchamber (write)
+- connectivity (admin)
+- offline_access 
 - [ ] No, not logged in
 
 ---
@@ -122,7 +160,7 @@ wrangler whoami
 
 **Your choice:**
 - [ ] Build and deploy from blep
-- [ ] Build and deploy from mac
+- [X] Build and deploy from mac
 - [ ] Build on blep, deploy from mac
 
 ---
@@ -139,22 +177,22 @@ wrangler whoami
 ```
 App: commercial
 Secrets needed:
-- ___________________________
+- ___________________________ PLEASE HELP FINDING THESE
 - ___________________________
 
 App: marketplace
 Secrets needed:
-- ___________________________
+- ___________________________ PLEASE HELP FINDING THESE
 - ___________________________
 
 App: user-docs
 Secrets needed:
-- ___________________________
+- ___________________________ PLEASE HELP FINDING THESE
 - ___________________________
 
 App: worker-catalog
 Secrets needed:
-- ___________________________
+- ___________________________ PLEASE HELP FINDING THESE
 - ___________________________
 ```
 

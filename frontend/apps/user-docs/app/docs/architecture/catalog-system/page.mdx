@@ -1,32 +1,373 @@
 # Catalog System Architecture
 
-**Status:** 🚧 Coming Soon
-
-<Callout variant="info">
-This page is under construction. Check back soon for complete documentation on the rbee catalog system.
-</Callout>
+The catalog system manages worker binaries and model artifacts across the rbee cluster using SQLite databases and a distributed provisioning system.
 
 <Separator />
 
 ## Overview
 
-The catalog system manages worker binaries and model artifacts across the rbee cluster.
+rbee uses three catalogs to manage artifacts:
 
-**Topics to be covered:**
-- Worker catalog server (Hono on Cloudflare Workers)
-- Model catalog and versioning
-- Artifact provisioning and caching
-- Filesystem layout (`~/.cache/rbee/`)
-- PKGBUILD-based worker installation
-- Catalog synchronization across hives
+1. **Model Catalog** - Tracks downloaded models and metadata
+2. **Worker Catalog** - Tracks available worker binaries
+3. **Model Provisioner** - Downloads models from HuggingFace
 
 <Separator />
 
-## Coming Soon
+## Model Catalog
 
-This documentation is planned for a future release. In the meantime, refer to:
+### Purpose
 
-<CardGrid columns={2}>
+Tracks downloaded models and their metadata using filesystem-based storage.
+
+### Storage Location
+
+```bash
+~/.cache/rbee/models/
+```
+
+**Each model gets its own directory with metadata:**
+```
+~/.cache/rbee/models/
+├── llama-3-8b-q4_k_m/
+│   └── metadata.json
+├── mistral-7b-q4_0/
+│   └── metadata.json
+└── ...
+```
+
+### Metadata Format
+
+Each `metadata.json` file contains:
+
+```json
+{
+  "artifact": {
+    "id": "llama-3-8b-q4_k_m",
+    "name": "Llama 3 8B Q4_K_M",
+    "version": "1.0",
+    "size_bytes": 4800000000,
+    "source_url": "https://huggingface.co/...",
+    "status": "Available"
+  },
+  "created_at": "2025-11-08T15:30:00Z",
+  "updated_at": "2025-11-08T15:35:00Z"
+}
+```
+
+**Note:** The catalog uses **filesystem storage (JSON files)**, not SQLite.
+
+### Operations
+
+**List Models:**
+```rust
+let catalog = ModelCatalog::new()?;
+let models = catalog.list()?;
+```
+
+**Add Model:**
+```rust
+catalog.add_model(ModelInfo {
+    id: "llama-3-8b",
+    name: "Llama 3 8B",
+    version: "Q4_K_M",
+    size_bytes: 4_800_000_000,
+    source_url: "https://huggingface.co/...",
+    ...
+})?;
+```
+
+**Get Model:**
+```rust
+let model = catalog.get("llama-3-8b")?;
+```
+
+<Separator />
+
+## Worker Catalog
+
+### Purpose
+
+Tracks available worker binaries and their capabilities using filesystem-based storage.
+
+### Storage Location
+
+```bash
+~/.cache/rbee/workers/
+```
+
+**Each worker gets its own directory with metadata:**
+```
+~/.cache/rbee/workers/
+├── llm-worker-cpu/
+│   └── metadata.json
+├── llm-worker-cuda/
+│   └── metadata.json
+└── ...
+```
+
+### Metadata Format
+
+Each `metadata.json` file contains:
+
+```json
+{
+  "artifact": {
+    "id": "llm-worker-cuda",
+    "name": "LLM Worker (CUDA)",
+    "version": "0.1.0",
+    "binary_path": "/usr/local/bin/llm-worker-cuda",
+    "worker_type": "cuda",
+    "capabilities": ["text-generation"],
+    "status": "Available"
+  },
+  "created_at": "2025-11-08T15:30:00Z",
+  "updated_at": "2025-11-08T15:35:00Z"
+}
+```
+
+**Note:** The catalog uses **filesystem storage (JSON files)**, not SQLite.
+
+### Worker Types
+
+- **CPU Workers** - `llm-worker-cpu` (universal)
+- **CUDA Workers** - `llm-worker-cuda` (NVIDIA GPUs)
+- **Metal Workers** - `llm-worker-metal` (Apple Silicon)
+
+### Operations
+
+**List Workers:**
+```rust
+let catalog = WorkerCatalog::new()?;
+let workers = catalog.list()?;
+```
+
+**Register Worker:**
+```rust
+catalog.register_worker(WorkerInfo {
+    id: "llm-worker-cuda",
+    name: "LLM Worker (CUDA)",
+    version: "0.1.0",
+    binary_path: "/usr/local/bin/llm-worker-cuda",
+    worker_type: WorkerType::Cuda,
+    ...
+})?;
+```
+
+<Separator />
+
+## Model Provisioner
+
+### Purpose
+
+Downloads models from HuggingFace with progress tracking and resume support.
+
+### Features
+
+- **Parallel Downloads** - Multiple files simultaneously
+- **Progress Tracking** - Real-time download progress
+- **Resume Support** - Continue interrupted downloads
+- **Checksum Verification** - Validate downloaded files
+
+### Usage
+
+```rust
+let provisioner = ModelProvisioner::new()?;
+
+// Download model
+let job_id = provisioner.download_model(
+    "meta-llama/Llama-3-8B-GGUF",
+    "llama-3-8b-q4_k_m.gguf"
+).await?;
+
+// Track progress
+let progress = provisioner.get_progress(&job_id)?;
+println!("Downloaded: {}/{} bytes", progress.downloaded, progress.total);
+```
+
+### Download Location
+
+```bash
+~/.cache/rbee/models/
+```
+
+<Separator />
+
+## Filesystem Layout
+
+### Directory Structure
+
+```
+~/.cache/rbee/
+├── models/                    # Model catalog (filesystem)
+│   ├── llama-3-8b-q4_k_m/
+│   │   ├── metadata.json     # Model metadata
+│   │   └── llama-3-8b-q4_k_m.gguf  # Model file
+│   └── mistral-7b-q4_0/
+│       ├── metadata.json
+│       └── mistral-7b-q4_0.gguf
+├── workers/                   # Worker catalog (filesystem)
+│   ├── llm-worker-cpu/
+│   │   └── metadata.json     # Worker metadata
+│   └── llm-worker-cuda/
+│       └── metadata.json
+└── tmp/                       # Temporary download files
+    └── *.part
+```
+
+### Permissions
+
+```bash
+# Ensure proper permissions
+chmod 755 ~/.cache/rbee/
+chmod 755 ~/.cache/rbee/models/
+chmod 755 ~/.cache/rbee/workers/
+chmod 644 ~/.cache/rbee/models/*/metadata.json
+chmod 644 ~/.cache/rbee/models/*.gguf
+```
+
+<Separator />
+
+## Worker Catalog Server
+
+### Hono on Cloudflare Workers
+
+rbee includes a worker catalog server built with Hono on Cloudflare Workers for distributing worker binaries.
+
+**Location:** `bin/80-hono-worker-catalog/`
+
+**Port:** `8787` (development)
+
+### Endpoints
+
+- `GET /workers` - List available workers
+- `GET /workers/{id}` - Get worker metadata
+- `GET /workers/{id}/download` - Download worker binary
+
+### Development
+
+```bash
+cd bin/80-hono-worker-catalog
+pnpm install
+pnpm dev  # Runs on port 8787
+```
+
+<Separator />
+
+## Catalog Initialization
+
+### On Hive Startup
+
+```rust
+// Initialize model catalog
+let model_catalog = Arc::new(
+    ModelCatalog::new()
+        .expect("Failed to initialize model catalog")
+);
+
+// Initialize worker catalog
+let worker_catalog = Arc::new(
+    WorkerCatalog::new()
+        .expect("Failed to initialize worker catalog")
+);
+
+// Initialize model provisioner
+let model_provisioner = Arc::new(
+    ModelProvisioner::new()
+        .expect("Failed to initialize model provisioner")
+);
+```
+
+### First Run
+
+On first run, catalog directories are created automatically:
+
+```bash
+$ rbee-hive
+🐝 Starting rbee-hive on port 7835
+📚 Model catalog initialized (0 models)
+🔧 Worker catalog initialized (0 binaries)
+📥 Model provisioner initialized (HuggingFace)
+✅ Listening on http://0.0.0.0:7835
+✅ Hive ready
+💓 Heartbeat task started (sending to http://localhost:7833)
+```
+
+**What happens:**
+1. Creates `~/.cache/rbee/models/` directory
+2. Creates `~/.cache/rbee/workers/` directory
+3. Initializes empty catalogs (no metadata files yet)
+
+<Separator />
+
+## Catalog Synchronization
+
+### Current Implementation
+
+Catalogs are **local to each hive**. There is no automatic synchronization across hives.
+
+### Manual Synchronization
+
+```bash
+# Copy entire catalog directory from one hive to another
+scp -r ~/.cache/rbee/models/ hive2:~/.cache/rbee/
+scp -r ~/.cache/rbee/workers/ hive2:~/.cache/rbee/
+```
+
+### Future: Distributed Catalog
+
+Planned features for multi-hive deployments:
+- Catalog replication across hives
+- Peer-to-peer model sharing
+- Centralized catalog server
+
+<Separator />
+
+## Troubleshooting
+
+### Catalog Corruption
+
+```bash
+# Remove corrupted catalog directories
+rm -rf ~/.cache/rbee/models/
+rm -rf ~/.cache/rbee/workers/
+
+# Restart hive (will recreate empty catalogs)
+rbee-hive
+```
+
+**Note:** This will delete all catalog metadata. Model files themselves are stored in the model directories and won't be deleted.
+
+### Missing Models
+
+```bash
+# Check model directory
+ls -lh ~/.cache/rbee/models/
+
+# Re-download if needed
+# (Use Hive API to download model)
+```
+
+### Disk Space Issues
+
+```bash
+# Check disk usage
+df -h ~/.cache/rbee/
+
+# Clean up old models
+rm ~/.cache/rbee/models/*.gguf
+```
+
+<Separator />
+
+## Related Documentation
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Hive Configuration"
+    description="Configure rbee-hive"
+    href="/docs/configuration/hive"
+  />
   <LinkCard
     title="Worker Types Guide"
     description="Available worker types"
@@ -41,6 +382,5 @@ This documentation is planned for a future release. In the meantime, refer to:
 
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** MEDIUM  
-**Estimated effort:** 3 hours
+**Completed by:** TEAM-427  
+**Based on:** `bin/20_rbee_hive/src/main.rs`, catalog crate implementations

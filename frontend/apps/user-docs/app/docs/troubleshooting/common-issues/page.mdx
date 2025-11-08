@@ -1,113 +1,519 @@
 # Common Issues & Troubleshooting
 
-**Status:** 🚧 Coming Soon
+Comprehensive troubleshooting guide for rbee deployment and operation issues.
 
 <Callout variant="info">
-This page is under construction. Check back soon for comprehensive troubleshooting guide.
+For security-related issues, see the [Security Configuration](/docs/configuration/security) page.
 </Callout>
 
 <Separator />
 
-## Overview
+## Quick Diagnostics
 
-Solutions to common issues and debugging tips for rbee.
+### Health Check All Services
 
-**Topics to be covered:**
-- Connection issues (Queen ↔ Hive)
-- Worker spawn failures
-- Model download problems
-- GPU detection issues
-- Memory/VRAM errors
-- Performance problems
-- Network configuration
-- SSH connection issues
-- Build/compilation errors
-- Runtime errors
+```bash
+# Check Queen
+curl http://localhost:7833/health
 
-<Separator />
+# Check Hive
+curl http://localhost:7835/health
 
-## Quick Troubleshooting
+# Check Worker (if running)
+curl http://localhost:8080/health
+```
 
-<Accordion type="single" collapsible>
-  <AccordionItem value="queen-not-starting">
-    <AccordionTrigger>Queen Won't Start</AccordionTrigger>
-    <AccordionContent>
-      **Check if port is in use:**
-      ```bash
-      lsof -i :7833
-      ```
-      
-      **Check logs:**
-      ```bash
-      queen-rbee --port 7833
-      # Look for error messages
-      ```
-      
-      **See:** [CLI Reference](/docs/reference/cli) for more details
-    </AccordionContent>
-  </AccordionItem>
+### Check Service Status
 
-  <AccordionItem value="hive-connection">
-    <AccordionTrigger>Hive Can't Connect to Queen</AccordionTrigger>
-    <AccordionContent>
-      **Verify Queen is running:**
-      ```bash
-      curl http://localhost:7833/health
-      ```
-      
-      **Check Hive configuration:**
-      ```bash
-      rbee-hive --queen-url http://localhost:7833 --hive-id localhost
-      ```
-      
-      **See:** [Heartbeat Architecture](/docs/architecture/heartbeats) for discovery protocol
-    </AccordionContent>
-  </AccordionItem>
+```bash
+# Check if services are running
+ps aux | grep -E "(queen-rbee|rbee-hive)"
 
-  <AccordionItem value="worker-spawn">
-    <AccordionTrigger>Worker Won't Spawn</AccordionTrigger>
-    <AccordionContent>
-      **Check worker binary exists:**
-      ```bash
-      which llm-worker-cpu
-      ```
-      
-      **Check device availability:**
-      ```bash
-      nvidia-smi  # For CUDA workers
-      ```
-      
-      **See:** [Worker Types Guide](/docs/getting-started/worker-types) for requirements
-    </AccordionContent>
-  </AccordionItem>
-</Accordion>
+# Check listening ports
+ss -tlnp | grep -E "(7833|7835|8080)"
+
+# Check systemd services
+sudo systemctl status queen-rbee
+sudo systemctl status rbee-hive
+```
 
 <Separator />
 
-## Coming Soon
+## Connection Issues
 
-This documentation is planned for a future release. In the meantime, refer to:
+### Queen Won't Start
+
+**Symptom:** Queen fails to start or exits immediately
+
+**Common Causes:**
+
+1. **Port already in use**
+   ```bash
+   # Check what's using port 7833
+   lsof -i :7833
+   
+   # Kill the process
+   kill $(lsof -t -i:7833)
+   
+   # Or use a different port
+   queen-rbee --port 8080
+   ```
+
+2. **Permission denied**
+   ```bash
+   # Don't run as root
+   queen-rbee --port 7833
+   
+   # If using systemd, check service user
+   sudo systemctl status queen-rbee
+   ```
+
+3. **Missing dependencies**
+   ```bash
+   # Check binary
+   ldd $(which queen-rbee)
+   
+   # Rebuild if needed
+   cargo build --release --bin queen-rbee
+   ```
+
+### Hive Can't Connect to Queen
+
+**Symptom:** Hive starts but doesn't appear in Queen's telemetry
+
+**Solutions:**
+
+1. **Verify Queen is reachable**
+   ```bash
+   # From hive machine
+   curl http://localhost:7833/health
+   
+   # If remote
+   curl http://queen-host:7833/health
+   ```
+
+2. **Check Queen URL configuration**
+   ```bash
+   # Ensure correct Queen URL
+   rbee-hive --queen-url http://localhost:7833 --hive-id my-hive
+   
+   # For remote Queen
+   rbee-hive --queen-url http://queen-host:7833 --hive-id my-hive
+   ```
+
+3. **Check firewall rules**
+   ```bash
+   # On Queen machine, allow port 7833
+   sudo ufw allow 7833/tcp
+   
+   # Test connectivity
+   telnet queen-host 7833
+   ```
+
+4. **Check hive discovery logs**
+   ```bash
+   # Look for discovery errors
+   sudo journalctl -u rbee-hive | grep discovery
+   ```
+
+<Separator />
+
+## Worker Issues
+
+### Worker Won't Spawn
+
+**Symptom:** Worker spawn job fails or worker exits immediately
+
+**Common Causes:**
+
+1. **Worker binary not found**
+   ```bash
+   # Check if worker binary exists
+   which llm-worker-cpu
+   which llm-worker-cuda
+   which llm-worker-metal
+   
+   # Install if missing
+   cargo build --release --bin llm-worker-cpu
+   ```
+
+2. **GPU not available (CUDA workers)**
+   ```bash
+   # Check GPU status
+   nvidia-smi
+   
+   # Check CUDA installation
+   nvcc --version
+   
+   # Check device permissions
+   ls -l /dev/nvidia*
+   ```
+
+3. **Model not found**
+   ```bash
+   # Check model catalog
+   ls ~/.cache/rbee/models/
+   
+   # Download model first
+   # (Use Hive API to download model)
+   ```
+
+4. **Port already in use**
+   ```bash
+   # Workers use dynamic ports (8080+)
+   # Check what's using the port
+   lsof -i :8080
+   ```
+
+### Worker Crashes After Spawn
+
+**Symptom:** Worker starts but crashes during inference
+
+**Solutions:**
+
+1. **Out of memory**
+   ```bash
+   # Check available RAM/VRAM
+   free -h
+   nvidia-smi  # For GPU memory
+   
+   # Use smaller model or reduce batch size
+   ```
+
+2. **Model file corrupted**
+   ```bash
+   # Remove and re-download model
+   rm ~/.cache/rbee/models/model-name.gguf
+   # Re-download via Hive API
+   ```
+
+3. **Check worker logs**
+   ```bash
+   # Worker logs go to stdout
+   # If using systemd:
+   sudo journalctl -u llm-worker@8080
+   ```
+
+<Separator />
+
+## Model Download Issues
+
+### Download Fails or Hangs
+
+**Symptom:** Model download doesn't complete
+
+**Solutions:**
+
+1. **Check network connectivity**
+   ```bash
+   # Test HuggingFace access
+   curl -I https://huggingface.co
+   
+   # Check DNS
+   nslookup huggingface.co
+   ```
+
+2. **Check disk space**
+   ```bash
+   # Models can be large (1-50GB)
+   df -h ~/.cache/rbee/
+   
+   # Clean up old models
+   rm ~/.cache/rbee/models/*.gguf
+   ```
+
+3. **Check download progress**
+   ```bash
+   # Monitor download directory
+   watch -n 1 'ls -lh ~/.cache/rbee/models/'
+   
+   # Check Hive logs
+   sudo journalctl -u rbee-hive -f
+   ```
+
+4. **Retry download**
+   ```bash
+   # Model provisioner supports resume
+   # Just retry the download operation
+   ```
+
+<Separator />
+
+## GPU Detection Issues
+
+### CUDA Workers Can't Find GPU
+
+**Symptom:** CUDA worker fails with "no CUDA devices found"
+
+**Solutions:**
+
+1. **Verify GPU is detected**
+   ```bash
+   # Check GPU status
+   nvidia-smi
+   
+   # Check CUDA version
+   nvcc --version
+   ```
+
+2. **Check NVIDIA driver**
+   ```bash
+   # Check driver version
+   nvidia-smi | head -n 3
+   
+   # Update driver if needed
+   sudo ubuntu-drivers autoinstall  # Ubuntu
+   ```
+
+3. **Check device permissions**
+   ```bash
+   # Add user to video group
+   sudo usermod -a -G video $USER
+   
+   # Logout and login for changes to take effect
+   ```
+
+4. **Check CUDA library path**
+   ```bash
+   # Ensure CUDA libraries are in LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+   
+   # Add to ~/.bashrc for persistence
+   ```
+
+### Metal Workers (macOS)
+
+**Symptom:** Metal worker fails on macOS
+
+**Solutions:**
+
+1. **Check Metal support**
+   ```bash
+   # Metal requires macOS 10.13+
+   system_profiler SPSoftwareDataType | grep "System Version"
+   ```
+
+2. **Check GPU availability**
+   ```bash
+   # List GPUs
+   system_profiler SPDisplaysDataType | grep "Chipset Model"
+   ```
+
+<Separator />
+
+## Performance Issues
+
+### Slow Inference
+
+**Symptom:** Inference takes longer than expected
+
+**Solutions:**
+
+1. **Check resource usage**
+   ```bash
+   # Monitor CPU/GPU usage
+   htop
+   nvidia-smi -l 1  # For GPU
+   ```
+
+2. **Check model size vs hardware**
+   ```bash
+   # Ensure model fits in VRAM/RAM
+   # Use smaller quantization (Q4 instead of Q8)
+   ```
+
+3. **Check for CPU throttling**
+   ```bash
+   # Check CPU frequency
+   watch -n 1 'cat /proc/cpuinfo | grep MHz'
+   ```
+
+### High Memory Usage
+
+**Symptom:** System runs out of memory
+
+**Solutions:**
+
+1. **Monitor memory usage**
+   ```bash
+   # Check memory
+   free -h
+   
+   # Check per-process memory
+   ps aux --sort=-%mem | head
+   ```
+
+2. **Reduce worker count**
+   ```bash
+   # Spawn fewer workers
+   # Each worker loads model into memory
+   ```
+
+3. **Use smaller models**
+   ```bash
+   # Use quantized models (Q4_K_M instead of F16)
+   # Use smaller parameter counts (7B instead of 13B)
+   ```
+
+<Separator />
+
+## Network Issues
+
+### SSE Streams Not Working
+
+**Symptom:** Heartbeat or job streams don't receive events
+
+**Solutions:**
+
+1. **Check reverse proxy configuration**
+   ```nginx
+   # Nginx needs these settings for SSE
+   proxy_buffering off;
+   proxy_cache off;
+   proxy_set_header Connection '';
+   ```
+
+2. **Test SSE directly**
+   ```bash
+   # Bypass proxy
+   curl -N http://localhost:7833/v1/heartbeats/stream
+   ```
+
+3. **Check firewall**
+   ```bash
+   # Ensure long-lived connections are allowed
+   sudo ufw status
+   ```
+
+### CORS Errors in Browser
+
+**Symptom:** Browser console shows CORS errors
+
+**Solutions:**
+
+1. **Check CORS configuration**
+   ```bash
+   # Queen/Hive include CORS middleware
+   # Should work by default
+   ```
+
+2. **Use reverse proxy**
+   ```nginx
+   # Add CORS headers in nginx
+   add_header Access-Control-Allow-Origin *;
+   add_header Access-Control-Allow-Methods "GET, POST, DELETE";
+   ```
+
+<Separator />
+
+## Build Issues
+
+### Compilation Fails
+
+**Symptom:** `cargo build` fails
+
+**Solutions:**
+
+1. **Update Rust toolchain**
+   ```bash
+   rustup update
+   rustup default stable
+   ```
+
+2. **Clean build cache**
+   ```bash
+   cargo clean
+   cargo build --release
+   ```
+
+3. **Check dependencies**
+   ```bash
+   # Install system dependencies
+   sudo apt install build-essential pkg-config libssl-dev  # Ubuntu
+   ```
+
+<Separator />
+
+## Catalog Issues
+
+### Catalog Initialization Failed
+
+**Symptom:** Hive fails to start with catalog error
+
+**Solutions:**
+
+1. **Check catalog directory**
+   ```bash
+   ls -la ~/.cache/rbee/
+   
+   # Should contain:
+   # - models.db
+   # - workers.db
+   ```
+
+2. **Recreate catalogs**
+   ```bash
+   # Remove corrupted databases
+   rm ~/.cache/rbee/*.db
+   
+   # Restart hive (will recreate)
+   rbee-hive
+   ```
+
+3. **Check permissions**
+   ```bash
+   # Ensure user can write to cache directory
+   chmod 755 ~/.cache/rbee/
+   ```
+
+<Separator />
+
+## Getting Help
+
+### Collect Diagnostic Information
+
+```bash
+# System info
+uname -a
+
+# Service status
+systemctl status queen-rbee rbee-hive
+
+# Logs
+sudo journalctl -u queen-rbee -n 100
+sudo journalctl -u rbee-hive -n 100
+
+# Network
+ss -tlnp | grep -E "(7833|7835|8080)"
+
+# GPU (if applicable)
+nvidia-smi
+
+# Disk space
+df -h ~/.cache/rbee/
+```
+
+### Related Documentation
 
 <CardGrid columns={3}>
   <LinkCard
-    title="CLI Reference"
-    description="Command troubleshooting"
-    href="/docs/reference/cli"
+    title="Queen Configuration"
+    description="Configure queen-rbee"
+    href="/docs/configuration/queen"
   />
   <LinkCard
-    title="Heartbeat Architecture"
-    description="Connection issues"
-    href="/docs/architecture/heartbeats"
+    title="Hive Configuration"
+    description="Configure rbee-hive"
+    href="/docs/configuration/hive"
   />
   <LinkCard
-    title="Worker Types"
-    description="Worker requirements"
-    href="/docs/getting-started/worker-types"
+    title="Security Configuration"
+    description="Authentication and security"
+    href="/docs/configuration/security"
   />
 </CardGrid>
 
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** HIGH  
-**Estimated effort:** 4 hours
+**Completed by:** TEAM-427  
+**Based on:** Production deployment experience and codebase analysis

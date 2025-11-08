@@ -2,16 +2,25 @@
 
 This guide covers installing rbee on your system. rbee consists of several components that work together to create your AI colony.
 
-## System requirements
+<Callout variant="info" title="Current Status">
+**Version:** 0.1.0 (M0 - Core Orchestration)  
+**Completion:** 68% (42/62 BDD scenarios passing)  
+**License:** GPL-3.0-or-later (free and open source, copyleft)
+</Callout>
 
-### Minimum requirements
+<Separator />
+
+## System Requirements
+
+### Minimum Requirements
 
 - **Operating system:** Linux (Ubuntu 22.04+, Debian 12+), macOS 13+, or Windows 11 with WSL2
 - **RAM:** 8GB minimum, 16GB recommended
 - **Storage:** 20GB for base system, plus space for models (typically 4-50GB per model)
 - **Network:** SSH access between machines (for multi-machine setups)
+- **Rust:** 1.75+ (if building from source)
 
-### GPU requirements
+### GPU Requirements
 
 rbee supports heterogeneous GPU configurations:
 
@@ -20,24 +29,34 @@ rbee supports heterogeneous GPU configurations:
 - **CPU-only:** Supported but significantly slower
 - **AMD GPUs (ROCm):** Planned for future release
 
-## Installation methods
+<Separator />
 
-### Quick install (recommended)
+## Installation Methods
 
-The fastest way to get started on a single machine:
+### Quick Install (Recommended)
 
+<Callout variant="warning" title="Not Available Yet">
+The quick install script is **not yet available**. Use manual installation or build from source.
+</Callout>
+
+**Planned for future release:**
 ```bash
+# NOT AVAILABLE YET
 curl -sSL https://install.rbee.dev | sh
 ```
 
-This installs:
-- `rbee-keeper` - The GUI application
-- `queen-rbee` - The orchestrator
-- `rbee-hive` - The worker host daemon
+**Will install:**
+- `rbee-keeper` - The CLI tool for managing rbee infrastructure
+- `queen-rbee` - The orchestrator daemon (port 7833)
+- `rbee-hive` - The worker host daemon (port 7835)
 
-### Manual installation
+### Manual Installation (Pre-Built Binaries)
 
-For more control or air-gapped environments:
+<Callout variant="warning" title="Not Available Yet">
+Pre-built binaries are **not yet available**. Use "Building from Source" method below.
+</Callout>
+
+**Planned for future release:**
 
 1. **Download the latest release:**
 
@@ -53,56 +72,183 @@ For more control or air-gapped environments:
 3. **Verify installation:**
 
    ```bash
-   rbee-keeper --version
-   queen-rbee --version
-   rbee-hive --version
+   rbee-keeper --build-info
+   queen-rbee --build-info
+   rbee-hive --build-info
    ```
 
-### Building from source
+### Building from Source (Current Method)
 
-For developers or custom builds:
+**This is currently the ONLY way to install rbee.**
+
+**Requirements:**
+- Rust 1.75+ (`rustup` recommended)
+- Git
+- C compiler (gcc/clang)
+- OpenSSL development headers
+
+**Steps:**
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/veighnsche/llama-orch.git
 cd llama-orch
 
-# Build all binaries (requires Rust 1.75+)
+# 2. Build all binaries (requires Rust 1.75+)
 cargo build --release
 
-# Binaries will be in target/release/
+# 3. Binaries will be in target/release/
+ls -lh target/release/
+
+# 4. Install to system (optional)
+sudo cp target/release/rbee-keeper /usr/local/bin/
+sudo cp target/release/queen-rbee /usr/local/bin/
+sudo cp target/release/rbee-hive /usr/local/bin/
+sudo cp target/release/llm-worker-rbee /usr/local/bin/
 ```
 
-## Initial configuration
+**Build time:** 5-15 minutes depending on your machine.
 
-After installation, create the base configuration directory:
+<Callout variant="info" title="Workspace Structure">
+rbee uses a Cargo workspace with **100+ crates**. The main binaries are:
+- `bin/00_rbee_keeper` - CLI tool
+- `bin/10_queen_rbee` - Orchestrator daemon
+- `bin/20_rbee_hive` - Worker host daemon
+- `bin/30_llm_worker_rbee` - LLM inference worker
+</Callout>
+
+## Initial Configuration
+
+<Callout variant="info" title="Zero Configuration">
+rbee is designed to work with **zero configuration** for single-machine setups. Just run `rbee-keeper` and it auto-starts the queen.
+</Callout>
+
+### Single Machine (Localhost)
+
+**No configuration needed!** Just run:
 
 ```bash
-mkdir -p ~/.rbee
+# Queen auto-starts on first command
+rbee-keeper infer -m llama-3-8b -p "Hello world"
 ```
 
-rbee will auto-generate configuration files on first run. For advanced configuration options, see the [Configuration guide](/docs/guides/configuration).
+### Multi-Machine Setup
 
-## Verify installation
+For remote hives, create SSH config:
+
+```bash
+# Create SSH config for hives
+mkdir -p ~/.ssh
+cat >> ~/.ssh/config << 'EOF'
+Host gaming-pc
+  HostName 192.168.1.100
+  User vince
+  Port 22
+
+Host mac-studio
+  HostName 192.168.1.101
+  User vince
+  Port 22
+EOF
+
+# Install hive on remote machine
+rbee-keeper hive install gaming-pc
+```
+
+**See:** [Remote Hives Setup](/docs/getting-started/remote-hives) for detailed multi-machine configuration.
+
+## Verify Installation
 
 Check that all components are installed correctly:
 
 ```bash
-# Check keeper (GUI)
-rbee-keeper --version
+# Check keeper (CLI)
+rbee-keeper --build-info
+# Output: debug or release
 
 # Check queen (orchestrator)
-queen-rbee --version
+queen-rbee --build-info
+# Output: debug or release
 
 # Check hive (worker host)
-rbee-hive --version
+rbee-hive --build-info
+# Output: debug or release
+
+# Check worker binary
+llm-worker-rbee --build-info
+# Output: debug or release
 ```
 
-## Next steps
+**Note:** Use `--build-info` instead of `--version`. The version is always `0.0.0` (early development).
 
-- **[Single machine setup](/docs/getting-started/single-machine)** - Run rbee on one computer
-- **[Homelab setup](/docs/getting-started/homelab)** - Connect multiple machines
-- **[GPU provider setup](/docs/getting-started/gpu-providers)** - Build an API platform
+<Separator />
+
+## What Gets Installed
+
+### Core Binaries
+
+<APIParameterTable
+  parameters={[
+    {
+      name: 'rbee-keeper',
+      type: 'CLI',
+      required: true,
+      description: 'CLI tool for managing rbee infrastructure. Manages queen lifecycle, SSH-based hive installation, worker/model/inference commands.'
+    },
+    {
+      name: 'queen-rbee',
+      type: 'Daemon',
+      required: true,
+      description: 'The orchestrator daemon (port 7833). Makes ALL intelligent decisions. Job-based architecture, routes operations to hives.'
+    },
+    {
+      name: 'rbee-hive',
+      type: 'Daemon',
+      required: true,
+      description: 'Worker host daemon (port 7835). Runs ON GPU machines. Manages workers on THAT machine only. One hive per GPU machine.'
+    },
+    {
+      name: 'llm-worker-rbee',
+      type: 'Worker',
+      required: true,
+      description: 'LLM inference worker daemon. llama.cpp-based inference. Spawned by rbee-hive.'
+    }
+  ]}
+/>
+
+### Directory Structure
+
+```bash
+~/.local/bin/          # Binaries installed here
+~/.cache/rbee/         # Model cache and catalogs
+  models/              # Downloaded models (JSON metadata)
+  workers/             # Worker binaries (JSON metadata)
+~/.ssh/config          # SSH config for remote hives
+```
+
+<Separator />
+
+## Next Steps
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Single Machine Setup"
+    description="Run rbee on one computer"
+    href="/docs/getting-started/single-machine"
+  />
+  <LinkCard
+    title="Homelab Setup"
+    description="Connect multiple machines"
+    href="/docs/getting-started/homelab"
+  />
+  <LinkCard
+    title="Worker Types"
+    description="Available worker binaries"
+    href="/docs/getting-started/worker-types"
+  />
+</CardGrid>
+
+<Separator />
 
 ## Troubleshooting
 
@@ -136,3 +282,14 @@ For multi-machine setups, ensure SSH is configured and accessible:
 ```bash
 ssh user@remote-machine "echo 'SSH works'"
 ```
+
+---
+
+**Completed by:** TEAM-427  
+**Based on:** 
+- `/README.md` - Project overview and architecture
+- `/Cargo.toml` - Workspace structure and binaries
+- `bin/10_queen_rbee/src/main.rs` - Queen implementation
+- `bin/20_rbee_hive/src/main.rs` - Hive implementation
+
+**Status:** Documentation reflects **current build process** and **available features** (v0.1.0)

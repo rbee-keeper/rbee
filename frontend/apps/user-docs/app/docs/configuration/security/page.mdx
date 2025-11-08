@@ -1,70 +1,599 @@
 # Security Configuration
 
-**Status:** 🚧 Coming Soon
-
-<Callout variant="info">
-This page is under construction. Check back soon for complete security configuration guide.
-</Callout>
-
-<Separator />
-
-## Overview
-
 Security best practices and configuration for production rbee deployments.
 
-**Topics to be covered:**
-- Authentication setup
-- API key management
-- TLS/SSL configuration
-- Network security
-- Firewall rules
-- SSH key management
-- Access control
-- Audit logging
-- Security hardening
+<Callout variant="danger" title="⚠️ SECURITY STATUS: EARLY DEVELOPMENT">
+**IMPORTANT:** Most security features described below are **PLANNED but NOT YET IMPLEMENTED**. 
 
-<Separator />
+**Current Status (v0.1.0):**
+- ✅ Basic bind policy (loopback detection) - **IMPLEMENTED**
+- ❌ API token authentication - **NOT WIRED UP**
+- ❌ JWT validation - **NOT IMPLEMENTED**
+- ❌ Audit logging - **NOT IMPLEMENTED**
+- ❌ Input validation - **NOT IMPLEMENTED**
+- ❌ Secrets management - **NOT IMPLEMENTED**
 
-## Quick Security Tips
-
-<Callout variant="warning" title="Production Security">
-Never expose rbee services directly to the internet without proper authentication and TLS.
+**For production use, you MUST:**
+1. Use a firewall to restrict access
+2. Use a reverse proxy with TLS
+3. Keep services on private network only
+4. **DO NOT expose to internet** until security features are implemented
 </Callout>
 
-**Loopback-only binding (default):**
+<Separator />
+
+## Current Security Status
+
+### What's Implemented Today ✅
+
+**Bind Policy (Partial)**
+- Services bind to `0.0.0.0` (all interfaces) by default
+- Loopback detection exists in `auth-min` crate
+- **BUT:** Not enforced in Queen or Hive yet
+
+**Location:** `bin/98_security_crates/auth-min/src/policy.rs`
+
+### What's Planned But Not Implemented ⬜
+
+The following security features exist as **crates with specifications** but are **not wired up** to Queen/Hive:
+
+1. **`auth-min`** - Minimal authentication primitives
+2. **`secrets-management`** - Secure credential loading
+3. **`audit-logging`** - Security audit trail
+4. **`jwt-guardian`** - JWT validation and revocation
+5. **`input-validation`** - Input sanitization
+6. **`deadline-propagation`** - Request timeout enforcement
+
+**See:** `/home/vince/Projects/llama-orch/bin/98_security_crates/` for specifications
+
+<Separator />
+
+## Planned Features (Not Yet Available)
+
+### API Token Authentication ⬜
+
+**Status:** Crate exists, not wired up
+
+**Planned behavior:**
+
+#### Generate Secure Token
+
 ```bash
-# Services bind to localhost by default
-queen-rbee --port 7833  # Binds to 127.0.0.1:7833
+# Generate a cryptographically secure token (64 characters)
+export LLORCH_API_TOKEN=$(openssl rand -hex 32)
+
+# Save to secure location
+echo "LLORCH_API_TOKEN=$LLORCH_API_TOKEN" >> /etc/rbee/secrets.env
+chmod 600 /etc/rbee/secrets.env
 ```
 
-**Non-loopback requires API token:**
+#### Token Requirements (Planned)
+
+- **Minimum length:** 16 characters
+- **Recommended length:** 32+ characters
+- **Format:** Alphanumeric string
+- **Storage:** File-based (not environment variables)
+
+<Callout variant="warning" title="Not Implemented">
+Token authentication is **not currently enforced**. Services accept all requests regardless of token.
+</Callout>
+
+---
+
+### Secrets Management ⬜
+
+**Status:** Crate exists (`secrets-management`), not wired up
+
+**Planned features:**
+- File-based secret loading (not environment variables)
+- Systemd credentials support
+- Memory zeroization on drop
+- Permission validation (rejects world-readable files)
+- Key derivation (HKDF-SHA256)
+
+**Why not environment variables?**
+- Visible in `ps auxe` and `/proc/PID/environ`
+- Visible in Docker inspect
+- Security risk in multi-tenant environments
+
+---
+
+### JWT Authentication ⬜
+
+**Status:** Crate exists (`jwt-guardian`), not implemented
+
+**Planned features:**
+- RS256/ES256 signature validation
+- Clock-skew tolerance (±5 minutes)
+- Redis-backed revocation lists
+- Short-lived tokens (15 minutes)
+- Audience validation
+
+---
+
+### Audit Logging ⬜
+
+**Status:** Crate exists (`audit-logging`), not wired up
+
+**Planned features:**
+- Immutable audit trail
+- Tamper-evident hash chains
+- GDPR/SOC2/ISO 27001 compliance
+- Local mode (single-node) or Platform mode (marketplace)
+- 32 pre-defined event types
+
+**Modes:**
+- **Disabled** (home lab) - Zero overhead
+- **Local** (single-node) - Filesystem storage
+- **Platform** (marketplace) - Centralized audit service
+
+---
+
+### Input Validation ⬜
+
+**Status:** Crate exists (`input-validation`), not wired up
+
+**Planned features:**
+- Identifier validation (prevents path traversal)
+- Model reference validation (prevents injection)
+- Prompt validation (prevents resource exhaustion)
+- Hex string validation (cryptographic digests)
+- Path validation (prevents directory traversal)
+
+**Prevents:**
+- SQL injection
+- Command injection
+- Log injection
+- Path traversal
+- ANSI escape injection
+
+<Separator />
+
+## Current Workarounds
+
+**Loopback detection code exists** in `auth-min` crate:
+
+```rust
+// From bin/98_security_crates/auth-min/src/policy.rs
+pub fn is_loopback_addr(bind_addr: &str) -> bool {
+    // Detects 127.0.0.1, ::1, localhost
+}
+
+pub fn enforce_startup_bind_policy(bind_addr: &str) -> Result<()> {
+    // Requires LLORCH_API_TOKEN for non-loopback binds
+}
+```
+
+**BUT:** This is **not called** by Queen or Hive. Services bind to `0.0.0.0` without any token enforcement.
+
+**Reality:**
 ```bash
-# For remote access, set API token
-export LLORCH_API_TOKEN="your-secure-token"
-queen-rbee --bind 0.0.0.0 --port 7833
+# Both services bind to 0.0.0.0 (all interfaces) by default
+queen-rbee --port 7833  # Binds to 0.0.0.0:7833, NO AUTH REQUIRED
+rbee-hive --port 7835   # Binds to 0.0.0.0:7835, NO AUTH REQUIRED
 ```
 
 <Separator />
 
-## Coming Soon
+## TLS/SSL Configuration
 
-This documentation is planned for a future release. In the meantime, refer to:
+rbee services do not include built-in TLS. Use a reverse proxy for production:
 
-<CardGrid columns={2}>
+### Nginx Configuration
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name queen.example.com;
+    
+    # TLS certificates
+    ssl_certificate /etc/letsencrypt/live/queen.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/queen.example.com/privkey.pem;
+    
+    # TLS settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    
+    # Proxy to Queen
+    location / {
+        proxy_pass http://127.0.0.1:7833;
+        proxy_http_version 1.1;
+        
+        # SSE support
+        proxy_set_header Connection '';
+        proxy_buffering off;
+        proxy_cache off;
+        
+        # Headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Caddy Configuration
+
+```caddyfile
+queen.example.com {
+    reverse_proxy localhost:7833 {
+        # SSE support
+        flush_interval -1
+    }
+}
+
+hive.example.com {
+    reverse_proxy localhost:7835 {
+        flush_interval -1
+    }
+}
+```
+
+**Caddy automatically provisions TLS certificates via Let's Encrypt.**
+
+<Separator />
+
+## Network Security
+
+### Firewall Configuration
+
+#### UFW (Ubuntu/Debian)
+
+```bash
+# Allow SSH
+sudo ufw allow 22/tcp
+
+# Allow HTTPS only (reverse proxy)
+sudo ufw allow 443/tcp
+
+# Block direct access to rbee services
+sudo ufw deny 7833/tcp
+sudo ufw deny 7835/tcp
+
+# Enable firewall
+sudo ufw enable
+```
+
+#### firewalld (RHEL/CentOS)
+
+```bash
+# Allow SSH and HTTPS
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-service=https
+
+# Block rbee ports
+sudo firewall-cmd --permanent --remove-port=7833/tcp
+sudo firewall-cmd --permanent --remove-port=7835/tcp
+
+# Reload
+sudo firewall-cmd --reload
+```
+
+### Network Topology
+
+**Recommended Architecture:**
+
+```
+Internet
+   |
+   v
+Reverse Proxy (nginx/Caddy)
+   | TLS termination
+   | Authentication
+   v
+Queen (127.0.0.1:7833)
+   |
+   v
+Hive (127.0.0.1:7835)
+   |
+   v
+Workers (127.0.0.1:8080+)
+```
+
+<Separator />
+
+## SSH Configuration
+
+For remote hive deployments:
+
+### SSH Key Setup
+
+```bash
+# Generate SSH key pair
+ssh-keygen -t ed25519 -C "rbee@queen" -f ~/.ssh/rbee_ed25519
+
+# Copy public key to hive
+ssh-copy-id -i ~/.ssh/rbee_ed25519.pub user@hive.example.com
+
+# Test connection
+ssh -i ~/.ssh/rbee_ed25519 user@hive.example.com
+```
+
+### SSH Hardening
+
+```bash
+# /etc/ssh/sshd_config
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+X11Forwarding no
+AllowUsers rbee-user
+```
+
+```bash
+# Restart SSH
+sudo systemctl restart sshd
+```
+
+<Separator />
+
+## Access Control
+
+### Service User
+
+Run rbee services as a dedicated user:
+
+```bash
+# Create rbee user
+sudo useradd -r -s /bin/false rbee
+
+# Create directories
+sudo mkdir -p /var/lib/rbee /var/log/rbee
+sudo chown rbee:rbee /var/lib/rbee /var/log/rbee
+
+# Run as rbee user
+sudo -u rbee queen-rbee --port 7833
+```
+
+### Systemd Service
+
+```ini
+# /etc/systemd/system/queen-rbee.service
+[Unit]
+Description=rbee Queen Orchestrator
+After=network.target
+
+[Service]
+Type=simple
+User=rbee
+Group=rbee
+EnvironmentFile=/etc/rbee/secrets.env
+ExecStart=/usr/local/bin/queen-rbee --port 7833
+Restart=on-failure
+RestartSec=5s
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/rbee /var/log/rbee
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable queen-rbee
+sudo systemctl start queen-rbee
+```
+
+<Separator />
+
+## Secrets Management
+
+### Environment Files
+
+```bash
+# /etc/rbee/secrets.env
+LLORCH_API_TOKEN=your-secure-token-here
+
+# Secure permissions
+sudo chown root:rbee /etc/rbee/secrets.env
+sudo chmod 640 /etc/rbee/secrets.env
+```
+
+### HashiCorp Vault (Advanced)
+
+```bash
+# Store token in Vault
+vault kv put secret/rbee/api-token value="your-token"
+
+# Retrieve in startup script
+export LLORCH_API_TOKEN=$(vault kv get -field=value secret/rbee/api-token)
+```
+
+<Separator />
+
+## Audit Logging
+
+rbee uses the narration system for observability:
+
+### Log Aggregation
+
+```bash
+# Forward logs to syslog
+queen-rbee --port 7833 2>&1 | logger -t queen-rbee
+
+# Or use journald
+sudo journalctl -u queen-rbee -f
+```
+
+### Log Monitoring
+
+```bash
+# Monitor for security events
+sudo journalctl -u queen-rbee | grep -E "(auth|error|security)"
+```
+
+<Separator />
+
+## Implementation Roadmap
+
+### Phase 1: Core Security (Not Started)
+
+**Wire up existing crates:**
+- [ ] Integrate `auth-min` into Queen/Hive
+- [ ] Enforce bind policy (loopback vs non-loopback)
+- [ ] Add bearer token authentication to all endpoints
+- [ ] Integrate `input-validation` for all user inputs
+- [ ] Add timing-safe token comparison
+
+**Estimated:** 2-3 weeks
+
+---
+
+### Phase 2: Secrets & Audit (Not Started)
+
+**Implement secure credential handling:**
+- [ ] Integrate `secrets-management` for token loading
+- [ ] Remove `LLORCH_API_TOKEN` from environment variables
+- [ ] Use file-based secrets (`/etc/rbee/secrets/api-token`)
+- [ ] Integrate `audit-logging` for security events
+- [ ] Add audit events for auth success/failure
+
+**Estimated:** 2-3 weeks
+
+---
+
+### Phase 3: Advanced Auth (Not Started)
+
+**JWT and revocation:**
+- [ ] Implement `jwt-guardian` for JWT validation
+- [ ] Set up Redis for revocation lists
+- [ ] Add token refresh endpoints
+- [ ] Implement logout functionality
+
+**Estimated:** 3-4 weeks
+
+---
+
+### Phase 4: Production Hardening (Not Started)
+
+**Complete security implementation:**
+- [ ] Add rate limiting
+- [ ] Implement CORS policies
+- [ ] Add request timeout enforcement
+- [ ] Complete audit logging coverage
+- [ ] Security testing and penetration testing
+
+**Estimated:** 4-6 weeks
+
+---
+
+## Current Production Checklist
+
+### ⚠️ For v0.1.0 (Current)
+
+**REQUIRED for any production use:**
+- [ ] Use firewall to block ports 7833, 7835 from internet
+- [ ] Use reverse proxy (nginx/Caddy) with TLS
+- [ ] Keep services on private network only
+- [ ] Use SSH tunneling for remote access
+- [ ] Monitor access logs manually
+- [ ] **DO NOT expose services to internet**
+
+**NOT AVAILABLE YET:**
+- ❌ API token authentication
+- ❌ JWT validation
+- ❌ Audit logging
+- ❌ Input validation
+- ❌ Secrets management
+
+<Separator />
+
+## Common Security Issues
+
+### Issue: Services Exposed to Internet
+
+**Symptom:** Services accessible from internet without authentication
+
+**Current Reality:**
+```bash
+# Services bind to 0.0.0.0 by default
+ss -tlnp | grep -E "(7833|7835)"
+# Shows: 0.0.0.0:7833, 0.0.0.0:7835
+```
+
+**Solution (REQUIRED):**
+```bash
+# Use firewall to block direct access
+sudo ufw deny 7833/tcp
+sudo ufw deny 7835/tcp
+sudo ufw allow 443/tcp  # Only allow HTTPS via reverse proxy
+
+# Or use SSH tunnel for remote access
+ssh -L 7833:localhost:7833 user@server
+```
+
+**Note:** Token authentication is **not implemented yet**, so firewall is your only protection.
+
+---
+
+### Issue: No Authentication
+
+**Symptom:** Anyone can access API endpoints
+
+**Current Reality:**
+- No authentication is enforced
+- All requests are accepted
+- No audit logging
+
+**Solution:**
+- Keep services on private network only
+- Use VPN or SSH tunneling for remote access
+- Wait for Phase 1 security implementation
+
+---
+
+### Issue: TLS Certificate Expired
+
+**Symptom:** Browser shows certificate error
+
+**Solution:**
+```bash
+# Check certificate expiry
+openssl x509 -in /etc/letsencrypt/live/queen.example.com/cert.pem -noout -dates
+
+# Renew with Certbot
+sudo certbot renew
+
+# Reload nginx
+sudo systemctl reload nginx
+```
+
+<Separator />
+
+## Related Documentation
+
+<CardGrid columns={3}>
   <LinkCard
-    title="Remote Hives Setup"
-    description="SSH configuration"
-    href="/docs/getting-started/remote-hives"
+    title="Queen Configuration"
+    description="Configure queen-rbee daemon"
+    href="/docs/configuration/queen"
   />
   <LinkCard
-    title="Port Configuration"
-    description="Network setup"
-    href="https://github.com/rbee-dev/rbee/blob/main/PORT_CONFIGURATION.md"
+    title="Hive Configuration"
+    description="Configure rbee-hive daemon"
+    href="/docs/configuration/hive"
+  />
+  <LinkCard
+    title="Remote Hives Setup"
+    description="Multi-machine deployment"
+    href="/docs/getting-started/remote-hives"
   />
 </CardGrid>
 
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** HIGH  
-**Estimated effort:** 4 hours
+**Completed by:** TEAM-427  
+**Based on:** 
+- `bin/98_security_crates/` - Security crate specifications
+- `bin/10_queen_rbee/src/main.rs` - Current implementation
+- `bin/20_rbee_hive/src/main.rs` - Current implementation
+
+**Status:** Documentation reflects **planned features** and **current limitations** (v0.1.0)

@@ -1,63 +1,410 @@
 # Hive Configuration
 
-**Status:** 🚧 Coming Soon
-
-<Callout variant="info">
-This page is under construction. Check back soon for complete Hive configuration reference.
-</Callout>
+Complete configuration reference for `rbee-hive`, the worker management daemon that handles worker spawning, model provisioning, and telemetry.
 
 <Separator />
 
-## Overview
+## Command-Line Flags
 
-Complete configuration reference for `rbee-hive`, the worker management daemon.
+### Port Configuration
 
-**Topics to be covered:**
-- Command-line flags
-- Environment variables
-- Configuration file format
-- Port configuration (default: 7835)
-- Queen URL configuration
-- Worker spawn settings
-- Resource limits (cgroup)
-- Device detection
-- Logging configuration
-
-<Separator />
-
-## Quick Reference
-
-**Start Hive:**
-```bash
-rbee-hive --port 7835 --queen-url http://localhost:7833 --hive-id localhost
-```
-
-**Standalone mode (no Queen):**
 ```bash
 rbee-hive --port 7835
 ```
 
+**`--port`, `-p`**
+- **Type:** `u16`
+- **Default:** `7835` (from `HIVE_PORT` env var)
+- **Description:** HTTP server port for the Hive API
+- **Example:**
+  ```bash
+  rbee-hive --port 8080
+  ```
+
+### Queen URL
+
+```bash
+rbee-hive --queen-url http://localhost:7833
+```
+
+**`--queen-url`**
+- **Type:** `String`
+- **Default:** `http://localhost:7833` (from `HIVE_QUEEN_URL` env var)
+- **Description:** Queen URL for heartbeat reporting and service discovery
+- **Example:**
+  ```bash
+  rbee-hive --queen-url http://queen.example.com:7833
+  ```
+
+### Hive ID
+
+```bash
+rbee-hive --hive-id my-hive
+```
+
+**`--hive-id`**
+- **Type:** `String`
+- **Default:** `localhost` (from `HIVE_ID` env var)
+- **Description:** Unique identifier for this hive instance
+- **Example:**
+  ```bash
+  rbee-hive --hive-id gpu-server-01
+  ```
+
+### Build Information
+
+```bash
+rbee-hive --build-info
+```
+
+**`--build-info`**
+- **Description:** Print build information and exit
+- **Output:** Rust channel, version, commit hash
+
 <Separator />
 
-## Coming Soon
+## Environment Variables
 
-This documentation is planned for a future release. In the meantime, refer to:
+### Core Configuration
 
-<CardGrid columns={2}>
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HIVE_PORT` | `7835` | Hive HTTP server port |
+| `HIVE_URL` | `http://localhost:7835` | Hive base URL |
+| `HIVE_ID` | `localhost` | Hive identifier/alias |
+| `HIVE_QUEEN_URL` | `http://localhost:7833` | Queen URL for heartbeat |
+
+### Example Configuration
+
+```bash
+# Set custom port
+export HIVE_PORT=8081
+
+# Set hive ID
+export HIVE_ID=gpu-server-01
+
+# Set Queen URL
+export HIVE_QUEEN_URL=http://queen.example.com:7833
+
+# Start Hive
+rbee-hive
+```
+
+<Callout variant="info">
+CLI flags take precedence over environment variables. If both are set, the CLI flag value is used.
+</Callout>
+
+<Separator />
+
+## Network Configuration
+
+### Bind Address
+
+**Hive binds to `0.0.0.0` (all interfaces) by default:**
+
+```rust
+// From bin/20_rbee_hive/src/main.rs:267
+// TEAM-335: Bind to 0.0.0.0 to allow remote access (needed for remote hives)
+let addr = SocketAddr::from(([0, 0, 0, 0], port));
+```
+
+**This means Hive accepts connections from ANY network interface**, not just localhost.
+
+<Callout variant="warning" title="Security Warning">
+Hive binds to all interfaces (`0.0.0.0`) by default to support remote hive deployments. This requires proper security:
+- **Use a firewall** to restrict access to trusted IPs (especially Queen's IP)
+- **Set up TLS/SSL** termination via reverse proxy for production
+- **Configure `LLORCH_API_TOKEN`** for authentication
+- **Network isolation:** Keep hives on private network, only expose Queen publicly
+</Callout>
+
+**Why `0.0.0.0`?** Remote hives need to accept health checks and API calls from Queen running on a different machine. Localhost-only binding (`127.0.0.1`) would prevent this.
+
+### Port Range
+
+**Default Ports:**
+- **Hive API:** `7835`
+- **Hive UI (dev):** `7836` (proxied in production)
+
+<Separator />
+
+## Catalogs
+
+Hive maintains three catalogs for managing workers and models:
+
+### Model Catalog
+
+```rust
+let model_catalog = Arc::new(ModelCatalog::new()?);
+```
+
+**Purpose:** Track downloaded models and their metadata
+
+**Storage:** Filesystem-based at `~/.cache/rbee/models/` (JSON metadata files)
+
+**Operations:**
+- List available models
+- Track model versions
+- Manage model metadata
+
+### Worker Catalog
+
+```rust
+let worker_catalog = Arc::new(WorkerCatalog::new()?);
+```
+
+**Purpose:** Track available worker binaries
+
+**Storage:** Filesystem-based at `~/.cache/rbee/workers/` (JSON metadata files)
+
+**Operations:**
+- List worker types (CPU, CUDA, Metal)
+- Track binary versions
+- Manage worker metadata
+
+### Model Provisioner
+
+```rust
+let model_provisioner = Arc::new(ModelProvisioner::new()?);
+```
+
+**Purpose:** Download models from HuggingFace
+
+**Features:**
+- Parallel downloads
+- Progress tracking
+- Resume support
+- Checksum verification
+
+<Separator />
+
+## API Endpoints
+
+Hive exposes the following HTTP endpoints:
+
+### Health
+
+- `GET /health` - Health check (returns "ok")
+
+### Job Management
+
+- `POST /v1/jobs` - Create job (worker/model operations)
+- `GET /v1/jobs/{job_id}/stream` - Stream job events (SSE)
+- `DELETE /v1/jobs/{job_id}` - Cancel job
+
+### Capabilities
+
+- `GET /v1/capabilities` - Hive capabilities (GPU, CPU, workers)
+
+### Telemetry
+
+- `GET /v1/heartbeats/stream` - Live heartbeat stream (SSE)
+
+### System
+
+- `POST /v1/shutdown` - Graceful shutdown
+- `GET /dev/*` - Development proxy (dev mode only)
+
+<Separator />
+
+## Heartbeat System
+
+Hive sends telemetry to Queen via Server-Sent Events (SSE):
+
+### Telemetry Broadcaster
+
+```rust
+let _broadcaster_handle = start_telemetry_broadcaster(
+    hive_info.clone(),
+    heartbeat_tx,
+);
+```
+
+**Broadcast Interval:** Every 5 seconds
+
+**Telemetry Data:**
+- Hive ID and hostname
+- Operational status (Ready, Degraded, Offline)
+- Health status (Healthy, Unhealthy)
+- Worker count and states
+- Resource utilization
+
+### SSE Stream
+
+Clients can subscribe to hive heartbeats:
+
+```bash
+curl -N http://localhost:7835/v1/heartbeats/stream
+```
+
+**Event Format:**
+```json
+{
+  "hive_id": "localhost",
+  "hostname": "127.0.0.1",
+  "port": 7835,
+  "operational_status": "Ready",
+  "health_status": "Healthy",
+  "version": "0.1.0"
+}
+```
+
+<Separator />
+
+## CORS Configuration
+
+Hive includes CORS middleware for web UI access:
+
+```rust
+let cors = CorsLayer::new()
+    .allow_origin(Any)
+    .allow_methods(Any)
+    .allow_headers(Any);
+```
+
+**Production:** Configure a reverse proxy with proper CORS policies.
+
+<Separator />
+
+## Logging & Observability
+
+Hive uses the **narration** system for observability:
+
+```rust
+use observability_narration_core::n;
+
+n!("startup", "🐝 Starting rbee-hive on port {}", port);
+n!("catalog_init", "📚 Model catalog initialized ({} models)", count);
+n!("worker_cat_init", "🔧 Worker catalog initialized ({} binaries)", count);
+n!("provisioner_init", "📥 Model provisioner initialized (HuggingFace)");
+```
+
+**Narration events:**
+- `startup` - Hive startup
+- `catalog_init` - Model catalog initialization
+- `worker_cat_init` - Worker catalog initialization
+- `provisioner_init` - Model provisioner initialization
+- `listen` - HTTP server listening
+- `ready` - Ready to accept requests
+
+<Separator />
+
+## Development vs Production
+
+### Development Mode
+
+```bash
+# Start Hive in development
+rbee-hive --port 7835 --queen-url http://localhost:7833
+
+# UI proxied from Vite dev server (port 7836)
+curl http://localhost:7835/dev/
+```
+
+**Features:**
+- `/dev/*` routes proxy to Vite dev server
+- Hot module replacement (HMR)
+- Debug logging enabled
+
+### Production Mode
+
+```bash
+# Build with release profile
+cargo build --release --bin rbee-hive
+
+# Run production binary
+./target/release/rbee-hive --port 7835 --queen-url http://queen:7833 --hive-id gpu-01
+```
+
+**Features:**
+- Static files served from embedded `dist/`
+- Optimized binary size
+- No development proxy
+
+<Separator />
+
+## Standalone Mode
+
+Hive can run without a Queen (standalone mode):
+
+```bash
+# Start Hive without Queen URL
+rbee-hive --port 7835
+```
+
+**Behavior:**
+- No heartbeat reporting
+- No service discovery
+- Local job management only
+- Useful for testing and development
+
+<Separator />
+
+## Related Configuration
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Queen Configuration"
+    description="Configure queen-rbee daemon"
+    href="/docs/configuration/queen"
+  />
   <LinkCard
     title="Remote Hives Setup"
-    description="Connect multiple machines"
+    description="Multi-machine deployment"
     href="/docs/getting-started/remote-hives"
   />
   <LinkCard
     title="Heartbeat Architecture"
-    description="Hive telemetry system"
+    description="Telemetry system details"
     href="/docs/architecture/heartbeats"
   />
 </CardGrid>
 
+<Separator />
+
+## Troubleshooting
+
+### Hive Won't Start
+
+**Check if port is in use:**
+```bash
+lsof -i :7835
+```
+
+**Kill process on port:**
+```bash
+kill $(lsof -t -i:7835)
+```
+
+### Can't Connect to Queen
+
+**Verify Queen is running:**
+```bash
+curl http://localhost:7833/health
+```
+
+**Check Queen URL configuration:**
+```bash
+# Ensure Queen URL is correct
+rbee-hive --queen-url http://localhost:7833 --hive-id localhost
+```
+
+### Catalog Initialization Failed
+
+**Check catalog directories:**
+```bash
+ls -la ~/.cache/rbee/models/
+ls -la ~/.cache/rbee/workers/
+```
+
+**Recreate catalogs:**
+```bash
+rm -rf ~/.cache/rbee/models/
+rm -rf ~/.cache/rbee/workers/
+rbee-hive  # Will recreate empty catalog directories
+```
+
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** MEDIUM  
-**Estimated effort:** 3 hours
+**Completed by:** TEAM-427  
+**Based on:** `bin/20_rbee_hive/src/main.rs`, `bin/99_shared_crates/env-config/src/lib.rs`

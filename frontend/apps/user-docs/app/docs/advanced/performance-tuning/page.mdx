@@ -1,71 +1,315 @@
 # Performance Tuning
 
-**Status:** 🚧 Coming Soon
-
-<Callout variant="info">
-This page is under construction. Check back soon for performance optimization guide.
-</Callout>
+Optimize rbee for maximum performance and efficiency in production deployments.
 
 <Separator />
 
-## Overview
+## Hardware Selection
 
-Optimize rbee for maximum performance and efficiency.
+### CPU Workers
 
-**Topics to be covered:**
-- Worker resource limits (CPU, memory, GPU)
-- Cgroup configuration
-- Batch size tuning
-- Concurrent request handling
-- Model loading optimization
-- VRAM management
-- Network optimization
-- Database tuning
-- Monitoring and profiling
-- Benchmarking
+**Best for:**
+- Development and testing
+- Low-latency requirements
+- Universal compatibility
+
+**Requirements:**
+- Modern CPU (4+ cores recommended)
+- 8GB+ RAM per worker
+- Fast storage (SSD recommended)
+
+### CUDA Workers
+
+**Best for:**
+- Production inference
+- High throughput
+- Large models
+
+**Requirements:**
+- NVIDIA GPU (8GB+ VRAM)
+- CUDA 11.8+ or 12.x
+- PCIe 3.0 x16 or better
+
+### Metal Workers
+
+**Best for:**
+- Apple Silicon (M1/M2/M3)
+- macOS development
+
+**Requirements:**
+- macOS 10.13+
+- Apple Silicon or AMD GPU
 
 <Separator />
 
-## Quick Tips
+## Model Selection
 
-**Resource limits (Linux):**
+### Quantization
+
+Choose appropriate quantization for your use case:
+
+| Quantization | Size | Quality | Speed | Use Case |
+|--------------|------|---------|-------|----------|
+| **F16** | Largest | Best | Slowest | Research, evaluation |
+| **Q8_0** | Large | Excellent | Slow | High-quality production |
+| **Q4_K_M** | Medium | Good | Fast | **Recommended for production** |
+| **Q4_0** | Small | Acceptable | Fastest | Resource-constrained |
+
+**Recommendation:** Use `Q4_K_M` for best balance of quality and performance.
+
+### Model Size
+
+| Parameters | VRAM (Q4) | RAM (CPU) | Tokens/sec (RTX 3090) |
+|------------|-----------|-----------|----------------------|
+| **7B** | 4-5 GB | 8 GB | 80-100 |
+| **13B** | 8-9 GB | 16 GB | 40-50 |
+| **34B** | 20-22 GB | 40 GB | 15-20 |
+| **70B** | 40-45 GB | 80 GB | 8-10 |
+
+<Separator />
+
+## Resource Limits
+
+### Memory Management
+
+**Monitor memory usage:**
 ```bash
-# Limit worker to 2 CPU cores and 4GB RAM
-rbee-hive spawn-worker \
-  --model llama-3-8b \
-  --worker cuda \
-  --device 0 \
-  --cpu-limit "200%" \
-  --memory-limit "4G"
+# System memory
+free -h
+
+# GPU memory
+nvidia-smi
+
+# Per-process memory
+ps aux --sort=-%mem | head
 ```
 
-**Monitor performance:**
+**Best practices:**
+- Leave 2GB system RAM free
+- Leave 1GB VRAM free for OS
+- Use swap only as emergency buffer
+
+### CPU Allocation
+
+**Single worker:**
 ```bash
-# Watch telemetry stream
+# Dedicate 4 cores to worker
+taskset -c 0-3 llm-worker-cpu --port 8080
+```
+
+**Multiple workers:**
+```bash
+# Worker 1: cores 0-3
+taskset -c 0-3 llm-worker-cpu --port 8080 &
+
+# Worker 2: cores 4-7
+taskset -c 4-7 llm-worker-cpu --port 8081 &
+```
+
+<Separator />
+
+## Monitoring
+
+### Real-Time Telemetry
+
+**Watch heartbeat stream:**
+```bash
 curl -N http://localhost:7833/v1/heartbeats/stream
 ```
 
+**Monitor job progress:**
+```bash
+curl -N http://localhost:7833/v1/jobs/{job_id}/stream
+```
+
+### System Monitoring
+
+**CPU and memory:**
+```bash
+htop
+```
+
+**GPU monitoring:**
+```bash
+# Continuous monitoring
+nvidia-smi -l 1
+
+# Detailed stats
+nvidia-smi --query-gpu=timestamp,name,temperature.gpu,utilization.gpu,utilization.memory,memory.total,memory.used,memory.free --format=csv -l 1
+```
+
+**Disk I/O:**
+```bash
+iostat -x 1
+```
+
 <Separator />
 
-## Coming Soon
+## Network Optimization
 
-This documentation is planned for a future release. In the meantime, refer to:
+### Localhost Communication
 
-<CardGrid columns={2}>
+**Use localhost for same-machine communication:**
+```bash
+# Faster than 0.0.0.0
+queen-rbee --port 7833  # Binds to 0.0.0.0 but prefer localhost clients
+rbee-hive --queen-url http://localhost:7833
+```
+
+### SSE Connection Pooling
+
+**Limit concurrent SSE connections:**
+- Each SSE stream holds a connection open
+- Limit to 10-20 concurrent streams per client
+- Use connection pooling in clients
+
+### Reverse Proxy
+
+**Use nginx for connection pooling:**
+```nginx
+upstream queen {
+    server 127.0.0.1:7833;
+    keepalive 32;
+}
+
+server {
+    location / {
+        proxy_pass http://queen;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+    }
+}
+```
+
+<Separator />
+
+## Inference Optimization
+
+### Batch Processing
+
+**Process multiple requests together:**
+- Increases throughput
+- Reduces per-request latency
+- Better GPU utilization
+
+**Trade-off:** Higher latency for individual requests
+
+### Context Caching
+
+**Reuse KV cache for similar prompts:**
+- Faster subsequent requests
+- Reduced memory usage
+- Better for chat applications
+
+### Parallel Decoding
+
+**Use multiple workers for same model:**
+```bash
+# Spawn 3 workers with same model
+# Distribute requests via Queen
+```
+
+<Separator />
+
+## Storage Optimization
+
+### Model Storage
+
+**Use fast storage for models:**
+```bash
+# Move models to NVMe SSD
+mkdir -p /mnt/nvme/rbee/models
+ln -s /mnt/nvme/rbee/models ~/.cache/rbee/models
+```
+
+**Deduplicate models:**
+```bash
+# Use hard links for duplicate models
+# (Not implemented yet - manual for now)
+```
+
+### Database Optimization
+
+**SQLite tuning:**
+```sql
+-- Add to catalog initialization
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA cache_size = 10000;
+PRAGMA temp_store = MEMORY;
+```
+
+<Separator />
+
+## Benchmarking
+
+### Measure Throughput
+
+**Tokens per second:**
+```bash
+# Run inference and measure
+time echo "Tell me a story" | curl -X POST \
+  http://localhost:8080/v1/infer \
+  -d @- | wc -w
+```
+
+### Measure Latency
+
+**Time to first token:**
+```bash
+# Measure TTFT
+time curl -N http://localhost:8080/v1/infer \
+  -d '{"prompt": "Hello"}' \
+  | head -n 1
+```
+
+### Load Testing
+
+**Use Apache Bench:**
+```bash
+# 100 requests, 10 concurrent
+ab -n 100 -c 10 -p request.json \
+  -T application/json \
+  http://localhost:7833/v1/jobs
+```
+
+<Separator />
+
+## Production Checklist
+
+- [ ] Use Q4_K_M quantization for models
+- [ ] Allocate sufficient VRAM/RAM per worker
+- [ ] Monitor system resources (CPU, memory, GPU)
+- [ ] Use SSD for model storage
+- [ ] Configure reverse proxy for TLS
+- [ ] Set up monitoring and alerting
+- [ ] Test under expected load
+- [ ] Document performance baselines
+- [ ] Plan for scaling (add more hives)
+
+<Separator />
+
+## Related Documentation
+
+<CardGrid columns={3}>
+  <LinkCard
+    title="Worker Types"
+    description="Hardware selection guide"
+    href="/docs/getting-started/worker-types"
+  />
   <LinkCard
     title="Heartbeat Architecture"
-    description="Telemetry and monitoring"
+    description="Telemetry system"
     href="/docs/architecture/heartbeats"
   />
   <LinkCard
-    title="Worker Types"
-    description="Hardware selection"
-    href="/docs/getting-started/worker-types"
+    title="Troubleshooting"
+    description="Performance issues"
+    href="/docs/troubleshooting/common-issues"
   />
 </CardGrid>
 
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** LOW  
-**Estimated effort:** 3 hours
+**Completed by:** TEAM-427  
+**Based on:** Production deployment best practices

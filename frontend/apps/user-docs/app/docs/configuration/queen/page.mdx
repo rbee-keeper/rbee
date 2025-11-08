@@ -1,62 +1,295 @@
 # Queen Configuration
 
-**Status:** 🚧 Coming Soon
-
-<Callout variant="info">
-This page is under construction. Check back soon for complete Queen configuration reference.
-</Callout>
+Complete configuration reference for `queen-rbee`, the orchestrator daemon that manages job scheduling and hive coordination.
 
 <Separator />
 
-## Overview
+## Command-Line Flags
 
-Complete configuration reference for `queen-rbee`, the orchestrator daemon.
+### Port Configuration
 
-**Topics to be covered:**
-- Command-line flags
-- Environment variables
-- Configuration file format
-- Port configuration (default: 7833)
-- Database settings
-- Logging configuration
-- Performance tuning
-- Security settings
-
-<Separator />
-
-## Quick Reference
-
-**Start Queen:**
 ```bash
 queen-rbee --port 7833
 ```
 
-**With configuration file:**
+**`--port`, `-p`**
+- **Type:** `u16`
+- **Default:** `7833` (from `QUEEN_PORT` env var)
+- **Description:** HTTP server port for the Queen API
+- **Example:**
+  ```bash
+  queen-rbee --port 8080
+  ```
+
+### Build Information
+
 ```bash
-queen-rbee --config ~/.config/rbee/queen.toml
+queen-rbee --build-info
 ```
+
+**`--build-info`**
+- **Description:** Print build information and exit
+- **Output:** Rust channel, version, commit hash
 
 <Separator />
 
-## Coming Soon
+## Environment Variables
 
-This documentation is planned for a future release. In the meantime, refer to:
+### Core Configuration
 
-<CardGrid columns={2}>
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `QUEEN_PORT` | `7833` | Queen HTTP server port |
+| `QUEEN_URL` | `http://localhost:7833` | Queen base URL for service discovery |
+
+### Example Configuration
+
+```bash
+# Set custom port
+export QUEEN_PORT=8080
+
+# Set custom URL (for multi-machine setups)
+export QUEEN_URL=http://queen.example.com:7833
+
+# Start Queen
+queen-rbee
+```
+
+<Callout variant="info">
+CLI flags take precedence over environment variables. If both are set, the CLI flag value is used.
+</Callout>
+
+<Separator />
+
+## Network Configuration
+
+### Bind Address
+
+**Queen binds to `0.0.0.0` (all interfaces) by default:**
+
+```rust
+// From bin/10_queen_rbee/src/main.rs:98
+let addr = SocketAddr::from(([0, 0, 0, 0], port));
+```
+
+**This means Queen accepts connections from ANY network interface**, not just localhost.
+
+<Callout variant="warning" title="Security Warning">
+Queen binds to all interfaces (`0.0.0.0`) by default. This allows remote access but requires proper security:
+- **Use a firewall** to restrict access to trusted IPs
+- **Set up TLS/SSL** termination via reverse proxy (nginx/Caddy)
+- **Configure `LLORCH_API_TOKEN`** for authentication when exposed
+- **For development only:** Use `127.0.0.1` binding (requires code change)
+</Callout>
+
+**Note:** The startup message says "localhost-only mode" but this is **inaccurate** - the actual bind is `0.0.0.0`.
+
+### Port Range
+
+**Default Ports:**
+- **Queen API:** `7833`
+- **Queen UI (dev):** `7834` (proxied in production)
+
+<Separator />
+
+## API Endpoints
+
+Queen exposes the following HTTP endpoints:
+
+### Health & Info
+
+- `GET /health` - Health check (no auth required)
+- `GET /v1/info` - Service info (base URL, port, version)
+
+### Job Management
+
+- `POST /v1/jobs` - Create new job
+- `GET /v1/jobs/{job_id}/stream` - Stream job events (SSE)
+- `DELETE /v1/jobs/{job_id}` - Cancel job
+
+### Hive Management
+
+- `POST /v1/hive/ready` - Hive discovery callback
+- `GET /v1/heartbeats/stream` - Live heartbeat stream (SSE)
+
+### System
+
+- `POST /v1/shutdown` - Graceful shutdown
+- `GET /dev/*` - Development proxy (dev mode only)
+
+<Separator />
+
+## CORS Configuration
+
+Queen includes CORS middleware for web UI access:
+
+```rust
+let cors = CorsLayer::new()
+    .allow_origin(Any)
+    .allow_methods(Any)
+    .allow_headers(Any);
+```
+
+**Production:** Configure a reverse proxy (nginx, Caddy) with proper CORS policies instead of using `Any`.
+
+<Separator />
+
+## Service Discovery
+
+### Hive Discovery
+
+Queen automatically discovers hives after startup:
+
+```rust
+// Starts 5 seconds after Queen starts
+tokio::spawn(async move {
+    discovery::discover_hives_on_startup(&queen_url).await
+});
+```
+
+**How it works:**
+1. Queen starts and listens on configured port
+2. After 5s delay, Queen attempts to discover hives
+3. Hives register via `POST /v1/hive/ready`
+4. Queen subscribes to hive heartbeat streams
+
+<Separator />
+
+## Registries
+
+Queen maintains several in-memory registries:
+
+### Job Registry
+
+```rust
+let job_server: Arc<JobRegistry<String>> = Arc::new(JobRegistry::new());
+```
+
+- Tracks active jobs
+- Manages job lifecycle
+- Provides SSE streams for job events
+
+### Telemetry Registry
+
+```rust
+let telemetry = Arc::new(TelemetryRegistry::new());
+```
+
+- Stores hive telemetry data
+- Tracks worker states
+- Provides real-time heartbeat streams
+
+<Callout variant="warning" title="In-Memory Storage">
+All registries are in-memory. Job and telemetry data is lost on restart. For production, consider implementing persistent storage.
+</Callout>
+
+<Separator />
+
+## Development vs Production
+
+### Development Mode
+
+```bash
+# Start Queen in development
+queen-rbee --port 7833
+
+# UI proxied from Vite dev server (port 7834)
+curl http://localhost:7833/dev/
+```
+
+**Features:**
+- `/dev/*` routes proxy to Vite dev server
+- Hot module replacement (HMR)
+- Debug logging enabled
+
+### Production Mode
+
+```bash
+# Build with release profile
+cargo build --release --bin queen-rbee
+
+# Run production binary
+./target/release/queen-rbee --port 7833
+```
+
+**Features:**
+- Static files served from embedded `dist/`
+- Optimized binary size
+- No development proxy
+
+<Separator />
+
+## Logging & Observability
+
+Queen uses the **narration** system for observability:
+
+```rust
+use observability_narration_core::n;
+
+n!("start", "Queen-rbee starting on port {}", port);
+n!("listen", "Listening on http://{}", addr);
+n!("ready", "Ready to accept connections");
+```
+
+**Narration events:**
+- `start` - Queen startup
+- `listen` - HTTP server listening
+- `ready` - Ready to accept requests
+- `discovery_error` - Hive discovery failures
+- `error` - Server errors
+
+<Separator />
+
+## Related Configuration
+
+<CardGrid columns={3}>
   <LinkCard
-    title="CLI Reference"
-    description="rbee-keeper commands"
-    href="/docs/reference/cli"
+    title="Hive Configuration"
+    description="Configure rbee-hive daemon"
+    href="/docs/configuration/hive"
+  />
+  <LinkCard
+    title="Security Configuration"
+    description="Authentication and TLS setup"
+    href="/docs/configuration/security"
   />
   <LinkCard
     title="Port Configuration"
-    description="System-wide ports"
+    description="Complete port reference"
     href="https://github.com/rbee-dev/rbee/blob/main/PORT_CONFIGURATION.md"
   />
 </CardGrid>
 
+<Separator />
+
+## Troubleshooting
+
+### Queen Won't Start
+
+**Check if port is in use:**
+```bash
+lsof -i :7833
+```
+
+**Kill process on port:**
+```bash
+kill $(lsof -t -i:7833)
+```
+
+### Hives Not Connecting
+
+**Verify Queen is reachable:**
+```bash
+curl http://localhost:7833/health
+```
+
+**Check hive configuration:**
+```bash
+# Hive must point to correct Queen URL
+rbee-hive --queen-url http://localhost:7833
+```
+
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** MEDIUM  
-**Estimated effort:** 3 hours
+**Completed by:** TEAM-427  
+**Based on:** `bin/10_queen_rbee/src/main.rs`, `bin/99_shared_crates/env-config/src/lib.rs`

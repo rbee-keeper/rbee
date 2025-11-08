@@ -1,64 +1,464 @@
 # Complete API Reference
 
-**Status:** 🚧 Coming Soon
-
-<Callout variant="info">
-This page is under construction. Check back soon for complete HTTP API reference.
-</Callout>
+Complete HTTP API reference for all rbee services: Queen, Hive, and Workers.
 
 <Separator />
 
-## Overview
+## Queen API (Port 7833)
 
-Complete HTTP API reference for all rbee services.
+### Health & Info
 
-**Topics to be covered:**
-- Queen API endpoints (port 7833)
-- Hive API endpoints (port 7835)
-- Worker API endpoints (port 8080+)
-- Request/response formats
-- Error codes
-- Rate limiting
-- Authentication
-- Webhooks
-- SSE streaming
+**GET /health**
+
+Health check endpoint (no authentication required).
+
+```bash
+curl http://localhost:7833/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy"
+}
+```
+
+---
+
+**GET /v1/info**
+
+Get Queen service information.
+
+```bash
+curl http://localhost:7833/v1/info
+```
+
+**Response:**
+```json
+{
+  "service": "queen-rbee",
+  "version": "0.1.0",
+  "base_url": "http://localhost:7833",
+  "port": 7833
+}
+```
+
+### Job Management
+
+**POST /v1/jobs**
+
+Create a new job.
+
+```bash
+curl -X POST http://localhost:7833/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "spawn_worker",
+    "params": {
+      "model": "llama-3-8b",
+      "worker_type": "cuda",
+      "device": 0
+    }
+  }'
+```
+
+**Response:**
+```json
+{
+  "job_id": "job_abc123",
+  "status": "pending",
+  "created_at": "2025-11-08T15:30:00Z"
+}
+```
+
+---
+
+**GET /v1/jobs/{job_id}/stream**
+
+Stream job events via Server-Sent Events (SSE).
+
+```bash
+curl -N http://localhost:7833/v1/jobs/job_abc123/stream
+```
+
+**Event Stream:**
+```
+data: {"event":"job_started","timestamp":"2025-11-08T15:30:01Z"}
+
+data: {"event":"progress","progress":50,"message":"Downloading model..."}
+
+data: {"event":"job_completed","result":{"worker_id":"worker_xyz"}}
+```
+
+---
+
+**DELETE /v1/jobs/{job_id}**
+
+Cancel a running job.
+
+```bash
+curl -X DELETE http://localhost:7833/v1/jobs/job_abc123
+```
+
+**Response:**
+```json
+{
+  "job_id": "job_abc123",
+  "status": "cancelled"
+}
+```
+
+### Hive Management
+
+**POST /v1/hive/ready**
+
+Hive discovery callback (called by hives on startup).
+
+```bash
+curl -X POST http://localhost:7833/v1/hive/ready \
+  -H "Content-Type: application/json" \
+  -d '{
+    "hive_id": "localhost",
+    "hive_url": "http://localhost:7835"
+  }'
+```
+
+---
+
+**GET /v1/heartbeats/stream**
+
+Stream live heartbeat events from all hives (SSE).
+
+```bash
+curl -N http://localhost:7833/v1/heartbeats/stream
+```
+
+**Event Stream:**
+```
+data: {"hive_id":"localhost","status":"healthy","workers":3}
+
+data: {"hive_id":"gpu-server","status":"healthy","workers":5}
+```
+
+### System
+
+**POST /v1/shutdown**
+
+Graceful shutdown of Queen service.
+
+```bash
+curl -X POST http://localhost:7833/v1/shutdown
+```
 
 <Separator />
 
-## Quick Reference
+## Hive API (Port 7835)
 
-**Available API documentation:**
+### Health
+
+**GET /health**
+
+Health check endpoint.
+
+```bash
+curl http://localhost:7835/health
+```
+
+**Response:**
+```
+ok
+```
+
+**Note:** Hive's health endpoint returns plain text "ok", not JSON.
+
+### Job Management
+
+**POST /v1/jobs**
+
+Create a job on this hive (worker/model operations).
+
+```bash
+curl -X POST http://localhost:7835/v1/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "download_model",
+    "params": {
+      "model_id": "meta-llama/Llama-3-8B-GGUF",
+      "filename": "llama-3-8b-q4_k_m.gguf"
+    }
+  }'
+```
+
+---
+
+**GET /v1/jobs/{job_id}/stream**
+
+Stream job events (SSE).
+
+```bash
+curl -N http://localhost:7835/v1/jobs/job_xyz/stream
+```
+
+---
+
+**DELETE /v1/jobs/{job_id}**
+
+Cancel a job.
+
+```bash
+curl -X DELETE http://localhost:7835/v1/jobs/job_xyz
+```
+
+### Capabilities
+
+**GET /v1/capabilities**
+
+Get hive capabilities (GPU, CPU, available workers).
+
+```bash
+curl http://localhost:7835/v1/capabilities
+```
+
+**Response:**
+```json
+{
+  "cpu_cores": 16,
+  "total_ram_gb": 64,
+  "gpus": [
+    {
+      "id": 0,
+      "name": "NVIDIA RTX 3090",
+      "vram_gb": 24
+    }
+  ],
+  "workers": [
+    {
+      "type": "cpu",
+      "available": true
+    },
+    {
+      "type": "cuda",
+      "available": true
+    }
+  ]
+}
+```
+
+### Telemetry
+
+**GET /v1/heartbeats/stream**
+
+Stream hive heartbeat events (SSE).
+
+```bash
+curl -N http://localhost:7835/v1/heartbeats/stream
+```
+
+<Separator />
+
+## Worker API (Port 8080+)
+
+Workers use dynamically assigned ports (8080, 8081, 8082, etc.).
+
+### Health & Info
+
+**GET /health**
+
+Worker health check.
+
+```bash
+curl http://localhost:8080/health
+```
+
+**Response:**
+```
+OK
+```
+
+---
+
+**GET /info**
+
+Worker information.
+
+```bash
+curl http://localhost:8080/info
+```
+
+**Response:**
+```json
+{
+  "name": "llm-worker-cuda",
+  "version": "0.1.0",
+  "worker_type": "cuda",
+  "model_loaded": "llama-3-8b-q4_k_m",
+  "capabilities": ["text-generation"]
+}
+```
+
+### Inference
+
+**POST /v1/infer**
+
+Run inference on the worker.
+
+```bash
+curl -X POST http://localhost:8080/v1/infer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Once upon a time",
+    "max_tokens": 100,
+    "temperature": 0.7
+  }'
+```
+
+**Response:**
+```json
+{
+  "output": "Once upon a time, in a land far away...",
+  "tokens_generated": 100,
+  "inference_time_ms": 1250
+}
+```
+
+### OpenAI Compatible
+
+**POST /v1/chat/completions**
+
+OpenAI-compatible chat endpoint.
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama-3-8b",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'
+```
+
+**See:** [OpenAI Compatible API](/docs/reference/api-openai-compatible) for full details.
+
+<Separator />
+
+## Authentication
+
+### API Token
+
+For non-loopback deployments, use bearer token authentication:
+
+```bash
+export LLORCH_API_TOKEN="your-secure-token"
+
+curl -H "Authorization: Bearer $LLORCH_API_TOKEN" \
+  http://queen.example.com:7833/v1/info
+```
+
+**See:** [Security Configuration](/docs/configuration/security) for setup.
+
+<Separator />
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| **200** | Success |
+| **201** | Created |
+| **400** | Bad Request - Invalid parameters |
+| **401** | Unauthorized - Missing or invalid token |
+| **404** | Not Found - Resource doesn't exist |
+| **500** | Internal Server Error |
+| **503** | Service Unavailable - Service not ready |
+
+### Error Response Format
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Missing required parameter: model"
+  }
+}
+```
+
+<Separator />
+
+## Server-Sent Events (SSE)
+
+### Connection
+
+```bash
+curl -N http://localhost:7833/v1/heartbeats/stream
+```
+
+**Headers:**
+```
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+```
+
+### Event Format
+
+```
+data: {"event":"heartbeat","hive_id":"localhost","timestamp":"2025-11-08T15:30:00Z"}
+
+data: {"event":"worker_spawned","worker_id":"worker_123"}
+```
+
+### Reconnection
+
+Clients should implement automatic reconnection with exponential backoff:
+
+```javascript
+const eventSource = new EventSource('/v1/heartbeats/stream');
+
+eventSource.onerror = () => {
+  // Reconnect after delay
+  setTimeout(() => {
+    eventSource.close();
+    // Create new connection
+  }, 5000);
+};
+```
+
+<Separator />
+
+## Rate Limiting
+
+**Current Implementation:** No rate limiting
+
+**Future:** Rate limiting will be added in a future release.
+
+**Best Practices:**
+- Limit concurrent SSE connections to 10-20 per client
+- Use connection pooling
+- Implement client-side backoff for failed requests
+
+<Separator />
+
+## Related Documentation
 
 <CardGrid columns={3}>
   <LinkCard
     title="Job Operations"
-    description="Queen and Hive operations"
+    description="Detailed job operations"
     href="/docs/reference/job-operations"
   />
   <LinkCard
-    title="OpenAI Compatible"
-    description="OpenAI API endpoints"
+    title="OpenAI Compatible API"
+    description="OpenAI-style endpoints"
     href="/docs/reference/api-openai-compatible"
   />
   <LinkCard
-    title="CLI Reference"
-    description="Command-line interface"
-    href="/docs/reference/cli"
+    title="Security Configuration"
+    description="Authentication setup"
+    href="/docs/configuration/security"
   />
 </CardGrid>
 
-<Separator />
-
-## Coming Soon
-
-This documentation is planned for a future release. In the meantime, refer to:
-
-- [Job Operations Reference](/docs/reference/job-operations)
-- [OpenAI Compatible API](/docs/reference/api-openai-compatible)
-- [Heartbeat Architecture](/docs/architecture/heartbeats)
-
 ---
 
-**STUB:** Created by TEAM-426  
-**Priority:** MEDIUM  
-**Estimated effort:** 5 hours
+**Completed by:** TEAM-427  
+**Based on:** `bin/10_queen_rbee/src/main.rs`, `bin/20_rbee_hive/src/main.rs`, worker implementations

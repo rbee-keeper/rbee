@@ -2,9 +2,9 @@
 // TEAM-415: Pure SSG page for maximum SEO
 // TEAM-421: Show top 100 popular models (WASM filtering doesn't work in SSG)
 // TEAM-461: Added CategoryFilterBar for filtering
-import { listHuggingFaceModels } from '@rbee/marketplace-node'
-import type { ModelTableItem } from '@rbee/ui/marketplace'
-import { CategoryFilterBar } from '@rbee/ui/marketplace'
+import { getCompatibleHuggingFaceModels } from '@rbee/marketplace-node'
+import { ModelCard } from '@rbee/ui/marketplace'
+import { ModelsFilterBar } from '../ModelsFilterBar'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
 import { 
@@ -74,7 +74,7 @@ export default async function HuggingFaceModelsPage() {
       </div>
 
       {/* Filter Bar */}
-      <CategoryFilterBar
+      <ModelsFilterBar
         groups={HUGGINGFACE_FILTER_GROUPS}
         sortGroup={HUGGINGFACE_SORT_GROUP}
         currentFilters={currentFilter}

@@ -155,6 +155,7 @@ fn parse_bump_type(s: &str) -> Result<BumpType> {
 }
 
 /// Discover available tier configurations and format them for display
+/// TEAM-451: RULE ZERO - Workers are discovered dynamically, not hardcoded
 fn discover_tier_options() -> Result<Vec<String>> {
     let tier_dir = PathBuf::from(".version-tiers");
     
@@ -164,6 +165,7 @@ fn discover_tier_options() -> Result<Vec<String>> {
 
     let mut options = Vec::new();
     
+    // Add static tiers from .version-tiers/
     for entry in std::fs::read_dir(&tier_dir)? {
         let entry = entry?;
         let path = entry.path();
@@ -180,6 +182,18 @@ fn discover_tier_options() -> Result<Vec<String>> {
                 } else {
                     options.push(stem.to_string());
                 }
+            }
+        }
+    }
+    
+    // Add dynamically discovered workers
+    if let Ok(workers) = super::tiers::discover_worker_tiers() {
+        for worker in workers {
+            // Check if there's already a static tier for this worker
+            let has_static_tier = options.iter().any(|opt| opt.starts_with(&worker));
+            
+            if !has_static_tier {
+                options.push(format!("{} (Worker - auto-discovered)", worker));
             }
         }
     }

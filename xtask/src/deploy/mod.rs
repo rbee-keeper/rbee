@@ -5,12 +5,21 @@
 pub mod binaries;
 pub mod commercial;
 pub mod docs;
+pub mod gates;
 pub mod marketplace;
 pub mod worker_catalog;
 
 use anyhow::Result;
 
 pub fn run(app: &str, dry_run: bool) -> Result<()> {
+    // Run deployment gates first (unless dry run)
+    if !dry_run {
+        gates::check_gates(app)?;
+    } else {
+        println!("🔍 Dry run - skipping deployment gates");
+        println!();
+    }
+
     match app {
         // Cloudflare deployments
         "worker" | "gwc" | "worker-catalog" => worker_catalog::deploy(dry_run),

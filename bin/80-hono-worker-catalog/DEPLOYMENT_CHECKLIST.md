@@ -1,7 +1,8 @@
 # Worker Catalog Deployment Checklist
 
-**Created by:** TEAM-451  
-**Target:** `gwc.rbee.dev`
+**Purpose:** Checklist for deploying worker catalog specifically  
+**When to use:** Before deploying `cargo xtask deploy --app worker`  
+**Related docs:** `../../CLOUDFLARE_DEPLOY_USAGE.md` - All deployment commands
 
 ---
 

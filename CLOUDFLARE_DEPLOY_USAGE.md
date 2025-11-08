@@ -1,6 +1,10 @@
-# Deployment Commands - Quick Usage
+# Deployment Commands Reference
 
-**Created by:** TEAM-451
+**Purpose:** Command reference for deploying apps  
+**When to use:** When you need to deploy an app  
+**Related docs:**
+- `MANUAL_RELEASE_GUIDE.md` - Release workflow (version bumps, GitHub releases)
+- `bin/80-hono-worker-catalog/DEPLOYMENT_CHECKLIST.md` - Worker catalog specific checklist
 
 ---
 

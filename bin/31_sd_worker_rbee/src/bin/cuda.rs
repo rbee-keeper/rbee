@@ -27,8 +27,9 @@ struct Args {
     #[arg(long, env = "SD_VERSION")]
     sd_version: String,
 
-    /// HTTP server port
-    #[arg(long, env = "PORT", default_value = "8081")]
+    /// HTTP server port - MUST be provided by hive (no default)
+    /// Port is dynamically assigned by rbee-hive using PortAssigner
+    #[arg(long, env = "PORT")]
     port: u16,
 
     /// Callback URL for hive registration

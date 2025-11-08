@@ -80,6 +80,9 @@ rbee-hive-artifact-catalog = { path = "../25_rbee_hive_crates/artifact-catalog" 
 # TEAM-274: Worker catalog for binary management
 rbee-hive-worker-catalog = { path = "../25_rbee_hive_crates/worker-catalog" }
 
+# TEAM-XXX: Dynamic port assignment for workers
+port-assigner = { path = "../25_rbee_hive_crates/port-assigner" }
+
 # TEAM-366: URL validation for heartbeat edge cases
 url = "2.5"
 

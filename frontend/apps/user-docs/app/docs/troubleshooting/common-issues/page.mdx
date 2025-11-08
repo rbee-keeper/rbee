@@ -19,8 +19,9 @@ curl http://localhost:7833/health
 # Check Hive
 curl http://localhost:7835/health
 
-# Check Worker (if running)
-curl http://localhost:8080/health
+# Check Worker (if running - port assigned dynamically by hive)
+# Example: curl http://localhost:8080/health
+# Use 'ps aux | grep worker' to find actual port
 ```
 
 ### Check Service Status
@@ -30,7 +31,7 @@ curl http://localhost:8080/health
 ps aux | grep -E "(queen-rbee|rbee-hive)"
 
 # Check listening ports
-ss -tlnp | grep -E "(7833|7835|8080)"
+ss -tlnp | grep -E "(7833|7835|8080|8081|8082)"
 
 # Check systemd services
 sudo systemctl status queen-rbee
@@ -160,8 +161,9 @@ sudo systemctl status rbee-hive
 
 4. **Port already in use**
    ```bash
-   # Workers use dynamic ports (8080+)
-   # Check what's using the port
+   # Workers use dynamic ports (8080-9999)
+   # Hive automatically assigns available ports
+   # Check what's using a specific port
    lsof -i :8080
    ```
 
@@ -190,8 +192,9 @@ sudo systemctl status rbee-hive
 3. **Check worker logs**
    ```bash
    # Worker logs go to stdout
-   # If using systemd:
-   sudo journalctl -u llm-worker@8080
+   # If using systemd (port assigned dynamically):
+   # sudo journalctl -u llm-worker@<PORT>
+   # Find worker PID: ps aux | grep worker
    ```
 
 <Separator />
@@ -483,8 +486,8 @@ systemctl status queen-rbee rbee-hive
 sudo journalctl -u queen-rbee -n 100
 sudo journalctl -u rbee-hive -n 100
 
-# Network
-ss -tlnp | grep -E "(7833|7835|8080)"
+# Network (workers use dynamic ports 8080+)
+ss -tlnp | grep -E "(7833|7835|8080|8081|8082)"
 
 # GPU (if applicable)
 nvidia-smi

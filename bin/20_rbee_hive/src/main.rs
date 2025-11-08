@@ -123,11 +123,15 @@ async fn main() -> anyhow::Result<()> {
         version: env!("CARGO_PKG_VERSION").to_string(),
     };
 
+    // TEAM-XXX: Create PortAssigner for dynamic worker port allocation
+    let port_assigner = port_assigner::PortAssigner::new();
+
     // TEAM-365: Create shared HiveState for dynamic queen_url and heartbeat control
     let hive_state = Arc::new(HiveState {
         job_registry: job_registry.clone(),
         model_catalog: model_catalog.clone(),
         worker_catalog: worker_catalog.clone(),
+        port_assigner,  // TEAM-XXX: Dynamic port allocation
         queen_url: Arc::new(RwLock::new(Some(queen_url.clone()))), // TEAM-365: Dynamic queen URL
         heartbeat_running: Arc::new(AtomicBool::new(false)), // TEAM-365: Heartbeat control
         hive_info: hive_info.clone(),
@@ -153,11 +157,13 @@ async fn main() -> anyhow::Result<()> {
     // TEAM-261: Create HTTP state for job endpoints (for backwards compatibility)
     // TEAM-268: Added model_catalog to state
     // TEAM-274: Added worker_catalog to state
+    // TEAM-XXX: Added port_assigner to state
     let job_state = http::jobs::HiveState {
         registry: job_registry,
         model_catalog,
         model_provisioner,
         worker_catalog,
+        port_assigner: hive_state.port_assigner.clone(),  // TEAM-XXX: Share port assigner
     };
 
     // ============================================================
@@ -328,6 +334,7 @@ pub struct HiveState {
     pub job_registry: Arc<JobRegistry<String>>,
     pub model_catalog: Arc<ModelCatalog>,
     pub worker_catalog: Arc<WorkerCatalog>,
+    pub port_assigner: port_assigner::PortAssigner,  // TEAM-XXX: Dynamic port allocation
     pub queen_url: Arc<RwLock<Option<String>>>,  // TEAM-365: Dynamic queen URL
     pub heartbeat_running: Arc<AtomicBool>,      // TEAM-365: Prevent duplicate tasks
     pub hive_info: hive_contract::HiveInfo,      // TEAM-365: For heartbeat

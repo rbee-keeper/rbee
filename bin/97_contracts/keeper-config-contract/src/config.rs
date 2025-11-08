@@ -82,8 +82,8 @@ mod tests {
 
     #[test]
     fn test_queen_url() {
-        let config = KeeperConfig { queen_port: 8080 };
-        assert_eq!(config.queen_url(), "http://localhost:8080");
+        let config = KeeperConfig { queen_port: 7833 }; // Correct queen port
+        assert_eq!(config.queen_url(), "http://localhost:7833");
     }
 
     #[test]

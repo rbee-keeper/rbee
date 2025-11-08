@@ -24,6 +24,7 @@ pub struct JobState {
     pub model_catalog: Arc<ModelCatalog>,
     pub model_provisioner: Arc<ModelProvisioner>,
     pub worker_catalog: Arc<WorkerCatalog>,
+    pub port_assigner: port_assigner::PortAssigner,  // TEAM-XXX: Dynamic port allocation
 }
 
 pub use jobs_contract::JobResponse;
@@ -154,6 +155,7 @@ async fn execute_operation(
             rbee_hive::operations::handle_worker_operation(
                 &operation,
                 state.worker_catalog.clone(),
+                &state.port_assigner,  // TEAM-XXX: Pass port assigner
                 &job_id,
                 || state.registry.get_cancellation_token(&job_id),
             )

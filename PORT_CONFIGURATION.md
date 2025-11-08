@@ -12,9 +12,7 @@
 Backend APIs:
 7833 ← queen-rbee (orchestrator)
 7835 ← rbee-hive (hive manager)
-8000 ← vllm-worker (PLANNED)
-8080 ← llm-worker
-8188 ← comfy-worker (PLANNED)
+8080+ ← workers (DYNAMIC - assigned by hive, incrementing)
 8787 ← hono-worker-catalog
 
 Frontend (Development):
@@ -27,9 +25,7 @@ Frontend (Development):
 7823 ← marketplace (Next.js SSG)
 7834 ← queen UI (dev) → 7833/ (prod)
 7836 ← hive UI (dev) → 7835/ (prod)
-7837 ← llm-worker UI (dev) → 8080/ (prod)
-7838 ← comfy-worker UI (dev) → 8188/ (prod - PLANNED)
-7839 ← vllm-worker UI (dev) → 8000/ (prod - PLANNED)
+7837 ← llm-worker UI (dev) → worker backend (dynamic)
 ```
 
 ---
@@ -42,29 +38,31 @@ Frontend (Development):
 |---------|------|-------------|
 | **queen-rbee** | `7833` | Orchestrator daemon (HTTP API) |
 | **rbee-hive** | `7835` | Hive daemon (HTTP API) |
-| **llm-worker** | `8080` | LLM worker (HTTP API) |
-| **sd-worker** | `8081` | Stable Diffusion worker (HTTP API) |
-| **comfy-worker** | `8188` | ComfyUI worker (HTTP API) - PLANNED |
-| **vllm-worker** | `8000` | vLLM worker (HTTP API) - PLANNED |
+| **workers (all types)** | `8080+` | **DYNAMIC** - Assigned by hive starting from 8080, incrementing |
 | **hono-worker-catalog** | `8787` | Hono worker catalog (Cloudflare Worker dev) |
+
+**⚠️ CRITICAL: Worker Port Assignment**
+- Workers do NOT have fixed ports
+- Hive assigns ports dynamically starting from **8080**
+- First worker: 8080, second: 8081, third: 8082, etc.
+- Port assignment managed by `PortAssigner` component in `20_rbee_hive`
 
 ### Frontend Services (Development)
 
 | Service | Port | Description | Production |
 |---------|------|-------------|------------|
 | **rbee-keeper GUI** | `5173` | Keeper Tauri GUI (dev server) | Tauri app |
-| **sd-worker UI** | `5174` | SD worker UI (dev server) | Hosted at `8081/` |
 | **queen-rbee UI** | `7834` | Queen UI (dev server) | Hosted at `7833/` |
 | **rbee-hive UI** | `7836` | Hive UI (dev server) | Hosted at `7835/` |
-| **llm-worker UI** | `7837` | LLM worker UI (dev server) | Hosted at `8080/` |
-| **comfy-worker UI** | `7838` | ComfyUI worker UI (dev server) - PLANNED | Hosted at `8188/` |
-| **vllm-worker UI** | `7839` | vLLM worker UI (dev server) - PLANNED | Hosted at `8000/` |
+| **worker UI (shared)** | `7837` | Worker UI (dev server) | Hosted at worker backend (dynamic) |
 | **rbee-ui Storybook** | `6006` | Component library | N/A |
 | **commercial Storybook** | `6007` | Commercial site components | N/A |
 | **commercial** | `7822` | Marketing site (Next.js) | Deployed |
 | **marketplace** | `7823` | Model marketplace (Next.js SSG) | Deployed |
 | **user-docs** | `7811` | Documentation (Next.js + Nextra) | Deployed |
-| **web-ui** | `5179` | OLD UI (DEPRECATED) | N/A |
+
+**Note:** Worker UIs are type-agnostic. The same UI (port 7837 in dev) works for all worker types (LLM, SD, ComfyUI, vLLM).
+In production, each worker serves its UI at its dynamically assigned backend port.
 
 ---
 

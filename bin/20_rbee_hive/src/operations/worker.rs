@@ -23,9 +23,11 @@ use tokio_util::sync::CancellationToken;
 /// Handle worker-related operations
 ///
 /// TEAM-388: Extracted from job_router.rs for better organization
+/// TEAM-XXX: Added port_assigner for dynamic worker port allocation
 pub async fn handle_worker_operation(
     operation: &Operation,
     worker_catalog: Arc<WorkerCatalog>,
+    port_assigner: &port_assigner::PortAssigner,
     job_id: &str,
     get_cancel_token: impl FnOnce() -> Option<CancellationToken>,
 ) -> Result<()> {
@@ -49,7 +51,7 @@ pub async fn handle_worker_operation(
             handle_worker_list_installed(request, worker_catalog).await
         }
         Operation::WorkerSpawn(request) => {
-            handle_worker_spawn(request, worker_catalog, job_id).await
+            handle_worker_spawn(request, worker_catalog, port_assigner, job_id).await
         }
         Operation::WorkerProcessList(request) => {
             handle_worker_process_list(request).await
@@ -278,6 +280,7 @@ async fn handle_worker_list_installed(
 async fn handle_worker_spawn(
     request: &operations_contract::WorkerSpawnRequest,
     worker_catalog: Arc<WorkerCatalog>,
+    port_assigner: &port_assigner::PortAssigner,
     job_id: &str,
 ) -> Result<()> {
     use lifecycle_local::{start_daemon, HttpDaemonConfig, StartConfig};
@@ -311,8 +314,12 @@ async fn handle_worker_spawn(
             )
         })?;
 
-    // Allocate port
-    let port = 9000 + (rand::random::<u16>() % 1000);
+    // TEAM-XXX: Allocate port dynamically using PortAssigner
+    let port = port_assigner.assign()
+        .ok_or_else(|| anyhow::anyhow!("No ports available (all 8080-9999 in use)"))?;
+    
+    n!("worker_spawn_port", "📍 Assigned port {} to worker", port);
+    
     let queen_url = "http://localhost:7833".to_string();
     let worker_id = format!("worker-{}-{}", request.worker, port);
 

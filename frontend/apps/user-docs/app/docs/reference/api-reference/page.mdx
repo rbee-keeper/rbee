@@ -256,9 +256,16 @@ curl -N http://localhost:7835/v1/heartbeats/stream
 
 <Separator />
 
-## Worker API (Port 8080+)
+## Worker API (Dynamic Ports)
 
-Workers use dynamically assigned ports (8080, 8081, 8082, etc.).
+**Workers use dynamically assigned ports starting from 8080.**
+
+The hive assigns ports automatically when spawning workers. To find a worker's port:
+- Check queen telemetry: `GET /v1/heartbeats/stream`
+- Check hive telemetry: Worker process stats include port
+- Use `ps aux | grep worker` to see command-line args
+
+Examples below use port 8080, but your worker may be on a different port.
 
 ### Health & Info
 

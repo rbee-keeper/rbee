@@ -30,6 +30,8 @@ pub struct HiveState {
     pub model_provisioner: Arc<ModelProvisioner>,
     /// Worker catalog for worker binary management
     pub worker_catalog: Arc<WorkerCatalog>, // TEAM-274: Added
+    /// Port assigner for dynamic worker port allocation
+    pub port_assigner: port_assigner::PortAssigner,  // TEAM-XXX: Added
 }
 
 /// Convert HTTP state to router state
@@ -40,6 +42,7 @@ impl From<HiveState> for crate::job_router::JobState {
             model_catalog: state.model_catalog, // TEAM-268: Added
             model_provisioner: state.model_provisioner,
             worker_catalog: state.worker_catalog, // TEAM-274: Added
+            port_assigner: state.port_assigner,  // TEAM-XXX: Added
         }
     }
 }

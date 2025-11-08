@@ -80,7 +80,7 @@ try {
 ### Get service URL
 
 ```typescript
-import { getServiceUrl } from '@rbee/shared-config'
+import { getServiceUrl, getWorkerUrl } from '@rbee/shared-config'
 
 // Development mode
 const queenDev = getServiceUrl('queen', 'dev')
@@ -97,6 +97,13 @@ const queenBackend = getServiceUrl('queen', 'backend')
 // With HTTPS
 const queenHttps = getServiceUrl('queen', 'prod', true)
 // https://localhost:7833
+
+// Worker URLs (nested structure)
+const llmWorkerDev = getWorkerUrl('llm', 'dev')
+// http://localhost:7837
+
+const comfyWorkerProd = getWorkerUrl('comfy', 'prod')
+// http://localhost:8188
 ```
 
 ## Generate Rust Constants
@@ -158,11 +165,25 @@ getIframeUrl('invalid', true)  // ❌ TypeScript error: Type '"invalid"' is not 
 Full TypeScript support with type inference:
 
 ```typescript
-import { PORTS, ServiceName } from '@rbee/shared-config'
+import { PORTS, ServiceName, WorkerServiceName } from '@rbee/shared-config'
 
-// ServiceName = 'keeper' | 'queen' | 'hive' | 'worker'
+// ServiceName = 'keeper' | 'queen' | 'hive'
 const service: ServiceName = 'queen'  // ✅ Type-safe
+
+// WorkerServiceName = 'llm' | 'sd' | 'comfy' | 'vllm'
+const worker: WorkerServiceName = 'llm'  // ✅ Type-safe
 
 // PORTS is readonly
 PORTS.queen.dev = 9999  // ❌ TypeScript error: Cannot assign to 'dev'
+
+// Access all ports
+PORTS.queen.dev        // 7834
+PORTS.hive.prod        // 7835
+PORTS.worker.llm.dev   // 7837
+PORTS.worker.comfy.prod // 8188
+PORTS.commercial.dev   // 7822
+PORTS.marketplace.dev  // 7823
+PORTS.userDocs.dev     // 7811
+PORTS.storybook.rbeeUi // 6006
+PORTS.honoCatalog.dev  // 8787
 ```

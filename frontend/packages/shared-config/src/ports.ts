@@ -11,6 +11,7 @@
  * 
  * TEAM-351: Shared port configuration
  * TEAM-457: Added commercial, marketplace, user-docs, hono-catalog
+ * TEAM-XXX: Added comfy-worker, vllm-worker ports; added getWorkerUrl() helper
  * 
  * @packageDocumentation
  */
@@ -47,16 +48,29 @@ export const PORTS = {
     prod: getPort('VITE_HIVE_PORT', 7835),
     backend: getPort('VITE_HIVE_PORT', 7835),
   },
+  // TEAM-XXX: Worker backend ports are DYNAMIC (assigned by hive starting from 8080)
+  // Only dev ports are fixed for local development
+  // In production, query the hive for actual worker URLs
   worker: {
     llm: {
-      dev: getPort('VITE_LLM_WORKER_UI_DEV_PORT', 7837),
-      prod: getPort('VITE_LLM_WORKER_PORT', 8080),
-      backend: getPort('VITE_LLM_WORKER_PORT', 8080),
+      dev: 7837,
+      prod: null, // Dynamic - assigned by hive
+      backend: null, // Dynamic - assigned by hive
     },
     sd: {
-      dev: getPort('VITE_SD_WORKER_UI_DEV_PORT', 5174),
-      prod: getPort('VITE_SD_WORKER_PORT', 8081),
-      backend: getPort('VITE_SD_WORKER_PORT', 8081),
+      dev: 5174,
+      prod: null, // Dynamic - assigned by hive
+      backend: null, // Dynamic - assigned by hive
+    },
+    comfy: {
+      dev: 7838,
+      prod: null, // Dynamic - assigned by hive
+      backend: null, // Dynamic - assigned by hive
+    },
+    vllm: {
+      dev: 7839,
+      prod: null, // Dynamic - assigned by hive
+      backend: null, // Dynamic - assigned by hive
     },
   },
   
@@ -95,6 +109,9 @@ export const PORTS = {
 // Excludes: worker (nested), commercial/marketplace/userDocs/honoCatalog (no backend), storybook (no backend)
 export type ServiceName = 'queen' | 'hive' | 'keeper'
 
+// Worker service names for nested worker structure
+export type WorkerServiceName = 'llm' | 'sd' | 'comfy' | 'vllm'
+
 /**
  * Generate allowed origins for postMessage listener
  * 
@@ -119,7 +136,7 @@ export function getAllowedOrigins(includeHttps = false): string[] {
   }
   
   // Workers (nested structure)
-  const workerTypes = [PORTS.worker.llm, PORTS.worker.sd]
+  const workerTypes = [PORTS.worker.llm, PORTS.worker.sd, PORTS.worker.comfy, PORTS.worker.vllm]
   for (const ports of workerTypes) {
     if (ports.dev !== null) {
       origins.add(`http://localhost:${ports.dev}`)
@@ -214,6 +231,8 @@ export function getParentOrigin(currentPort: number): string {
     currentPort === PORTS.hive.dev ||
     currentPort === PORTS.worker.llm.dev ||
     currentPort === PORTS.worker.sd.dev ||
+    currentPort === PORTS.worker.comfy.dev ||
+    currentPort === PORTS.worker.vllm.dev ||
     currentPort === PORTS.keeper.dev
   )
   
@@ -240,6 +259,36 @@ export function getServiceUrl(
   let port: number | null
   if (mode === 'backend') {
     port = 'backend' in ports ? (ports as any).backend : ports.prod
+  } else {
+    port = mode === 'dev' ? ports.dev : ports.prod
+  }
+  
+  if (port === null) {
+    return ''
+  }
+  
+  const protocol = useHttps ? 'https' : 'http'
+  return `${protocol}://localhost:${port}`
+}
+
+/**
+ * Get worker service URL for HTTP requests
+ * 
+ * @param worker - Worker type ('llm' | 'sd' | 'comfy' | 'vllm')
+ * @param mode - 'dev' | 'prod' | 'backend'
+ * @param useHttps - Use HTTPS instead of HTTP (default: false)
+ * @returns URL string or empty string if port is null
+ */
+export function getWorkerUrl(
+  worker: WorkerServiceName,
+  mode: 'dev' | 'prod' | 'backend' = 'dev',
+  useHttps = false
+): string {
+  const ports = PORTS.worker[worker]
+  
+  let port: number | null
+  if (mode === 'backend') {
+    port = ports.backend
   } else {
     port = mode === 'dev' ? ports.dev : ports.prod
   }

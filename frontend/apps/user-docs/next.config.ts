@@ -2,9 +2,6 @@ import type { NextConfig } from 'next'
 import nextra from 'nextra'
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -74,7 +74,7 @@ export default async function CivitaiModelsPage() {
         groups={CIVITAI_FILTER_GROUPS}
         sortGroup={CIVITAI_SORT_GROUP}
         currentFilters={currentFilter}
-        buildUrl={(filters) => buildFilterUrl({ ...currentFilter, ...filters })}
+        buildUrlFn="/models/civitai"
       />
 
       {/* Vertical Card Grid - Portrait aspect ratio for CivitAI images */}

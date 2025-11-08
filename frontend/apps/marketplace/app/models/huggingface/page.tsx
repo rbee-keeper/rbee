@@ -2,8 +2,7 @@
 // TEAM-415: Pure SSG page for maximum SEO
 // TEAM-421: Show top 100 popular models (WASM filtering doesn't work in SSG)
 // TEAM-461: Added CategoryFilterBar for filtering
-import { getCompatibleHuggingFaceModels } from '@rbee/marketplace-node'
-import { ModelCard } from '@rbee/ui/marketplace'
+import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import { ModelsFilterBar } from '../ModelsFilterBar'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
@@ -34,7 +33,7 @@ export default async function HuggingFaceModelsPage() {
   
   console.log(`[SSG] Showing ${hfModels.length} HuggingFace models`)
   
-  const models: ModelTableItem[] = hfModels.map((model) => {
+  const models = hfModels.map((model) => {
     const m = model as unknown as Record<string, unknown>
     return {
       id: m.id as string,
@@ -78,7 +77,7 @@ export default async function HuggingFaceModelsPage() {
         groups={HUGGINGFACE_FILTER_GROUPS}
         sortGroup={HUGGINGFACE_SORT_GROUP}
         currentFilters={currentFilter}
-        buildUrl={(filters) => buildHFFilterUrl({ ...currentFilter, ...filters })}
+        buildUrlFn="/models/huggingface"
       />
 
       {/* Table with client-side routing (minimal JS for navigation only) */}

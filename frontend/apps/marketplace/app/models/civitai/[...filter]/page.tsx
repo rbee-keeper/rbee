@@ -1,7 +1,8 @@
 // TEAM-422: Dynamic filtered CivitAI pages (SSG pre-generated)
-// TEAM-461: Using CategoryFilterBar directly (Rule Zero - no wrapper shims)
+// TEAM-461: Using ModelsFilterBar directly (Rule Zero - no wrapper shims)
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
-import { ModelCardVertical, CategoryFilterBar } from '@rbee/ui/marketplace'
+import { ModelCardVertical } from '@rbee/ui/marketplace'
+import { ModelsFilterBar } from '../../ModelsFilterBar'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { modelIdToSlug } from '@/lib/slugify'
@@ -106,11 +107,11 @@ export default async function FilteredCivitaiPage({ params }: PageProps) {
       </div>
 
       {/* Filter Bar */}
-      <CategoryFilterBar
+      <ModelsFilterBar
         groups={CIVITAI_FILTER_GROUPS}
         sortGroup={CIVITAI_SORT_GROUP}
         currentFilters={currentFilter}
-        buildUrl={(filters) => buildFilterUrl({ ...currentFilter, ...filters })}
+        buildUrlFn="/models/civitai"
       />
 
       {/* Vertical Card Grid */}

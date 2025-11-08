@@ -1,7 +1,7 @@
 // TEAM-461: Dynamic filtered HuggingFace pages (SSG pre-generated)
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
-import { CategoryFilterBar } from '@rbee/ui/marketplace'
+import { ModelsFilterBar } from '../../ModelsFilterBar'
 // TEAM-423: Disable SSG due to API errors during build
 export const dynamic = 'force-dynamic'
 
@@ -98,11 +98,11 @@ export default async function FilteredHuggingFacePage({ params }: PageProps) {
       </div>
 
       {/* Filter Bar */}
-      <CategoryFilterBar
+      <ModelsFilterBar
         groups={HUGGINGFACE_FILTER_GROUPS}
         sortGroup={HUGGINGFACE_SORT_GROUP}
         currentFilters={currentFilter}
-        buildUrl={(filters) => buildHFFilterUrl({ ...currentFilter, ...filters })}
+        buildUrlFn="/models/huggingface"
       />
 
       {/* Table with client-side routing */}

@@ -27,7 +27,7 @@ export function ComplianceChip({ icon, children, ariaLabel, className }: Complia
     >
       {icon && (
         <div className="shrink-0">
-          {typeof icon === 'string' ? renderIcon(icon as IconName, 'size-3') : icon}
+          {typeof icon === 'string' ? renderIcon(icon as IconName, { className: 'size-3' }) : icon}
         </div>
       )}
       <span>{children}</span>

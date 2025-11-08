@@ -1,6 +1,9 @@
+'use client'
+
 // TEAM-461: Dropdown-based filter bar with proper SSR support
 // TEAM-423: Made compatible with both Next.js and Tauri using environment detection
 // Reusable for workers, models, or any catalog with categorical filters
+// Marked as 'use client' due to dropdown interactions and onClick handlers
 import { cn } from '@rbee/ui/utils'
 import { isTauriEnvironment } from '@rbee/ui/utils/environment'
 import type { FilterGroup, FilterOption } from '../../types/filters'

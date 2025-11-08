@@ -3,14 +3,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { WORKERS } from '@/../../../bin/80-hono-worker-catalog/src/data'
-import { WorkerCard, CategoryFilterBar } from '@rbee/ui/marketplace'
+import { WorkerCard } from '@rbee/ui/marketplace'
 import { 
   WORKER_FILTER_GROUPS, 
   PREGENERATED_WORKER_FILTERS, 
   filterWorkers,
-  buildWorkerFilterUrl,
   buildFilterDescription 
 } from './filters'
+import { WorkersFilterBar } from './WorkersFilterBar'
 
 export const metadata: Metadata = {
   title: 'Workers | rbee Marketplace',
@@ -49,11 +49,10 @@ export default async function WorkersPage() {
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <CategoryFilterBar
+      {/* Filter Bar - Client Component */}
+      <WorkersFilterBar 
         groups={WORKER_FILTER_GROUPS}
         currentFilters={currentFilters}
-        buildUrl={(filters) => buildWorkerFilterUrl({ ...currentFilters, ...filters })}
       />
 
       {/* Workers Grid */}

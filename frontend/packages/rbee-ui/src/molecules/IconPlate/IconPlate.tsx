@@ -66,7 +66,7 @@ export function IconPlate({ icon, size = 'md', tone = 'primary', shape = 'square
       )}
       aria-hidden="true"
     >
-      {typeof icon === 'string' ? renderIcon(icon as IconName, iconSizeClasses[size]) : icon}
+      {typeof icon === 'string' ? renderIcon(icon as IconName, { className: iconSizeClasses[size] }) : icon}
     </div>
   )
 }

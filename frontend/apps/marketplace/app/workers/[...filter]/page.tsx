@@ -2,13 +2,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { WORKERS } from '@/../../../bin/80-hono-worker-catalog/src/data'
-import { WorkerCard, CategoryFilterBar } from '@rbee/ui/marketplace'
+import { WorkerCard } from '@rbee/ui/marketplace'
+import { WorkersFilterBar } from '../WorkersFilterBar'
 import { 
   WORKER_FILTER_GROUPS,
   PREGENERATED_WORKER_FILTERS, 
   getWorkerFilterFromPath,
   filterWorkers,
-  buildWorkerFilterUrl,
   buildFilterDescription 
 } from '../filters'
 
@@ -79,10 +79,9 @@ export default async function FilteredWorkersPage({ params }: PageProps) {
       </div>
 
       {/* Filter Bar */}
-      <CategoryFilterBar
+      <WorkersFilterBar
         groups={WORKER_FILTER_GROUPS}
         currentFilters={currentFilters}
-        buildUrl={(filters) => buildWorkerFilterUrl({ ...currentFilters, ...filters })}
       />
 
       {/* Workers Grid */}

@@ -6,6 +6,37 @@ import { WORKERS } from "./data";
 export const routes = new Hono<{ Bindings: CloudflareBindings }>();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INSTALL SCRIPT ENDPOINT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
+ * GET /install.sh
+ * Serve rbee-keeper installation script
+ * Usage: curl -fsSL https://install.rbee.dev | sh
+ */
+routes.get("/install.sh", async (c) => {
+  try {
+    const script = await c.env.ASSETS.fetch(
+      new Request("http://placeholder/install.sh")
+    );
+    
+    if (!script.ok) {
+      return c.json({ error: "Install script not found" }, 404);
+    }
+    
+    return new Response(script.body, {
+      headers: { 
+        "Content-Type": "text/plain",
+        "Cache-Control": "public, max-age=300"  // 5 minutes
+      }
+    });
+  } catch (error) {
+    console.error("Failed to fetch install script:", error);
+    return c.json({ error: "Failed to fetch install script" }, 500);
+  }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // WORKER CATALOG ENDPOINTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

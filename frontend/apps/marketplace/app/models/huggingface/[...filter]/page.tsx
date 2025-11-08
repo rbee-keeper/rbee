@@ -2,6 +2,9 @@
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
 import { CategoryFilterBar } from '@rbee/ui/marketplace'
+// TEAM-423: Disable SSG due to API errors during build
+export const dynamic = 'force-dynamic'
+
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
 import { 

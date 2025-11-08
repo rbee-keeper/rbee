@@ -76,10 +76,13 @@ pub struct Model {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "lowercase")]
 pub enum ModelProvider {
+    /// HuggingFace model provider
     #[serde(rename = "huggingface")]
     HuggingFace,
+    /// Civitai model provider
     #[serde(rename = "civitai")]
     Civitai,
+    /// Local model provider
     #[serde(rename = "local")]
     Local,
 }

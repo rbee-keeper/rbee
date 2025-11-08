@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { StepCard } from './StepCard'
 import { Download, Settings, Rocket } from 'lucide-react'
 
@@ -43,6 +43,7 @@ export const WithoutIcon: Story = {
     title: 'Configure Settings',
     intro: 'Set up your preferences and API keys in the configuration file',
     items: ['Edit config file', 'Add API keys', 'Set preferences'],
+    icon: <></>,
   },
 }
 
@@ -57,6 +58,7 @@ export const LongDescription: Story = {
 }
 
 export const StepSequence: Story = {
+  args: {} as any,
   render: () => (
     <ol className="space-y-4 max-w-2xl">
       <StepCard

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { FilterButton } from './FilterButton'
 import { Check } from 'lucide-react'
 
@@ -49,6 +49,7 @@ export const LongLabel: Story = {
 }
 
 export const Group: Story = {
+  args: {} as any,
   render: () => (
     <div className="flex flex-wrap gap-2">
       <FilterButton label="All" active={true} />

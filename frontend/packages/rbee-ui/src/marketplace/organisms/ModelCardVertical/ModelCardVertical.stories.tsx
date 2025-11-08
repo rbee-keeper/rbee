@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { ModelCardVertical } from './ModelCardVertical'
 
 const meta = {
@@ -92,6 +92,7 @@ export const LongName: Story = {
 }
 
 export const Grid: Story = {
+  args: {} as any,
   render: () => (
     <div className="grid grid-cols-3 gap-4 max-w-4xl">
       <ModelCardVertical

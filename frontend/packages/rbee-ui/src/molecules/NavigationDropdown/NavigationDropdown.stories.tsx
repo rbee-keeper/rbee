@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { NavigationDropdown } from './NavigationDropdown'
 import { NavigationMenu, NavigationMenuList } from '@rbee/ui/atoms/NavigationMenu'
 import { Code, Server, Building, BookOpen, Rocket } from 'lucide-react'
@@ -27,7 +27,7 @@ Combines NavigationMenu atoms with dropdown functionality.
   },
   tags: ['autodocs'],
   decorators: [
-    (Story) => (
+    (Story: React.ComponentType) => (
       <NavigationMenu>
         <NavigationMenuList>
           <Story />

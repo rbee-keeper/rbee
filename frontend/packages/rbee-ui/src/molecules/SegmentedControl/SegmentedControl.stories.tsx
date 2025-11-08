@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { SegmentedControl } from './SegmentedControl'
 import { useState } from 'react'
 
@@ -65,6 +65,7 @@ export const ManyOptions: Story = {
 }
 
 export const Interactive: Story = {
+  args: {} as any,
   render: () => {
     const [value, setValue] = useState('cpu')
     return (

@@ -37,7 +37,29 @@ export interface SeparatorSection {
   type: 'separator'
 }
 
-export type NavigationSection = DropdownSection | LinkGroupSection | SeparatorSection
+// TEAM-463: Direct link in navbar (no dropdown)
+export interface DirectLinkSection {
+  type: 'directLink'
+  label: string
+  href: string
+  icon?: LucideIcon | string
+}
+
+// TEAM-463: Two-column dropdown with support for multiple sections per column
+export interface ColumnSection {
+  title: string
+  links: NavigationLink[]
+}
+
+export interface TwoColumnDropdownSection {
+  type: 'twoColumnDropdown'
+  title: string
+  leftColumn: ColumnSection | ColumnSection[]
+  rightColumn: ColumnSection | ColumnSection[]
+  cta?: NavigationCTA
+}
+
+export type NavigationSection = DropdownSection | LinkGroupSection | SeparatorSection | DirectLinkSection | TwoColumnDropdownSection
 
 export interface NavigationActions {
   docs?: {

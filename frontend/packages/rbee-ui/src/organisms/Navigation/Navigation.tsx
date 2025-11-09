@@ -8,7 +8,7 @@ import { IconButton } from '@rbee/ui/atoms/IconButton'
 import { NavigationMenu, NavigationMenuList } from '@rbee/ui/atoms/NavigationMenu'
 import { Separator } from '@rbee/ui/atoms/Separator'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@rbee/ui/atoms/Sheet'
-import { BrandLogo, LinkGroup, NavigationActions, NavigationDropdown, NavLink } from '@rbee/ui/molecules'
+import { BrandLogo, DirectLink, LinkGroup, NavigationActions, NavigationDropdown, NavLink, TwoColumnDropdown } from '@rbee/ui/molecules'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -49,18 +49,39 @@ export function Navigation({ config }: NavigationProps) {
 
               {/* Zone B: Navigation (Desktop) - Config-driven */}
               <div className="hidden md:flex items-center justify-center gap-6 font-sans">
-                {config.sections.some((s) => s.type === 'dropdown') ? (
+                {config.sections.some((s) => s.type === 'dropdown' || s.type === 'twoColumnDropdown') ? (
                   <NavigationMenu viewport={false}>
                     <NavigationMenuList className="gap-2">
                       {config.sections.map((section, index) => {
                         if (section.type === 'dropdown') {
                           return (
                             <NavigationDropdown
-                              key={index}
+                              key={`dropdown-${index}`}
                               title={section.title}
                               links={section.links}
                               cta={section.cta}
                               width={section.width}
+                            />
+                          )
+                        }
+                        if (section.type === 'twoColumnDropdown') {
+                          return (
+                            <TwoColumnDropdown
+                              key={`two-col-${index}`}
+                              title={section.title}
+                              leftColumn={section.leftColumn}
+                              rightColumn={section.rightColumn}
+                              cta={section.cta}
+                            />
+                          )
+                        }
+                        if (section.type === 'directLink') {
+                          return (
+                            <DirectLink
+                              key={`direct-${index}`}
+                              label={section.label}
+                              href={section.href}
+                              icon={section.icon}
                             />
                           )
                         }
@@ -72,10 +93,20 @@ export function Navigation({ config }: NavigationProps) {
                   <>
                     {config.sections.map((section, index) => {
                       if (section.type === 'linkGroup') {
-                        return <LinkGroup key={index} links={section.links} />
+                        return <LinkGroup key={`link-group-${index}`} links={section.links} />
                       }
                       if (section.type === 'separator') {
-                        return <div key={index} className="h-4 w-px bg-border" />
+                        return <div key={`separator-${index}`} className="h-4 w-px bg-border" />
+                      }
+                      if (section.type === 'directLink') {
+                        return (
+                          <DirectLink
+                            key={`direct-${index}`}
+                            label={section.label}
+                            href={section.href}
+                            icon={section.icon}
+                          />
+                        )
                       }
                       return null
                     })}

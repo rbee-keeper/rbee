@@ -1,6 +1,6 @@
 // TEAM-353: Migrated to use TanStack Query + WASM SDK
-import { useMutation } from '@tanstack/react-query';
 import { init, WorkerClient } from '@rbee/llm-worker-sdk';
+import { useMutation } from '@tanstack/react-query';
 // TEAM-353: Initialize WASM module once
 let wasmInitialized = false;
 async function ensureWasmInit() {

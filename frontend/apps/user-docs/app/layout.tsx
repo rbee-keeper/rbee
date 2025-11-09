@@ -70,17 +70,19 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Navigation />
-        <Layout
-          pageMap={pageMap}
-          docsRepositoryBase="https://github.com/veighnsche/llama-orch/tree/main/frontend/apps/user-docs/app"
-          sidebar={{
-            defaultMenuCollapseLevel: 1,
-            toggleButton: true,
-          }}
-          footer={footerContent}
-        >
-          {children}
-        </Layout>
+        <main id="main">
+          <Layout
+            pageMap={pageMap}
+            docsRepositoryBase="https://github.com/veighnsche/llama-orch/tree/main/frontend/apps/user-docs/app"
+            sidebar={{
+              defaultMenuCollapseLevel: 1,
+              toggleButton: true,
+            }}
+            footer={footerContent}
+          >
+            {children}
+          </Layout>
+        </main>
       </body>
     </html>
   )

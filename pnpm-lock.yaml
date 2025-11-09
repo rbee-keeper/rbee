@@ -458,6 +458,16 @@ importers:
 
   bin/30_llm_worker_rbee/ui/packages/llm-worker-sdk: {}
 
+  bin/78-admin:
+    dependencies:
+      hono:
+        specifier: ^4.10.4
+        version: 4.10.4
+    devDependencies:
+      wrangler:
+        specifier: ^4.46.0
+        version: 4.46.0(@cloudflare/workers-types@4.20251107.0)
+
   bin/79_marketplace_core/marketplace-node:
     dependencies:
       '@rbee/marketplace-sdk':

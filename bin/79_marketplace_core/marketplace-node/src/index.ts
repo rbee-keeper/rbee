@@ -366,16 +366,18 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
 export async function getCompatibleCivitaiModels(
   options: {
     limit?: number
+    page?: number  // TEAM-462: For pagination
     types?: string[]
     period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
     baseModel?: string
   } = {},
 ): Promise<Model[]> {
-  const { limit = 100, types = ['Checkpoint', 'LORA'], period, baseModel } = options
+  const { limit = 100, page, types = ['Checkpoint', 'LORA'], period, baseModel } = options
 
   try {
     const civitaiModels = await fetchCivitAIModels({
       limit,
+      page,
       types,
       sort: 'Most Downloaded',
       nsfw: false, // Filter out NSFW models

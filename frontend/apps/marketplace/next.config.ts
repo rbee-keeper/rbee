@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // TEAM-462: Static export for Cloudflare Pages
+  output: 'export',
+  
   // TEAM-421: Enable WASM support for marketplace-sdk
   webpack: (config, { isServer }) => {
     // Add WASM support
@@ -24,9 +27,8 @@ const nextConfig: NextConfig = {
 
     return config
   },
-  // TEAM-450: Next.js 16 requires explicit turbopack config when webpack config exists
-  // Empty config allows Turbopack to work with default settings
-  turbopack: {},
+  // Turbopack disabled: OpenNext doesn't support Turbopack builds
+  // Use webpack for production builds to ensure Cloudflare Workers compatibility
 }
 
 // Fix for WASM chunks in Next.js
@@ -41,8 +43,3 @@ class WasmChunksFixPlugin {
 }
 
 export default nextConfig
-
-// added by create cloudflare to enable calling `getCloudflareContext()` in `next dev`
-import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'
-
-initOpenNextCloudflareForDev()

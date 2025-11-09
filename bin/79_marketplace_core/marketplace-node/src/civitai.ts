@@ -78,6 +78,7 @@ export async function fetchCivitAIModels(
   options: {
     query?: string
     limit?: number
+    page?: number
     types?: string[]
     sort?: 'Highest Rated' | 'Most Downloaded' | 'Newest'
     nsfw?: boolean
@@ -88,6 +89,7 @@ export async function fetchCivitAIModels(
   const {
     query,
     limit = 20,
+    page = 1,
     types = ['Checkpoint', 'LORA'],
     sort = 'Most Downloaded',
     nsfw = false,
@@ -97,6 +99,7 @@ export async function fetchCivitAIModels(
 
   const params = new URLSearchParams({
     limit: String(limit),
+    page: String(page),
     sort,
     nsfw: String(nsfw),
   })

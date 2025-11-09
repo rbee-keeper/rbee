@@ -3,8 +3,8 @@
 
 import { ImageResponse } from 'next/og'
 
-// TEAM-417: Use Node.js runtime for consistency with model OG images
-export const runtime = 'nodejs'
+// TEAM-417: Force static generation for static export
+export const dynamic = 'force-static'
 export const alt = 'rbee Marketplace - Run LLMs Locally'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'

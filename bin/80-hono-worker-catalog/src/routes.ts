@@ -1,7 +1,9 @@
 // API Routes for Worker Catalog
+// TEAM-453: Added input validation and cache headers
 
 import { Hono } from 'hono'
 import { WORKERS } from './data'
+import { validateWorkerId } from './middleware/validation'
 
 export const routes = new Hono<{ Bindings: Env }>()
 
@@ -43,14 +45,21 @@ routes.get('/install.sh', async (c) => {
  * List all available worker variants
  */
 routes.get('/workers', (c) => {
-  return c.json({ workers: WORKERS })
+  return c.json(
+    { workers: WORKERS },
+    200,
+    {
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1 hour
+      'CDN-Cache-Control': 'max-age=3600',
+    }
+  )
 })
 
 /**
  * GET /workers/:id
  * Get a specific worker by ID
  */
-routes.get('/workers/:id', (c) => {
+routes.get('/workers/:id', validateWorkerId(), (c) => {
   const id = c.req.param('id')
   const worker = WORKERS.find((w) => w.id === id)
 
@@ -58,7 +67,14 @@ routes.get('/workers/:id', (c) => {
     return c.json({ error: 'Worker not found' }, 404)
   }
 
-  return c.json(worker)
+  return c.json(
+    worker,
+    200,
+    {
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1 hour
+      'CDN-Cache-Control': 'max-age=3600',
+    }
+  )
 })
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -69,7 +85,7 @@ routes.get('/workers/:id', (c) => {
  * GET /workers/:id/PKGBUILD
  * Serve PKGBUILD file for a specific worker
  */
-routes.get('/workers/:id/PKGBUILD', async (c) => {
+routes.get('/workers/:id/PKGBUILD', validateWorkerId(), async (c) => {
   const id = c.req.param('id')
 
   // Verify worker exists

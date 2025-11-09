@@ -4,6 +4,8 @@ import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { MetadataRoute } from 'next'
 import { modelIdToSlug } from '@/lib/slugify'
 
+export const dynamic = 'force-static'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // TEAM-457: Use environment variable with production fallback
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.rbee.dev'

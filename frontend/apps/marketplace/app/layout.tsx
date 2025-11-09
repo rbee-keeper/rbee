@@ -12,6 +12,8 @@ import { Suspense } from 'react'
 import { MarketplaceNav } from '@/components/MarketplaceNav'
 
 export const metadata: Metadata = {
+  // Use production URL for builds (SSG), dev URL only for dev server
+  // Warning about localhost:3000 is harmless - Next.js falls back to production URL
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.rbee.dev'),
   title: {
     default: 'rbee Model Marketplace - AI Language Models',

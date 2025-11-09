@@ -1,10 +1,10 @@
 // TEAM-460: HuggingFace models marketplace page (migrated from /models)
 // TEAM-415: Pure SSG page for maximum SEO
-// TEAM-421: Show top 100 popular models (WASM filtering doesn't work in SSG)
-// TEAM-461: Added CategoryFilterBar for filtering
+// TEAM-462: Added pagination (3 pages, 300 models total)
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
+import { Pagination } from '@/components/Pagination'
 import { ModelsFilterBar } from '../ModelsFilterBar'
 import {
   buildHFFilterDescription,
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: 'Browse compatible language models from HuggingFace. Pre-rendered for instant loading and maximum SEO.',
 }
 
+// TEAM-462: Removed searchParams - incompatible with output: 'export'
+// Pagination will be client-side or via separate routes
 export default async function HuggingFaceModelsPage() {
   // Default filter (downloads, all sizes, all licenses)
   const currentFilter = PREGENERATED_HF_FILTERS[0].filters

@@ -193,11 +193,25 @@ export function FeatureInfoCard({
   showBorder,
   variant = 'default',
 }: FeatureInfoCardProps) {
-  // Handle both icon types (Component or ReactNode)
-  let IconComponent: React.ComponentType<{ className?: string }> | null = null
-
-  if (typeof icon === 'function') {
-    IconComponent = icon as React.ComponentType<{ className?: string }>
+  // Render icon - handle both Component references and JSX elements
+  // Priority: JSX element first (more reliable in SSR/SSG), then component reference
+  const renderIcon = () => {
+    // Check for JSX element FIRST (most reliable in SSR/SSG)
+    if (React.isValidElement(icon)) {
+      return React.cloneElement(icon, {
+        // @ts-expect-error - icon className merging
+        className: cn(icon.props.className, iconVariants({ tone, variant })),
+      })
+    }
+    
+    // Check for component reference (works in CSR, may fail in SSR/SSG)
+    if (typeof icon === 'function') {
+      const IconComponent = icon as React.ComponentType<{ className?: string }>
+      return <IconComponent className={iconVariants({ tone, variant })} />
+    }
+    
+    // Fallback: render as-is (shouldn't happen, but prevents crashes)
+    return icon
   }
 
   return (
@@ -205,14 +219,7 @@ export function FeatureInfoCard({
       <CardContent className={contentPaddingVariants({ variant })}>
         {/* Icon */}
         <div className={iconContainerVariants({ tone, variant })} aria-hidden="true">
-          {IconComponent ? (
-            <IconComponent className={iconVariants({ tone, variant })} />
-          ) : React.isValidElement(icon) ? (
-            React.cloneElement(icon, {
-              // @ts-expect-error - icon className merging
-              className: cn(icon.props.className, iconVariants({ tone, variant })),
-            })
-          ) : null}
+          {renderIcon()}
         </div>
 
         {/* Title */}

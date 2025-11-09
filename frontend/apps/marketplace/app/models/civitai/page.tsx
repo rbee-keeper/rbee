@@ -1,14 +1,19 @@
 // TEAM-460: Civitai models marketplace page
 // TEAM-422: Changed to vertical card grid layout for CivitAI's portrait images
-// TEAM-422: Added SSG-based filtering with pre-generated pages
-// TEAM-461: Using CategoryFilterBar directly (Rule Zero - no wrapper shims)
+// TEAM-462: Added pagination (3 pages, 300 models total)
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
 import { ModelCardVertical } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { modelIdToSlug } from '@/lib/slugify'
+import { Pagination } from '@/components/Pagination'
 import { ModelsFilterBar } from '../ModelsFilterBar'
-import { buildFilterUrl, CIVITAI_FILTER_GROUPS, CIVITAI_SORT_GROUP, PREGENERATED_FILTERS } from './filters'
+import {
+  buildFilterUrl,
+  CIVITAI_FILTER_GROUPS,
+  CIVITAI_SORT_GROUP,
+  PREGENERATED_FILTERS,
+} from './filters'
 
 export const metadata: Metadata = {
   title: 'Civitai Models | rbee Marketplace',
@@ -16,13 +21,18 @@ export const metadata: Metadata = {
     'Browse compatible Stable Diffusion models from Civitai. Pre-rendered for instant loading and maximum SEO.',
 }
 
-export default async function CivitaiModelsPage() {
-  // Default filter (All Time, All Types, All Models)
+// TEAM-462: Removed searchParams - incompatible with output: 'export'
+// Pagination will be client-side or via separate routes
+export default async function CivitAIModelsPage() {
+  // Default filter (Most Downloaded, all types, all periods)
   const currentFilter = PREGENERATED_FILTERS[0].filters
 
-  console.log('[SSG] Fetching top 100 compatible Civitai models')
+  // TEAM-422: Fetch top 100 compatible models
+  const FETCH_LIMIT = 100
 
-  const civitaiModels = await getCompatibleCivitaiModels()
+  console.log(`[SSG] Fetching top ${FETCH_LIMIT} compatible Civitai models`)
+
+  const civitaiModels = await getCompatibleCivitaiModels({ limit: FETCH_LIMIT })
 
   console.log(`[SSG] Showing ${civitaiModels.length} Civitai models`)
 
@@ -76,7 +86,7 @@ export default async function CivitaiModelsPage() {
         buildUrlFn="/models/civitai"
       />
 
-      {/* Vertical Card Grid - Portrait aspect ratio for CivitAI images */}
+      {/* Model Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {models.map((model) => (
           <Link key={model.id} href={`/models/civitai/${modelIdToSlug(model.id)}`} className="block">

@@ -24,8 +24,12 @@ export interface Model {
 }
 
 export interface SearchOptions {
+  query?: string
   limit?: number
-  sort?: 'popular' | 'recent' | 'trending'
+  offset?: number  // TEAM-462: For pagination
+  page?: number    // TEAM-462: For pagination (CivitAI uses page numbers)
+  sort?: string
+  filter?: string
 }
 
 export interface Worker {

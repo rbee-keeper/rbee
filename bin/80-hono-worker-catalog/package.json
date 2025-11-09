@@ -1,6 +1,6 @@
 {
   "name": "@rbee/global-worker-catalog",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Global worker catalog API - Cloudflare Worker for worker discovery and metadata",
   "type": "module",
   "scripts": {

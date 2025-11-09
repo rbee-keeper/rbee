@@ -36,14 +36,16 @@ export interface HFSearchResponse {
 
 /**
  * Fetch models from HuggingFace API
+ * TEAM-462: Added offset for pagination
  */
 export async function fetchHFModels(
   query: string | undefined,
-  options: { limit?: number; sort?: string; filter?: string } = {},
+  options: { limit?: number; offset?: number; sort?: string; filter?: string } = {},
 ): Promise<HFModel[]> {
   const params = new URLSearchParams({
     ...(query && { search: query }),
     limit: String(options.limit || 20),
+    ...(options.offset && { offset: String(options.offset) }),
     ...(options.sort && { sort: options.sort }),
     ...(options.filter && { filter: options.filter }),
   })

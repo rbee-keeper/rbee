@@ -1,6 +1,8 @@
 // TEAM-410: Robots.txt for SEO
 import type { MetadataRoute } from 'next'
 
+export const dynamic = 'force-static'
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {

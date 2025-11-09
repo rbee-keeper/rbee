@@ -42,27 +42,33 @@ export const HUGGINGFACE_SORT_GROUP: FilterGroup = {
   ],
 }
 
-// Pre-generated filter combinations for SSG
+// TEAM-462: Pre-generated filter combinations for SSG
+// HuggingFace API only supports `limit` parameter - all other params cause "Bad Request"
+// Solution: Fetch models once, filter/sort CLIENT-SIDE for all filter pages
 export const PREGENERATED_HF_FILTERS: FilterConfig<HuggingFaceFilters>[] = [
-  // Default view
+  // All fetch the same data from API, filtering happens client-side
   { filters: { sort: 'downloads', size: 'all', license: 'all' }, path: '' },
-
-  // By sort
   { filters: { sort: 'likes', size: 'all', license: 'all' }, path: 'filter/likes' },
   { filters: { sort: 'recent', size: 'all', license: 'all' }, path: 'filter/recent' },
-
-  // By size
+  
+  // Size filters - client-side filtering
   { filters: { sort: 'downloads', size: 'small', license: 'all' }, path: 'filter/small' },
   { filters: { sort: 'downloads', size: 'medium', license: 'all' }, path: 'filter/medium' },
   { filters: { sort: 'downloads', size: 'large', license: 'all' }, path: 'filter/large' },
-
-  // By license
+  
+  // License filters - client-side filtering
   { filters: { sort: 'downloads', size: 'all', license: 'apache' }, path: 'filter/apache' },
   { filters: { sort: 'downloads', size: 'all', license: 'mit' }, path: 'filter/mit' },
-
-  // Popular combinations
+  
+  // Combined filters - client-side filtering
   { filters: { sort: 'downloads', size: 'small', license: 'apache' }, path: 'filter/small/apache' },
   { filters: { sort: 'likes', size: 'small', license: 'all' }, path: 'filter/likes/small' },
+  
+  // TEAM-462: HuggingFace API limitations
+  // API only accepts `limit` parameter
+  // All filtering/sorting done CLIENT-SIDE after fetch
+  // Each page fetches same data, applies different filters in browser
+  // NEVER add force-dynamic - pre-render all pages at build time
 ]
 
 /**

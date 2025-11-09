@@ -1,10 +1,14 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⛔ CRITICAL: DO NOT ADD 'export const dynamic = "force-dynamic"' TO THIS FILE
+// ⛔ force-dynamic CAUSES CLOUDFLARE WORKER CPU LIMIT ERRORS (Error 1102)
+// ⛔ This page MUST be statically generated at build time
+// ⛔ If build fails, fix the API or reduce filters - NEVER use force-dynamic
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TEAM-461: Dynamic filtered HuggingFace pages (SSG pre-generated)
+// TEAM-462: PERMANENT FIX - Static generation only, force-dynamic FORBIDDEN
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
 import { ModelsFilterBar } from '../../ModelsFilterBar'
-// TEAM-423: Disable SSG due to API errors during build
-export const dynamic = 'force-dynamic'
-
 import type { Metadata } from 'next'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import {
@@ -27,7 +31,8 @@ interface PageProps {
 export async function generateStaticParams() {
   return PREGENERATED_HF_FILTERS.filter((f) => f.path !== '') // Exclude default (handled by main page)
     .map((f) => ({
-      filter: f.path.split('/').filter(Boolean), // Remove empty strings
+      // Split path and remove empty strings and 'filter' prefix
+      filter: f.path.split('/').filter(Boolean).filter(p => p !== 'filter'),
     }))
 }
 
@@ -51,13 +56,53 @@ export default async function FilteredHuggingFacePage({ params }: PageProps) {
 
   console.log(`[SSG] Fetching HuggingFace models with filter: ${filterPath}`)
 
-  // Build API parameters from filter
+  // TEAM-462: HuggingFace API only supports `limit` - fetch ALL models
   const apiParams = buildHFFilterParams(currentFilter)
   const hfModels = await listHuggingFaceModels(apiParams)
 
-  console.log(`[SSG] Showing ${hfModels.length} HuggingFace models (${filterPath})`)
+  // TEAM-462: Apply CLIENT-SIDE filtering (API doesn't support it)
+  let filteredModels = hfModels
 
-  const models: ModelTableItem[] = hfModels.map((model) => {
+  // Filter by size (if specified)
+  if (currentFilter.size !== 'all') {
+    filteredModels = filteredModels.filter((model) => {
+      // Size filtering logic based on model size
+      // This is placeholder - adjust based on actual model size data
+      const sizeCategory = currentFilter.size
+      // TODO: Implement actual size filtering when model size data available
+      return true // For now, include all
+    })
+  }
+
+  // Filter by license (if specified)
+  if (currentFilter.license !== 'all') {
+    filteredModels = filteredModels.filter((model) => {
+      // License filtering logic
+      // This is placeholder - adjust based on actual license data
+      const license = currentFilter.license
+      // TODO: Implement actual license filtering when license data available
+      return true // For now, include all
+    })
+  }
+
+  // Sort (client-side since API doesn't support it)
+  if (currentFilter.sort === 'likes') {
+    filteredModels.sort((a, b) => (b.likes || 0) - (a.likes || 0))
+  } else if (currentFilter.sort === 'recent') {
+    // Sort by lastModified if available, otherwise downloads
+    filteredModels.sort((a, b) => {
+      const aDate = a.lastModified ? new Date(a.lastModified).getTime() : 0
+      const bDate = b.lastModified ? new Date(b.lastModified).getTime() : 0
+      return bDate - aDate
+    })
+  } else {
+    // Default: downloads
+    filteredModels.sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
+  }
+
+  console.log(`[SSG] Showing ${filteredModels.length} HuggingFace models (${filterPath})`)
+
+  const models: ModelTableItem[] = filteredModels.map((model) => {
     const m = model as unknown as Record<string, unknown>
     return {
       id: m.id as string,

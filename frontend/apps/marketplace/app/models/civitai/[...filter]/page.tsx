@@ -1,3 +1,8 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ⛔ CRITICAL: NEVER ADD 'export const dynamic = "force-dynamic"'
+// ⛔ force-dynamic causes Cloudflare Worker CPU timeouts
+// ⛔ This page MUST be static (pre-rendered at build time)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TEAM-422: Dynamic filtered CivitAI pages (SSG pre-generated)
 // TEAM-461: Using ModelsFilterBar directly (Rule Zero - no wrapper shims)
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'

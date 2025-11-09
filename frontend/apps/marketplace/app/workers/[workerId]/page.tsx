@@ -1,10 +1,12 @@
 // TEAM-413: Worker detail page with SSG
 // TEAM-421: Refactored to use shared WorkerDetailWithInstall component
+// TEAM-453: Now fetches workers from gwc.rbee.dev instead of hardcoded data
+import { listWorkers, type WorkerCatalogEntry } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { WorkerDetailWithInstall } from '@/components/WorkerDetailWithInstall'
 
-// TEAM-413: Worker type definitions
+// TEAM-453: Worker interface for UI component
 interface Worker {
   id: string
   name: string
@@ -16,58 +18,32 @@ interface Worker {
   features: string[]
 }
 
-// TEAM-413: Static worker catalog
-const WORKERS: Record<string, Worker> = {
-  'cpu-llm': {
-    id: 'cpu-llm',
-    name: 'CPU LLM Worker',
-    description: 'Run language models on CPU. Works on any system without GPU requirements.',
-    type: 'cpu',
-    platform: ['linux', 'macos', 'windows'],
-    version: '0.1.0',
-    requirements: ['x86_64 or ARM64 processor', '8GB RAM minimum (16GB recommended)', 'No GPU required'],
-    features: [
-      'Universal compatibility',
-      'No special drivers needed',
-      'Optimized for CPU inference',
-      'Supports quantized models',
-    ],
-  },
-  'cuda-llm': {
-    id: 'cuda-llm',
-    name: 'CUDA LLM Worker',
-    description: 'GPU-accelerated language model inference using NVIDIA CUDA.',
-    type: 'cuda',
-    platform: ['linux', 'windows'],
-    version: '0.1.0',
-    requirements: ['NVIDIA GPU (Compute Capability 7.0+)', 'CUDA 11.8 or later', '8GB VRAM minimum'],
-    features: ['10-100x faster than CPU', 'Supports larger models', 'Flash Attention 2 support', 'Multi-GPU support'],
-  },
-  'metal-llm': {
-    id: 'metal-llm',
-    name: 'Metal LLM Worker',
-    description: 'GPU-accelerated language model inference using Apple Metal.',
-    type: 'metal',
-    platform: ['macos'],
-    version: '0.1.0',
-    requirements: ['Apple Silicon (M1/M2/M3) or AMD GPU', 'macOS 13.0 or later', '8GB unified memory minimum'],
-    features: [
-      'Native Apple Silicon acceleration',
-      'Unified memory architecture',
-      'Low power consumption',
-      'Optimized for Mac hardware',
-    ],
-  },
-  'rocm-llm': {
-    id: 'rocm-llm',
-    name: 'ROCm LLM Worker',
-    description: 'GPU-accelerated language model inference using AMD ROCm.',
-    type: 'rocm',
-    platform: ['linux'],
-    version: '0.1.0',
-    requirements: ['AMD GPU (GCN 4th gen or later)', 'ROCm 5.7 or later', '8GB VRAM minimum'],
-    features: ['AMD GPU acceleration', 'Open-source stack', 'Competitive with CUDA', 'Growing ecosystem'],
-  },
+// TEAM-453: Convert WorkerCatalogEntry to Worker interface
+function convertWorkerCatalogEntry(entry: WorkerCatalogEntry): Worker {
+  return {
+    id: entry.id,
+    name: entry.name,
+    description: entry.description,
+    type: entry.workerType as 'cpu' | 'cuda' | 'metal' | 'rocm',
+    platform: entry.platforms,
+    version: entry.version,
+    requirements: entry.depends,
+    features: entry.supportedFormats.map(format => `Supports ${format}`),
+  }
+}
+
+// TEAM-453: Fetch workers from gwc.rbee.dev
+async function getWorkers(): Promise<Record<string, Worker>> {
+  console.log('[SSG] Fetching workers from gwc.rbee.dev')
+  const catalogEntries = await listWorkers()
+  const workersMap: Record<string, Worker> = {}
+  
+  for (const entry of catalogEntries) {
+    workersMap[entry.id] = convertWorkerCatalogEntry(entry)
+  }
+  
+  console.log(`[SSG] Converted ${Object.keys(workersMap).length} workers`)
+  return workersMap
 }
 
 interface PageProps {
@@ -75,14 +51,19 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  return Object.keys(WORKERS).map((workerId) => ({
+  console.log('[SSG] Fetching workers from gwc.rbee.dev')
+  const workers = await getWorkers()
+  console.log(`[SSG] Pre-building ${Object.keys(workers).length} worker pages`)
+  
+  return Object.keys(workers).map((workerId) => ({
     workerId,
   }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { workerId } = await params
-  const worker = WORKERS[workerId]
+  const workers = await getWorkers()
+  const worker = workers[workerId]
 
   if (!worker) {
     return {
@@ -98,7 +79,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function WorkerDetailPage({ params }: PageProps) {
   const { workerId } = await params
-  const worker = WORKERS[workerId]
+  const workers = await getWorkers()
+  const worker = workers[workerId]
 
   if (!worker) {
     notFound()

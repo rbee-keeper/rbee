@@ -12,6 +12,7 @@ import { Suspense } from 'react'
 import { MarketplaceNav } from '@/components/MarketplaceNav'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.rbee.dev'),
   title: {
     default: 'rbee Model Marketplace - AI Language Models',
     template: '%s | rbee Marketplace',
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://marketplace.rbee.ai',
+    url: 'https://marketplace.rbee.dev',
     siteName: 'rbee Model Marketplace',
     title: 'rbee Model Marketplace - AI Language Models',
     description: 'Browse and discover AI language models for your projects',

@@ -35,6 +35,9 @@ async function getWasmModule() {
 export type { CivitAIModel } from './civitai'
 // Re-export types
 export type { CompatibilityResult, Model, ModelFile, ModelMetadata, SearchOptions, Worker } from './types'
+// TEAM-453: Export worker catalog functions
+export { getWorker, listWorkers } from './workers'
+export type { WorkerCatalogEntry } from './workers'
 
 /**
  * Convert HuggingFace model to our Model type

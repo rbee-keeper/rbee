@@ -62,6 +62,7 @@ pub fn deploy(dry_run: bool) -> Result<()> {
 
 fn create_env_file(app_dir: &str, dry_run: bool) -> Result<()> {
     let content = r#"MARKETPLACE_API_URL=https://gwc.rbee.dev
+NEXT_PUBLIC_SITE_URL=https://marketplace.rbee.dev
 NEXT_DISABLE_DEVTOOLS=1
 "#;
 

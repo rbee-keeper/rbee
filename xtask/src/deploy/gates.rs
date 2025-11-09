@@ -12,7 +12,7 @@ use std::process::Command;
 fn run_preflight_checks(app: &str) -> Result<()> {
     match app {
         // Frontend apps - install pnpm dependencies
-        "worker" | "gwc" | "worker-catalog" | "commercial" | "marketplace" | "docs" | "user-docs" => {
+        "admin" | "worker" | "gwc" | "worker-catalog" | "commercial" | "marketplace" | "docs" | "user-docs" => {
             println!("  📦 Installing pnpm dependencies...");
             let status = Command::new("pnpm")
                 .args(&["install", "--frozen-lockfile"])
@@ -56,6 +56,7 @@ pub fn check_gates(app: &str) -> Result<()> {
 
     match app {
         // Cloudflare apps
+        "admin" => check_admin_gates()?,
         "worker" | "gwc" | "worker-catalog" => check_worker_catalog_gates()?,
         "commercial" => check_commercial_gates()?,
         "marketplace" => check_marketplace_gates()?,
@@ -79,6 +80,83 @@ pub fn check_gates(app: &str) -> Result<()> {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CLOUDFLARE GATES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+fn check_admin_gates() -> Result<()> {
+    println!("🔐 Admin Worker Gates:");
+    
+    // Gate 1: Build Tailwind CSS
+    println!("  1. Building Tailwind CSS...");
+    run_command("npm", &["run", "build:css"], "bin/78-admin")?;
+    
+    // Gate 2: TypeScript type check
+    println!("  2. TypeScript type check...");
+    run_command("npm", &["run", "cf-typegen"], "bin/78-admin")?;
+    
+    // Gate 3: Unit tests (Vitest)
+    println!("  3. Unit tests (Vitest)...");
+    run_command("npm", &["test"], "bin/78-admin")?;
+    
+    // Gate 4: E2E tests (Playwright)
+    println!("  4. E2E tests (Playwright)...");
+    run_command("npm", &["run", "test:e2e"], "bin/78-admin")?;
+    
+    // Gate 5: Validate critical files
+    println!("  5. Validating critical files...");
+    validate_admin_files()?;
+    
+    Ok(())
+}
+
+fn validate_admin_files() -> Result<()> {
+    use std::path::Path;
+    
+    let base = Path::new("bin/78-admin");
+    
+    // Check critical route files
+    let routes = vec![
+        "src/index.ts",
+        "src/routes/admin-dashboard-htmx.tsx",
+        "src/routes/user-dashboard.tsx",
+        "src/routes/analytics.ts",
+        "src/routes/analytics-sdk.ts",
+        "src/routes/auth-endpoints.ts",
+        "src/middleware/auth.ts",
+        "src/middleware/security.ts",
+    ];
+    
+    for route in &routes {
+        let path = base.join(route);
+        if !path.exists() {
+            anyhow::bail!("Missing critical file: {}", route);
+        }
+    }
+    println!("    ✅ All critical files present");
+    
+    // Check Tailwind output
+    let tailwind_output = base.join("src/styles/output.css");
+    if !tailwind_output.exists() {
+        anyhow::bail!("Tailwind CSS not built: src/styles/output.css missing");
+    }
+    println!("    ✅ Tailwind CSS built");
+    
+    // Check test files
+    let test_files = vec![
+        "tests/unit/analytics.test.ts",
+        "tests/unit/auth.test.ts",
+        "tests/e2e/admin-dashboard.spec.ts",
+        "tests/e2e/analytics.spec.ts",
+    ];
+    
+    for test_file in &test_files {
+        let path = base.join(test_file);
+        if !path.exists() {
+            anyhow::bail!("Missing test file: {}", test_file);
+        }
+    }
+    println!("    ✅ All test files present");
+    
+    Ok(())
+}
 
 fn check_worker_catalog_gates() -> Result<()> {
     println!("📦 Worker Catalog Gates:");

@@ -4,9 +4,54 @@
 use anyhow::Result;
 use std::process::Command;
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PREFLIGHT CHECKS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/// Run preflight checks to ensure dependencies are installed
+fn run_preflight_checks(app: &str) -> Result<()> {
+    match app {
+        // Frontend apps - install pnpm dependencies
+        "worker" | "gwc" | "worker-catalog" | "commercial" | "marketplace" | "docs" | "user-docs" => {
+            println!("  📦 Installing pnpm dependencies...");
+            let status = Command::new("pnpm")
+                .args(&["install", "--frozen-lockfile"])
+                .status()?;
+            
+            if !status.success() {
+                anyhow::bail!("pnpm install failed");
+            }
+            println!("    ✅ Dependencies installed");
+        }
+        
+        // Rust binaries - check cargo workspace
+        "keeper" | "rbee-keeper" | "queen" | "queen-rbee" | "hive" | "rbee-hive" | 
+        "llm-worker" | "llm-worker-rbee" | "sd-worker" | "sd-worker-rbee" => {
+            println!("  🦀 Checking Rust workspace...");
+            let status = Command::new("cargo")
+                .args(&["fetch"])
+                .status()?;
+            
+            if !status.success() {
+                anyhow::bail!("cargo fetch failed");
+            }
+            println!("    ✅ Cargo dependencies fetched");
+        }
+        
+        _ => {}
+    }
+    
+    Ok(())
+}
+
 /// Run all deployment gates for an app
 pub fn check_gates(app: &str) -> Result<()> {
     println!("🚦 Running deployment gates for {}...", app);
+    println!();
+
+    // TEAM-453: Run preflight checks first
+    println!("🔧 Preflight checks...");
+    run_preflight_checks(app)?;
     println!();
 
     match app {

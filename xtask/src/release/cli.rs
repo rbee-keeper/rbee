@@ -15,7 +15,7 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
     println!("{}", "━".repeat(80).bright_blue());
     println!();
 
-    // Prompt for tier if not provided
+    // TEAM-452: For frontend/main tier, ask which app FIRST, then bump type
     let tier = if let Some(t) = tier_arg {
         t
     } else {
@@ -34,10 +34,46 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
             .to_string()
     };
 
+    // TEAM-452: Ask which specific app/binary to bump FIRST
+    let selected_app = if tier == "frontend" {
+        println!();
+        let app_choice = Select::new(
+            "Which app to deploy?",
+            vec![
+                "gwc - Worker Catalog (gwc.rbee.dev)",
+                "commercial - Commercial Site (rbee.dev)",
+                "marketplace - Marketplace (marketplace.rbee.dev)",
+                "docs - Documentation (docs.rbee.dev)",
+                "all - Deploy all frontend apps",
+                "skip - Just bump versions, don't deploy",
+            ],
+        )
+        .prompt()?;
+        
+        Some(app_choice.split_whitespace().next().unwrap().to_string())
+    } else if tier == "main" {
+        println!();
+        let binary_choice = Select::new(
+            "Which binary to release?",
+            vec![
+                "keeper - rbee-keeper (CLI tool)",
+                "queen - queen-rbee (Orchestrator)",
+                "hive - rbee-hive (Worker manager)",
+                "all - Release all main binaries",
+            ],
+        )
+        .prompt()?;
+        
+        Some(binary_choice.split_whitespace().next().unwrap().to_string())
+    } else {
+        None
+    };
+
     // Prompt for bump type if not provided
     let bump_type = if let Some(t) = type_arg {
         parse_bump_type(&t)?
     } else {
+        println!();
         let choice = Select::new(
             "Version bump type?",
             vec![
@@ -58,7 +94,39 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
     };
 
     // Load tier configuration
-    let config = load_tier_config(&tier)?;
+    let mut config = load_tier_config(&tier)?;
+
+    // TEAM-452: If specific app/binary selected, only bump THAT one
+    if let Some(ref app) = selected_app {
+        if app != "all" && app != "skip" {
+            if tier == "frontend" {
+                // Filter JS packages to only the selected app
+                let app_package = match app.as_str() {
+                    "gwc" => "@rbee/global-worker-catalog",
+                    "commercial" => "@rbee/commercial",
+                    "marketplace" => "@rbee/marketplace",
+                    "docs" => "@rbee/user-docs",
+                    _ => app.as_str(),
+                };
+                
+                config.javascript.packages.retain(|p| p == app_package);
+            } else if tier == "main" {
+                // Filter Rust crates to only the selected binary
+                let binary_path = match app.as_str() {
+                    "keeper" => "bin/00_rbee_keeper",
+                    "queen" => "bin/10_queen_rbee",
+                    "hive" => "bin/20_rbee_hive",
+                    _ => "",
+                };
+                
+                if !binary_path.is_empty() {
+                    config.rust.crates.retain(|p| p == binary_path);
+                    // Don't bump shared crates for individual binaries
+                    config.rust.shared_crates.clear();
+                }
+            }
+        }
+    }
 
     println!();
     println!("{}", "📋 Preview:".bright_blue().bold());
@@ -66,6 +134,11 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
     println!();
     println!("Tier: {}", tier.bright_green());
     println!("Bump: {:?}", bump_type);
+    if let Some(ref app) = selected_app {
+        if app != "all" && app != "skip" {
+            println!("App: {}", app.bright_green());
+        }
+    }
     println!();
 
     // Bump Rust crates
@@ -129,30 +202,38 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
         println!();
         println!("{}", "✅ Version bumped successfully!".bright_green());
         
-        // TEAM-452: Ask if user wants to deploy frontend apps immediately
-        if tier == "frontend" {
-            println!();
-            let deploy_now = Confirm::new("Deploy to Cloudflare now?")
-                .with_default(true)
-                .prompt()?;
-            
-            if deploy_now {
+        // TEAM-452: Deploy the selected app (already chosen earlier)
+        if let Some(app) = selected_app {
+            if app != "skip" {
                 println!();
-                println!("{}", "🚀 Deploying frontend apps...".bright_blue());
+                let deploy_now = Confirm::new(&format!("Deploy {} to Cloudflare now?", app))
+                    .with_default(true)
+                    .prompt()?;
                 
-                // Deploy all frontend apps
-                let apps = vec!["gwc", "commercial", "marketplace", "docs"];
-                for app in apps {
-                    println!();
-                    println!("{}", format!("Deploying {}...", app).bright_cyan());
-                    if let Err(e) = crate::deploy::run(app, None, false) {
-                        eprintln!("{}", format!("❌ Failed to deploy {}: {}", app, e).bright_red());
+                if deploy_now {
+                    if app == "all" {
+                        // Deploy all frontend apps
+                        let apps = vec!["gwc", "commercial", "marketplace", "docs"];
+                        for app in apps {
+                            println!();
+                            println!("{}", format!("Deploying {}...", app).bright_cyan());
+                            if let Err(e) = crate::deploy::run(app, None, false) {
+                                eprintln!("{}", format!("❌ Failed to deploy {}: {}", app, e).bright_red());
+                            }
+                        }
+                        println!();
+                        println!("{}", "✅ All deployments complete!".bright_green());
+                    } else {
+                        // Deploy single app
+                        println!();
+                        println!("{}", format!("Deploying {}...", app).bright_cyan());
+                        crate::deploy::run(&app, None, false)?;
+                        println!();
+                        println!("{}", format!("✅ {} deployed successfully!", app).bright_green());
                     }
+                    
+                    return Ok(());
                 }
-                
-                println!();
-                println!("{}", "✅ All deployments complete!".bright_green());
-                return Ok(());
             }
         }
         

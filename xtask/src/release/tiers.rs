@@ -7,8 +7,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]
 pub struct TierConfig {
-    pub name: String,
-    pub description: String,
+    pub description: String,  // TEAM-452: Removed unused 'name' field
     pub rust: RustConfig,
     pub javascript: JavaScriptConfig,
 }

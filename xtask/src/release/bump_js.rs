@@ -73,7 +73,7 @@ fn find_and_bump_package(
     // Write back (unless dry-run)
     if !dry_run {
         let pretty = serde_json::to_string_pretty(&json)?;
-        fs::write(&package_json_path, pretty)?;
+        fs::write(&package_json_path, format!("{}\n", pretty))?;  // TEAM-452: Add newline
     }
 
     Ok((old_version, version))

@@ -85,21 +85,12 @@ fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
 // TEAM-452: RULE ZERO FIX - Removed duplicate interactive menu
 // The release command already has an interactive menu that handles this
 pub fn run(app: &str, bump: Option<&str>, dry_run: bool) -> Result<()> {
-    let bump_type = bump.ok_or_else(|| {
-        anyhow::anyhow!(
-            "Version bump is REQUIRED for deployment!\n\n\
-            Usage:\n\
-              cargo xtask deploy --app {} --bump patch   # Bug fixes\n\
-              cargo xtask deploy --app {} --bump minor   # New features\n\
-              cargo xtask deploy --app {} --bump major   # Breaking changes\n\n\
-            This prevents deploying the same version twice.",
-            app, app, app
-        )
-    })?;
-    
-    println!("📦 Bumping version ({})...", bump_type);
-    bump_version(app, bump_type, dry_run)?;
-    println!();
+    // TEAM-452: Bump is optional - if called from release, version already bumped
+    if let Some(bump_type) = bump {
+        println!("📦 Bumping version ({})...", bump_type);
+        bump_version(app, bump_type, dry_run)?;
+        println!();
+    }
 
     // Step 2: Run deployment gates (unless dry run)
     if !dry_run {

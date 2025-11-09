@@ -82,8 +82,9 @@ fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+// TEAM-452: RULE ZERO FIX - Removed duplicate interactive menu
+// The release command already has an interactive menu that handles this
 pub fn run(app: &str, bump: Option<&str>, dry_run: bool) -> Result<()> {
-    // Step 1: Version bump is REQUIRED for production deploys
     let bump_type = bump.ok_or_else(|| {
         anyhow::anyhow!(
             "Version bump is REQUIRED for deployment!\n\n\

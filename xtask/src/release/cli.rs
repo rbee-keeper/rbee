@@ -128,6 +128,34 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
     } else {
         println!();
         println!("{}", "✅ Version bumped successfully!".bright_green());
+        
+        // TEAM-452: Ask if user wants to deploy frontend apps immediately
+        if tier == "frontend" {
+            println!();
+            let deploy_now = Confirm::new("Deploy to Cloudflare now?")
+                .with_default(true)
+                .prompt()?;
+            
+            if deploy_now {
+                println!();
+                println!("{}", "🚀 Deploying frontend apps...".bright_blue());
+                
+                // Deploy all frontend apps
+                let apps = vec!["gwc", "commercial", "marketplace", "docs"];
+                for app in apps {
+                    println!();
+                    println!("{}", format!("Deploying {}...", app).bright_cyan());
+                    if let Err(e) = crate::deploy::run(app, None, false) {
+                        eprintln!("{}", format!("❌ Failed to deploy {}: {}", app, e).bright_red());
+                    }
+                }
+                
+                println!();
+                println!("{}", "✅ All deployments complete!".bright_green());
+                return Ok(());
+            }
+        }
+        
         println!();
         println!("Next steps:");
         println!("  {}", "git add .".bright_blue());

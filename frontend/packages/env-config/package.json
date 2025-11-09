@@ -9,16 +9,16 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "oxlint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@rbee/shared-config": "workspace:*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^24.10.0",
+    "oxlint": "^1.26.0",
     "typescript": "^5.9.3"
   }
 }

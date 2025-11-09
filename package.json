@@ -17,6 +17,7 @@
     "build:commercial": "pnpm run build:ui && pnpm --filter @rbee/commercial run build",
     "build:docs": "pnpm run build:ui && pnpm --filter @rbee/user-docs run build",
     "build:frontend": "pnpm run build:ui && pnpm --filter @rbee/commercial run build && pnpm --filter @rbee/user-docs run build",
+    "lint": "turbo run lint",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
     "a11y:theme": "node frontend/scripts/a11y/contrast-check.js"

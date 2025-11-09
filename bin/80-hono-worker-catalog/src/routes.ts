@@ -81,6 +81,11 @@ routes.get("/workers/:id/PKGBUILD", async (c) => {
   }
   
   try {
+    // TEAM-453: Check if ASSETS binding exists (not available in test environment)
+    if (!c.env?.ASSETS) {
+      return c.json({ error: "ASSETS binding not available in test environment" }, 500);
+    }
+    
     // Fetch PKGBUILD from assets
     const pkgbuild = await c.env.ASSETS.fetch(
       new Request(`http://placeholder/pkgbuilds/${id}.PKGBUILD`)

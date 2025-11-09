@@ -24,9 +24,10 @@ pub fn deploy(dry_run: bool) -> Result<()> {
     }
 
     // Deploy
+    // TEAM-453: Use wrangler directly instead of pnpm (avoids workspace issues)
     println!("📦 Deploying worker...");
     let status = Command::new("pnpm")
-        .args(&["deploy"])
+        .args(&["wrangler", "deploy", "--minify"])
         .current_dir(worker_dir)
         .status()?;
 

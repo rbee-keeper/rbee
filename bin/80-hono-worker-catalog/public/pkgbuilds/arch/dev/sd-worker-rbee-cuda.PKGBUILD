@@ -13,6 +13,7 @@ license=('GPL-3.0-or-later')
 depends=('gcc' 'cuda')
 makedepends=('rust' 'cargo' 'git')
 source=("git+https://github.com/rbee-keeper/rbee.git#branch=development")
+# Release: For production, use https://github.com/rbee-keeper/rbee/releases/download/v${pkgver}/...
 sha256sums=('SKIP')
 
 build() {

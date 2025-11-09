@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-const PKGBUILD_DIR = join(__dirname, '../public/pkgbuilds');
+const PKGBUILD_DIR = join(__dirname, '../public/pkgbuilds/arch/dev');
 
 describe('PKGBUILD Files', () => {
   const pkgbuilds = readdirSync(PKGBUILD_DIR).filter(f => f.endsWith('.PKGBUILD'));
@@ -90,8 +90,6 @@ describe('PKGBUILD Files', () => {
     });
 
     it('should install to correct location', () => {
-      const pkgname = content.match(/pkgname=([^\n]+)/)?.[1];
-      
       // Should install with the package name
       expect(content).toContain(`$pkgdir/usr/local/bin/$pkgname`);
     });
@@ -133,7 +131,7 @@ describe('PKGBUILD Files', () => {
     });
 
     it('should point to correct repository', () => {
-      expect(content).toContain('github.com/veighnsche/llama-orch');
+      expect(content).toContain('github.com/rbee-keeper/rbee');
     });
   });
 

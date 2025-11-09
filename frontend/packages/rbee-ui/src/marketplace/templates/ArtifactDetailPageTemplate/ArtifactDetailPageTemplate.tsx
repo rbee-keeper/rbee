@@ -215,7 +215,10 @@ export function ArtifactDetailPageTemplate({
                 <CardTitle>About</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{description}</p>
+                <div 
+                  className="text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
               </CardContent>
             </Card>
           </section>

@@ -16,5 +16,6 @@ packages = [
     "@rbee/commercial",              # Commercial site (Cloudflare Pages)
     "@rbee/marketplace",             # Marketplace (Cloudflare Pages)
     "@rbee/user-docs",               # User documentation (Cloudflare Pages)
+    "@rbee/admin",                   # Admin dashboard (Cloudflare Workers)
     "@rbee/global-worker-catalog",   # Worker catalog API (Cloudflare Workers)
 ]

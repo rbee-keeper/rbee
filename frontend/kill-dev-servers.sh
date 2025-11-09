@@ -5,10 +5,19 @@ echo "KILL DEV SERVERS SCRIPT"
 echo "=========================================="
 echo ""
 
-# TEAM-XXX: mac compat - Updated from PORT_CONFIGURATION.md
-# Frontend dev servers: 5173, 5174, 6006, 6007, 7811, 7822, 7823, 7834, 7836, 7837, 7838, 7839
-# Backend APIs: 7833, 7835, 8000, 8080, 8081, 8188, 8787
-PORTS=(5173 5174 6006 6007 7811 7822 7823 7833 7834 7835 7836 7837 7838 7839 8000 8080 8081 8188 8787)
+# TEAM-XXX: Updated from PORT_CONFIGURATION.md (v3.0, 2025-11-09)
+# 
+# Port Allocation:
+# - Desktop Apps:     5173 (keeper)
+# - Workers (dev):    5174 (sd-worker), 7837 (llm-worker), 7838 (comfy-worker), 7839 (vllm-worker)
+# - Storybooks:       6006 (@rbee/ui), 6007 (commercial)
+# - Frontend Apps:    7811 (user-docs), 7822 (commercial), 7823 (marketplace)
+# - Backend APIs:     7833 (queen), 7835 (hive)
+# - Backend UIs:      7834 (queen-ui dev), 7836 (hive-ui dev)
+# - Workers (prod):   8080+ (dynamic - assigned by hive)
+# - CF Workers:       8787 (global-worker-catalog), 8788 (admin)
+#
+PORTS=(5173 5174 6006 6007 7811 7822 7823 7833 7834 7835 7836 7837 7838 7839 8080 8081 8787 8788)
 KILLED_ANY=false
 
 echo "Step 1: Killing processes by name..."

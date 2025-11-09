@@ -19,7 +19,7 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
     // TEAM-XXX: Support --app flag for non-interactive usage
     let selected_app = if let Some(app) = app_arg {
         // Validate app name
-        let valid_apps = vec!["gwc", "commercial", "marketplace", "docs", "keeper", "queen", "hive"];
+        let valid_apps = vec!["gwc", "commercial", "marketplace", "docs", "admin", "keeper", "queen", "hive"];
         if !valid_apps.contains(&app.as_str()) {
             anyhow::bail!("Invalid app: {}. Must be one of: {}", app, valid_apps.join(", "));
         }
@@ -33,6 +33,7 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
                 "commercial - Commercial Site (rbee.dev)",
                 "marketplace - Marketplace (marketplace.rbee.dev)",
                 "docs - Documentation (docs.rbee.dev)",
+                "admin - Admin Dashboard (install.rbee.dev)",
                 "keeper - rbee-keeper (CLI tool)",
                 "queen - queen-rbee (Orchestrator)",
                 "hive - rbee-hive (Worker manager)",
@@ -45,7 +46,7 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
     
     // Map app to tier (internal only - for config loading)
     let tier = match selected_app.as_str() {
-        "gwc" | "commercial" | "marketplace" | "docs" => "frontend",
+        "gwc" | "commercial" | "marketplace" | "docs" | "admin" => "frontend",
         "keeper" | "queen" | "hive" => "main",
         _ => "frontend",
     };
@@ -89,6 +90,7 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
                     "commercial" => "@rbee/commercial",
                     "marketplace" => "@rbee/marketplace",
                     "docs" => "@rbee/user-docs",
+                    "admin" => "@rbee/admin",
                     _ => app.as_str(),
                 };
                 
@@ -209,7 +211,7 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
                     if app == "all" {
                         // Deploy all frontend apps
                         // TEAM-463: Deploy to production (true) after release
-                        let apps = vec!["gwc", "commercial", "marketplace", "docs"];
+                        let apps = vec!["gwc", "commercial", "marketplace", "docs", "admin"];
                         for app in apps {
                             println!();
                             println!("{}", format!("Deploying {}...", app).bright_cyan());

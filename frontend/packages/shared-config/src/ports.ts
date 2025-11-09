@@ -12,6 +12,7 @@
  * TEAM-351: Shared port configuration
  * TEAM-457: Added commercial, marketplace, user-docs, hono-catalog
  * TEAM-XXX: Added comfy-worker, vllm-worker ports; added getWorkerUrl() helper
+ * TEAM-XXX: Added admin worker (8788, install.rbee.dev)
  *
  * @packageDocumentation
  */
@@ -101,6 +102,10 @@ export const PORTS = {
   // Cloudflare Workers
   honoCatalog: {
     dev: getPort('VITE_HONO_CATALOG_PORT', 8787),
+    prod: null, // Deployed to Cloudflare
+  },
+  admin: {
+    dev: getPort('VITE_ADMIN_PORT', 8788),
     prod: null, // Deployed to Cloudflare
   },
 } as const

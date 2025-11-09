@@ -6,3 +6,6 @@
 [submodule "frontend/apps/admin"]
     path = frontend/apps/admin
     url = git@github.com:veighnsche/rbee-admin.git
+[submodule "bin/78-admin"]
+	path = bin/78-admin
+	url = git@github.com:veighnsche/rbee-admin.git

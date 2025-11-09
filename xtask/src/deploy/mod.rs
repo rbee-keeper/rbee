@@ -3,6 +3,7 @@
 // Individual deployment commands for each app and binary
 // TEAM-463: Added nextjs_ssg abstraction for Next.js deployments
 
+pub mod admin;
 pub mod binaries;
 pub mod commercial;
 pub mod docs;
@@ -18,6 +19,7 @@ use std::path::PathBuf;
 fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
     // Map app name to package directory
     let package_dir = match app {
+        "admin" => "bin/78-admin",
         "worker" | "gwc" | "worker-catalog" => "bin/80-hono-worker-catalog",
         "commercial" => "frontend/apps/commercial",
         "marketplace" => "frontend/apps/marketplace",
@@ -114,6 +116,7 @@ pub fn run(app: &str, bump: Option<&str>, production: bool, dry_run: bool) -> Re
     // Step 3: Deploy
     match app {
         // Cloudflare deployments
+        "admin" => admin::deploy(production, dry_run),
         "worker" | "gwc" | "worker-catalog" => worker_catalog::deploy(production, dry_run),
         "commercial" => commercial::deploy(production, dry_run),
         "marketplace" => marketplace::deploy(production, dry_run),
@@ -127,7 +130,7 @@ pub fn run(app: &str, bump: Option<&str>, production: bool, dry_run: bool) -> Re
         "sd-worker" | "sd-worker-rbee" => binaries::deploy_sd_worker(dry_run),
         
         _ => anyhow::bail!(
-            "Unknown app: {}\n\nCloudflare Apps:\n  - worker (gwc.rbee.dev)\n  - commercial (rbee.dev)\n  - marketplace (marketplace.rbee.dev)\n  - docs (docs.rbee.dev)\n\nRust Binaries (GitHub Releases):\n  - keeper (rbee-keeper)\n  - queen (queen-rbee)\n  - hive (rbee-hive)\n  - llm-worker (llm-worker-rbee)\n  - sd-worker (sd-worker-rbee)",
+            "Unknown app: {}\n\nCloudflare Apps:\n  - admin (install.rbee.dev)\n  - worker (gwc.rbee.dev)\n  - commercial (rbee.dev)\n  - marketplace (marketplace.rbee.dev)\n  - docs (docs.rbee.dev)\n\nRust Binaries (GitHub Releases):\n  - keeper (rbee-keeper)\n  - queen (queen-rbee)\n  - hive (rbee-hive)\n  - llm-worker (llm-worker-rbee)\n  - sd-worker (sd-worker-rbee)",
             app
         ),
     }

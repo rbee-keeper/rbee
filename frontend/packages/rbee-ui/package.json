@@ -15,6 +15,7 @@
     "./molecules/*": "./src/molecules/*/index.ts",
     "./organisms": "./src/organisms/index.ts",
     "./organisms/*": "./src/organisms/*/index.ts",
+    "./organisms/Navigation/types": "./src/organisms/Navigation/types.ts",
     "./templates": "./src/templates/index.ts",
     "./templates/*": "./src/templates/*/index.ts",
     "./pages": "./src/pages/index.ts",

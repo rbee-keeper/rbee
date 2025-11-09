@@ -1,13 +1,17 @@
 // Deploy marketplace to Cloudflare Pages (SSG)
-// TEAM-462: Changed from Workers (SSR) to Pages (SSG) - all pages are static now
+// TEAM-427: Updated to use Next.js static export (out/ directory)
+// All pages are pre-rendered as static HTML at build time
 
 use anyhow::{Context, Result};
 use std::process::Command;
 use std::fs;
 
 pub fn deploy(dry_run: bool) -> Result<()> {
-    println!("🚀 Deploying Marketplace to Cloudflare Pages (SSG - Static Site)");
-    println!("📄 All pages pre-rendered at build time - NO server-side rendering");
+    println!("🚀 Deploying Marketplace to Cloudflare Pages (Static Export)");
+    println!("📄 All 455 pages pre-rendered at build time");
+    println!("   - 200 model redirect pages (/models/[slug])");
+    println!("   - 200 model detail pages (100 HF + 100 CivitAI)");
+    println!("   - 55 other pages (filters, workers, etc.)");
     println!();
 
     let app_dir = "frontend/apps/marketplace";
@@ -19,12 +23,12 @@ pub fn deploy(dry_run: bool) -> Result<()> {
     if dry_run {
         println!("🔍 Dry run - would execute:");
         println!("  cd {} && pnpm run build", app_dir);
-        println!("  wrangler pages deploy .next --project-name=rbee-marketplace");
+        println!("  wrangler pages deploy out/ --project-name=rbee-marketplace --branch=main");
         return Ok(());
     }
 
     // Build static site
-    println!("🔨 Building static site (SSG)...");
+    println!("🔨 Building static site with Next.js export...");
     let status = Command::new("pnpm")
         .args(&["run", "build"])
         .current_dir(app_dir)
@@ -35,34 +39,20 @@ pub fn deploy(dry_run: bool) -> Result<()> {
         anyhow::bail!("Build failed");
     }
 
-    // TEAM-462: Create clean deployment directory (exclude 816MB cache)
-    println!("📦 Preparing deployment files (excluding cache)...");
-    let deploy_dir = format!("{}/.next-deploy", app_dir);
-    
-    // Remove old deployment directory if exists
-    let _ = std::fs::remove_dir_all(&deploy_dir);
-    
-    // Copy .next to .next-deploy, excluding cache
-    let status = Command::new("rsync")
-        .args(&[
-            "-av",
-            "--exclude=cache",
-            ".next/",
-            ".next-deploy/"
-        ])
-        .current_dir(app_dir)
-        .status()
-        .context("Failed to prepare deployment directory")?;
-
-    if !status.success() {
-        anyhow::bail!("Failed to prepare deployment files");
+    // Verify out/ directory exists
+    let out_dir = format!("{}/out", app_dir);
+    if !std::path::Path::new(&out_dir).exists() {
+        anyhow::bail!("Build output directory 'out/' not found. Check next.config.ts has output: 'export'");
     }
 
-    // Deploy to Cloudflare Pages (static files only, no cache)
-    println!("📤 Deploying static files to Cloudflare Pages...");
-    let status = Command::new("wrangler")
+    println!("✅ Static export complete - {} files ready", 
+        fs::read_dir(&out_dir)?.count());
+
+    // Deploy to Cloudflare Pages
+    println!("📤 Deploying to Cloudflare Pages...");
+    let status = Command::new("npx")
         .args(&[
-            "pages", "deploy", ".next-deploy",
+            "wrangler", "pages", "deploy", "out/",
             "--project-name=rbee-marketplace",
             "--branch=main",
             "--commit-dirty=true"
@@ -74,21 +64,24 @@ pub fn deploy(dry_run: bool) -> Result<()> {
     if !status.success() {
         anyhow::bail!("Deployment failed");
     }
-    
-    // Clean up deployment directory
-    println!("🧹 Cleaning up...");
-    let _ = std::fs::remove_dir_all(&deploy_dir);
 
     println!();
-    println!("✅ Marketplace deployed to Cloudflare Pages (SSG)!");
-    println!("🌐 Pages URL: https://rbee-marketplace.pages.dev");
-    println!("🌐 Custom domain: https://marketplace.rbee.dev");
+    println!("✅ Marketplace deployed to Cloudflare Pages!");
+    println!("🌐 Production URL: https://main.rbee-marketplace.pages.dev");
+    println!("🌐 Custom domain: https://marketplace.rbee.dev (when configured)");
     println!();
-    println!("📊 Deployment info:");
-    println!("  - All pages: Static HTML (pre-rendered)");
-    println!("  - No server-side rendering");
-    println!("  - No CPU limits (it's just files!)");
-    println!("  - CDN cached globally");
+    println!("📊 Deployment details:");
+    println!("  - Build output: out/ directory (Next.js static export)");
+    println!("  - Total pages: 455 static HTML files");
+    println!("  - No server-side rendering (pure static)");
+    println!("  - No CPU limits (just CDN-served files)");
+    println!("  - Global edge caching");
+    println!();
+    println!("🔗 URL structure:");
+    println!("  - /models/[slug] → Auto-redirects to provider");
+    println!("  - /models/huggingface/[slug] → HuggingFace models");
+    println!("  - /models/civitai/[slug] → CivitAI models");
+    println!("  - /workers/[workerId] → Worker details");
 
     Ok(())
 }

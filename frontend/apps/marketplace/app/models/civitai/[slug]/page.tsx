@@ -109,6 +109,9 @@ export default async function CivitaiModelPage({ params }: Props) {
       files: latestVersion?.files || [],
       trainedWords: latestVersion?.trainedWords || [],
       allowCommercialUse: civitaiModel.allowCommercialUse || 'Unknown',
+      // TEAM-427: External link to CivitAI
+      externalUrl: `https://civitai.com/models/${civitaiModel.id}`,
+      externalLabel: 'View on CivitAI',
     }
 
     // Civitai models are Stable Diffusion, not LLMs - different worker compatibility

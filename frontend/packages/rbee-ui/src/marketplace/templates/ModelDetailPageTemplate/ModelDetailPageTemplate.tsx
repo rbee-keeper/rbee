@@ -57,6 +57,11 @@ export interface ModelDetailData {
   widgetData?: Array<{ text: string }>
   createdAt?: string
   lastModified?: string
+
+  // TEAM-427: CivitAI specific (optional)
+  images?: Array<{ url: string; nsfw?: boolean }>
+  externalUrl?: string // CivitAI or HuggingFace URL
+  externalLabel?: string // "View on CivitAI" or "View on HuggingFace"
 }
 
 export interface ModelDetailPageTemplateProps {
@@ -137,7 +142,9 @@ export function ModelDetailPageTemplate({
   isLoading = false,
   compatibleWorkers,
 }: ModelDetailPageTemplateProps) {
-  const hfUrl = huggingFaceUrl || `https://huggingface.co/${model.id}`
+  // TEAM-427: Use externalUrl from model data, fallback to HuggingFace
+  const externalUrl = model.externalUrl || huggingFaceUrl || `https://huggingface.co/${model.id}`
+  const externalLabel = model.externalLabel || 'View on HuggingFace'
 
   // Left sidebar content (model files)
   const leftSidebar = model.siblings && model.siblings.length > 0 ? <ModelFilesList files={model.siblings} /> : null
@@ -145,6 +152,30 @@ export function ModelDetailPageTemplate({
   // Main content sections
   const mainContent = (
     <>
+      {/* TEAM-427: Image Gallery for CivitAI models */}
+      {model.images && model.images.length > 0 && (
+        <section>
+          <Card>
+            <CardHeader>
+              <CardTitle>Example Images</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {model.images.map((image, index) => (
+                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={image.url}
+                      alt={`Example ${index + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       {/* TEAM-410: Compatible Workers Section */}
       {compatibleWorkers && compatibleWorkers.length > 0 && (
         <section>
@@ -384,9 +415,9 @@ export function ModelDetailPageTemplate({
           : undefined
       }
       secondaryAction={{
-        label: 'View on HuggingFace',
+        label: externalLabel,
         icon: <ExternalLink className="size-4 mr-2" />,
-        href: hfUrl,
+        href: externalUrl,
       }}
       leftSidebar={leftSidebar}
       mainContent={mainContent}

@@ -46,14 +46,16 @@ export function InstallCTA({ artifactType, artifactName }: InstallCTAProps) {
 
           <div className="flex flex-wrap gap-3">
             <a
-              href="/download"
+              href="https://docs.rbee.dev/docs/getting-started/installation"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               <Download className="size-4 mr-2" />
               Download rbee
             </a>
             <a
-              href="/docs/getting-started"
+              href="https://rbee.dev"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-md border border-border bg-background px-6 py-2.5 text-sm font-medium hover:bg-accent transition-colors"

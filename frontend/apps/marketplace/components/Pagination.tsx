@@ -1,5 +1,13 @@
-// TEAM-462: Pagination component for marketplace pages
-import Link from 'next/link'
+// TEAM-427: Pagination using rbee-ui atoms (proper atomic design)
+import {
+  Pagination as PaginationRoot,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@rbee/ui/atoms'
 
 interface PaginationProps {
   currentPage: number
@@ -7,43 +15,74 @@ interface PaginationProps {
   baseUrl: string
 }
 
+/**
+ * Pagination component using rbee-ui atoms
+ * Follows atomic design pattern with proper composition
+ */
 export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps) {
+  // Show max 7 page numbers with ellipsis
+  const getPageNumbers = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+
+    // Always show first page, last page, current page, and neighbors
+    const pages: (number | 'ellipsis')[] = [1]
+
+    if (currentPage > 3) {
+      pages.push('ellipsis')
+    }
+
+    // Show current page and neighbors
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      pages.push(i)
+    }
+
+    if (currentPage < totalPages - 2) {
+      pages.push('ellipsis')
+    }
+
+    if (totalPages > 1) {
+      pages.push(totalPages)
+    }
+
+    return pages
+  }
+
+  const pages = getPageNumbers()
+
   return (
-    <div className="flex items-center justify-center gap-2 my-8">
-      {/* Previous button */}
-      {currentPage > 1 && (
-        <Link
-          href={`${baseUrl}?page=${currentPage - 1}`}
-          className="px-4 py-2 border rounded hover:bg-muted transition-colors"
-        >
-          ← Previous
-        </Link>
-      )}
-      
-      {/* Page numbers */}
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-        <Link
-          key={page}
-          href={`${baseUrl}?page=${page}`}
-          className={`px-4 py-2 border rounded transition-colors ${
-            page === currentPage 
-              ? 'bg-primary text-primary-foreground font-bold' 
-              : 'hover:bg-muted'
-          }`}
-        >
-          {page}
-        </Link>
-      ))}
-      
-      {/* Next button */}
-      {currentPage < totalPages && (
-        <Link
-          href={`${baseUrl}?page=${currentPage + 1}`}
-          className="px-4 py-2 border rounded hover:bg-muted transition-colors"
-        >
-          Next →
-        </Link>
-      )}
-    </div>
+    <PaginationRoot className="my-8">
+      <PaginationContent>
+        {/* Previous button */}
+        {currentPage > 1 && (
+          <PaginationItem>
+            <PaginationPrevious href={`${baseUrl}?page=${currentPage - 1}`} />
+          </PaginationItem>
+        )}
+
+        {/* Page numbers */}
+        {pages.map((page, idx) =>
+          page === 'ellipsis' ? (
+            <PaginationItem key={`ellipsis-${idx}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={page}>
+              <PaginationLink href={`${baseUrl}?page=${page}`} isActive={page === currentPage}>
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ),
+        )}
+
+        {/* Next button */}
+        {currentPage < totalPages && (
+          <PaginationItem>
+            <PaginationNext href={`${baseUrl}?page=${currentPage + 1}`} />
+          </PaginationItem>
+        )}
+      </PaginationContent>
+    </PaginationRoot>
   )
 }

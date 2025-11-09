@@ -69,3 +69,19 @@ pre::-webkit-scrollbar-thumb {
 pre::-webkit-scrollbar-thumb:hover {
     background: var(--muted-foreground);
 }
+
+/**
+ * TEAM-427: Prevent content overlap with fixed navigation
+ * Navigation height is 4rem (h-16) on mobile, 3.5rem (h-14) on desktop
+ */
+@layer base {
+    #main {
+        padding-top: 4rem; /* h-16 mobile */
+    }
+
+    @media (min-width: 768px) {
+        #main {
+            padding-top: 3.5rem; /* h-14 desktop */
+        }
+    }
+}

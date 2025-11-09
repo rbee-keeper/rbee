@@ -2,11 +2,13 @@
 import type { NavigationConfig } from '@rbee/ui/organisms/Navigation'
 
 export const userDocsNavConfig: NavigationConfig = {
-  logoHref: '/docs',
+  logoHref: 'https://rbee.dev',
   sections: [
     {
       type: 'linkGroup',
       links: [
+        { label: 'Home', href: 'https://rbee.dev' },
+        { label: 'Marketplace', href: 'https://marketplace.rbee.dev' },
         { label: 'Docs', href: '/docs' },
         { label: 'Quick Start', href: '/docs/getting-started/installation' },
         { label: 'API', href: '/docs/reference/api-openai-compatible' },
@@ -19,9 +21,9 @@ export const userDocsNavConfig: NavigationConfig = {
       url: 'https://github.com/veighnsche/llama-orch',
     },
     cta: {
-      label: 'rbee.dev',
-      href: 'https://rbee.dev',
-      ariaLabel: 'Visit rbee.dev',
+      label: 'Download',
+      href: '/docs/getting-started/installation',
+      ariaLabel: 'Download rbee',
     },
   },
 }

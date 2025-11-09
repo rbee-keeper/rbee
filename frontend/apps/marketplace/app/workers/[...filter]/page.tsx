@@ -3,7 +3,7 @@
 import { WorkerCard } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { WORKERS } from '@/../../../bin/80-hono-worker-catalog/src/data'
+import { WORKERS } from '../../../../../../bin/80-global-worker-catalog/src/data'
 import {
   buildFilterDescription,
   filterWorkers,

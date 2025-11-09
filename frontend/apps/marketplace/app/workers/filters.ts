@@ -1,6 +1,6 @@
 // Worker filter definitions - SSG-compatible filtering system
 
-import type { WorkerCatalogEntry } from '@/../../../bin/80-hono-worker-catalog/src/types'
+import type { WorkerCatalogEntry } from '../../../../../bin/80-global-worker-catalog/src/types'
 import type { FilterConfig, FilterGroup } from '@/lib/filters/types'
 
 // Worker filter state

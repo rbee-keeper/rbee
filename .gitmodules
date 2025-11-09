@@ -2,3 +2,7 @@
 	path = frontend/apps/commercial
 	url = git@github.com:veighnsche/rbee-commercial-private.git
 	# Private repository - shields commercial site from public repo
+
+[submodule "frontend/apps/admin"]
+    path = frontend/apps/admin
+    url = git@github.com:veighnsche/rbee-admin.git

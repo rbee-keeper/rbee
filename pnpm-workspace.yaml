@@ -1,4 +1,5 @@
 packages:
+  - frontens/apps/admin
   - frontend/apps/commercial
   - frontend/apps/marketplace
   - frontend/apps/user-docs
@@ -25,7 +26,7 @@ packages:
   - bin/30_llm_worker_rbee/ui/app
   - bin/30_llm_worker_rbee/ui/packages/llm-worker-sdk
   - bin/30_llm_worker_rbee/ui/packages/llm-worker-react
-  - bin/80-hono-worker-catalog
+  - bin/80-global-worker-catalog
   - bin/79_marketplace_core/marketplace-sdk
   - bin/79_marketplace_core/marketplace-node
 

@@ -21,7 +21,7 @@ export default async function DocsLayout({ children }: { children: React.ReactNo
   return (
     <Layout
       pageMap={pageMap}
-      docsRepositoryBase="https://github.com/veighnsche/llama-orch/tree/main/frontend/apps/user-docs"
+      docsRepositoryBase="https://github.com/veighnsche/llama-orch/tree/main/frontend/apps/user-docs/app"
       sidebar={{
         defaultMenuCollapseLevel: 1,
         toggleButton: true,

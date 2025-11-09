@@ -2,17 +2,9 @@
 // TEAM-404: Now uses canonical WorkerType from marketplace-sdk
 import { Badge } from '@rbee/ui/atoms/Badge'
 import { Button } from '@rbee/ui/atoms/Button'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@rbee/ui/atoms/Card'
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@rbee/ui/atoms/Card'
 import { Cpu, Download } from 'lucide-react'
-import * as React from 'react'
+import type * as React from 'react'
 
 // TEAM-404: Import canonical WorkerType from marketplace-sdk
 // This ensures type consistency across Rust (artifacts-contract), WASM (marketplace-sdk), and React
@@ -47,7 +39,7 @@ export function WorkerCard({ worker, onAction, onClick, actionButton }: WorkerCa
   const typeConfig = workerTypeConfig[worker.workerType]
 
   return (
-    <Card 
+    <Card
       className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer"
       {...(onClick && { onClick: () => onClick(worker.id) })}
     >
@@ -99,9 +91,9 @@ export function WorkerCard({ worker, onAction, onClick, actionButton }: WorkerCa
 
       <CardFooter className="border-t pt-4">
         {!actionButton && onAction && (
-          <Button 
-            size="sm" 
-            className="w-full" 
+          <Button
+            size="sm"
+            className="w-full"
             onClick={(e) => {
               e.stopPropagation() // Prevent card click
               onAction(worker.id)

@@ -31,8 +31,8 @@ export const focusRingDestructive =
  * Apply to: Button link variant, NavLink, inline CTAs
  * Dark mode: default text-[color:var(--accent)], hover text-white with decoration-amber-400
  * Visited: uses brand 700 (#b45309) to communicate state
- * 
- * TEAM-450: Removed typed arbitrary values ([length:...], [color:...]) 
+ *
+ * TEAM-450: Removed typed arbitrary values ([length:...], [color:...])
  * because they cause Turbopack CSS parsing errors. Using untyped arbitrary values instead.
  */
 export const brandLink =
@@ -50,7 +50,7 @@ export const brandLink =
  * Inverse-contrast focus for amber surfaces (opt-in)
  * Use when element bg ~ amber (e.g., Badge accent variant in dark)
  * Swaps ring to white to prevent blending with amber fills
- * 
+ *
  * TEAM-450: Removed typed arbitrary value ([color:...]) to fix Turbopack CSS parsing errors
  */
 export const focusInverse =

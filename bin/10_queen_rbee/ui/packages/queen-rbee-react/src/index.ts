@@ -11,28 +11,27 @@
 // TEAM-291: Re-export types from @rbee/queen-rbee-sdk for convenience
 // TEAM-295: Fixed import to use @rbee/queen-rbee-sdk instead of @rbee/sdk
 // TEAM-381: Re-export ALL types so UI apps only need @rbee/queen-rbee-react dependency
-export type { 
-  HeartbeatMonitor, 
-  OperationBuilder, 
-  QueenClient,
-  RhaiClient,
+export type {
+  HeartbeatMonitor,
+  HeartbeatSnapshot,
+  HiveDevice,
+  HiveInfo,
+  HiveTelemetry,
+  OperationBuilder,
   // TEAM-381: Auto-generated types from Rust contract crates
   ProcessStats,
-  HiveInfo,
-  HiveDevice,
-  HiveTelemetry,
+  QueenClient,
   QueenHeartbeat,
-  HeartbeatSnapshot,
+  RhaiClient,
 } from '@rbee/queen-rbee-sdk'
-
+// TEAM-381: Export all types from useHeartbeat (single source of truth)
+export type { HeartbeatData, HiveData, UseHeartbeatResult } from './hooks/useHeartbeat'
+export { useHeartbeat } from './hooks/useHeartbeat'
 // Export hooks
 // TEAM-377: RULE ZERO - Deleted useRbeeSDK alias, only export useQueenSDK
 export { useQueenSDK } from './hooks/useQueenSDK'
-export { useHeartbeat } from './hooks/useHeartbeat'
-// TEAM-381: Export all types from useHeartbeat (single source of truth)
-export type { HiveData, HeartbeatData, UseHeartbeatResult } from './hooks/useHeartbeat'
-export { useRhaiScripts } from './hooks/useRhaiScripts'
 export type { RhaiScript, TestResult, UseRhaiScriptsResult } from './hooks/useRhaiScripts'
+export { useRhaiScripts } from './hooks/useRhaiScripts'
 
 // TEAM-352: Narration bridge DELETED - RULE ZERO compliance
 // DO NOT re-export wrappers - import directly from @rbee/narration-client:

@@ -54,12 +54,7 @@ export function WorkerListTemplate({
       <MarketplaceGrid
         items={workers}
         renderItem={(worker) => (
-          <WorkerCard
-            key={worker.id}
-            worker={worker}
-            onAction={onWorkerAction}
-            onClick={onWorkerClick}
-          />
+          <WorkerCard key={worker.id} worker={worker} onAction={onWorkerAction} onClick={onWorkerClick} />
         )}
         isLoading={isLoading}
         error={error}

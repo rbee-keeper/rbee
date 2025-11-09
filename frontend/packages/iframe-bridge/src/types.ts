@@ -18,8 +18,8 @@ export interface BaseMessage {
   type: MessageType
   source: string
   timestamp: number
-  id?: string          // Optional message ID for correlation
-  version?: string     // Protocol version
+  id?: string // Optional message ID for correlation
+  version?: string // Protocol version
 }
 
 /**
@@ -32,7 +32,7 @@ export interface NarrationMessage extends BaseMessage {
     actor: string
     action: string
     human: string
-    [key: string]: any  // Allow additional fields
+    [key: string]: any // Allow additional fields
   }
 }
 
@@ -43,7 +43,7 @@ export interface NarrationMessage extends BaseMessage {
 export interface CommandMessage extends BaseMessage {
   type: 'COMMAND'
   command: string
-  args?: Record<string, unknown>  // Type-safe args object
+  args?: Record<string, unknown> // Type-safe args object
 }
 
 /**
@@ -117,10 +117,10 @@ export function isValidIframeMessage(obj: any): obj is IframeMessage {
   if (!isValidBaseMessage(obj)) {
     return false
   }
-  
+
   // TEAM-351: Type-specific validation
-  const data = obj as any  // Use any for property access
-  
+  const data = obj as any // Use any for property access
+
   switch (data.type) {
     case 'NARRATION_EVENT':
       return !!(
@@ -130,25 +130,19 @@ export function isValidIframeMessage(obj: any): obj is IframeMessage {
         typeof data.payload.action === 'string' &&
         typeof data.payload.human === 'string'
       )
-    
+
     case 'COMMAND':
       return typeof data.command === 'string'
-    
+
     case 'RESPONSE':
-      return (
-        typeof data.requestId === 'string' &&
-        typeof data.success === 'boolean'
-      )
-    
+      return typeof data.requestId === 'string' && typeof data.success === 'boolean'
+
     case 'ERROR':
       return typeof data.error === 'string'
-    
+
     case 'THEME_CHANGE':
-      return (
-        typeof data.theme === 'string' &&
-        (data.theme === 'light' || data.theme === 'dark')
-      )
-    
+      return typeof data.theme === 'string' && (data.theme === 'light' || data.theme === 'dark')
+
     default:
       return false
   }
@@ -162,20 +156,20 @@ export function validateMessage(obj: any): ValidationResult {
   if (!obj || typeof obj !== 'object') {
     return { valid: false, error: 'Message must be an object' }
   }
-  
+
   const missing: string[] = []
-  
+
   if (typeof obj.type !== 'string') missing.push('type')
   if (typeof obj.source !== 'string') missing.push('source')
   if (typeof obj.timestamp !== 'number') missing.push('timestamp')
-  
+
   if (missing.length > 0) {
     return { valid: false, error: 'Missing required fields', missing }
   }
-  
+
   if (!isValidIframeMessage(obj)) {
     return { valid: false, error: `Invalid message type or structure: ${obj.type}` }
   }
-  
+
   return { valid: true }
 }

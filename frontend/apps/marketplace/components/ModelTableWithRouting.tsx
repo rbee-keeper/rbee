@@ -1,7 +1,7 @@
 'use client'
 
-import { ModelTable } from '@rbee/ui/marketplace'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
+import { ModelTable } from '@rbee/ui/marketplace'
 import { useRouter } from 'next/navigation'
 import { modelIdToSlug } from '@/lib/slugify'
 
@@ -15,11 +15,11 @@ interface ModelTableWithRoutingProps {
  */
 export function ModelTableWithRouting({ models }: ModelTableWithRoutingProps) {
   const router = useRouter()
-  
+
   const handleModelClick = (modelId: string) => {
     const slug = modelIdToSlug(modelId)
     router.push(`/models/${slug}`)
   }
-  
+
   return <ModelTable models={models} onModelClick={handleModelClick} />
 }

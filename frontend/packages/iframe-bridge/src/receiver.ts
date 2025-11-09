@@ -82,37 +82,32 @@ export function getActiveReceiverCount(): number {
  * TEAM-351: Emergency cleanup
  */
 export function cleanupAllReceivers(): void {
-  activeReceivers.forEach(cleanup => cleanup())
+  activeReceivers.forEach((cleanup) => cleanup())
   activeReceivers.clear()
 }
 
 /**
  * Create message receiver with validation and error handling
- * 
+ *
  * TEAM-351: Bug fixes - Validation, error handling, memory leak prevention
- * 
+ *
  * @param config - Receiver configuration
  * @returns Cleanup function
  * @throws Error if config is invalid
  */
 export function createMessageReceiver(config: ReceiverConfig) {
-  const { 
-    onMessage, 
-    onError,
-    debug = !isProduction, 
-    validate = true,
-  } = config
-  
+  const { onMessage, onError, debug = !isProduction, validate = true } = config
+
   // TEAM-351: Validate config
   if (typeof onMessage !== 'function') {
     throw new Error('Invalid receiver config: onMessage must be a function')
   }
-  
+
   const validateOrigin = createOriginValidator(config)
-  
+
   const handleMessage = (event: MessageEvent) => {
     receiveStats.total++
-    
+
     // TEAM-351: Validate origin
     if (!validateOrigin(event.origin)) {
       receiveStats.invalidOrigin++
@@ -124,7 +119,7 @@ export function createMessageReceiver(config: ReceiverConfig) {
       }
       return
     }
-    
+
     // TEAM-351: Validate message structure
     if (!event.data || typeof event.data !== 'object' || !event.data.type) {
       receiveStats.invalidMessage++
@@ -133,7 +128,7 @@ export function createMessageReceiver(config: ReceiverConfig) {
       }
       return
     }
-    
+
     // TEAM-351: Validate message if requested
     if (validate) {
       const validation = validateMessage(event.data)
@@ -148,7 +143,7 @@ export function createMessageReceiver(config: ReceiverConfig) {
         return
       }
     }
-    
+
     // TEAM-351: Call onMessage with error handling
     try {
       receiveStats.accepted++
@@ -156,13 +151,10 @@ export function createMessageReceiver(config: ReceiverConfig) {
     } catch (error) {
       receiveStats.errors++
       console.error('[IframeBridge] onMessage handler error:', error)
-      
+
       if (onError) {
         try {
-          onError(
-            error instanceof Error ? error : new Error(String(error)),
-            event.data
-          )
+          onError(error instanceof Error ? error : new Error(String(error)), event.data)
         } catch (onErrorError) {
           console.error('[IframeBridge] onError handler error:', onErrorError)
         }
@@ -171,15 +163,15 @@ export function createMessageReceiver(config: ReceiverConfig) {
   }
 
   window.addEventListener('message', handleMessage)
-  
+
   // TEAM-351: Cleanup function with memory leak prevention
   const cleanup = () => {
     window.removeEventListener('message', handleMessage)
     activeReceivers.delete(cleanup)
   }
-  
+
   // TEAM-351: Track active receiver
   activeReceivers.add(cleanup)
-  
+
   return cleanup
 }

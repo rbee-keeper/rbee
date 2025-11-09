@@ -1,5 +1,5 @@
 // TEAM-403: Route handler unit tests (isolated, no HTTP)
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { WORKERS } from '../../src/data'
 
 describe('Route Logic (Isolated)', () => {
@@ -14,14 +14,14 @@ describe('Route Logic (Isolated)', () => {
   describe('GET /workers/:id', () => {
     it('should find worker by ID', () => {
       const id = 'llm-worker-rbee-cpu'
-      const worker = WORKERS.find(w => w.id === id)
+      const worker = WORKERS.find((w) => w.id === id)
       expect(worker).toBeDefined()
       expect(worker?.id).toBe(id)
     })
 
     it('should return undefined for non-existent worker', () => {
       const id = 'non-existent-worker'
-      const worker = WORKERS.find(w => w.id === id)
+      const worker = WORKERS.find((w) => w.id === id)
       expect(worker).toBeUndefined()
     })
   })
@@ -36,17 +36,17 @@ describe('Route Logic (Isolated)', () => {
 
   describe('Worker Filtering', () => {
     it('should filter workers by platform', () => {
-      const linuxWorkers = WORKERS.filter(w => w.platforms.includes('linux'))
+      const linuxWorkers = WORKERS.filter((w) => w.platforms.includes('linux'))
       expect(linuxWorkers.length).toBeGreaterThan(0)
-      linuxWorkers.forEach(w => {
+      linuxWorkers.forEach((w) => {
         expect(w.platforms).toContain('linux')
       })
     })
 
     it('should filter workers by type', () => {
-      const cpuWorkers = WORKERS.filter(w => w.workerType === 'cpu')
+      const cpuWorkers = WORKERS.filter((w) => w.workerType === 'cpu')
       expect(cpuWorkers.length).toBeGreaterThan(0)
-      cpuWorkers.forEach(w => {
+      cpuWorkers.forEach((w) => {
         expect(w.workerType).toBe('cpu')
       })
     })

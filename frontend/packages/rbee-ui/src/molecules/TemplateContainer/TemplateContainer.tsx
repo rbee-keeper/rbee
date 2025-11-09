@@ -1,5 +1,5 @@
-import { AuditReadinessCTA, type AuditReadinessCTAProps } from '@rbee/ui/molecules/AuditReadinessCTA'
 import { Badge } from '@rbee/ui/atoms/Badge'
+import { AuditReadinessCTA, type AuditReadinessCTAProps } from '@rbee/ui/molecules/AuditReadinessCTA'
 import { CTARail } from '@rbee/ui/molecules/CTARail'
 import { Disclaimer } from '@rbee/ui/molecules/Disclaimer'
 import { FooterCTA } from '@rbee/ui/molecules/FooterCTA'
@@ -256,11 +256,7 @@ export function TemplateContainer({
               <div className={cn(layout === 'split' && actions ? 'md:col-span-8 space-y-3' : 'space-y-3')}>
                 {eyebrow && (
                   <div className="animate-fade-in">
-                    {typeof eyebrow === 'string' ? (
-                      <Badge variant="secondary">{eyebrow}</Badge>
-                    ) : (
-                      eyebrow
-                    )}
+                    {typeof eyebrow === 'string' ? <Badge variant="secondary">{eyebrow}</Badge> : eyebrow}
                   </div>
                 )}
 

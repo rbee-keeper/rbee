@@ -1,15 +1,7 @@
 // TEAM-382: Individual worker card component
 
-import { Cpu, Zap, HardDrive, Activity, X } from 'lucide-react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Badge,
-  Button,
-  Progress,
-} from '@rbee/ui/atoms'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Progress } from '@rbee/ui/atoms'
+import { Activity, Cpu, HardDrive, X, Zap } from 'lucide-react'
 import type { ProcessStats } from './types'
 
 interface WorkerCardProps {
@@ -20,9 +12,7 @@ interface WorkerCardProps {
 
 export function WorkerCard({ worker, onTerminate, isTerminating }: WorkerCardProps) {
   const isIdle = worker.gpu_util_pct === 0.0
-  const vramUsagePercent = worker.total_vram_mb > 0 
-    ? (worker.vram_mb / worker.total_vram_mb) * 100 
-    : 0
+  const vramUsagePercent = worker.total_vram_mb > 0 ? (worker.vram_mb / worker.total_vram_mb) * 100 : 0
 
   return (
     <Card className="relative">
@@ -30,9 +20,7 @@ export function WorkerCard({ worker, onTerminate, isTerminating }: WorkerCardPro
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <Activity className={`h-4 w-4 ${isIdle ? 'text-muted-foreground' : 'text-green-500'}`} />
-            <CardTitle className="text-base">
-              {worker.model || 'Unknown Model'}
-            </CardTitle>
+            <CardTitle className="text-base">{worker.model || 'Unknown Model'}</CardTitle>
           </div>
           {onTerminate && (
             <Button

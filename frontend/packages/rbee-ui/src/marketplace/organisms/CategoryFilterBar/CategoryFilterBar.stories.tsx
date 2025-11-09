@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { CategoryFilterBar } from './CategoryFilterBar'
 import type { FilterGroup } from '../../types/filters'
+import { CategoryFilterBar } from './CategoryFilterBar'
 
 const meta = {
   title: 'Marketplace/Organisms/CategoryFilterBar',

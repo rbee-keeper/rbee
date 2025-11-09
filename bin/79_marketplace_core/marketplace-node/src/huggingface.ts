@@ -39,7 +39,7 @@ export interface HFSearchResponse {
  */
 export async function fetchHFModels(
   query: string | undefined,
-  options: { limit?: number; sort?: string; filter?: string } = {}
+  options: { limit?: number; sort?: string; filter?: string } = {},
 ): Promise<HFModel[]> {
   const params = new URLSearchParams({
     ...(query && { search: query }),

@@ -37,17 +37,11 @@ export function ModelDetailTemplate({
         <div className="lg:col-span-1">
           {model.imageUrl ? (
             <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
-              <img
-                src={model.imageUrl}
-                alt={model.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={model.imageUrl} alt={model.name} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="relative w-full aspect-square rounded-lg bg-muted flex items-center justify-center">
-              <span className="text-4xl font-bold text-muted-foreground">
-                {model.name.charAt(0)}
-              </span>
+              <span className="text-4xl font-bold text-muted-foreground">{model.name.charAt(0)}</span>
             </div>
           )}
         </div>
@@ -207,11 +201,7 @@ export function ModelDetailTemplate({
             <MarketplaceGrid
               items={relatedModels}
               renderItem={(relatedModel) => (
-                <ModelCard
-                  key={relatedModel.id}
-                  model={relatedModel}
-                  onAction={onRelatedModelAction}
-                />
+                <ModelCard key={relatedModel.id} model={relatedModel} onAction={onRelatedModelAction} />
               )}
               columns={3}
             />

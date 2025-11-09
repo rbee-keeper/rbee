@@ -4,14 +4,13 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: CategoryFilterBar + WorkerCard grid (matching Next.js)
 
-import { invoke } from "@tauri-apps/api/core";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
-import { PageContainer } from "@rbee/ui/molecules";
-import { WorkerCard } from "@rbee/ui/marketplace";
-import { UniversalFilterBar } from '@rbee/ui/marketplace';
-import type { WorkerCatalogEntry } from "@/generated/bindings";
+import { UniversalFilterBar, WorkerCard } from '@rbee/ui/marketplace'
+import { PageContainer } from '@rbee/ui/molecules'
+import { useQuery } from '@tanstack/react-query'
+import { invoke } from '@tauri-apps/api/core'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { WorkerCatalogEntry } from '@/generated/bindings'
 
 // Worker filter state (matching Next.js filters.ts)
 interface WorkerFilters {
@@ -55,53 +54,57 @@ const WORKER_FILTER_GROUPS = [
 ]
 
 export function MarketplaceRbeeWorkers() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [filters, setFilters] = useState<WorkerFilters>({
     category: 'all',
     backend: 'all',
     platform: 'all',
-  });
+  })
 
   // DATA LAYER: Fetch workers from Tauri
-  const { data: rawWorkers = [], isLoading, error } = useQuery({
-    queryKey: ["marketplace", "rbee-workers"],
+  const {
+    data: rawWorkers = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['marketplace', 'rbee-workers'],
     queryFn: async () => {
-      const result = await invoke<WorkerCatalogEntry[]>("marketplace_list_workers");
-      return result;
+      const result = await invoke<WorkerCatalogEntry[]>('marketplace_list_workers')
+      return result
     },
     staleTime: 5 * 60 * 1000,
-  });
+  })
 
   // TEAM-423: Filter workers based on current filter state (matching Next.js logic)
   const filteredWorkers = useMemo(() => {
-    return rawWorkers.filter(worker => {
+    return rawWorkers.filter((worker) => {
       // Category filter (based on worker ID prefix)
       if (filters.category !== 'all') {
         const isLLM = worker.id.startsWith('llm-')
         const isImage = worker.id.startsWith('sd-')
-        
+
         if (filters.category === 'llm' && !isLLM) return false
         if (filters.category === 'image' && !isImage) return false
       }
-      
+
       // Backend filter (workerType)
       if (filters.backend !== 'all' && worker.workerType !== filters.backend) {
         return false
       }
-      
+
       // Platform filter
       if (filters.platform !== 'all' && !worker.platforms.includes(filters.platform as 'linux' | 'macos' | 'windows')) {
         return false
       }
-      
+
       return true
     })
-  }, [rawWorkers, filters]);
+  }, [rawWorkers, filters])
 
   // Build filter description
   const filterDescription = useMemo(() => {
     const parts: string[] = []
-    
+
     if (filters.category !== 'all') {
       parts.push(filters.category === 'llm' ? 'LLM' : 'Image')
     }
@@ -111,9 +114,9 @@ export function MarketplaceRbeeWorkers() {
     if (filters.platform !== 'all') {
       parts.push(filters.platform.charAt(0).toUpperCase() + filters.platform.slice(1))
     }
-    
+
     return parts.length > 0 ? parts.join(' · ') : 'All Workers'
-  }, [filters]);
+  }, [filters])
 
   // Transform to WorkerCard format
   const workers = filteredWorkers.map((worker) => ({
@@ -124,7 +127,7 @@ export function MarketplaceRbeeWorkers() {
     platform: worker.platforms.map((p: string) => p.toLowerCase()),
     architecture: worker.architectures.map((a: string) => a.toLowerCase()),
     workerType: worker.workerType.toLowerCase() as 'cpu' | 'cuda' | 'metal',
-  }));
+  }))
 
   // PRESENTATION LAYER: Render with CategoryFilterBar + WorkerCard grid (matching Next.js)
   return (
@@ -155,7 +158,7 @@ export function MarketplaceRbeeWorkers() {
             currentFilters={filters}
             onFiltersChange={(newFilters) => {
               // TEAM-423: UniversalFilterBar handles both SSG and GUI
-              setFilters({ ...filters, ...newFilters });
+              setFilters({ ...filters, ...newFilters })
             }}
           />
 
@@ -179,5 +182,5 @@ export function MarketplaceRbeeWorkers() {
         </div>
       )}
     </PageContainer>
-  );
+  )
 }

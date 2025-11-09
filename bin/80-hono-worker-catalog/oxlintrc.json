@@ -6,11 +6,5 @@
     "suspicious": "warn",
     "perf": "warn"
   },
-  "ignore": [
-    "dist",
-    "node_modules",
-    "coverage",
-    ".wrangler",
-    "worker-configuration.d.ts"
-  ]
+  "ignore": ["dist", "node_modules", "coverage", ".wrangler", "worker-configuration.d.ts"]
 }

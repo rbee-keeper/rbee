@@ -23,7 +23,12 @@ const sizeClasses = {
 export function BrandWordmark({ size = 'md', className, inline = false }: BrandWordmarkProps) {
   return (
     <span
-      className={cn('font-bold tracking-tight text-foreground font-sans', sizeClasses[size], inline && 'inline', className)}
+      className={cn(
+        'font-bold tracking-tight text-foreground font-sans',
+        sizeClasses[size],
+        inline && 'inline',
+        className,
+      )}
     >
       rbee
     </span>

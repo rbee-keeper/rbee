@@ -52,8 +52,8 @@ export const LightTheme: Story = {
   ),
   globals: {
     backgrounds: {
-      value: "light"
-    }
+      value: 'light',
+    },
   },
 }
 
@@ -74,8 +74,8 @@ export const DarkTheme: Story = {
   ),
   globals: {
     backgrounds: {
-      value: "dark"
-    }
+      value: 'dark',
+    },
   },
 }
 

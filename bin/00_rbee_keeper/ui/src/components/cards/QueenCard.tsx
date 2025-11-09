@@ -2,27 +2,20 @@
 // TEAM-353: Rewritten to use query hooks (deleted DaemonContainer pattern)
 // TEAM-354: Fixed to use QueryContainer per CORRECT_ARCHITECTURE.md Pattern 4
 
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@rbee/ui/atoms";
-import { QueryContainer } from "../../containers/QueryContainer";
-import { useCommandStore } from "../../store/commandStore";
-import { useQueen, useQueenActions } from "../../store/queenQueries";
-import { StatusBadge } from "../StatusBadge";
-import { ServiceActionButton } from "./ServiceActionButton";
-import type { QueenStatus } from "../../store/queenQueries";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@rbee/ui/atoms'
+import { QueryContainer } from '../../containers/QueryContainer'
+import { useCommandStore } from '../../store/commandStore'
+import type { QueenStatus } from '../../store/queenQueries'
+import { useQueen, useQueenActions } from '../../store/queenQueries'
+import { StatusBadge } from '../StatusBadge'
+import { ServiceActionButton } from './ServiceActionButton'
 
 // TEAM-363: React Query - no useEffect
 // TEAM-413: Added installProd to destructuring
 export function QueenCard() {
-  const { data: queen, isLoading, error, refetch } = useQueen();
-  const { start, stop, install, installProd, rebuild, uninstall } = useQueenActions();
-  const { isExecuting } = useCommandStore();
+  const { data: queen, isLoading, error, refetch } = useQueen()
+  const { start, stop, install, installProd, rebuild, uninstall } = useQueenActions()
+  const { isExecuting } = useCommandStore()
 
   return (
     <QueryContainer<QueenStatus>
@@ -30,11 +23,18 @@ export function QueenCard() {
       error={error?.message ?? null}
       data={queen ?? null}
       onRetry={() => refetch()}
-      metadata={{ name: "Queen", description: "Smart API server" }}
+      metadata={{ name: 'Queen', description: 'Smart API server' }}
     >
-      {(queen) => <QueenCardContent queen={queen} isExecuting={isExecuting} actions={{ start, stop, install, installProd, rebuild, uninstall }} refetch={refetch} />}
+      {(queen) => (
+        <QueenCardContent
+          queen={queen}
+          isExecuting={isExecuting}
+          actions={{ start, stop, install, installProd, rebuild, uninstall }}
+          refetch={refetch}
+        />
+      )}
     </QueryContainer>
-  );
+  )
 }
 
 // TEAM-354: Inner component receives type-safe queen data
@@ -44,20 +44,16 @@ function QueenCardContent({
   actions,
   refetch,
 }: {
-  queen: QueenStatus;
-  isExecuting: boolean;
-  actions: ReturnType<typeof useQueenActions>;
-  refetch: () => void;
+  queen: QueenStatus
+  isExecuting: boolean
+  actions: ReturnType<typeof useQueenActions>
+  refetch: () => void
 }) {
-  const isRunning = queen.isRunning;
-  const isInstalled = queen.isInstalled;
+  const isRunning = queen.isRunning
+  const isInstalled = queen.isInstalled
 
   // Compute badge status
-  const badgeStatus = !isInstalled
-    ? ("unknown" as const)
-    : isRunning
-      ? ("running" as const)
-      : ("stopped" as const);
+  const badgeStatus = !isInstalled ? ('unknown' as const) : isRunning ? ('running' as const) : ('stopped' as const)
 
   return (
     <Card className="w-80 h-80 max-w-sm flex flex-col">
@@ -72,8 +68,7 @@ function QueenCardContent({
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Job router that dispatches inference requests to workers in the
-            correct hive
+            Job router that dispatches inference requests to workers in the correct hive
           </p>
           <p className="text-xs text-muted-foreground">
             Build: <span className="font-mono">{queen.buildMode || 'unknown'}</span>
@@ -95,5 +90,5 @@ function QueenCardContent({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

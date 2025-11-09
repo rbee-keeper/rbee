@@ -3,8 +3,8 @@
 // TEAM-413: Client wrapper for ModelDetailPageTemplate with InstallButton
 // TEAM-421: Updated to use shared InstallCTA component
 
-import { ModelDetailPageTemplate } from '@rbee/ui/marketplace'
 import type { ModelDetailData } from '@rbee/ui/marketplace'
+import { ModelDetailPageTemplate } from '@rbee/ui/marketplace'
 import { InstallCTA } from './InstallCTA'
 
 interface ModelDetailWithInstallProps {
@@ -19,10 +19,7 @@ export function ModelDetailWithInstall({ model }: ModelDetailWithInstallProps) {
       <InstallCTA artifactType="model" artifactName={model.name} />
 
       {/* Model Details */}
-      <ModelDetailPageTemplate
-        model={model}
-        showBackButton={false}
-      />
+      <ModelDetailPageTemplate model={model} showBackButton={false} />
     </div>
   )
 }

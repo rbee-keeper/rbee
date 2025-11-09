@@ -2,7 +2,10 @@
 // Displays real-time worker and hive status
 // TEAM-364: Updated to display ProcessStats telemetry
 
+// TEAM-381: Import types from React hooks (single source of truth)
+import type { HiveData } from '@rbee/queen-rbee-react'
 import {
+  Badge,
   Card,
   CardContent,
   CardHeader,
@@ -10,24 +13,17 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-  Badge,
-} from "@rbee/ui/atoms";
-import { StatusKPI, PulseBadge, IconPlate } from "@rbee/ui/molecules";
-import { Activity, Server, Cpu, ChevronDown, Gauge, HardDrive } from "lucide-react";
-// TEAM-381: Import types from React hooks (single source of truth)
-import type { HiveData } from "@rbee/queen-rbee-react";
+} from '@rbee/ui/atoms'
+import { IconPlate, PulseBadge, StatusKPI } from '@rbee/ui/molecules'
+import { Activity, ChevronDown, Cpu, Gauge, HardDrive, Server } from 'lucide-react'
 
 interface HeartbeatMonitorProps {
-  workersOnline: number;
-  hivesOnline: number;
-  hives: HiveData[];
+  workersOnline: number
+  hivesOnline: number
+  hives: HiveData[]
 }
 
-export function HeartbeatMonitor({
-  workersOnline,
-  hivesOnline,
-  hives,
-}: HeartbeatMonitorProps) {
+export function HeartbeatMonitor({ workersOnline, hivesOnline, hives }: HeartbeatMonitorProps) {
   return (
     <Card>
       <CardHeader>
@@ -39,18 +35,8 @@ export function HeartbeatMonitor({
       <CardContent className="space-y-6">
         {/* KPI Metrics */}
         <div className="grid grid-cols-2 gap-3">
-          <StatusKPI
-            icon={<Cpu />}
-            color="success"
-            label="Workers Online"
-            value={workersOnline}
-          />
-          <StatusKPI
-            icon={<Server />}
-            color="primary"
-            label="Active Hives"
-            value={hivesOnline}
-          />
+          <StatusKPI icon={<Cpu />} color="success" label="Workers Online" value={workersOnline} />
+          <StatusKPI icon={<Server />} color="primary" label="Active Hives" value={hivesOnline} />
         </div>
 
         {/* Hives List */}
@@ -66,12 +52,7 @@ export function HeartbeatMonitor({
                     {/* Hive Header */}
                     <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 hover:bg-accent transition-colors group">
                       <ChevronDown className="h-4 w-4 transition-transform group-data-[state=closed]:-rotate-90" />
-                      <PulseBadge
-                        text="Online"
-                        variant="success"
-                        size="sm"
-                        animated
-                      />
+                      <PulseBadge text="Online" variant="success" size="sm" animated />
                       <span className="font-medium">{hive.hive_id}</span>
                       <Badge variant="secondary" className="ml-auto">
                         {hive.workers?.length || 0} workers
@@ -89,7 +70,7 @@ export function HeartbeatMonitor({
                             >
                               <PulseBadge
                                 text=""
-                                variant={worker.gpu_util_pct > 0 ? "success" : "info"}
+                                variant={worker.gpu_util_pct > 0 ? 'success' : 'info'}
                                 size="sm"
                                 animated={worker.gpu_util_pct > 0}
                                 className="px-0"
@@ -125,5 +106,5 @@ export function HeartbeatMonitor({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

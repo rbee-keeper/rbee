@@ -1,9 +1,9 @@
 // TEAM-405: Model statistics card
 //! Reusable component for displaying model stats (downloads, likes, size)
 
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@rbee/ui/atoms'
-import { Download, Heart, HardDrive } from 'lucide-react'
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import type { LucideIcon } from 'lucide-react'
+import { Download, HardDrive, Heart } from 'lucide-react'
 
 export interface ModelStat {
   icon: LucideIcon
@@ -30,7 +30,7 @@ const defaultFormatNumber = (num: number | string): string => {
 
 /**
  * Card for displaying model statistics
- * 
+ *
  * @example
  * ```tsx
  * <ModelStatsCard
@@ -52,9 +52,7 @@ export function ModelStatsCard({ stats, title = 'Statistics', className }: Model
       <CardContent className="space-y-3">
         {stats.map((stat, index) => {
           const Icon = stat.icon
-          const formattedValue = typeof stat.value === 'number' 
-            ? defaultFormatNumber(stat.value) 
-            : stat.value
+          const formattedValue = typeof stat.value === 'number' ? defaultFormatNumber(stat.value) : stat.value
 
           return (
             <div key={index} className="flex items-center justify-between">

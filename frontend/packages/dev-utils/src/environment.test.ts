@@ -1,22 +1,22 @@
 /**
  * TEAM-351: Tests for environment detection utilities
- * 
+ *
  * Tests the ACTUAL product behavior - no masking bugs in test harness!
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  isDevelopment,
-  isProduction,
-  isSSR,
   getCurrentPort,
-  getProtocol,
-  getHostname,
-  validatePort,
-  isRunningOnPort,
-  isLocalhost,
-  isHTTPS,
   getEnvironmentInfo,
+  getHostname,
+  getProtocol,
+  isDevelopment,
+  isHTTPS,
+  isLocalhost,
+  isProduction,
+  isRunningOnPort,
+  isSSR,
+  validatePort,
 } from './environment'
 
 // Helper to create fresh window with location
@@ -263,9 +263,9 @@ describe('@rbee/dev-utils - environment', () => {
         hostname: 'localhost',
         href: 'http://localhost:3000',
       })
-      
+
       const info = getEnvironmentInfo()
-      
+
       expect(info).toHaveProperty('isDev')
       expect(info).toHaveProperty('isProd')
       expect(info).toHaveProperty('isSSR')
@@ -273,7 +273,7 @@ describe('@rbee/dev-utils - environment', () => {
       expect(info).toHaveProperty('protocol')
       expect(info).toHaveProperty('hostname')
       expect(info).toHaveProperty('url')
-      
+
       expect(typeof info.isDev).toBe('boolean')
       expect(typeof info.isProd).toBe('boolean')
       expect(info.isSSR).toBe(false)
@@ -287,7 +287,7 @@ describe('@rbee/dev-utils - environment', () => {
     // See: bin/.plan/TEAM_351_SKIPPED_TESTS.md
     it.skip('should return empty URL in SSR', () => {
       delete (global as any).window
-      
+
       const info = getEnvironmentInfo()
       expect(info.url).toBe('')
       expect(info.isSSR).toBe(true)

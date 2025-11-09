@@ -111,8 +111,8 @@ export const KeyboardFocus: Story = {
       <div className="bg-card border border-border rounded-md p-6">
         <h3 className="text-lg font-semibold mb-4">Keyboard Navigation</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Tab through the rows to see the focus ring. Uses ring-[var(--ring)] with proper offset for clear
-          keyboard path without amber flooding the grid.
+          Tab through the rows to see the focus ring. Uses ring-[var(--ring)] with proper offset for clear keyboard path
+          without amber flooding the grid.
         </p>
 
         <Table>

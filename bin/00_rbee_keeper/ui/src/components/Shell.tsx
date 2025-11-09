@@ -4,36 +4,36 @@
 // TEAM-336: Added NarrationPanel on the right side
 // TEAM-339: Made panels resizable with react-resizable-panels library
 
-import { listen } from "@tauri-apps/api/event";
-import { MessageSquare } from "lucide-react";
-import type { ReactNode } from "react";
-import { useEffect } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import type { NarrationEvent } from "../generated/bindings";
-import { useNarrationStore } from "../store/narrationStore";
-import { CustomTitlebar } from "./CustomTitlebar";
-import { KeeperSidebar } from "./KeeperSidebar";
-import { NarrationPanel } from "./NarrationPanel";
-import { ErrorBoundary } from "./ErrorBoundary";
+import { listen } from '@tauri-apps/api/event'
+import { MessageSquare } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { useEffect } from 'react'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import type { NarrationEvent } from '../generated/bindings'
+import { useNarrationStore } from '../store/narrationStore'
+import { CustomTitlebar } from './CustomTitlebar'
+import { ErrorBoundary } from './ErrorBoundary'
+import { KeeperSidebar } from './KeeperSidebar'
+import { NarrationPanel } from './NarrationPanel'
 
 interface ShellProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export function Shell({ children }: ShellProps) {
-  const { showNarration, setShowNarration, addEntry } = useNarrationStore();
+  const { showNarration, setShowNarration, addEntry } = useNarrationStore()
 
   // TEAM-339: Listen to narration events at Shell level (always active)
   // This ensures we don't miss events when panel is closed
   useEffect(() => {
-    const unlisten = listen<NarrationEvent>("narration", (event) => {
-      addEntry(event.payload);
-    });
+    const unlisten = listen<NarrationEvent>('narration', (event) => {
+      addEntry(event.payload)
+    })
 
     return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, [addEntry]);
+      unlisten.then((fn) => fn())
+    }
+  }, [addEntry])
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-background font-sans">
@@ -41,19 +41,9 @@ export function Shell({ children }: ShellProps) {
       <CustomTitlebar />
 
       {/* Main content area - left sidebar + page content + right narration panel */}
-      <PanelGroup
-        direction="horizontal"
-        autoSaveId="keeper-layout"
-        className="flex-1"
-      >
+      <PanelGroup direction="horizontal" autoSaveId="keeper-layout" className="flex-1">
         {/* Left sidebar - navigation - resizable */}
-        <Panel
-          id="sidebar"
-          defaultSize={20}
-          minSize={15}
-          maxSize={30}
-          order={1}
-        >
+        <Panel id="sidebar" defaultSize={20} minSize={15} maxSize={30} order={1}>
           <KeeperSidebar />
         </Panel>
 
@@ -82,13 +72,7 @@ export function Shell({ children }: ShellProps) {
             <PanelResizeHandle className="w-1 bg-transparent hover:bg-blue-500 transition-colors" />
 
             {/* Right panel - narration stream - resizable */}
-            <Panel
-              id="narration"
-              defaultSize={20}
-              minSize={20}
-              maxSize={40}
-              order={3}
-            >
+            <Panel id="narration" defaultSize={20} minSize={20} maxSize={40} order={3}>
               <ErrorBoundary fallbackMessage="Failed to load narration panel. Check console for details.">
                 <NarrationPanel onClose={() => setShowNarration(false)} />
               </ErrorBoundary>
@@ -97,5 +81,5 @@ export function Shell({ children }: ShellProps) {
         )}
       </PanelGroup>
     </div>
-  );
+  )
 }

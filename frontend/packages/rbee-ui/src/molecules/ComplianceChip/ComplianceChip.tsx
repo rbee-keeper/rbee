@@ -1,4 +1,4 @@
-import { cn, renderIcon, type IconName } from '@rbee/ui/utils'
+import { cn, type IconName, renderIcon } from '@rbee/ui/utils'
 import type { ReactNode } from 'react'
 
 export interface ComplianceChipProps {

@@ -12,19 +12,19 @@ export default function postcssRemoveInvalidLength() {
     postcssPlugin: 'postcss-remove-invalid-length',
     Rule(rule) {
       // Remove rules with invalid 'length' property
-      const hasInvalidLength = rule.nodes?.some(node => {
+      const hasInvalidLength = rule.nodes?.some((node) => {
         if (node.type === 'decl') {
           // Invalid CSS: property named 'length' (not a real CSS property)
-          return node.prop === 'length';
+          return node.prop === 'length'
         }
-        return false;
-      });
+        return false
+      })
 
       if (hasInvalidLength) {
-        rule.remove();
+        rule.remove()
       }
-    }
-  };
+    },
+  }
 }
 
-postcssRemoveInvalidLength.postcss = true;
+postcssRemoveInvalidLength.postcss = true

@@ -65,9 +65,7 @@
         "rbee-hive-model-catalog",
         "rbee-hive-artifact-catalog"
       ],
-      "devDependencies": [
-        "hive-contract"
-      ]
+      "devDependencies": ["hive-contract"]
     },
     "llm-worker-rbee": {
       "name": "llm-worker-rbee",
@@ -96,12 +94,7 @@
         "version": "0.1.0",
         "description": "Candle-based Stable Diffusion inference worker daemon with CUDA/Metal/CPU acceleration"
       },
-      "dependencies": [
-        "observability-narration-core",
-        "operations-contract",
-        "job-server",
-        "shared-worker-rbee"
-      ],
+      "dependencies": ["observability-narration-core", "operations-contract", "job-server", "shared-worker-rbee"],
       "devDependencies": []
     },
     "shared-worker-rbee": {
@@ -112,10 +105,7 @@
         "version": "0.1.0",
         "description": "Shared utilities for LLM and SD worker daemons"
       },
-      "dependencies": [
-        "observability-narration-core",
-        "worker-contract"
-      ],
+      "dependencies": ["observability-narration-core", "worker-contract"],
       "devDependencies": []
     },
     "queen-rbee-telemetry-registry": {
@@ -126,12 +116,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "rbee-hive-monitor",
-        "heartbeat-registry",
-        "shared-contract",
-        "hive-contract"
-      ],
+      "dependencies": ["rbee-hive-monitor", "heartbeat-registry", "shared-contract", "hive-contract"],
       "devDependencies": []
     },
     "rbee-hive-artifact-catalog": {
@@ -142,10 +127,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "artifacts-contract",
-        "observability-narration-core"
-      ],
+      "dependencies": ["artifacts-contract", "observability-narration-core"],
       "devDependencies": []
     },
     "rbee-hive-model-catalog": {
@@ -156,10 +138,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "artifacts-contract",
-        "rbee-hive-artifact-catalog"
-      ],
+      "dependencies": ["artifacts-contract", "rbee-hive-artifact-catalog"],
       "devDependencies": []
     },
     "rbee-hive-model-provisioner": {
@@ -170,11 +149,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "artifacts-contract",
-        "observability-narration-core",
-        "rbee-hive-artifact-catalog"
-      ],
+      "dependencies": ["artifacts-contract", "observability-narration-core", "rbee-hive-artifact-catalog"],
       "devDependencies": []
     },
     "rbee-hive-monitor": {
@@ -186,9 +161,7 @@
         "description": ""
       },
       "dependencies": [],
-      "devDependencies": [
-        "rbee-hive-monitor"
-      ]
+      "devDependencies": ["rbee-hive-monitor"]
     },
     "rbee-hive-device-detection": {
       "name": "rbee-hive-device-detection",
@@ -209,9 +182,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "rbee-hive-device-detection"
-      ],
+      "dependencies": ["rbee-hive-device-detection"],
       "devDependencies": []
     },
     "rbee-hive-worker-catalog": {
@@ -222,10 +193,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "artifacts-contract",
-        "rbee-hive-artifact-catalog"
-      ],
+      "dependencies": ["artifacts-contract", "rbee-hive-artifact-catalog"],
       "devDependencies": []
     },
     "rbee-hive-worker-provisioner": {
@@ -236,11 +204,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "artifacts-contract",
-        "observability-narration-core",
-        "rbee-hive-artifact-catalog"
-      ],
+      "dependencies": ["artifacts-contract", "observability-narration-core", "rbee-hive-artifact-catalog"],
       "devDependencies": []
     },
     "audit-logging": {
@@ -253,9 +217,7 @@
         },
         "description": ""
       },
-      "dependencies": [
-        "input-validation"
-      ],
+      "dependencies": ["input-validation"],
       "devDependencies": []
     },
     "auth-min": {
@@ -327,9 +289,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "observability-narration-core"
-      ],
+      "dependencies": ["observability-narration-core"],
       "devDependencies": []
     },
     "lifecycle-shared": {
@@ -340,10 +300,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "observability-narration-core",
-        "timeout-enforcer"
-      ],
+      "dependencies": ["observability-narration-core", "timeout-enforcer"],
       "devDependencies": []
     },
     "lifecycle-local": {
@@ -371,12 +328,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "lifecycle-shared",
-        "health-poll",
-        "timeout-enforcer",
-        "observability-narration-core"
-      ],
+      "dependencies": ["lifecycle-shared", "health-poll", "timeout-enforcer", "observability-narration-core"],
       "devDependencies": []
     },
     "observability-narration-core": {
@@ -409,10 +361,7 @@
         "version": "0.1.0",
         "description": "Shared job registry for dual-call inference pattern across worker, queen, and hive"
       },
-      "dependencies": [
-        "observability-narration-core",
-        "jobs-contract"
-      ],
+      "dependencies": ["observability-narration-core", "jobs-contract"],
       "devDependencies": []
     },
     "timeout-enforcer": {
@@ -423,9 +372,7 @@
         "version": "0.2.0",
         "description": ""
       },
-      "dependencies": [
-        "observability-narration-core"
-      ],
+      "dependencies": ["observability-narration-core"],
       "devDependencies": []
     },
     "auto-update": {
@@ -436,9 +383,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "observability-narration-core"
-      ],
+      "dependencies": ["observability-narration-core"],
       "devDependencies": []
     },
     "job-client": {
@@ -451,10 +396,7 @@
         },
         "description": ""
       },
-      "dependencies": [
-        "jobs-contract",
-        "operations-contract"
-      ],
+      "dependencies": ["jobs-contract", "operations-contract"],
       "devDependencies": []
     },
     "ssh-config-parser": {
@@ -498,10 +440,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "heartbeat-registry",
-        "shared-contract"
-      ],
+      "dependencies": ["heartbeat-registry", "shared-contract"],
       "devDependencies": []
     },
     "hive-contract": {
@@ -512,10 +451,7 @@
         "version": "0.1.0",
         "description": ""
       },
-      "dependencies": [
-        "heartbeat-registry",
-        "shared-contract"
-      ],
+      "dependencies": ["heartbeat-registry", "shared-contract"],
       "devDependencies": []
     },
     "operations-contract": {
@@ -570,9 +506,7 @@
         "version": "0.0.0",
         "description": ""
       },
-      "dependencies": [
-        "contracts-api-types"
-      ],
+      "dependencies": ["contracts-api-types"],
       "devDependencies": []
     },
     "tools-readme-index": {
@@ -605,12 +539,7 @@
         "version": "0.0.0",
         "description": ""
       },
-      "dependencies": [
-        "auto-update",
-        "auth-min",
-        "contracts-config-schema",
-        "observability-narration-core"
-      ],
+      "dependencies": ["auto-update", "auth-min", "contracts-config-schema", "observability-narration-core"],
       "devDependencies": []
     },
     "keeper-config-contract": {
@@ -633,12 +562,8 @@
         "description": "",
         "private": true
       },
-      "dependencies": [
-        "@rbee/ui"
-      ],
-      "devDependencies": [
-        "@repo/tailwind-config"
-      ]
+      "dependencies": ["@rbee/ui"],
+      "devDependencies": ["@repo/tailwind-config"]
     },
     "marketplace": {
       "name": "marketplace",
@@ -661,9 +586,7 @@
         "description": "",
         "private": true
       },
-      "dependencies": [
-        "@rbee/ui"
-      ],
+      "dependencies": ["@rbee/ui"],
       "devDependencies": []
     },
     "@rbee/ui": {
@@ -676,9 +599,7 @@
         "private": true
       },
       "dependencies": [],
-      "devDependencies": [
-        "@repo/tailwind-config"
-      ]
+      "devDependencies": ["@repo/tailwind-config"]
     },
     "@repo/tailwind-config": {
       "name": "@repo/tailwind-config",
@@ -749,9 +670,7 @@
         "description": "",
         "private": false
       },
-      "dependencies": [
-        "@rbee/shared-config"
-      ],
+      "dependencies": ["@rbee/shared-config"],
       "devDependencies": []
     },
     "@rbee/iframe-bridge": {
@@ -823,17 +742,8 @@
         "description": "",
         "private": true
       },
-      "dependencies": [
-        "@rbee/shared-config",
-        "@rbee/narration-client",
-        "@rbee/ui",
-        "@rbee/iframe-bridge"
-      ],
-      "devDependencies": [
-        "@repo/typescript-config",
-        "@repo/eslint-config",
-        "@repo/tailwind-config"
-      ]
+      "dependencies": ["@rbee/shared-config", "@rbee/narration-client", "@rbee/ui", "@rbee/iframe-bridge"],
+      "devDependencies": ["@repo/typescript-config", "@repo/eslint-config", "@repo/tailwind-config"]
     },
     "@rbee/queen-rbee-ui": {
       "name": "@rbee/queen-rbee-ui",
@@ -844,17 +754,8 @@
         "description": "",
         "private": true
       },
-      "dependencies": [
-        "@rbee/ui",
-        "@rbee/dev-utils",
-        "@rbee/queen-rbee-react",
-        "@rbee/iframe-bridge"
-      ],
-      "devDependencies": [
-        "@repo/typescript-config",
-        "@repo/eslint-config",
-        "@repo/tailwind-config"
-      ]
+      "dependencies": ["@rbee/ui", "@rbee/dev-utils", "@rbee/queen-rbee-react", "@rbee/iframe-bridge"],
+      "devDependencies": ["@repo/typescript-config", "@repo/eslint-config", "@repo/tailwind-config"]
     },
     "@rbee/queen-rbee-sdk": {
       "name": "@rbee/queen-rbee-sdk",
@@ -866,11 +767,7 @@
         "private": false,
         "is_wasm_bridge": true
       },
-      "dependencies": [
-        "job-client",
-        "operations-contract",
-        "hive-contract"
-      ],
+      "dependencies": ["job-client", "operations-contract", "hive-contract"],
       "devDependencies": []
     },
     "@rbee/queen-rbee-react": {
@@ -882,12 +779,7 @@
         "description": "React hooks for queen-rbee WASM SDK",
         "private": false
       },
-      "dependencies": [
-        "@rbee/sdk-loader",
-        "@rbee/queen-rbee-sdk",
-        "@rbee/narration-client",
-        "@rbee/react-hooks"
-      ],
+      "dependencies": ["@rbee/sdk-loader", "@rbee/queen-rbee-sdk", "@rbee/narration-client", "@rbee/react-hooks"],
       "devDependencies": []
     },
     "@rbee/rbee-hive-ui": {
@@ -907,9 +799,7 @@
         "@rbee/ui",
         "@rbee/iframe-bridge"
       ],
-      "devDependencies": [
-        "@repo/tailwind-config"
-      ]
+      "devDependencies": ["@repo/tailwind-config"]
     },
     "@rbee/rbee-hive-sdk": {
       "name": "@rbee/rbee-hive-sdk",
@@ -921,11 +811,7 @@
         "private": false,
         "is_wasm_bridge": true
       },
-      "dependencies": [
-        "job-client",
-        "operations-contract",
-        "hive-contract"
-      ],
+      "dependencies": ["job-client", "operations-contract", "hive-contract"],
       "devDependencies": []
     },
     "@rbee/rbee-hive-react": {
@@ -983,10 +869,7 @@
         "private": false,
         "is_wasm_bridge": true
       },
-      "dependencies": [
-        "job-client",
-        "operations-contract"
-      ],
+      "dependencies": ["job-client", "operations-contract"],
       "devDependencies": []
     },
     "@rbee/llm-worker-react": {
@@ -998,9 +881,7 @@
         "description": "",
         "private": false
       },
-      "dependencies": [
-        "@rbee/llm-worker-sdk"
-      ],
+      "dependencies": ["@rbee/llm-worker-sdk"],
       "devDependencies": []
     },
     "80-hono-worker-catalog": {

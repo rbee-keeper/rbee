@@ -4,14 +4,14 @@
  * TEAM-351: CORRECTION - Import ports from @rbee/shared-config (single source of truth)
  */
 
-import type { ServiceName } from './types'
 import { PORTS } from '@rbee/shared-config'
+import type { ServiceName } from './types'
 
 export interface ServiceConfig {
-  name: string           // Full service name (e.g., 'queen-rbee')
-  devPort: number        // Vite dev server port
+  name: string // Full service name (e.g., 'queen-rbee')
+  devPort: number // Vite dev server port
   prodPort: number | null // Production embedded port (null for dynamic allocation)
-  keeperDevPort: number  // Keeper dev server port
+  keeperDevPort: number // Keeper dev server port
   keeperProdOrigin: string // Keeper prod origin ('*' for Tauri)
 }
 
@@ -25,7 +25,7 @@ export const SERVICES: Record<ServiceName, ServiceConfig> = {
     devPort: PORTS.queen.dev,
     prodPort: PORTS.queen.prod,
     keeperDevPort: PORTS.keeper.dev,
-    keeperProdOrigin: '*',  // Tauri app
+    keeperProdOrigin: '*', // Tauri app
   },
   hive: {
     name: 'rbee-hive',
@@ -53,10 +53,10 @@ for (const serviceName of Object.keys(SERVICES)) {
 
 /**
  * Get parent origin based on current service location
- * 
+ *
  * TEAM-351: Bug fixes - Handle missing port, validation
  * TEAM-XXX: Handle dynamic port allocation (prodPort can be null)
- * 
+ *
  * @param serviceConfig - Service configuration
  * @returns Parent origin for postMessage
  */
@@ -64,12 +64,10 @@ export function getParentOrigin(serviceConfig: ServiceConfig): string {
   // TEAM-351: Handle missing window.location.port (default to 80)
   const currentPort = window.location.port || '80'
   const isOnDevServer = currentPort === serviceConfig.devPort.toString()
-  
+
   // TEAM-XXX: For workers with dynamic ports, always use dev origin in dev mode
   // In production, workers don't use narration client (managed by hive)
-  return isOnDevServer
-    ? `http://localhost:${serviceConfig.keeperDevPort}`
-    : serviceConfig.keeperProdOrigin
+  return isOnDevServer ? `http://localhost:${serviceConfig.keeperDevPort}` : serviceConfig.keeperProdOrigin
 }
 
 /**
@@ -81,10 +79,14 @@ export function isValidServiceConfig(config: any): config is ServiceConfig {
   return (
     config !== null &&
     typeof config === 'object' &&
-    typeof config.name === 'string' && config.name.length > 0 &&
-    typeof config.devPort === 'number' && config.devPort > 0 &&
-    (typeof config.prodPort === 'number' && config.prodPort > 0 || config.prodPort === null) &&
-    typeof config.keeperDevPort === 'number' && config.keeperDevPort > 0 &&
-    typeof config.keeperProdOrigin === 'string' && config.keeperProdOrigin.length > 0
+    typeof config.name === 'string' &&
+    config.name.length > 0 &&
+    typeof config.devPort === 'number' &&
+    config.devPort > 0 &&
+    ((typeof config.prodPort === 'number' && config.prodPort > 0) || config.prodPort === null) &&
+    typeof config.keeperDevPort === 'number' &&
+    config.keeperDevPort > 0 &&
+    typeof config.keeperProdOrigin === 'string' &&
+    config.keeperProdOrigin.length > 0
   )
 }

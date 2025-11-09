@@ -6,11 +6,11 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useQueenSDK } from './useQueenSDK'
 // TEAM-352: Import directly from @rbee/narration-client (no wrapper)
 import { createStreamHandler, SERVICES } from '@rbee/narration-client'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQueenSDK } from './useQueenSDK'
 
 export interface RhaiScript {
   id?: string
@@ -55,9 +55,9 @@ fn schedule_worker(job) {
 
 /**
  * Hook for managing RHAI scripts
- * 
+ *
  * TEAM-352: Now uses TanStack Query for async state management
- * 
+ *
  * @param baseUrl - Queen API URL (default: http://localhost:7833)
  * @returns RHAI script management functions and state
  */
@@ -161,13 +161,17 @@ export function useRhaiScripts(baseUrl: string = 'http://localhost:7833'): UseRh
       console.log('[RHAI Test] Operation:', operation)
 
       // TEAM-352: Use createStreamHandler with SERVICES.queen config
-      const narrationHandler = createStreamHandler(SERVICES.queen, (event) => {
-        console.log('[RHAI Test] Narration event:', event)
-      }, {
-        debug: true,
-        silent: false,
-        validate: true,
-      })
+      const narrationHandler = createStreamHandler(
+        SERVICES.queen,
+        (event) => {
+          console.log('[RHAI Test] Narration event:', event)
+        },
+        {
+          debug: true,
+          silent: false,
+          validate: true,
+        },
+      )
 
       let receivedDone = false
 

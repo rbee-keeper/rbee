@@ -7,15 +7,15 @@
 // ============================================================================
 // TEAM-381: ✅ MIGRATION COMPLETE!
 // ============================================================================
-// 
+//
 // All types are now auto-generated from Rust contract crates:
 // - ProcessStats: bin/97_contracts/hive-contract/src/telemetry.rs
 // - HiveInfo: bin/97_contracts/hive-contract/src/types.rs
 // - HiveHeartbeatEvent: bin/97_contracts/hive-contract/src/telemetry.rs
-// 
+//
 // Single source of truth: RUST! 🦀
 // No more manual TypeScript type definitions!
-// 
+//
 // See: bin/.plan/TEAM_381_HOW_TO_MIGRATE_TYPES_FROM_RUST.md
 // ============================================================================
 
@@ -32,16 +32,16 @@ export interface HFModel {
 }
 
 // Re-export WASM SDK types (including auto-generated TypeScript types from Rust)
-export type { 
-  HiveClient, 
+export type {
   HeartbeatMonitor,
-  OperationBuilder,
-  // TEAM-381: ✅ ALL AUTO-GENERATED FROM RUST!
-  // Source: bin/97_contracts/hive-contract/src/telemetry.rs
-  ProcessStats,
+  HiveClient,
   HiveHeartbeatEvent,
   // Source: bin/97_contracts/hive-contract/src/types.rs
   HiveInfo,
   // Source: bin/97_contracts/operations-contract/
   ModelInfo,
+  OperationBuilder,
+  // TEAM-381: ✅ ALL AUTO-GENERATED FROM RUST!
+  // Source: bin/97_contracts/hive-contract/src/telemetry.rs
+  ProcessStats,
 } from '../pkg/bundler/rbee_hive_sdk'

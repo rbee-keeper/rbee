@@ -53,10 +53,7 @@ const DEV_URLS = {
 /**
  * Get URL based on environment with optional override
  */
-function getUrl(
-  key: keyof typeof PROD_URLS,
-  envVar?: string
-): string {
+function getUrl(key: keyof typeof PROD_URLS, envVar?: string): string {
   // 1. Check environment variable override
   if (envVar && process.env[envVar]) {
     return process.env[envVar]
@@ -127,10 +124,7 @@ export const urls = {
 export const corsOrigins = {
   development: [DEV_URLS.commercial, DEV_URLS.marketplace, DEV_URLS.docs],
   production: [PROD_URLS.commercial, PROD_URLS.marketplace, PROD_URLS.docs],
-  all: [...new Set([
-    ...Object.values(DEV_URLS),
-    ...Object.values(PROD_URLS),
-  ])],
+  all: [...new Set([...Object.values(DEV_URLS), ...Object.values(PROD_URLS)])],
 } as const
 
 // Build-time validation and logging (only in development, server-side only)

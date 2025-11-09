@@ -11,8 +11,8 @@ export interface SenderConfig {
   targetOrigin: string
   debug?: boolean
   validate?: boolean
-  timeout?: number      // Timeout for send operation (ms)
-  retry?: boolean       // Retry once on failure
+  timeout?: number // Timeout for send operation (ms)
+  retry?: boolean // Retry once on failure
 }
 
 /**
@@ -73,35 +73,29 @@ export function isValidSenderConfig(config: any): config is SenderConfig {
 
 /**
  * Create message sender with validation and monitoring
- * 
+ *
  * TEAM-351: Bug fixes - Validation, return values, production logging
- * 
+ *
  * @param config - Sender configuration
  * @returns Sender function that returns boolean (success/failure)
  * @throws Error if config is invalid
  */
 export function createMessageSender(config: SenderConfig) {
-  const { 
-    targetOrigin, 
-    debug = !isProduction, 
-    validate = true,
-    timeout = 5000,
-    retry = false,
-  } = config
-  
+  const { targetOrigin, debug = !isProduction, validate = true, timeout = 5000, retry = false } = config
+
   // TEAM-351: Validate config at creation time
   if (!isValidSenderConfig(config)) {
     throw new Error(`Invalid sender config: targetOrigin must be a valid origin URL`)
   }
-  
+
   return (message: IframeMessage): boolean => {
     sendStats.total++
-    
+
     // TEAM-351: Validate environment
     if (typeof window === 'undefined' || window.parent === window) {
       return false
     }
-    
+
     // TEAM-351: Validate message if requested
     if (validate) {
       const validation = validateMessage(message)
@@ -121,7 +115,7 @@ export function createMessageSender(config: SenderConfig) {
           target: targetOrigin,
         })
       }
-      
+
       window.parent.postMessage(message, targetOrigin)
       sendStats.success++
       return true
@@ -131,7 +125,7 @@ export function createMessageSender(config: SenderConfig) {
         type: message.type,
         target: targetOrigin,
       })
-      
+
       // TEAM-351: Retry once if requested
       if (retry) {
         try {
@@ -147,7 +141,7 @@ export function createMessageSender(config: SenderConfig) {
           // Ignore retry errors
         }
       }
-      
+
       sendStats.failed++
       return false
     }

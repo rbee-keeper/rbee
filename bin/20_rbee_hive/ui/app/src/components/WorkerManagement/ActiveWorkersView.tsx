@@ -1,9 +1,9 @@
 // TEAM-382: Active workers grid view
 
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@rbee/ui/atoms'
 import { Loader2, ServerOff } from 'lucide-react'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@rbee/ui/atoms'
-import { WorkerCard } from './WorkerCard'
 import type { ProcessStats } from './types'
+import { WorkerCard } from './WorkerCard'
 
 interface ActiveWorkersViewProps {
   workers: ProcessStats[]
@@ -13,13 +13,7 @@ interface ActiveWorkersViewProps {
   isTerminating?: boolean
 }
 
-export function ActiveWorkersView({
-  workers,
-  loading,
-  error,
-  onTerminate,
-  isTerminating,
-}: ActiveWorkersViewProps) {
+export function ActiveWorkersView({ workers, loading, error, onTerminate, isTerminating }: ActiveWorkersViewProps) {
   // Loading state
   if (loading) {
     return (
@@ -53,9 +47,7 @@ export function ActiveWorkersView({
             <ServerOff className="h-12 w-12" />
           </EmptyMedia>
           <EmptyTitle>No active workers</EmptyTitle>
-          <EmptyDescription>
-            Spawn a worker to start processing inference requests
-          </EmptyDescription>
+          <EmptyDescription>Spawn a worker to start processing inference requests</EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -65,12 +57,7 @@ export function ActiveWorkersView({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {workers.map((worker) => (
-        <WorkerCard
-          key={worker.pid}
-          worker={worker}
-          onTerminate={onTerminate}
-          isTerminating={isTerminating}
-        />
+        <WorkerCard key={worker.pid} worker={worker} onTerminate={onTerminate} isTerminating={isTerminating} />
       ))}
     </div>
   )

@@ -1,15 +1,15 @@
 /**
  * TEAM-351: Tests for narration config
- * 
+ *
  * Behavioral tests covering:
  * - Service configuration
  * - Port configuration (imported from shared-config)
  * - Service name validation
  */
 
-import { describe, it, expect } from 'vitest'
-import { SERVICES } from './config'
 import { PORTS } from '@rbee/shared-config'
+import { describe, expect, it } from 'vitest'
+import { SERVICES } from './config'
 
 describe('@rbee/narration-client - config', () => {
   describe('SERVICES constant', () => {
@@ -96,13 +96,9 @@ describe('@rbee/narration-client - config', () => {
     })
 
     it('should have unique dev ports across services', () => {
-      const devPorts = [
-        SERVICES.queen.devPort,
-        SERVICES.hive.devPort,
-        SERVICES.worker.devPort,
-      ]
+      const devPorts = [SERVICES.queen.devPort, SERVICES.hive.devPort, SERVICES.worker.devPort]
       const uniquePorts = new Set(devPorts)
-      
+
       expect(uniquePorts.size).toBe(devPorts.length)
     })
   })

@@ -2,24 +2,12 @@
 // Different from ActiveWorkersView which shows running processes
 // TEAM-382: Wired up to useInstalledWorkers hook
 
-import { useState } from 'react'
-import { 
-  Card, 
-  CardContent
-} from '@rbee/ui/atoms/Card'
-import { Button } from '@rbee/ui/atoms/Button'
+import { type InstalledWorker as ApiInstalledWorker, useInstalledWorkers } from '@rbee/rbee-hive-react'
 import { Badge } from '@rbee/ui/atoms/Badge'
-import { 
-  Trash2, 
-  CheckCircle, 
-  AlertCircle,
-  Package,
-  Cpu,
-  Zap,
-  Apple,
-  Loader2
-} from 'lucide-react'
-import { useInstalledWorkers, type InstalledWorker as ApiInstalledWorker } from '@rbee/rbee-hive-react'
+import { Button } from '@rbee/ui/atoms/Button'
+import { Card, CardContent } from '@rbee/ui/atoms/Card'
+import { AlertCircle, Apple, CheckCircle, Cpu, Loader2, Package, Trash2, Zap } from 'lucide-react'
+import { useState } from 'react'
 
 interface InstalledWorker {
   id: string
@@ -39,10 +27,10 @@ interface InstalledWorkersViewProps {
 function convertWorker(apiWorker: ApiInstalledWorker): InstalledWorker {
   // Extract worker type from worker_type string (e.g., "CpuLlm" -> "cpu")
   const workerType = apiWorker.worker_type.toLowerCase().replace('llm', '') as 'cpu' | 'cuda' | 'metal'
-  
+
   // Format size from bytes to human-readable
   const sizeInMB = (apiWorker.size / (1024 * 1024)).toFixed(1)
-  
+
   return {
     id: apiWorker.id,
     name: apiWorker.name,
@@ -50,19 +38,19 @@ function convertWorker(apiWorker: ApiInstalledWorker): InstalledWorker {
     workerType,
     installedAt: apiWorker.added_at,
     binaryPath: apiWorker.path,
-    size: `${sizeInMB} MB`
+    size: `${sizeInMB} MB`,
   }
 }
 
 export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps) {
   const [removingWorker, setRemovingWorker] = useState<string | null>(null)
-  
+
   // TEAM-382: Fetch installed workers from catalog
   const { data: apiWorkers = [], isLoading, error } = useInstalledWorkers()
-  
+
   // Convert API format to UI format
   const installedWorkers = apiWorkers.map(convertWorker)
-  
+
   const getWorkerIcon = (workerType: string) => {
     switch (workerType) {
       case 'cpu':
@@ -75,12 +63,12 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
         return <Package className="h-4 w-4" />
     }
   }
-  
+
   const getWorkerTypeBadge = (workerType: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       cpu: 'secondary',
       cuda: 'default',
-      metal: 'outline'
+      metal: 'outline',
     }
     return (
       <Badge variant={variants[workerType] || 'secondary'} className="flex items-center gap-1">
@@ -89,7 +77,7 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
       </Badge>
     )
   }
-  
+
   const handleUninstall = async (workerId: string) => {
     setRemovingWorker(workerId)
     try {
@@ -98,17 +86,17 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
       setRemovingWorker(null)
     }
   }
-  
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
-  
+
   // TEAM-382: Show loading state
   if (isLoading) {
     return (
@@ -122,7 +110,7 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
       </Card>
     )
   }
-  
+
   // TEAM-382: Show error state
   if (error) {
     console.error('[InstalledWorkersView] Error loading workers:', error)
@@ -147,7 +135,7 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
       </Card>
     )
   }
-  
+
   if (installedWorkers.length === 0) {
     return (
       <Card>
@@ -156,8 +144,8 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
             <Package className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Workers Installed</h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              Install worker binaries from the Worker Catalog to get started.
-              Workers are compiled binaries that can spawn processes to handle inference requests.
+              Install worker binaries from the Worker Catalog to get started. Workers are compiled binaries that can
+              spawn processes to handle inference requests.
             </p>
             <p className="text-xs text-muted-foreground">
               Go to <strong>Worker Catalog</strong> tab to install workers
@@ -167,17 +155,15 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
       </Card>
     )
   }
-  
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div>
         <h3 className="text-lg font-semibold">Installed Worker Binaries</h3>
-        <p className="text-sm text-muted-foreground">
-          Compiled worker binaries ready to spawn processes
-        </p>
+        <p className="text-sm text-muted-foreground">Compiled worker binaries ready to spawn processes</p>
       </div>
-      
+
       {/* Table */}
       <Card>
         <CardContent className="p-0">
@@ -203,24 +189,14 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
                         <span className="font-medium">{worker.name}</span>
                       </div>
                     </td>
+                    <td className="p-4">{getWorkerTypeBadge(worker.workerType)}</td>
                     <td className="p-4">
-                      {getWorkerTypeBadge(worker.workerType)}
+                      <code className="text-xs bg-muted px-2 py-1 rounded">v{worker.version}</code>
                     </td>
+                    <td className="p-4 text-sm text-muted-foreground">{formatDate(worker.installedAt)}</td>
+                    <td className="p-4 text-sm text-muted-foreground">{worker.size}</td>
                     <td className="p-4">
-                      <code className="text-xs bg-muted px-2 py-1 rounded">
-                        v{worker.version}
-                      </code>
-                    </td>
-                    <td className="p-4 text-sm text-muted-foreground">
-                      {formatDate(worker.installedAt)}
-                    </td>
-                    <td className="p-4 text-sm text-muted-foreground">
-                      {worker.size}
-                    </td>
-                    <td className="p-4">
-                      <code className="text-xs text-muted-foreground">
-                        {worker.binaryPath}
-                      </code>
+                      <code className="text-xs text-muted-foreground">{worker.binaryPath}</code>
                     </td>
                     <td className="p-4 text-right">
                       <Button
@@ -249,19 +225,17 @@ export function InstalledWorkersView({ onUninstall }: InstalledWorkersViewProps)
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Info Card */}
       <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <CardContent className="pt-6">
           <div className="flex gap-3">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                About Installed Workers
-              </p>
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">About Installed Workers</p>
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                These are compiled binaries that can spawn worker processes. To start a worker process,
-                go to the <strong>Spawn Worker</strong> tab and select a model.
+                These are compiled binaries that can spawn worker processes. To start a worker process, go to the{' '}
+                <strong>Spawn Worker</strong> tab and select a model.
               </p>
             </div>
           </div>

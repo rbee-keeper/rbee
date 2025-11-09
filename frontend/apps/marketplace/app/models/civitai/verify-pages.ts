@@ -11,12 +11,15 @@ console.log()
 
 PREGENERATED_FILTERS.forEach((filterConfig, index) => {
   const url = filterConfig.path ? `/models/civitai/${filterConfig.path}` : '/models/civitai'
-  const description = [
-    filterConfig.filters.timePeriod !== 'AllTime' ? filterConfig.filters.timePeriod : null,
-    filterConfig.filters.modelType !== 'All' ? filterConfig.filters.modelType : null,
-    filterConfig.filters.baseModel !== 'All' ? filterConfig.filters.baseModel : null,
-  ].filter(Boolean).join(' · ') || 'All Models'
-  
+  const description =
+    [
+      filterConfig.filters.timePeriod !== 'AllTime' ? filterConfig.filters.timePeriod : null,
+      filterConfig.filters.modelType !== 'All' ? filterConfig.filters.modelType : null,
+      filterConfig.filters.baseModel !== 'All' ? filterConfig.filters.baseModel : null,
+    ]
+      .filter(Boolean)
+      .join(' · ') || 'All Models'
+
   console.log(`${index + 1}. ${url}`)
   console.log(`   Filter: ${description}`)
   console.log(`   Config: ${JSON.stringify(filterConfig)}`)
@@ -32,7 +35,7 @@ console.log('pnpm build')
 console.log()
 console.log('Expected output:')
 console.log('○ /models/civitai (SSG)')
-PREGENERATED_FILTERS.filter(f => f.path !== '').forEach(f => {
+PREGENERATED_FILTERS.filter((f) => f.path !== '').forEach((f) => {
   console.log(`○ /models/civitai/${f.path} (SSG)`)
 })
 console.log()

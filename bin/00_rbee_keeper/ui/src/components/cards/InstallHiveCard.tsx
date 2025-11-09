@@ -2,6 +2,7 @@
 // Uses SshHivesDataProvider with React 19 use() hook - NO useEffect needed
 
 import {
+  Button,
   Card,
   CardAction,
   CardContent,
@@ -15,18 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
   SplitButton,
-  Button,
-} from "@rbee/ui/atoms";
-import { Download, FileEdit, RefreshCw } from "lucide-react";
-import { useState, useEffect } from "react";
-import { commands } from "@/generated/bindings";
-import { useCommandStore } from "../../store/commandStore";
-import {
-  useSshHives,
-  useHiveActions,
-  useInstalledHives,
-} from "../../store/hiveQueries";
-import type { SshHive } from "../../store/hiveQueries";
+} from '@rbee/ui/atoms'
+import { Download, FileEdit, RefreshCw } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { commands } from '@/generated/bindings'
+import { useCommandStore } from '../../store/commandStore'
+import type { SshHive } from '../../store/hiveQueries'
+import { useHiveActions, useInstalledHives, useSshHives } from '../../store/hiveQueries'
 
 // SSH Target Select Item component
 function SshTargetItem({ name, subtitle }: { name: string; subtitle: string }) {
@@ -35,7 +31,7 @@ function SshTargetItem({ name, subtitle }: { name: string; subtitle: string }) {
       <span className="font-medium">{name}</span>
       <span className="text-xs text-muted-foreground">{subtitle}</span>
     </div>
-  );
+  )
 }
 
 // TEAM-370: CRITICAL PERFORMANCE FIX - Don't call hooks twice!
@@ -45,39 +41,37 @@ function InstallHiveContent({
   refetchHives,
   refetchInstalled,
 }: {
-  hives: SshHive[];
-  installedHives: string[];
-  refetchHives: () => void;
-  refetchInstalled: () => void;
+  hives: SshHive[]
+  installedHives: string[]
+  refetchHives: () => void
+  refetchInstalled: () => void
 }) {
-  const [selectedTarget, setSelectedTarget] = useState<string>("");
-  const { install } = useHiveActions();
-  const { isExecuting } = useCommandStore();
+  const [selectedTarget, setSelectedTarget] = useState<string>('')
+  const { install } = useHiveActions()
+  const { isExecuting } = useCommandStore()
 
   const handleRefresh = async () => {
     // TEAM-369: Refresh both SSH list and installed hives list
-    await Promise.all([refetchHives(), refetchInstalled()]);
-  };
+    await Promise.all([refetchHives(), refetchInstalled()])
+  }
 
   const handleOpenSshConfig = async () => {
     try {
-      await commands.sshOpenConfig();
+      await commands.sshOpenConfig()
     } catch (error) {
-      console.error("Failed to open SSH config:", error);
+      console.error('Failed to open SSH config:', error)
     }
-  };
+  }
 
   // TEAM-360: Filter out already installed hives (include localhost if not installed)
-  const availableHives = hives.filter(
-    (hive: SshHive) => !installedHives.includes(hive.host),
-  );
+  const availableHives = hives.filter((hive: SshHive) => !installedHives.includes(hive.host))
 
   // TEAM-370: CRITICAL BUG FIX - Set default selection in useEffect, not during render!
   useEffect(() => {
-    if (selectedTarget === "" && availableHives.length > 0) {
-      setSelectedTarget(availableHives[0].host);
+    if (selectedTarget === '' && availableHives.length > 0) {
+      setSelectedTarget(availableHives[0].host)
     }
-  }, [selectedTarget, availableHives]);
+  }, [selectedTarget, availableHives])
 
   return (
     <>
@@ -89,10 +83,7 @@ function InstallHiveContent({
           {/* TEAM-360: Show all available targets including localhost if not installed */}
           {availableHives.map((hive: SshHive) => (
             <SelectItem key={hive.host} value={hive.host}>
-              <SshTargetItem
-                name={hive.host}
-                subtitle={`${hive.user}@${hive.hostname}:${hive.port}`}
-              />
+              <SshTargetItem name={hive.host} subtitle={`${hive.user}@${hive.hostname}:${hive.port}`} />
             </SelectItem>
           ))}
         </SelectContent>
@@ -100,13 +91,13 @@ function InstallHiveContent({
 
       {/* Install Button with Actions */}
       <SplitButton
-        onClick={() => install(selectedTarget, "dev")}
+        onClick={() => install(selectedTarget, 'dev')}
         icon={<Download className="h-4 w-4" />}
         disabled={isExecuting}
         className="w-full"
         dropdownContent={
           <>
-            <DropdownMenuItem onClick={() => install(selectedTarget, "prod")}>
+            <DropdownMenuItem onClick={() => install(selectedTarget, 'prod')}>
               <Download className="mr-2 h-4 w-4" />
               Install (Production)
             </DropdownMenuItem>
@@ -124,32 +115,25 @@ function InstallHiveContent({
         Install Hive
       </SplitButton>
     </>
-  );
+  )
 }
 
 export function InstallHiveCard() {
-  const { data: hives = [], refetch: refetchHives } = useSshHives();
-  const { data: installedHives = [], refetch: refetchInstalled } = useInstalledHives();
+  const { data: hives = [], refetch: refetchHives } = useSshHives()
+  const { data: installedHives = [], refetch: refetchInstalled } = useInstalledHives()
 
   const handleRefresh = async () => {
     // TEAM-370: Refresh both SSH list and installed hives list
-    await Promise.all([refetchHives(), refetchInstalled()]);
-  };
+    await Promise.all([refetchHives(), refetchInstalled()])
+  }
 
   return (
     <Card className="w-80 h-80 max-w-sm flex flex-col">
       <CardHeader>
         <CardTitle>Install Hive</CardTitle>
-        <CardDescription>
-          Choose a target to install the Hive worker manager
-        </CardDescription>
+        <CardDescription>Choose a target to install the Hive worker manager</CardDescription>
         <CardAction>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={handleRefresh} className="h-8 w-8">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </CardAction>
@@ -159,10 +143,7 @@ export function InstallHiveCard() {
         <div className="space-y-4">
           {/* SSH Target Selection */}
           <div className="space-y-2">
-            <label
-              htmlFor="install-target"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="install-target" className="text-sm font-medium text-foreground">
               Target
             </label>
             <InstallHiveContent
@@ -175,5 +156,5 @@ export function InstallHiveCard() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

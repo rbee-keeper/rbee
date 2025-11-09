@@ -1,7 +1,7 @@
 /**
  * TEAM-351: Tests for @rbee/shared-config
  * TEAM-XXX: Added comprehensive test coverage for missing scenarios
- * 
+ *
  * Tests cover:
  * - Port configuration structure
  * - getAllowedOrigins() function
@@ -15,16 +15,16 @@
  * - Integration scenarios
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  PORTS,
-  type ServiceName,
-  type WorkerServiceName,
   getAllowedOrigins,
   getIframeUrl,
   getParentOrigin,
   getServiceUrl,
   getWorkerUrl,
+  PORTS,
+  type ServiceName,
+  type WorkerServiceName,
 } from './ports'
 
 describe('@rbee/shared-config', () => {
@@ -104,7 +104,7 @@ describe('@rbee/shared-config', () => {
   describe('getAllowedOrigins()', () => {
     it('should return HTTP origins by default', () => {
       const origins = getAllowedOrigins()
-      
+
       expect(origins).toContain('http://localhost:7834') // queen dev
       expect(origins).toContain('http://localhost:7833') // queen prod
       expect(origins).toContain('http://localhost:7836') // hive dev
@@ -121,13 +121,13 @@ describe('@rbee/shared-config', () => {
 
     it('should not include keeper', () => {
       const origins = getAllowedOrigins()
-      
+
       expect(origins).not.toContain('http://localhost:5173')
     })
 
     it('should include HTTPS when requested', () => {
       const origins = getAllowedOrigins(true)
-      
+
       expect(origins).toContain('https://localhost:7833') // queen prod
       expect(origins).toContain('https://localhost:7835') // hive prod
       expect(origins).toContain('https://localhost:8080') // llm worker prod
@@ -138,7 +138,7 @@ describe('@rbee/shared-config', () => {
 
     it('should not include HTTPS for dev ports', () => {
       const origins = getAllowedOrigins(true)
-      
+
       expect(origins).not.toContain('https://localhost:7834') // queen dev
       expect(origins).not.toContain('https://localhost:7836') // hive dev
       expect(origins).not.toContain('https://localhost:7837') // llm worker dev
@@ -150,21 +150,21 @@ describe('@rbee/shared-config', () => {
     it('should return sorted array', () => {
       const origins = getAllowedOrigins()
       const sorted = [...origins].sort()
-      
+
       expect(origins).toEqual(sorted)
     })
 
     it('should not have duplicates', () => {
       const origins = getAllowedOrigins()
       const unique = [...new Set(origins)]
-      
+
       expect(origins.length).toBe(unique.length)
     })
 
     it('should return consistent results', () => {
       const origins1 = getAllowedOrigins()
       const origins2 = getAllowedOrigins()
-      
+
       expect(origins1).toEqual(origins2)
     })
   })
@@ -199,9 +199,7 @@ describe('@rbee/shared-config', () => {
     })
 
     it('should throw error for keeper prod', () => {
-      expect(() => getIframeUrl('keeper', false)).toThrow(
-        'Keeper service has no production HTTP port'
-      )
+      expect(() => getIframeUrl('keeper', false)).toThrow('Keeper service has no production HTTP port')
     })
 
     it('should support HTTPS', () => {
@@ -378,8 +376,8 @@ describe('@rbee/shared-config', () => {
   describe('Edge cases', () => {
     it('should handle all service names', () => {
       const services: ServiceName[] = ['keeper', 'queen', 'hive']
-      
-      services.forEach(service => {
+
+      services.forEach((service) => {
         expect(() => getServiceUrl(service, 'dev')).not.toThrow()
       })
     })
@@ -387,7 +385,7 @@ describe('@rbee/shared-config', () => {
     it('should return consistent URLs', () => {
       const url1 = getServiceUrl('queen', 'prod')
       const url2 = getServiceUrl('queen', 'prod')
-      
+
       expect(url1).toBe(url2)
     })
 
@@ -496,8 +494,8 @@ describe('@rbee/shared-config', () => {
     describe('all worker types', () => {
       it('should handle all worker types', () => {
         const workers: WorkerServiceName[] = ['llm', 'sd', 'comfy', 'vllm']
-        
-        workers.forEach(worker => {
+
+        workers.forEach((worker) => {
           expect(() => getWorkerUrl(worker, 'dev')).not.toThrow()
           expect(() => getWorkerUrl(worker, 'prod')).not.toThrow()
           expect(() => getWorkerUrl(worker, 'backend')).not.toThrow()
@@ -524,7 +522,7 @@ describe('@rbee/shared-config', () => {
       validatePort(PORTS.hive.dev, 'hive.dev')
       validatePort(PORTS.hive.prod, 'hive.prod')
       validatePort(PORTS.hive.backend, 'hive.backend')
-      
+
       // Validate worker ports
       validatePort(PORTS.worker.llm.dev, 'worker.llm.dev')
       validatePort(PORTS.worker.llm.prod, 'worker.llm.prod')
@@ -534,7 +532,7 @@ describe('@rbee/shared-config', () => {
       validatePort(PORTS.worker.comfy.prod, 'worker.comfy.prod')
       validatePort(PORTS.worker.vllm.dev, 'worker.vllm.dev')
       validatePort(PORTS.worker.vllm.prod, 'worker.vllm.prod')
-      
+
       // Validate frontend service ports
       validatePort(PORTS.commercial.dev, 'commercial.dev')
       validatePort(PORTS.marketplace.dev, 'marketplace.dev')
@@ -610,7 +608,7 @@ describe('@rbee/shared-config', () => {
         getIframeUrl('queen', true),
       ]
 
-      urls.forEach(url => {
+      urls.forEach((url) => {
         expect(url).not.toMatch(/\/$/)
       })
     })
@@ -618,18 +616,14 @@ describe('@rbee/shared-config', () => {
     it('should return consistent URL format across all functions', () => {
       const queenUrl = getServiceUrl('queen', 'dev')
       const queenIframeUrl = getIframeUrl('queen', true)
-      
+
       expect(queenUrl).toBe(queenIframeUrl)
     })
 
     it('should use localhost as hostname', () => {
-      const urls = [
-        getServiceUrl('queen', 'dev'),
-        getWorkerUrl('llm', 'prod'),
-        getIframeUrl('hive', false),
-      ]
+      const urls = [getServiceUrl('queen', 'dev'), getWorkerUrl('llm', 'prod'), getIframeUrl('hive', false)]
 
-      urls.forEach(url => {
+      urls.forEach((url) => {
         if (url) {
           expect(url).toContain('localhost')
         }
@@ -640,19 +634,19 @@ describe('@rbee/shared-config', () => {
   describe('getAllowedOrigins() - Extended Coverage', () => {
     it('should include all worker types in origins', () => {
       const origins = getAllowedOrigins()
-      
+
       // LLM worker
       expect(origins).toContain('http://localhost:7837')
       expect(origins).toContain('http://localhost:8080')
-      
+
       // SD worker
       expect(origins).toContain('http://localhost:5174')
       expect(origins).toContain('http://localhost:8081')
-      
+
       // Comfy worker
       expect(origins).toContain('http://localhost:7838')
       expect(origins).toContain('http://localhost:8188')
-      
+
       // vLLM worker
       expect(origins).toContain('http://localhost:7839')
       expect(origins).toContain('http://localhost:8000')
@@ -660,7 +654,7 @@ describe('@rbee/shared-config', () => {
 
     it('should not include services without backend (commercial, marketplace, etc)', () => {
       const origins = getAllowedOrigins()
-      
+
       expect(origins).not.toContain('http://localhost:7822') // commercial
       expect(origins).not.toContain('http://localhost:7823') // marketplace
       expect(origins).not.toContain('http://localhost:7811') // userDocs
@@ -693,7 +687,7 @@ describe('@rbee/shared-config', () => {
         PORTS.keeper.dev,
       ]
 
-      devPorts.forEach(port => {
+      devPorts.forEach((port) => {
         const origin = getParentOrigin(port)
         expect(origin).toBe(`http://localhost:${PORTS.keeper.dev}`)
       })
@@ -709,7 +703,7 @@ describe('@rbee/shared-config', () => {
         PORTS.worker.vllm.prod,
       ]
 
-      prodPorts.forEach(port => {
+      prodPorts.forEach((port) => {
         const origin = getParentOrigin(port)
         expect(origin).toBe('*')
       })
@@ -717,8 +711,8 @@ describe('@rbee/shared-config', () => {
 
     it('should handle random high ports as wildcard', () => {
       const randomPorts = [10000, 20000, 30000, 50000, 65535]
-      
-      randomPorts.forEach(port => {
+
+      randomPorts.forEach((port) => {
         const origin = getParentOrigin(port)
         expect(origin).toBe('*')
       })
@@ -729,14 +723,14 @@ describe('@rbee/shared-config', () => {
     it('should work together: getServiceUrl + getAllowedOrigins', () => {
       const queenUrl = getServiceUrl('queen', 'prod')
       const allowedOrigins = getAllowedOrigins()
-      
+
       expect(allowedOrigins).toContain(queenUrl)
     })
 
     it('should work together: getWorkerUrl + getAllowedOrigins', () => {
       const llmUrl = getWorkerUrl('llm', 'prod')
       const allowedOrigins = getAllowedOrigins()
-      
+
       expect(allowedOrigins).toContain(llmUrl)
     })
 
@@ -744,23 +738,23 @@ describe('@rbee/shared-config', () => {
       const queenIframeUrl = getIframeUrl('queen', true)
       const port = parseInt(queenIframeUrl.split(':')[2])
       const parentOrigin = getParentOrigin(port)
-      
+
       expect(parentOrigin).toBe(`http://localhost:${PORTS.keeper.dev}`)
     })
 
     it('should maintain consistency between dev and prod URLs', () => {
       const services: ServiceName[] = ['queen', 'hive']
-      
-      services.forEach(service => {
+
+      services.forEach((service) => {
         const devUrl = getServiceUrl(service, 'dev')
         const prodUrl = getServiceUrl(service, 'prod')
         const backendUrl = getServiceUrl(service, 'backend')
-        
+
         // All should be valid URLs
         expect(devUrl).toMatch(/^http:\/\/localhost:\d+$/)
         expect(prodUrl).toMatch(/^http:\/\/localhost:\d+$/)
         expect(backendUrl).toMatch(/^http:\/\/localhost:\d+$/)
-        
+
         // Backend should match prod
         expect(backendUrl).toBe(prodUrl)
       })
@@ -768,17 +762,17 @@ describe('@rbee/shared-config', () => {
 
     it('should handle all worker types consistently', () => {
       const workers: WorkerServiceName[] = ['llm', 'sd', 'comfy', 'vllm']
-      
-      workers.forEach(worker => {
+
+      workers.forEach((worker) => {
         const devUrl = getWorkerUrl(worker, 'dev')
         const prodUrl = getWorkerUrl(worker, 'prod')
         const backendUrl = getWorkerUrl(worker, 'backend')
-        
+
         // All should be valid URLs
         expect(devUrl).toMatch(/^http:\/\/localhost:\d+$/)
         expect(prodUrl).toMatch(/^http:\/\/localhost:\d+$/)
         expect(backendUrl).toMatch(/^http:\/\/localhost:\d+$/)
-        
+
         // Backend should match prod
         expect(backendUrl).toBe(prodUrl)
       })
@@ -802,9 +796,9 @@ describe('@rbee/shared-config', () => {
 
     it('should not include null ports in allowed origins', () => {
       const origins = getAllowedOrigins()
-      
+
       // Should not have any 'null' or 'undefined' in URLs
-      origins.forEach(origin => {
+      origins.forEach((origin) => {
         expect(origin).not.toContain('null')
         expect(origin).not.toContain('undefined')
         expect(origin).toMatch(/^https?:\/\/localhost:\d+$/)
@@ -815,11 +809,11 @@ describe('@rbee/shared-config', () => {
   describe('HTTPS Consistency', () => {
     it('should support HTTPS for all services', () => {
       const services: ServiceName[] = ['queen', 'hive', 'keeper']
-      
-      services.forEach(service => {
+
+      services.forEach((service) => {
         const httpUrl = getServiceUrl(service, 'dev', false)
         const httpsUrl = getServiceUrl(service, 'dev', true)
-        
+
         if (httpUrl) {
           expect(httpUrl).toMatch(/^http:\/\//)
           expect(httpsUrl).toMatch(/^https:\/\//)
@@ -830,11 +824,11 @@ describe('@rbee/shared-config', () => {
 
     it('should support HTTPS for all workers', () => {
       const workers: WorkerServiceName[] = ['llm', 'sd', 'comfy', 'vllm']
-      
-      workers.forEach(worker => {
+
+      workers.forEach((worker) => {
         const httpUrl = getWorkerUrl(worker, 'dev', false)
         const httpsUrl = getWorkerUrl(worker, 'dev', true)
-        
+
         expect(httpUrl).toMatch(/^http:\/\//)
         expect(httpsUrl).toMatch(/^https:\/\//)
         expect(httpsUrl.replace('https://', 'http://')).toBe(httpUrl)
@@ -843,11 +837,11 @@ describe('@rbee/shared-config', () => {
 
     it('should support HTTPS in getIframeUrl', () => {
       const services: ServiceName[] = ['queen', 'hive']
-      
-      services.forEach(service => {
+
+      services.forEach((service) => {
         const httpUrl = getIframeUrl(service, true, false)
         const httpsUrl = getIframeUrl(service, true, true)
-        
+
         expect(httpUrl).toMatch(/^http:\/\//)
         expect(httpsUrl).toMatch(/^https:\/\//)
       })
@@ -857,16 +851,16 @@ describe('@rbee/shared-config', () => {
   describe('Type Safety Verification', () => {
     it('should have correct ServiceName type', () => {
       const services: ServiceName[] = ['queen', 'hive', 'keeper']
-      
-      services.forEach(service => {
+
+      services.forEach((service) => {
         expect(() => getServiceUrl(service, 'dev')).not.toThrow()
       })
     })
 
     it('should have correct WorkerServiceName type', () => {
       const workers: WorkerServiceName[] = ['llm', 'sd', 'comfy', 'vllm']
-      
-      workers.forEach(worker => {
+
+      workers.forEach((worker) => {
         expect(() => getWorkerUrl(worker, 'dev')).not.toThrow()
       })
     })
@@ -875,7 +869,7 @@ describe('@rbee/shared-config', () => {
       // TypeScript enforces this, but we can verify the structure
       expect(PORTS).toBeDefined()
       expect(typeof PORTS).toBe('object')
-      
+
       // Verify nested structure exists
       expect(PORTS.worker).toBeDefined()
       expect(PORTS.worker.llm).toBeDefined()

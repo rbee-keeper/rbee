@@ -1,8 +1,8 @@
 // TEAM-415: Client-side model list with routing
 'use client'
 
-import { ModelTableWithRouting } from './ModelTableWithRouting'
 import type { ModelTableItem } from '@rbee/ui/marketplace'
+import { ModelTableWithRouting } from './ModelTableWithRouting'
 
 interface Props {
   models: ModelTableItem[]

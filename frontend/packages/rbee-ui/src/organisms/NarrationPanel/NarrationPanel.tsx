@@ -4,21 +4,21 @@
 
 'use client'
 
-import { ScrollArea } from '../../atoms/ScrollArea'
 import { X } from 'lucide-react'
-import { useNarrationStore } from './useNarrationStore'
+import { ScrollArea } from '../../atoms/ScrollArea'
 import type { NarrationPanelProps } from './types'
+import { useNarrationStore } from './useNarrationStore'
 
 /**
  * NarrationPanel - Real-time narration event display
- * 
+ *
  * Features:
  * - Newest-first ordering (shell-like reading)
  * - Function name grouping with timestamps
  * - Level badges (error/warn/info/debug)
  * - Persistence (last 100 entries)
  * - Clear and test buttons
- * 
+ *
  * @example
  * ```tsx
  * <NarrationPanel
@@ -31,12 +31,7 @@ import type { NarrationPanelProps } from './types'
  * />
  * ```
  */
-export function NarrationPanel({ 
-  onClose, 
-  title = 'Narration',
-  onTest,
-  showTestButton = false 
-}: NarrationPanelProps) {
+export function NarrationPanel({ onClose, title = 'Narration', onTest, showTestButton = false }: NarrationPanelProps) {
   // Get entries from Zustand store (persisted even when panel closed)
   const entries = useNarrationStore((state) => state.entries)
   const clearEntries = useNarrationStore((state) => state.clearEntries)
@@ -93,9 +88,7 @@ export function NarrationPanel({
         <ScrollArea className="h-full">
           <div className="p-2 overflow-x-hidden">
             {entries.length === 0 ? (
-              <div className="text-center text-sm text-muted-foreground py-8">
-                Waiting for events...
-              </div>
+              <div className="text-center text-sm text-muted-foreground py-8">Waiting for events...</div>
             ) : (
               entries.map((entry, index) => {
                 // Check if fn_name changed from previous entry
@@ -111,9 +104,7 @@ export function NarrationPanel({
                           <div className="text-muted-foreground font-mono text-[10px]">
                             {formatTime(entry.timestamp)}
                           </div>
-                          <div className="text-foreground break-words overflow-wrap-anywhere">
-                            {entry.fn_name}
-                          </div>
+                          <div className="text-foreground break-words overflow-wrap-anywhere">{entry.fn_name}</div>
                         </div>
                       </div>
                     )}
@@ -121,12 +112,8 @@ export function NarrationPanel({
                     <div className="p-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors text-xs space-y-1 overflow-hidden mb-1">
                       {/* Action and level */}
                       <div className="flex items-center justify-between gap-2 min-w-0">
-                        <span className="text-muted-foreground font-mono truncate">
-                          {entry.action || '—'}
-                        </span>
-                        <span className={`${getLevelBadge(entry.level)} shrink-0`}>
-                          {entry.level.toUpperCase()}
-                        </span>
+                        <span className="text-muted-foreground font-mono truncate">{entry.action || '—'}</span>
+                        <span className={`${getLevelBadge(entry.level)} shrink-0`}>{entry.level.toUpperCase()}</span>
                       </div>
 
                       {/* Message */}

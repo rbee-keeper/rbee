@@ -1,27 +1,18 @@
 // TEAM-374: Hive UI - Rebuilt with shared components
 // Uses @rbee/ui for consistent styling across all rbee applications
-import { QueryProvider } from '@rbee/ui/providers'
+
 import { logStartupMode } from '@rbee/dev-utils'
 import { receiveThemeChanges } from '@rbee/iframe-bridge'
-import { useState, useEffect } from 'react'
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle,
-  Badge
-} from '@rbee/ui/atoms'
-import { 
-  StatusKPI,
-  MetricCard
-} from '@rbee/ui/molecules'
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@rbee/ui/atoms'
+import { MetricCard, StatusKPI } from '@rbee/ui/molecules'
+import { QueryProvider } from '@rbee/ui/providers'
 import { Activity, Cpu, HardDrive } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { ModelManagement } from './components/ModelManagement'
 import { WorkerManagement } from './components/WorkerManagement'
 
 // TEAM-374: Use shared startup logging
-logStartupMode("HIVE UI", import.meta.env.DEV, 7836)
+logStartupMode('HIVE UI', import.meta.env.DEV, 7836)
 
 // TEAM-374: Device type from capabilities endpoint
 interface HiveDevice {
@@ -42,10 +33,10 @@ function useDevices() {
       try {
         // TEAM-378: In dev mode, derive backend URL from current origin
         // If loaded from http://192.168.178.241:7836, backend is at http://192.168.178.241:7835
-        const baseUrl = import.meta.env.DEV 
+        const baseUrl = import.meta.env.DEV
           ? `${window.location.protocol}//${window.location.hostname}:7835`
           : window.location.origin
-        
+
         // TEAM-381: Capabilities endpoint moved to /v1/capabilities
         const response = await fetch(`${baseUrl}/v1/capabilities`)
         const data = await response.json()
@@ -77,14 +68,14 @@ function HeartbeatStatus() {
     const initMonitor = async () => {
       try {
         const { HeartbeatMonitor } = await import('@rbee/rbee-hive-sdk')
-        
+
         // TEAM-378: In dev mode, derive backend URL from current origin
-        const baseUrl = import.meta.env.DEV 
+        const baseUrl = import.meta.env.DEV
           ? `${window.location.protocol}//${window.location.hostname}:7835`
           : window.location.origin
 
         monitor = new HeartbeatMonitor(baseUrl)
-        
+
         monitor.start((event: any) => {
           setConnected(true)
           setWorkerCount(event.workers?.length || 0)
@@ -130,14 +121,8 @@ function HeartbeatStatus() {
           </div>
           <div className="flex gap-2">
             {/* TEAM-378: Show operational status */}
-            {hiveInfo && (
-              <Badge variant="outline">
-                {hiveInfo.operational_status}
-              </Badge>
-            )}
-            <Badge variant={connected ? "default" : "destructive"}>
-              {connected ? 'Connected' : 'Disconnected'}
-            </Badge>
+            {hiveInfo && <Badge variant="outline">{hiveInfo.operational_status}</Badge>}
+            <Badge variant={connected ? 'default' : 'destructive'}>{connected ? 'Connected' : 'Disconnected'}</Badge>
           </div>
         </div>
       </CardHeader>
@@ -184,14 +169,14 @@ function App() {
     const initMonitor = async () => {
       try {
         const { HeartbeatMonitor } = await import('@rbee/rbee-hive-sdk')
-        
+
         // TEAM-378: In dev mode, derive backend URL from current origin
-        const baseUrl = import.meta.env.DEV 
+        const baseUrl = import.meta.env.DEV
           ? `${window.location.protocol}//${window.location.hostname}:7835`
           : window.location.origin
 
         monitor = new HeartbeatMonitor(baseUrl)
-        
+
         monitor.start((event: any) => {
           if (event.hive_info) {
             setHiveInfo(event.hive_info)
@@ -214,113 +199,95 @@ function App() {
   return (
     <QueryProvider>
       <div className="min-h-screen bg-background text-foreground font-sans p-6 space-y-6">
-          {/* Header - TEAM-378: Self-aware with hive metadata */}
-          <div>
-            <h1 className="text-3xl font-bold">
-              {hiveInfo ? `Hive: ${hiveInfo.id}` : 'Hive'}
-            </h1>
-            <p className="text-muted-foreground">
-              {hiveInfo ? (
-                <span>
-                  {hiveInfo.hostname}:{hiveInfo.port} • Version {hiveInfo.version} • {hiveInfo.operational_status}
-                </span>
-              ) : (
-                'Worker & Model Management Dashboard'
-              )}
-            </p>
-          </div>
+        {/* Header - TEAM-378: Self-aware with hive metadata */}
+        <div>
+          <h1 className="text-3xl font-bold">{hiveInfo ? `Hive: ${hiveInfo.id}` : 'Hive'}</h1>
+          <p className="text-muted-foreground">
+            {hiveInfo ? (
+              <span>
+                {hiveInfo.hostname}:{hiveInfo.port} • Version {hiveInfo.version} • {hiveInfo.operational_status}
+              </span>
+            ) : (
+              'Worker & Model Management Dashboard'
+            )}
+          </p>
+        </div>
 
-          {/* Status Row */}
-          <HeartbeatStatus />
+        {/* Status Row */}
+        <HeartbeatStatus />
 
-          {/* Management Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Model Management */}
-            <ModelManagement />
+        {/* Management Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Model Management */}
+          <ModelManagement />
 
-            {/* Worker Management - TEAM-382 */}
-            <WorkerManagement />
-          </div>
+          {/* Worker Management - TEAM-382 */}
+          <WorkerManagement />
+        </div>
 
-          {/* Spawn Worker */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Spawn Worker
-              </CardTitle>
-              <CardDescription>Start a worker on an available device</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {devicesLoading ? (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  Loading devices...
-                </div>
-              ) : devices.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  No devices detected
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-foreground mb-3">Available Devices:</div>
-                  {devices.map((device) => (
-                    <div
-                      key={device.id}
-                      className="flex items-center justify-between p-3 border border-border rounded-md hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        {device.device_type === 'GPU' ? (
-                          <Cpu className="h-5 w-5 text-primary" />
-                        ) : (
-                          <Cpu className="h-5 w-5 text-muted-foreground" />
-                        )}
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{device.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {device.device_type} • {device.id}
-                            {device.memory_mb && ` • ${Math.round(device.memory_mb / 1024)} GB`}
-                          </div>
+        {/* Spawn Worker */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Spawn Worker
+            </CardTitle>
+            <CardDescription>Start a worker on an available device</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {devicesLoading ? (
+              <div className="text-sm text-muted-foreground text-center py-4">Loading devices...</div>
+            ) : devices.length === 0 ? (
+              <div className="text-sm text-muted-foreground text-center py-4">No devices detected</div>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-foreground mb-3">Available Devices:</div>
+                {devices.map((device) => (
+                  <div
+                    key={device.id}
+                    className="flex items-center justify-between p-3 border border-border rounded-md hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {device.device_type === 'GPU' ? (
+                        <Cpu className="h-5 w-5 text-primary" />
+                      ) : (
+                        <Cpu className="h-5 w-5 text-muted-foreground" />
+                      )}
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{device.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {device.device_type} • {device.id}
+                          {device.memory_mb && ` • ${Math.round(device.memory_mb / 1024)} GB`}
                         </div>
                       </div>
-                      <button className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors">
-                        Spawn
-                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* GPU Utilization */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                GPU Utilization
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <MetricCard
-                  label="Average Usage"
-                  value="0%"
-                  description="Across all GPUs"
-                />
-                <MetricCard
-                  label="VRAM Used"
-                  value="0 MB"
-                  description="Total allocated"
-                />
-                <MetricCard
-                  label="Active GPUs"
-                  value="0"
-                  description="Currently in use"
-                />
+                    <button className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors">
+                      Spawn
+                    </button>
+                  </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* GPU Utilization */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              GPU Utilization
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <MetricCard label="Average Usage" value="0%" description="Across all GPUs" />
+              <MetricCard label="VRAM Used" value="0 MB" description="Total allocated" />
+              <MetricCard label="Active GPUs" value="0" description="Currently in use" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </QueryProvider>
   )
 }

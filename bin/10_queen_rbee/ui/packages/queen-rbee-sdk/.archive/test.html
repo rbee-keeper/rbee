@@ -57,7 +57,8 @@
     
     <script type="module">
         // TEAM-286: Test submit_and_stream() and heartbeat monitoring
-        import init, { RbeeClient, HeartbeatMonitor } from './pkg/web/rbee_sdk.js';
+        import init, { HeartbeatMonitor, RbeeClient } from './pkg/web/rbee_sdk.js';
+
         
         const output = document.getElementById('output');
         
@@ -91,7 +92,7 @@
         window.client = client;  // Make available globally
         
         // Test status operation
-        window.testStatus = async function() {
+        window.testStatus = async () => {
             clear();
             log('📋 Testing Status Operation', 'info');
             log('='.repeat(50));
@@ -118,7 +119,7 @@
         };
         
         // Test hive list operation
-        window.testHiveList = async function() {
+        window.testHiveList = async () => {
             clear();
             log('🏠 Testing Hive List Operation', 'info');
             log('='.repeat(50));
@@ -144,7 +145,7 @@
             }
         };
         
-        window.clearOutput = function() {
+        window.clearOutput = () => {
             clear();
             log('Output cleared.');
         };
@@ -152,7 +153,7 @@
         // TEAM-286: Heartbeat monitoring
         let heartbeatMonitor = null;
         
-        window.startHeartbeat = function() {
+        window.startHeartbeat = () => {
             const hbState = document.getElementById('hb-state');
             
             try {
@@ -196,7 +197,7 @@
             }
         };
         
-        window.stopHeartbeat = function() {
+        window.stopHeartbeat = () => {
             const hbState = document.getElementById('hb-state');
             
             if (heartbeatMonitor) {

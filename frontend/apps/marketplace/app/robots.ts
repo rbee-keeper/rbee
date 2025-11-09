@@ -1,5 +1,5 @@
 // TEAM-410: Robots.txt for SEO
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
   return {

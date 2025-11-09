@@ -1,17 +1,9 @@
 // TEAM-405: Beautiful marketplace model card with modern design
 import { Badge } from '@rbee/ui/atoms/Badge'
 import { Button } from '@rbee/ui/atoms/Button'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@rbee/ui/atoms/Card'
-import { Download, Heart, User, Sparkles } from 'lucide-react'
-import * as React from 'react'
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@rbee/ui/atoms/Card'
+import { Download, Heart, Sparkles, User } from 'lucide-react'
+import type * as React from 'react'
 
 export interface ModelCardProps {
   model: {
@@ -39,9 +31,7 @@ export function ModelCard({ model, onAction, actionButton }: ModelCardProps) {
   }
 
   return (
-    <Card 
-      className="group h-full flex flex-col overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
-    >
+    <Card className="group h-full flex flex-col overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
       {/* Image Section with Gradient Overlay */}
       {model.imageUrl ? (
         <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-br from-primary/10 via-background to-muted">
@@ -53,7 +43,7 @@ export function ModelCard({ model, onAction, actionButton }: ModelCardProps) {
           />
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-          
+
           {/* Floating stats on image */}
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
             <div className="flex items-center gap-3 text-xs font-medium text-white drop-shadow-lg">
@@ -94,18 +84,12 @@ export function ModelCard({ model, onAction, actionButton }: ModelCardProps) {
       </CardHeader>
 
       <CardContent className="flex-1 pt-0 pb-4">
-        <CardDescription className="line-clamp-2 text-sm leading-relaxed mb-4">
-          {model.description}
-        </CardDescription>
+        <CardDescription className="line-clamp-2 text-sm leading-relaxed mb-4">{model.description}</CardDescription>
 
         {/* Tags with better styling */}
         <div className="flex flex-wrap gap-1.5">
           {model.tags.slice(0, 4).map((tag) => (
-            <Badge 
-              key={tag} 
-              variant="secondary"
-              className="text-xs font-medium hover:bg-primary/20 transition-colors"
-            >
+            <Badge key={tag} variant="secondary" className="text-xs font-medium hover:bg-primary/20 transition-colors">
               {tag}
             </Badge>
           ))}
@@ -126,11 +110,7 @@ export function ModelCard({ model, onAction, actionButton }: ModelCardProps) {
         </div>
 
         {!actionButton && onAction && (
-          <Button 
-            size="sm" 
-            onClick={() => onAction(model.id)}
-            className="transition-all duration-200 hover:shadow-md"
-          >
+          <Button size="sm" onClick={() => onAction(model.id)} className="transition-all duration-200 hover:shadow-md">
             <Download className="size-3.5 mr-1.5" />
             Download
           </Button>

@@ -135,7 +135,9 @@ export function NarrationPanel({ onClose }: NarrationPanelProps) {
                       </div>
 
                       {/* Message */}
-                      <div className="text-foreground break-words overflow-wrap-anywhere font-mono leading-relaxed">{entry.message}</div>
+                      <div className="text-foreground break-words overflow-wrap-anywhere font-mono leading-relaxed">
+                        {entry.message}
+                      </div>
                     </div>
                   </div>
                 )

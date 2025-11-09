@@ -4,8 +4,8 @@
 
 'use client'
 
+import { HiveClient, init, OperationBuilder } from '@rbee/rbee-hive-sdk'
 import { useMutation } from '@tanstack/react-query'
-import { init, HiveClient, OperationBuilder } from '@rbee/rbee-hive-sdk'
 
 // TEAM-378: Initialize WASM (same pattern as other hooks)
 let wasmInitialized = false
@@ -62,18 +62,18 @@ export interface UseWorkerOperationsResult {
 
 /**
  * Hook for Worker operations using TanStack Query mutations
- * 
+ *
  * TEAM-378: Handles worker installation and spawning
  * TEAM-384: Accepts optional onSSEMessage callback for narration UI
- * 
+ *
  * - installWorker: Download PKGBUILD, build, and install worker binary
  * - spawnWorker: Start a worker process with a model
  * - terminateWorker: Terminate a running worker process by PID
- * 
+ *
  * @param options - Optional configuration
  * @param options.onSSEMessage - Callback for SSE messages (for narration UI)
  * @returns Mutation functions and state
- * 
+ *
  * @example
  * ```tsx
  * const { installWorker, spawnWorker, isPending } = useWorkerOperations({
@@ -83,7 +83,7 @@ export interface UseWorkerOperationsResult {
  *     addToNarrationStore(parsed)
  *   }
  * })
- * 
+ *
  * // Install a worker binary
  * <button onClick={() => installWorker('llm-worker-rbee-cpu')}>
  *   Install Worker
@@ -92,26 +92,26 @@ export interface UseWorkerOperationsResult {
  */
 export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWorkerOperationsResult {
   const { onSSEMessage } = options || {}
-  
+
   // TEAM-378: Worker installation mutation
   const installMutation = useMutation<any, Error, string>({
     mutationFn: async (workerId: string) => {
       console.log('[useWorkerOperations] 🎬 Starting installation mutation for:', workerId)
-      
+
       console.log('[useWorkerOperations] 🔧 Initializing WASM...')
       await ensureWasmInit()
       console.log('[useWorkerOperations] ✓ WASM initialized')
-      
+
       const hiveId = client.hiveId
       console.log('[useWorkerOperations] 🏠 Hive ID:', hiveId)
-      
+
       // TEAM-378: workerInstall(hive_id, worker_id)
       console.log('[useWorkerOperations] 🔨 Building WorkerInstall operation...')
       const op = OperationBuilder.workerInstall(hiveId, workerId)
       console.log('[useWorkerOperations] ✓ Operation built:', op)
-      
+
       const lines: string[] = []
-      
+
       console.log('[useWorkerOperations] 📡 Submitting operation and streaming SSE...')
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
@@ -123,16 +123,16 @@ export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWo
           console.log('[useWorkerOperations] 🏁 SSE stream complete ([DONE] received)')
         }
       })
-      
+
       // TEAM-384: Check for errors in SSE stream before returning success
       // Error markers: ❌, ✗, "failed:", "Error details:", "ERROR:"
       // BUT ignore normal cargo output like "ERROR: Compiling X"
-      const hasErrors = lines.some(line => {
+      const hasErrors = lines.some((line) => {
         // Ignore normal cargo compilation progress
         if (line.includes('Compiling ') || line.includes('Downloading ') || line.includes('Building ')) {
           return false
         }
-        
+
         return (
           line.includes('❌') ||
           line.includes('✗') ||
@@ -141,27 +141,24 @@ export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWo
           line.toLowerCase().includes('error:')
         )
       })
-      
+
       if (hasErrors) {
         console.error('[useWorkerOperations] ❌ Errors detected in installation stream')
-        
+
         // Extract the most relevant error message
-        const errorLine = lines.find(line => 
-          line.includes('failed:') || 
-          line.includes('Error details:')
-        )
-        
+        const errorLine = lines.find((line) => line.includes('failed:') || line.includes('Error details:'))
+
         // Extract just the error message (remove ANSI codes and narration metadata)
         let errorMessage = errorLine || 'Installation failed - check logs'
         errorMessage = errorMessage
           .replace(/\x1b\[[0-9;]*m/g, '') // Remove ANSI escape codes
-          .replace(/^.*?\s{2,}/, '')      // Remove narration prefix (module name + spaces)
+          .replace(/^.*?\s{2,}/, '') // Remove narration prefix (module name + spaces)
           .trim()
-        
+
         console.error('[useWorkerOperations] Error message:', errorMessage)
         throw new Error(errorMessage)
       }
-      
+
       console.log('[useWorkerOperations] ✅ Installation complete! Total messages:', lines.length)
       return { success: true, workerId }
     },
@@ -177,14 +174,14 @@ export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWo
       // TEAM-377: workerSpawn(hive_id, model, worker_type, device_id)
       const op = OperationBuilder.workerSpawn(hiveId, modelId, workerType, deviceId)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[Hive] Worker spawn:', line)
         }
       })
-      
+
       // Parse response from last line
       const lastLine = lines[lines.length - 1]
       return lastLine ? JSON.parse(lastLine) : null
@@ -197,21 +194,21 @@ export function useWorkerOperations(options?: UseWorkerOperationsOptions): UseWo
   const terminateMutation = useMutation<any, Error, number>({
     mutationFn: async (pid: number) => {
       console.log('[useWorkerOperations] 🛑 Terminating worker PID:', pid)
-      
+
       await ensureWasmInit()
       const hiveId = client.hiveId
-      
+
       // TEAM-384: workerDelete(hive_id, pid)
       const op = OperationBuilder.workerDelete(hiveId, pid)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[useWorkerOperations] Worker terminate:', line)
         }
       })
-      
+
       console.log('[useWorkerOperations] ✓ Worker terminated')
       return { success: true, pid }
     },

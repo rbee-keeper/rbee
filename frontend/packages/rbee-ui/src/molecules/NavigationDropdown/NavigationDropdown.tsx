@@ -11,7 +11,7 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from '@rbee/ui/atoms/NavigationMenu'
-import type { NavigationLink, NavigationCTA } from '@rbee/ui/organisms/Navigation'
+import type { NavigationCTA, NavigationLink } from '@rbee/ui/organisms/Navigation'
 import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -48,9 +48,7 @@ export function NavigationDropdown({ title, links, cta, width = 'sm' }: Navigati
                   <Link
                     href={link.href}
                     className={`${
-                      link.description
-                        ? 'flex items-start gap-3'
-                        : 'block'
+                      link.description ? 'flex items-start gap-3' : 'block'
                     } select-none rounded-md p-2.5 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2`}
                     aria-current={pathname === link.href ? 'page' : undefined}
                   >
@@ -58,9 +56,7 @@ export function NavigationDropdown({ title, links, cta, width = 'sm' }: Navigati
                     <div>
                       <div className="text-sm font-medium leading-none mb-1">{link.label}</div>
                       {link.description && (
-                        <p className="text-[13px] leading-[1.2] text-muted-foreground">
-                          {link.description}
-                        </p>
+                        <p className="text-[13px] leading-[1.2] text-muted-foreground">{link.description}</p>
                       )}
                     </div>
                   </Link>
@@ -79,12 +75,7 @@ export function NavigationDropdown({ title, links, cta, width = 'sm' }: Navigati
                 <BookOpen className="size-3.5" />
                 Docs
               </Link>
-              <Button
-                size="sm"
-                className="h-7 text-xs"
-                onClick={cta.onClick}
-                asChild={!!cta.href}
-              >
+              <Button size="sm" className="h-7 text-xs" onClick={cta.onClick} asChild={!!cta.href}>
                 {cta.href ? <Link href={cta.href}>{cta.label}</Link> : <span>{cta.label}</span>}
               </Button>
             </div>

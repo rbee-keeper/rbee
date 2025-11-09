@@ -22,7 +22,7 @@ export function LinkGroup({ links }: LinkGroupProps) {
     <div className="flex items-center gap-4">
       {links.map((link, index) => {
         const key = link.href || `link-${index}`
-        
+
         if (link.disabled) {
           return (
             <span
@@ -31,9 +31,7 @@ export function LinkGroup({ links }: LinkGroupProps) {
             >
               {link.label}
               {link.badge && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                  {link.badge}
-                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{link.badge}</span>
               )}
             </span>
           )

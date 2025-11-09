@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/nextjs'
-import { NavigationDropdown } from './NavigationDropdown'
 import { NavigationMenu, NavigationMenuList } from '@rbee/ui/atoms/NavigationMenu'
-import { Code, Server, Building, BookOpen, Rocket } from 'lucide-react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import { BookOpen, Building, Code, Rocket, Server } from 'lucide-react'
+import { NavigationDropdown } from './NavigationDropdown'
 
 const meta = {
   title: 'Molecules/NavigationDropdown',

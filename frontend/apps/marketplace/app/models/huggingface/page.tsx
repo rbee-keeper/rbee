@@ -3,15 +3,15 @@
 // TEAM-421: Show top 100 popular models (WASM filtering doesn't work in SSG)
 // TEAM-461: Added CategoryFilterBar for filtering
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
-import { ModelsFilterBar } from '../ModelsFilterBar'
-import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
-import { 
+import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
+import { ModelsFilterBar } from '../ModelsFilterBar'
+import {
+  buildHFFilterDescription,
+  buildHFFilterUrl,
   HUGGINGFACE_FILTER_GROUPS,
   HUGGINGFACE_SORT_GROUP,
-  PREGENERATED_HF_FILTERS, 
-  buildHFFilterUrl,
-  buildHFFilterDescription 
+  PREGENERATED_HF_FILTERS,
 } from './filters'
 
 export const metadata: Metadata = {
@@ -23,16 +23,16 @@ export default async function HuggingFaceModelsPage() {
   // Default filter (downloads, all sizes, all licenses)
   const currentFilter = PREGENERATED_HF_FILTERS[0].filters
   const filterDescription = buildHFFilterDescription(currentFilter)
-  
+
   // TEAM-421: WASM doesn't work in Next.js SSG - show top 100 popular models
   const FETCH_LIMIT = 100
-  
+
   console.log(`[SSG] Fetching top ${FETCH_LIMIT} most popular HuggingFace models`)
-  
+
   const hfModels = await listHuggingFaceModels({ limit: FETCH_LIMIT })
-  
+
   console.log(`[SSG] Showing ${hfModels.length} HuggingFace models`)
-  
+
   const models = hfModels.map((model) => {
     const m = model as unknown as Record<string, unknown>
     return {
@@ -42,7 +42,7 @@ export default async function HuggingFaceModelsPage() {
       author: m.author as string | undefined,
       downloads: (m.downloads as number) ?? 0,
       likes: (m.likes as number) ?? 0,
-      tags: (m.tags as string[] | undefined)?.slice(0, 10) ?? []
+      tags: (m.tags as string[] | undefined)?.slice(0, 10) ?? [],
     }
   })
 
@@ -51,14 +51,12 @@ export default async function HuggingFaceModelsPage() {
       {/* Header Section */}
       <div className="mb-8 space-y-4">
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            HuggingFace LLM Models
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">HuggingFace LLM Models</h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl">
             {filterDescription} · Discover and download state-of-the-art language models
           </p>
         </div>
-        
+
         {/* Stats */}
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">

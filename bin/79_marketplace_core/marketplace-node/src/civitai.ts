@@ -70,19 +70,21 @@ export interface CivitAISearchResponse {
 
 /**
  * Fetch models from CivitAI API
- * 
+ *
  * @param options - Search options
  * @returns Array of CivitAI models
  */
-export async function fetchCivitAIModels(options: {
-  query?: string
-  limit?: number
-  types?: string[]
-  sort?: 'Highest Rated' | 'Most Downloaded' | 'Newest'
-  nsfw?: boolean
-  period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
-  baseModel?: string
-} = {}): Promise<CivitAIModel[]> {
+export async function fetchCivitAIModels(
+  options: {
+    query?: string
+    limit?: number
+    types?: string[]
+    sort?: 'Highest Rated' | 'Most Downloaded' | 'Newest'
+    nsfw?: boolean
+    period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
+    baseModel?: string
+  } = {},
+): Promise<CivitAIModel[]> {
   const {
     query,
     limit = 20,
@@ -107,7 +109,7 @@ export async function fetchCivitAIModels(options: {
   // Correct: ?types=Checkpoint&types=LORA
   // Wrong: ?types=Checkpoint,LORA
   if (types.length > 0) {
-    types.forEach(type => {
+    types.forEach((type) => {
       params.append('types', type)
     })
   }
@@ -123,7 +125,7 @@ export async function fetchCivitAIModels(options: {
   }
 
   const url = `https://civitai.com/api/v1/models?${params}`
-  
+
   try {
     const response = await fetch(url)
     if (!response.ok) {
@@ -140,13 +142,13 @@ export async function fetchCivitAIModels(options: {
 
 /**
  * Fetch a specific model from CivitAI by ID
- * 
+ *
  * @param modelId - CivitAI model ID
  * @returns CivitAI model details
  */
 export async function fetchCivitAIModel(modelId: number): Promise<CivitAIModel> {
   const url = `https://civitai.com/api/v1/models/${modelId}`
-  
+
   try {
     const response = await fetch(url)
     if (!response.ok) {

@@ -1,15 +1,15 @@
 // Queen Dashboard - Heartbeat Monitor + RHAI IDE
 // Minimal UI for Queen operations
 
-import { useHeartbeat } from "@rbee/queen-rbee-react";
-import { HeartbeatMonitor } from "../components/HeartbeatMonitor";
-import { RhaiIDE } from "../components/RhaiIDE";
-import { ConnectionStatus } from "../components/ConnectionStatus";
+import { useHeartbeat } from '@rbee/queen-rbee-react'
+import { ConnectionStatus } from '../components/ConnectionStatus'
+import { HeartbeatMonitor } from '../components/HeartbeatMonitor'
+import { RhaiIDE } from '../components/RhaiIDE'
 
 export default function DashboardPage() {
   // TEAM-352: Use default URL from hook (no hardcoded URL)
-  const { data, connected, loading, error } = useHeartbeat();
-  
+  const { data, connected, loading, error } = useHeartbeat()
+
   // ============================================================
   // BUG FIX: TEAM-377 | Hive count always showing 0
   // ============================================================
@@ -39,9 +39,9 @@ export default function DashboardPage() {
   // - Verified useHeartbeat returns data.hives array correctly
   // - Will test in browser: Active Hives count should match running hives
   // ============================================================
-  const hives = data?.hives || [];
-  const workersOnline = data?.workers_online || 0;
-  const hivesOnline = data?.hives_online || 0; // TEAM-377: Use backend count, not array length
+  const hives = data?.hives || []
+  const workersOnline = data?.workers_online || 0
+  const hivesOnline = data?.hives_online || 0 // TEAM-377: Use backend count, not array length
 
   // console.log({ hives, workersOnline, hivesOnline })
 
@@ -53,7 +53,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Loading Queen UI...</p>
         </div>
       </div>
-    );
+    )
   }
 
   // Error state
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           <p className="text-sm text-red-500">{error.message}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -75,22 +75,16 @@ export default function DashboardPage() {
       <div className="flex items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold">Queen Dashboard</h1>
-          <p className="text-muted-foreground">
-            Heartbeat Monitor & RHAI Scheduler
-          </p>
+          <p className="text-muted-foreground">Heartbeat Monitor & RHAI Scheduler</p>
         </div>
         <ConnectionStatus connected={connected} />
       </div>
 
       {/* Components Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <HeartbeatMonitor 
-          workersOnline={workersOnline} 
-          hivesOnline={hivesOnline}
-          hives={hives} 
-        />
+        <HeartbeatMonitor workersOnline={workersOnline} hivesOnline={hivesOnline} hives={hives} />
         <RhaiIDE />
       </div>
     </div>
-  );
+  )
 }

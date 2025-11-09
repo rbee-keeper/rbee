@@ -1,35 +1,35 @@
 /**
  * PROGRAMMATIC SOURCE OF TRUTH for all port configurations
- * 
+ *
  * CANONICAL SOURCE: /PORT_CONFIGURATION.md
- * 
+ *
  * CRITICAL: When adding a new service:
  * 1. Update PORT_CONFIGURATION.md (canonical source)
  * 2. Update this file to match
  * 3. Run `pnpm generate:rust` (if applicable)
  * 4. Update backend Cargo.toml default port
- * 
+ *
  * TEAM-351: Shared port configuration
  * TEAM-457: Added commercial, marketplace, user-docs, hono-catalog
  * TEAM-XXX: Added comfy-worker, vllm-worker ports; added getWorkerUrl() helper
- * 
+ *
  * @packageDocumentation
  */
 
 // TEAM-457: Helper to get port from environment variable or use default
 function getPort(envVar: string, defaultPort: number): number {
-  // @ts-ignore - Vite's import.meta.env is available at runtime
+  // @ts-expect-error - Vite's import.meta.env is available at runtime
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    // @ts-ignore
-    const envValue = import.meta.env[envVar];
+    // @ts-expect-error
+    const envValue = import.meta.env[envVar]
     if (envValue) {
-      const parsed = parseInt(envValue, 10);
+      const parsed = parseInt(envValue, 10)
       if (!isNaN(parsed)) {
-        return parsed;
+        return parsed
       }
     }
   }
-  return defaultPort;
+  return defaultPort
 }
 
 /**
@@ -39,9 +39,9 @@ function getPort(envVar: string, defaultPort: number): number {
 export const PORTS = {
   // Backend Services (HTTP APIs)
   queen: {
-    dev: getPort('VITE_QUEEN_UI_DEV_PORT', 7834),      // Vite dev server
-    prod: getPort('VITE_QUEEN_PORT', 7833),             // Embedded in backend
-    backend: getPort('VITE_QUEEN_PORT', 7833),          // Backend HTTP server
+    dev: getPort('VITE_QUEEN_UI_DEV_PORT', 7834), // Vite dev server
+    prod: getPort('VITE_QUEEN_PORT', 7833), // Embedded in backend
+    backend: getPort('VITE_QUEEN_PORT', 7833), // Backend HTTP server
   },
   hive: {
     dev: getPort('VITE_HIVE_UI_DEV_PORT', 7836),
@@ -73,35 +73,35 @@ export const PORTS = {
       backend: null, // Dynamic - assigned by hive
     },
   },
-  
+
   // Frontend Services (Development)
   keeper: {
     dev: getPort('VITE_KEEPER_DEV_PORT', 5173),
-    prod: null,  // Tauri app, no HTTP port
+    prod: null, // Tauri app, no HTTP port
   },
   commercial: {
     dev: getPort('VITE_COMMERCIAL_PORT', 7822),
-    prod: null,  // Deployed to Cloudflare
+    prod: null, // Deployed to Cloudflare
   },
   marketplace: {
     dev: getPort('VITE_MARKETPLACE_PORT', 7823),
-    prod: null,  // Deployed to Cloudflare
+    prod: null, // Deployed to Cloudflare
   },
   userDocs: {
     dev: getPort('VITE_USER_DOCS_PORT', 7811),
-    prod: null,  // Deployed to Cloudflare
+    prod: null, // Deployed to Cloudflare
   },
-  
+
   // Storybooks
   storybook: {
     rbeeUi: getPort('VITE_RBEE_UI_STORYBOOK_PORT', 6006),
     commercial: getPort('VITE_COMMERCIAL_STORYBOOK_PORT', 6007),
   },
-  
+
   // Cloudflare Workers
   honoCatalog: {
     dev: getPort('VITE_HONO_CATALOG_PORT', 8787),
-    prod: null,  // Deployed to Cloudflare
+    prod: null, // Deployed to Cloudflare
   },
 } as const
 
@@ -114,13 +114,13 @@ export type WorkerServiceName = 'llm' | 'sd' | 'comfy' | 'vllm'
 
 /**
  * Generate allowed origins for postMessage listener
- * 
+ *
  * @param includeHttps - Include HTTPS variants for production (default: false)
  * @returns Array of unique allowed origins
  */
 export function getAllowedOrigins(includeHttps = false): string[] {
   const origins = new Set<string>()
-  
+
   // Queen and Hive
   const simpleServices = [PORTS.queen, PORTS.hive]
   for (const ports of simpleServices) {
@@ -134,7 +134,7 @@ export function getAllowedOrigins(includeHttps = false): string[] {
       }
     }
   }
-  
+
   // Workers (nested structure)
   const workerTypes = [PORTS.worker.llm, PORTS.worker.sd, PORTS.worker.comfy, PORTS.worker.vllm]
   for (const ports of workerTypes) {
@@ -148,7 +148,7 @@ export function getAllowedOrigins(includeHttps = false): string[] {
       }
     }
   }
-  
+
   return Array.from(origins).sort()
 }
 
@@ -187,33 +187,27 @@ export function getAllowedOrigins(includeHttps = false): string[] {
 
 /**
  * Get iframe URL for embedding services
- * 
+ *
  * @param service - Service name
  * @param isDev - Whether in development mode
  * @param useHttps - Whether to use HTTPS (default: false)
  * @returns URL string or empty string if service has no HTTP port
  * @throws Error if service doesn't support iframe embedding
  */
-export function getIframeUrl(
-  service: ServiceName,
-  isDev: boolean,
-  useHttps = false
-): string {
+export function getIframeUrl(service: ServiceName, isDev: boolean, useHttps = false): string {
   const ports = PORTS[service]
   const port = isDev ? ports.dev : ports.prod
-  
+
   if (service === 'keeper' && !isDev) {
-    throw new Error(
-      'Keeper service has no production HTTP port (Tauri app). Use dev mode or check service name.'
-    )
+    throw new Error('Keeper service has no production HTTP port (Tauri app). Use dev mode or check service name.')
   }
-  
+
   if (port === null) {
     return ''
   }
-  
+
   const protocol = useHttps ? 'https' : 'http'
-  
+
   // TEAM-374: In dev mode, load directly from Vite dev server
   // Do NOT use /dev proxy - breaks Vite's module resolution
   return `${protocol}://localhost:${port}`
@@ -221,12 +215,12 @@ export function getIframeUrl(
 
 /**
  * Get parent origin for postMessage
- * 
+ *
  * @param currentPort - Current window port
  * @returns Origin string or '*' for wildcard (Tauri app)
  */
 export function getParentOrigin(currentPort: number): string {
-  const isDevPort = (
+  const isDevPort =
     currentPort === PORTS.queen.dev ||
     currentPort === PORTS.hive.dev ||
     currentPort === PORTS.worker.llm.dev ||
@@ -234,16 +228,13 @@ export function getParentOrigin(currentPort: number): string {
     currentPort === PORTS.worker.comfy.dev ||
     currentPort === PORTS.worker.vllm.dev ||
     currentPort === PORTS.keeper.dev
-  )
-  
-  return isDevPort
-    ? `http://localhost:${PORTS.keeper.dev}`
-    : '*'
+
+  return isDevPort ? `http://localhost:${PORTS.keeper.dev}` : '*'
 }
 
 /**
  * Get service URL for HTTP requests
- * 
+ *
  * @param service - Service name
  * @param mode - 'dev' | 'prod' | 'backend'
  * @param useHttps - Use HTTPS instead of HTTP (default: false)
@@ -252,28 +243,28 @@ export function getParentOrigin(currentPort: number): string {
 export function getServiceUrl(
   service: ServiceName,
   mode: 'dev' | 'prod' | 'backend' = 'dev',
-  useHttps = false
+  useHttps = false,
 ): string {
   const ports = PORTS[service]
-  
+
   let port: number | null
   if (mode === 'backend') {
     port = 'backend' in ports ? (ports as any).backend : ports.prod
   } else {
     port = mode === 'dev' ? ports.dev : ports.prod
   }
-  
+
   if (port === null) {
     return ''
   }
-  
+
   const protocol = useHttps ? 'https' : 'http'
   return `${protocol}://localhost:${port}`
 }
 
 /**
  * Get worker service URL for HTTP requests
- * 
+ *
  * @param worker - Worker type ('llm' | 'sd' | 'comfy' | 'vllm')
  * @param mode - 'dev' | 'prod' | 'backend'
  * @param useHttps - Use HTTPS instead of HTTP (default: false)
@@ -282,21 +273,21 @@ export function getServiceUrl(
 export function getWorkerUrl(
   worker: WorkerServiceName,
   mode: 'dev' | 'prod' | 'backend' = 'dev',
-  useHttps = false
+  useHttps = false,
 ): string {
   const ports = PORTS.worker[worker]
-  
+
   let port: number | null
   if (mode === 'backend') {
     port = ports.backend
   } else {
     port = mode === 'dev' ? ports.dev : ports.prod
   }
-  
+
   if (port === null) {
     return ''
   }
-  
+
   const protocol = useHttps ? 'https' : 'http'
   return `${protocol}://localhost:${port}`
 }

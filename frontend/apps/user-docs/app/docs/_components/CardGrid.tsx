@@ -1,4 +1,4 @@
-import React from 'react'
+import type React from 'react'
 
 interface CardGridProps {
   columns?: 2 | 3 | 4
@@ -12,9 +12,5 @@ const gridCols = {
 }
 
 export function CardGrid({ columns = 2, children }: CardGridProps) {
-  return (
-    <div className={`grid gap-4 my-6 ${gridCols[columns]}`}>
-      {children}
-    </div>
-  )
+  return <div className={`grid gap-4 my-6 ${gridCols[columns]}`}>{children}</div>
 }

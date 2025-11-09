@@ -20,7 +20,7 @@ export interface ModelMetadataCardProps {
 
 /**
  * Card for displaying model metadata in a clean key-value format
- * 
+ *
  * @example
  * ```tsx
  * <ModelMetadataCard
@@ -47,9 +47,7 @@ export function ModelMetadataCard({ title, items, className }: ModelMetadataCard
               <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
             </div>
             {item.code ? (
-              <code className="block text-sm bg-muted px-3 py-2 rounded font-mono break-all">
-                {item.value}
-              </code>
+              <code className="block text-sm bg-muted px-3 py-2 rounded font-mono break-all">{item.value}</code>
             ) : (
               <p className="text-sm font-semibold">{item.value}</p>
             )}

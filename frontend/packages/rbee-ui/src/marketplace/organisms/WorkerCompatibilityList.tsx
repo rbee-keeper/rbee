@@ -14,9 +14,9 @@ interface WorkerCompatibilityListProps {
 
 export function WorkerCompatibilityList({ workers, className = '' }: WorkerCompatibilityListProps) {
   // Group by compatibility
-  const compatible = workers.filter(w => w.compatibility.compatible)
-  const incompatible = workers.filter(w => !w.compatibility.compatible)
-  
+  const compatible = workers.filter((w) => w.compatibility.compatible)
+  const incompatible = workers.filter((w) => !w.compatibility.compatible)
+
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Compatible Workers */}
@@ -25,10 +25,7 @@ export function WorkerCompatibilityList({ workers, className = '' }: WorkerCompa
           <h3 className="text-lg font-semibold mb-3">Compatible Workers ({compatible.length})</h3>
           <div className="grid gap-3">
             {compatible.map(({ worker, compatibility }) => (
-              <div
-                key={worker.id}
-                className="border rounded-lg p-4 hover:border-green-500 transition-colors"
-              >
+              <div key={worker.id} className="border rounded-lg p-4 hover:border-green-500 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">{worker.name}</p>
@@ -36,27 +33,21 @@ export function WorkerCompatibilityList({ workers, className = '' }: WorkerCompa
                       {worker.worker_type.toUpperCase()} • {worker.platform}
                     </p>
                   </div>
-                  <CompatibilityBadge 
-                    result={compatibility} 
-                    workerName={worker.name} 
-                  />
+                  <CompatibilityBadge result={compatibility} workerName={worker.name} />
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-      
+
       {/* Incompatible Workers */}
       {incompatible.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold mb-3">Incompatible Workers ({incompatible.length})</h3>
           <div className="grid gap-3 opacity-60">
             {incompatible.map(({ worker, compatibility }) => (
-              <div
-                key={worker.id}
-                className="border rounded-lg p-4"
-              >
+              <div key={worker.id} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">{worker.name}</p>
@@ -64,17 +55,14 @@ export function WorkerCompatibilityList({ workers, className = '' }: WorkerCompa
                       {worker.worker_type.toUpperCase()} • {worker.platform}
                     </p>
                   </div>
-                  <CompatibilityBadge 
-                    result={compatibility} 
-                    workerName={worker.name} 
-                  />
+                  <CompatibilityBadge result={compatibility} workerName={worker.name} />
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-      
+
       {/* No workers */}
       {workers.length === 0 && (
         <div className="text-center py-8 text-gray-500">

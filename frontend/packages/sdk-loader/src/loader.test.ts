@@ -1,6 +1,6 @@
 /**
  * TEAM-356: Tests for SDK loader
- * 
+ *
  * Note: These tests focus on the public API and behavior.
  * Dynamic import mocking is complex in Vitest, so we test:
  * - Environment guards (browser, WebAssembly)
@@ -9,7 +9,7 @@
  * - Type safety
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { createSDKLoader } from './loader'
 import { clearAllGlobalSlots } from './singleflight'
 
@@ -119,7 +119,7 @@ describe('loader', () => {
     it('should clear global slots between tests', () => {
       // This test verifies clearAllGlobalSlots works
       clearAllGlobalSlots()
-      
+
       const loader = createSDKLoader({
         packageName: '@rbee/test-sdk',
         requiredExports: ['Client'],

@@ -18,9 +18,7 @@ export const marketplaceNavConfig: NavigationConfig = {
     },
     {
       type: 'linkGroup',
-      links: [
-        { label: 'Workers', href: '/workers' },
-      ],
+      links: [{ label: 'Workers', href: '/workers' }],
     },
   ],
   actions: {

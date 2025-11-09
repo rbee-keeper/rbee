@@ -1,22 +1,22 @@
 // TEAM-381: Downloaded Models View - Shows models downloaded to disk
 
-import { Play, Trash2, Info, HardDrive } from 'lucide-react'
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
   Badge,
   Button,
-  Skeleton,
   Empty,
+  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyDescription,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@rbee/ui/atoms'
+import { HardDrive, Info, Play, Trash2 } from 'lucide-react'
 import type { ModelInfo } from './types'
 
 interface DownloadedModelsViewProps {
@@ -101,9 +101,7 @@ export function DownloadedModelsView({
             </TableCell>
             <TableCell>{(model.size_bytes / 1_000_000_000).toFixed(2)} GB</TableCell>
             <TableCell>
-              <Badge variant={model.status === 'available' ? 'default' : 'secondary'}>
-                {model.status}
-              </Badge>
+              <Badge variant={model.status === 'available' ? 'default' : 'secondary'}>{model.status}</Badge>
             </TableCell>
             <TableCell className="text-right">
               <div className="flex gap-2 justify-end">

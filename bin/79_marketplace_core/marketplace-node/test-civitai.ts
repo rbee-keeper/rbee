@@ -3,7 +3,7 @@ import { fetchCivitAIModels } from './src/civitai'
 
 async function testCivitAI() {
   console.log('Testing CivitAI API with fixed parameters...\n')
-  
+
   try {
     const models = await fetchCivitAIModels({
       limit: 5,
@@ -11,7 +11,7 @@ async function testCivitAI() {
       sort: 'Most Downloaded',
       nsfw: false,
     })
-    
+
     console.log(`✅ SUCCESS: Fetched ${models.length} models`)
     console.log('\nFirst model:')
     console.log(`  - Name: ${models[0]?.name}`)

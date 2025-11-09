@@ -1,26 +1,26 @@
 // TEAM-382: Spawn worker form view
 // Enhanced with worker catalog integration for build instructions
 
-import { useState } from 'react'
-import { Rocket, Cpu, AlertCircle, Info } from 'lucide-react'
+import { WORKER_TYPE_OPTIONS } from '@rbee/rbee-hive-react'
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  Button,
+  Input,
   Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Input,
-  Badge,
 } from '@rbee/ui/atoms'
-import { WORKER_TYPE_OPTIONS } from '@rbee/rbee-hive-react'
-import { useWorkerCatalog, getWorkerByType, isWorkerSupported, getCurrentPlatform } from '../../hooks/useWorkerCatalog'
+import { AlertCircle, Cpu, Info, Rocket } from 'lucide-react'
+import { useState } from 'react'
+import { getCurrentPlatform, getWorkerByType, isWorkerSupported, useWorkerCatalog } from '../../hooks/useWorkerCatalog'
 import type { ModelInfo } from '../ModelManagement/types'
 import type { SpawnFormState } from './types'
 
@@ -34,7 +34,7 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
   // Fetch worker catalog for build instructions and metadata
   const { data: catalog, isLoading: catalogLoading, error: catalogError } = useWorkerCatalog()
   const currentPlatform = getCurrentPlatform()
-  
+
   const [formState, setFormState] = useState<SpawnFormState>({
     modelId: '',
     workerType: 'cuda',
@@ -58,9 +58,7 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
           <Rocket className="h-5 w-5" />
           Spawn New Worker
         </CardTitle>
-        <CardDescription>
-          Select a model and device to spawn a new worker process
-        </CardDescription>
+        <CardDescription>Select a model and device to spawn a new worker process</CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -70,9 +68,7 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
             <Label htmlFor="model">Model</Label>
             <Select
               value={formState.modelId}
-              onValueChange={(value) =>
-                setFormState((prev) => ({ ...prev, modelId: value }))
-              }
+              onValueChange={(value) => setFormState((prev) => ({ ...prev, modelId: value }))}
             >
               <SelectTrigger id="model">
                 <SelectValue placeholder="Select a model..." />
@@ -109,19 +105,13 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
                 {WORKER_TYPE_OPTIONS.map((option) => {
                   const workerEntry = getWorkerByType(catalog, option.value)
                   const supported = workerEntry ? isWorkerSupported(workerEntry, currentPlatform) : true
-                  
+
                   return (
-                    <SelectItem 
-                      key={option.value} 
-                      value={option.value}
-                      disabled={!supported}
-                    >
+                    <SelectItem key={option.value} value={option.value} disabled={!supported}>
                       <div className="flex items-center justify-between gap-2 w-full">
                         <div className="flex flex-col">
                           <span>{option.label}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {option.description}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{option.description}</span>
                           {workerEntry && (
                             <span className="text-xs text-muted-foreground mt-1">
                               v{workerEntry.version} • {workerEntry.supported_formats.join(', ')}
@@ -140,7 +130,7 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
                 })}
               </SelectContent>
             </Select>
-            
+
             {/* Catalog Loading/Error State */}
             {catalogLoading && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -154,14 +144,14 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
                 Failed to load catalog: {catalogError.message}
               </p>
             )}
-            
+
             {/* Worker Details */}
             {formState.workerType && catalog && (
               <div className="mt-2 p-3 bg-muted rounded-md text-xs space-y-1">
                 {(() => {
                   const worker = getWorkerByType(catalog, formState.workerType)
                   if (!worker) return null
-                  
+
                   return (
                     <>
                       <div className="flex items-center gap-2">
@@ -177,10 +167,12 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
                           <span className="text-muted-foreground">Build:</span> {worker.build_system}
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Streaming:</span> {worker.supports_streaming ? '✓' : '✗'}
+                          <span className="text-muted-foreground">Streaming:</span>{' '}
+                          {worker.supports_streaming ? '✓' : '✗'}
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Max Context:</span> {worker.max_context_length?.toLocaleString() || 'N/A'}
+                          <span className="text-muted-foreground">Max Context:</span>{' '}
+                          {worker.max_context_length?.toLocaleString() || 'N/A'}
                         </div>
                         <div>
                           <span className="text-muted-foreground">Platforms:</span> {worker.platforms.join(', ')}
@@ -209,18 +201,12 @@ export function SpawnWorkerView({ models, onSpawn, isPending }: SpawnWorkerViewP
                   }))
                 }
               />
-              <p className="text-xs text-muted-foreground">
-                GPU device index (0 for first GPU, 1 for second, etc.)
-              </p>
+              <p className="text-xs text-muted-foreground">GPU device index (0 for first GPU, 1 for second, etc.)</p>
             </div>
           )}
 
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={!formState.modelId || isPending}
-          >
+          <Button type="submit" className="w-full" disabled={!formState.modelId || isPending}>
             {isPending ? (
               <>
                 <Cpu className="h-4 w-4 mr-2 animate-pulse" />

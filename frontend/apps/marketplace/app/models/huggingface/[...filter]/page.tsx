@@ -5,16 +5,16 @@ import { ModelsFilterBar } from '../../ModelsFilterBar'
 // TEAM-423: Disable SSG due to API errors during build
 export const dynamic = 'force-dynamic'
 
-import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import type { Metadata } from 'next'
-import { 
+import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
+import {
+  buildHFFilterDescription,
+  buildHFFilterParams,
+  buildHFFilterUrl,
+  getHFFilterFromPath,
   HUGGINGFACE_FILTER_GROUPS,
   HUGGINGFACE_SORT_GROUP,
-  PREGENERATED_HF_FILTERS, 
-  getHFFilterFromPath,
-  buildHFFilterUrl,
-  buildHFFilterDescription,
-  buildHFFilterParams
+  PREGENERATED_HF_FILTERS,
 } from '../filters'
 
 interface PageProps {
@@ -25,9 +25,8 @@ interface PageProps {
 
 // Pre-generate static pages for all filter combinations
 export async function generateStaticParams() {
-  return PREGENERATED_HF_FILTERS
-    .filter(f => f.path !== '') // Exclude default (handled by main page)
-    .map(f => ({
+  return PREGENERATED_HF_FILTERS.filter((f) => f.path !== '') // Exclude default (handled by main page)
+    .map((f) => ({
       filter: f.path.split('/').filter(Boolean), // Remove empty strings
     }))
 }
@@ -37,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const filterPath = filter.join('/')
   const currentFilter = getHFFilterFromPath(filterPath)
   const description = buildHFFilterDescription(currentFilter)
-  
+
   return {
     title: `${description} | HuggingFace Models | rbee Marketplace`,
     description: `Browse ${description.toLowerCase()} language models from HuggingFace.`,
@@ -49,15 +48,15 @@ export default async function FilteredHuggingFacePage({ params }: PageProps) {
   const filterPath = filter.join('/')
   const currentFilter = getHFFilterFromPath(filterPath)
   const filterDescription = buildHFFilterDescription(currentFilter)
-  
+
   console.log(`[SSG] Fetching HuggingFace models with filter: ${filterPath}`)
-  
+
   // Build API parameters from filter
   const apiParams = buildHFFilterParams(currentFilter)
   const hfModels = await listHuggingFaceModels(apiParams)
-  
+
   console.log(`[SSG] Showing ${hfModels.length} HuggingFace models (${filterPath})`)
-  
+
   const models: ModelTableItem[] = hfModels.map((model) => {
     const m = model as unknown as Record<string, unknown>
     return {
@@ -67,7 +66,7 @@ export default async function FilteredHuggingFacePage({ params }: PageProps) {
       author: m.author as string | undefined,
       downloads: (m.downloads as number) ?? 0,
       likes: (m.likes as number) ?? 0,
-      tags: (m.tags as string[] | undefined)?.slice(0, 10) ?? []
+      tags: (m.tags as string[] | undefined)?.slice(0, 10) ?? [],
     }
   })
 
@@ -76,14 +75,12 @@ export default async function FilteredHuggingFacePage({ params }: PageProps) {
       {/* Header Section */}
       <div className="mb-8 space-y-4">
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            HuggingFace LLM Models
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">HuggingFace LLM Models</h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl">
             {filterDescription} · Discover and download state-of-the-art language models
           </p>
         </div>
-        
+
         {/* Stats */}
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -112,9 +109,7 @@ export default async function FilteredHuggingFacePage({ params }: PageProps) {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">
-            No models match the selected filters.
-          </p>
+          <p className="text-muted-foreground text-lg">No models match the selected filters.</p>
         </div>
       )}
     </div>

@@ -4,22 +4,22 @@
 
 /**
  * Marketplace Node.js SDK
- * 
+ *
  * This package provides a clean API for searching HuggingFace models,
  * CivitAI models, and browsing the worker catalog.
- * 
+ *
  * @example
  * ```typescript
  * import { searchHuggingFaceModels } from '@rbee/marketplace-node'
- * 
+ *
  * const models = await searchHuggingFaceModels('llama', { limit: 10 })
  * console.log(models)
  * ```
  */
 
-import { fetchHFModels, fetchHFModel, type HFModel } from './huggingface'
-import { fetchCivitAIModels, fetchCivitAIModel, type CivitAIModel } from './civitai'
-import type { Model, SearchOptions, ModelMetadata, CompatibilityResult } from './types'
+import { type CivitAIModel, fetchCivitAIModel, fetchCivitAIModels } from './civitai'
+import { fetchHFModel, fetchHFModels, type HFModel } from './huggingface'
+import type { CompatibilityResult, Model, ModelMetadata, SearchOptions } from './types'
 
 // TEAM-413: Lazy-load WASM to avoid build-time issues in Next.js
 // The WASM module is only loaded when compatibility checking is actually used
@@ -32,9 +32,9 @@ async function getWasmModule() {
   return wasmModule
 }
 
-// Re-export types
-export type { Model, SearchOptions, Worker, ModelFile, ModelMetadata, CompatibilityResult } from './types'
 export type { CivitAIModel } from './civitai'
+// Re-export types
+export type { CompatibilityResult, Model, ModelFile, ModelMetadata, SearchOptions, Worker } from './types'
 
 /**
  * Convert HuggingFace model to our Model type
@@ -43,10 +43,10 @@ function convertHFModel(hf: HFModel): Model {
   const parts = hf.id.split('/')
   const name = parts.length >= 2 ? parts[1] : hf.id
   const author = parts.length >= 2 ? parts[0] : hf.author || null
-  
+
   // Calculate total size
   const totalBytes = hf.siblings?.reduce((sum: number, file) => sum + (file.size || 0), 0) || 0
-  
+
   return {
     id: hf.id,
     name,
@@ -60,7 +60,9 @@ function convertHFModel(hf: HFModel): Model {
     createdAt: hf.createdAt,
     lastModified: hf.lastModified,
     config: hf.config,
-    siblings: hf.siblings?.map((s: { rfilename: string; size?: number }) => ({ rfilename: s.rfilename, size: s.size || 0 })) || [],
+    siblings:
+      hf.siblings?.map((s: { rfilename: string; size?: number }) => ({ rfilename: s.rfilename, size: s.size || 0 })) ||
+      [],
   }
 }
 
@@ -72,58 +74,53 @@ function formatBytes(bytes: number): string {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`
+  return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
 }
 
 /**
  * Search HuggingFace models
- * 
+ *
  * @param query - Search query string
  * @param options - Search options (limit, sort)
  * @returns Array of models matching the query
- * 
+ *
  * @example
  * ```typescript
  * const models = await searchHuggingFaceModels('llama', { limit: 10 })
  * ```
  */
-export async function searchHuggingFaceModels(
-  query: string,
-  options: SearchOptions = {}
-): Promise<Model[]> {
+export async function searchHuggingFaceModels(query: string, options: SearchOptions = {}): Promise<Model[]> {
   const { limit = 50 } = options
-  
+
   const hfModels = await fetchHFModels(query, { limit, sort: 'downloads' })
   return hfModels.map(convertHFModel)
 }
 
 /**
  * List HuggingFace models
- * 
+ *
  * @param options - Search options (limit, sort)
  * @returns Array of models
- * 
+ *
  * @example
  * ```typescript
  * const models = await listHuggingFaceModels({ limit: 50 })
  * ```
  */
-export async function listHuggingFaceModels(
-  options: SearchOptions = {}
-): Promise<Model[]> {
+export async function listHuggingFaceModels(options: SearchOptions = {}): Promise<Model[]> {
   const { limit = 50, sort = 'popular' } = options
   const sortParam = sort === 'popular' ? 'downloads' : sort
-  
+
   const hfModels = await fetchHFModels(undefined, { limit, sort: sortParam })
   return hfModels.map(convertHFModel)
 }
 
 /**
  * Get a specific HuggingFace model
- * 
+ *
  * @param modelId - Model ID (e.g., "meta-llama/Llama-3.2-1B")
  * @returns Model details
- * 
+ *
  * @example
  * ```typescript
  * const model = await getHuggingFaceModel('meta-llama/Llama-3.2-1B')
@@ -140,16 +137,17 @@ export async function getHuggingFaceModel(modelId: string): Promise<Model> {
 
 /**
  * Extract model metadata from HuggingFace model
- * 
+ *
  * @param model - HuggingFace model object
  * @returns Model metadata for compatibility checking
  */
 function extractModelMetadata(model: HFModel): ModelMetadata | null {
   // Extract architecture from tags or config
-  const architectureTags = model.tags?.filter((t: string) => 
-    ['llama', 'mistral', 'phi', 'qwen', 'gemma'].some(arch => t.toLowerCase().includes(arch))
-  ) || []
-  
+  const architectureTags =
+    model.tags?.filter((t: string) =>
+      ['llama', 'mistral', 'phi', 'qwen', 'gemma'].some((arch) => t.toLowerCase().includes(arch)),
+    ) || []
+
   let architecture = 'unknown'
   if (architectureTags.length > 0) {
     const tag = architectureTags[0].toLowerCase()
@@ -159,34 +157,34 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
     else if (tag.includes('qwen')) architecture = 'qwen'
     else if (tag.includes('gemma')) architecture = 'gemma'
   }
-  
+
   // Try config if tags didn't work
   if (architecture === 'unknown' && model.config?.model_type) {
     architecture = model.config.model_type
   }
-  
+
   // Detect format from files
   const files = model.siblings || []
   const hasSafetensors = files.some((f: { rfilename: string }) => f.rfilename.endsWith('.safetensors'))
   const hasGguf = files.some((f: { rfilename: string }) => f.rfilename.endsWith('.gguf'))
-  
+
   let format = 'unknown'
   if (hasSafetensors) format = 'safetensors'
   else if (hasGguf) format = 'gguf'
-  
+
   // Get context length from config
   const maxContextLength = model.config?.max_position_embeddings || 2048
-  
+
   // Calculate size
   const totalBytes = files.reduce((sum: number, file: { size?: number }) => sum + (file.size || 0), 0)
-  
+
   // Determine parameter count from model ID or config
   let parameters = 'unknown'
   const idMatch = model.id.match(/(\d+\.?\d*)[bB]/i)
   if (idMatch) {
     parameters = idMatch[1] + 'B'
   }
-  
+
   return {
     architecture,
     format,
@@ -199,15 +197,15 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
 
 /**
  * Check if a model is compatible with our workers
- * 
+ *
  * @param model - HuggingFace model object
  * @returns Compatibility result with detailed information
- * 
+ *
  * @example
  * ```typescript
  * const model = await getHuggingFaceModel('meta-llama/Llama-3.2-1B')
  * const compat = checkModelCompatibility(model)
- * 
+ *
  * if (compat.compatible) {
  *   console.log('Model is compatible!')
  * }
@@ -215,7 +213,7 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
  */
 export async function checkModelCompatibility(model: HFModel): Promise<CompatibilityResult> {
   const metadata = extractModelMetadata(model)
-  
+
   if (!metadata) {
     return {
       compatible: false,
@@ -225,7 +223,7 @@ export async function checkModelCompatibility(model: HFModel): Promise<Compatibi
       recommendations: [],
     }
   }
-  
+
   // Lazy-load WASM and call compatibility function
   const wasm = await getWasmModule()
   return wasm.is_model_compatible_wasm(metadata)
@@ -233,10 +231,10 @@ export async function checkModelCompatibility(model: HFModel): Promise<Compatibi
 
 /**
  * Filter models to only include compatible ones
- * 
+ *
  * @param models - Array of HuggingFace models
  * @returns Array of compatible models
- * 
+ *
  * @example
  * ```typescript
  * const allModels = await listHuggingFaceModels({ limit: 100 })
@@ -249,18 +247,18 @@ export async function filterCompatibleModels(models: HFModel[]): Promise<HFModel
     models.map(async (model) => {
       const result = await checkModelCompatibility(model)
       return { model, compatible: result.compatible }
-    })
+    }),
   )
-  return results.filter(r => r.compatible).map(r => r.model)
+  return results.filter((r) => r.compatible).map((r) => r.model)
 }
 
 /**
  * Search HuggingFace models (compatible only)
- * 
+ *
  * @param query - Search query string
  * @param options - Search options (limit, sort, onlyCompatible)
  * @returns Array of compatible models matching the query
- * 
+ *
  * @example
  * ```typescript
  * const models = await searchCompatibleModels('llama', { limit: 10 })
@@ -269,48 +267,44 @@ export async function filterCompatibleModels(models: HFModel[]): Promise<HFModel
  */
 export async function searchCompatibleModels(
   query: string,
-  options: SearchOptions & { onlyCompatible?: boolean } = {}
+  options: SearchOptions & { onlyCompatible?: boolean } = {},
 ): Promise<Model[]> {
   const { limit = 50, onlyCompatible = true } = options
-  
+
   // Fetch more models than requested to account for filtering
   const fetchLimit = onlyCompatible ? limit * 3 : limit
-  
+
   const hfModels = await fetchHFModels(query, { limit: fetchLimit, sort: 'downloads' })
-  
+
   // Filter compatible models
-  const compatible = onlyCompatible 
-    ? await filterCompatibleModels(hfModels)
-    : hfModels
-  
+  const compatible = onlyCompatible ? await filterCompatibleModels(hfModels) : hfModels
+
   // Limit to requested amount
   return compatible.slice(0, limit).map(convertHFModel)
 }
 
 /**
  * List compatible HuggingFace models
- * 
+ *
  * @param options - Search options (limit, sort)
  * @returns Array of compatible models
- * 
+ *
  * @example
  * ```typescript
  * const models = await listCompatibleModels({ limit: 50 })
  * // All returned models are guaranteed to be compatible
  * ```
  */
-export async function listCompatibleModels(
-  options: SearchOptions = {}
-): Promise<Model[]> {
+export async function listCompatibleModels(options: SearchOptions = {}): Promise<Model[]> {
   const { limit = 50, sort = 'popular' } = options
   const sortParam = sort === 'popular' ? 'downloads' : sort
-  
+
   // Fetch more models to account for filtering
   const fetchLimit = limit * 3
-  
+
   const hfModels = await fetchHFModels(undefined, { limit: fetchLimit, sort: sortParam })
   const compatible = await filterCompatibleModels(hfModels)
-  
+
   return compatible.slice(0, limit).map(convertHFModel)
 }
 
@@ -321,20 +315,20 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
   // TEAM-422: Defensive programming - handle missing/undefined fields
   // Get the latest version
   const latestVersion = civitai.modelVersions?.[0]
-  
+
   // Calculate total size from all files
-  const totalBytes = latestVersion?.files?.reduce((sum, file) => sum + (file.sizeKB * 1024), 0) || 0
-  
+  const totalBytes = latestVersion?.files?.reduce((sum, file) => sum + file.sizeKB * 1024, 0) || 0
+
   // TEAM-422: Get first non-NSFW image from latest version
-  const imageUrl = latestVersion?.images?.find(img => !img.nsfw)?.url
-  
+  const imageUrl = latestVersion?.images?.find((img) => !img.nsfw)?.url
+
   // Safe fallbacks for all fields
   const author = civitai.creator?.username || 'Unknown'
   const description = civitai.description?.substring(0, 500) || `${civitai.type} model by ${author}`
   const downloads = civitai.stats?.downloadCount || 0
   const likes = civitai.stats?.favoriteCount || 0
   const tags = civitai.tags || []
-  
+
   return {
     id: `civitai-${civitai.id}`,
     name: civitai.name || 'Unnamed Model',
@@ -353,32 +347,29 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
 
 /**
  * Get compatible CivitAI models
- * 
+ *
  * @param options - Search options (limit, types, period, baseModel)
  * @returns Array of compatible CivitAI models
- * 
+ *
  * @example
  * ```typescript
- * const models = await getCompatibleCivitaiModels({ 
+ * const models = await getCompatibleCivitaiModels({
  *   limit: 100,
  *   period: 'Month',
  *   baseModel: 'SDXL 1.0'
  * })
  * ```
  */
-export async function getCompatibleCivitaiModels(options: {
-  limit?: number
-  types?: string[]
-  period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
-  baseModel?: string
-} = {}): Promise<Model[]> {
-  const { 
-    limit = 100, 
-    types = ['Checkpoint', 'LORA'],
-    period,
-    baseModel,
-  } = options
-  
+export async function getCompatibleCivitaiModels(
+  options: {
+    limit?: number
+    types?: string[]
+    period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
+    baseModel?: string
+  } = {},
+): Promise<Model[]> {
+  const { limit = 100, types = ['Checkpoint', 'LORA'], period, baseModel } = options
+
   try {
     const civitaiModels = await fetchCivitAIModels({
       limit,
@@ -388,7 +379,7 @@ export async function getCompatibleCivitaiModels(options: {
       period,
       baseModel,
     })
-    
+
     return civitaiModels.map(convertCivitAIModel)
   } catch (error) {
     console.error('[marketplace-node] Failed to fetch CivitAI models:', error)
@@ -398,10 +389,10 @@ export async function getCompatibleCivitaiModels(options: {
 
 /**
  * Get a specific CivitAI model by ID
- * 
+ *
  * @param modelId - CivitAI model ID
  * @returns Raw CivitAI model data
- * 
+ *
  * @example
  * ```typescript
  * const model = await getCivitaiModel(257749)

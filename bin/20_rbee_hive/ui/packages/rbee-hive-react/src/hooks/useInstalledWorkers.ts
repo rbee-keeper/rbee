@@ -1,8 +1,8 @@
 // TEAM-382: React hook for listing installed worker binaries
 // Pattern: Same as useModelOperations (TEAM-268)
 
+import { HiveClient, init, OperationBuilder } from '@rbee/rbee-hive-sdk'
 import { useQuery } from '@tanstack/react-query'
-import { init, HiveClient, OperationBuilder } from '@rbee/rbee-hive-sdk'
 
 let wasmInitialized = false
 async function ensureWasmInit() {
@@ -29,9 +29,9 @@ export interface InstalledWorker {
 
 /**
  * Hook to list installed worker binaries from catalog
- * 
+ *
  * @returns Query result with array of installed workers
- * 
+ *
  * @example
  * ```tsx
  * const { data: workers, isLoading, error } = useInstalledWorkers()
@@ -42,20 +42,20 @@ export function useInstalledWorkers() {
     queryKey: ['installed-workers'],
     queryFn: async () => {
       console.log('[useInstalledWorkers] 🎬 Starting query...')
-      
+
       try {
         console.log('[useInstalledWorkers] 🔧 Initializing WASM...')
         await ensureWasmInit()
         console.log('[useInstalledWorkers] ✓ WASM initialized')
-        
+
         const hiveId = client.hiveId
         console.log('[useInstalledWorkers] 🏠 Hive ID:', hiveId)
-        
+
         const op = OperationBuilder.workerListInstalled(hiveId)
         console.log('[useInstalledWorkers] 🔨 Operation built:', op)
-        
+
         const lines: string[] = []
-        
+
         console.log('[useInstalledWorkers] 📡 Submitting operation...')
         await client.submitAndStream(op, (line: string) => {
           if (line !== '[DONE]') {
@@ -65,41 +65,41 @@ export function useInstalledWorkers() {
             console.log('[useInstalledWorkers] 🏁 SSE stream complete ([DONE] received)')
           }
         })
-        
+
         console.log('[useInstalledWorkers] ✅ Stream complete! Total lines:', lines.length)
         console.log('[useInstalledWorkers] 📋 All lines:', lines)
-        
+
         // TEAM-384: Narration format is:
         // Line 1: "job_router::handle_job worker_list_installed_json"
         // Line 2: "{\"workers\": [...]}"
         // So we need to find a line that contains JSON (has both { and })
-        const jsonLine = lines.find(line => {
+        const jsonLine = lines.find((line) => {
           const trimmed = line.trim()
           return trimmed.includes('{') && trimmed.includes('}')
         })
-        
+
         if (!jsonLine) {
           console.error('[useInstalledWorkers] ❌ No JSON found in lines:', lines)
           throw new Error(`No JSON response received from server. Got ${lines.length} lines but none contained JSON.`)
         }
-        
+
         console.log('[useInstalledWorkers] 🔍 Found JSON line:', jsonLine)
-        
+
         // Extract JSON from the line (it might have narration prefix)
         const jsonMatch = jsonLine.match(/(\{.*\})/)
         if (!jsonMatch) {
           console.error('[useInstalledWorkers] ❌ Could not extract JSON from line:', jsonLine)
           throw new Error('Could not parse JSON response - line does not contain valid JSON')
         }
-        
+
         console.log('[useInstalledWorkers] 🔍 Extracted JSON:', jsonMatch[1])
-        
+
         const response = JSON.parse(jsonMatch[1])
         console.log('[useInstalledWorkers] 📦 Parsed response:', response)
-        
+
         const workers = response.workers || []
         console.log('[useInstalledWorkers] ✅ Returning', workers.length, 'workers:', workers)
-        
+
         return workers
       } catch (error) {
         console.error('[useInstalledWorkers] ❌ Error:', error)

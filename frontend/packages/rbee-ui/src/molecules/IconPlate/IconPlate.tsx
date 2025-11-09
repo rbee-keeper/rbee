@@ -1,4 +1,4 @@
-import { cn, renderIcon, type IconName } from '@rbee/ui/utils'
+import { cn, type IconName, renderIcon } from '@rbee/ui/utils'
 import type * as React from 'react'
 
 export interface IconPlateProps {
@@ -7,7 +7,17 @@ export interface IconPlateProps {
   /** Size variant */
   size?: 'sm' | 'md' | 'lg' | 'xl'
   /** Color tone - supports both tone names and chart colors */
-  tone?: 'primary' | 'muted' | 'destructive' | 'success' | 'warning' | 'chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5'
+  tone?:
+    | 'primary'
+    | 'muted'
+    | 'destructive'
+    | 'success'
+    | 'warning'
+    | 'chart-1'
+    | 'chart-2'
+    | 'chart-3'
+    | 'chart-4'
+    | 'chart-5'
   /** Shape variant */
   shape?: 'square' | 'circle' | 'rounded'
   /** Additional CSS classes */

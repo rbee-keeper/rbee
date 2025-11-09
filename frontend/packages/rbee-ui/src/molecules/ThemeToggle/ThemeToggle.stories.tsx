@@ -81,14 +81,14 @@ export const DarkMode: Story = {
       description: {
         story: 'ThemeToggle in dark mode, showing sun icon.',
       },
-    }
+    },
   },
 
   globals: {
     backgrounds: {
-      value: "dark"
-    }
-  }
+      value: 'dark',
+    },
+  },
 }
 
 export const InNavigationContext: Story = {

@@ -9,7 +9,7 @@ import type { IframeMessage } from './types'
  */
 export function broadcastToIframes(message: IframeMessage) {
   const iframes = document.querySelectorAll('iframe')
-  
+
   iframes.forEach((iframe) => {
     if (iframe.contentWindow) {
       iframe.contentWindow.postMessage(message, '*')
@@ -24,7 +24,7 @@ export function broadcastToIframes(message: IframeMessage) {
  */
 export function receiveFromParent(
   onMessage: (message: IframeMessage) => void,
-  options?: { allowedOrigins?: string[], debug?: boolean }
+  options?: { allowedOrigins?: string[]; debug?: boolean },
 ): () => void {
   return createMessageReceiver({
     allowedOrigins: options?.allowedOrigins || ['*'],
@@ -43,7 +43,7 @@ export function receiveFromParent(
  */
 export function broadcastThemeChanges(): () => void {
   const root = document.documentElement
-  
+
   const sendTheme = () => {
     const theme = root.classList.contains('dark') ? 'dark' : 'light'
     broadcastToIframes({
@@ -53,17 +53,17 @@ export function broadcastThemeChanges(): () => void {
       theme,
     })
   }
-  
+
   // Send initial theme
   sendTheme()
-  
+
   // Watch for changes
   const observer = new MutationObserver(sendTheme)
   observer.observe(root, {
     attributes: true,
     attributeFilter: ['class'],
   })
-  
+
   return () => observer.disconnect()
 }
 

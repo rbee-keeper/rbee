@@ -8,23 +8,23 @@
 // TEAM-423: Renamed to HuggingFace and Civitai for clarity
 // TEAM-413: Added protocol listener for rbee:// URL handling
 
-import { useEffect } from 'react'
+import { broadcastThemeChanges } from '@rbee/iframe-bridge'
 import { SidebarProvider } from '@rbee/ui/atoms'
+import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Shell } from './components/Shell'
+import { useProtocol } from './hooks/useProtocol'
 import HelpPage from './pages/HelpPage'
 import HivePage from './pages/HivePage'
+import { MarketplaceCivitai } from './pages/MarketplaceCivitai'
+import { MarketplaceHuggingFace } from './pages/MarketplaceHuggingFace'
+import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
+import { ModelDetailsPage } from './pages/ModelDetailsPage'
 import QueenPage from './pages/QueenPage'
 import KeeperPage from './pages/ServicesPage'
 import SettingsPage from './pages/SettingsPage'
-import { MarketplaceHuggingFace } from './pages/MarketplaceHuggingFace'
-import { MarketplaceCivitai } from './pages/MarketplaceCivitai'
-import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
-import { ModelDetailsPage } from './pages/ModelDetailsPage'
 import { WorkerDetailsPage } from './pages/WorkerDetailsPage'
 import { setupNarrationListener } from './utils/narrationListener'
-import { broadcastThemeChanges } from '@rbee/iframe-bridge'
-import { useProtocol } from './hooks/useProtocol'
 
 // TEAM-350: Log build mode on startup
 const isDev = import.meta.env.DEV

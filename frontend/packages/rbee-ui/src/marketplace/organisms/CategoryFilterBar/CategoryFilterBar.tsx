@@ -1,20 +1,15 @@
 'use client'
 
+import { Button } from '@rbee/ui/atoms/Button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@rbee/ui/atoms/DropdownMenu'
 // TEAM-461: Dropdown-based filter bar with proper SSR support
 // TEAM-423: Made compatible with both Next.js and Tauri using environment detection
 // Reusable for workers, models, or any catalog with categorical filters
 // Marked as 'use client' due to dropdown interactions and onClick handlers
 import { cn } from '@rbee/ui/utils'
 import { isTauriEnvironment } from '@rbee/ui/utils/environment'
+import { Check, ChevronDown } from 'lucide-react'
 import type { FilterGroup, FilterOption } from '../../types/filters'
-import { ChevronDown, Check } from 'lucide-react'
-import { Button } from '@rbee/ui/atoms/Button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@rbee/ui/atoms/DropdownMenu'
 
 interface FilterGroupComponentProps {
   group: FilterGroup
@@ -24,19 +19,15 @@ interface FilterGroupComponentProps {
 }
 
 function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }: FilterGroupComponentProps) {
-  const activeOption = group.options.find(opt => opt.value === currentValue)
+  const activeOption = group.options.find((opt) => opt.value === currentValue)
   const isTauri = isTauriEnvironment()
-  
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-9 gap-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            {group.label}:
-          </span>
-          <span className="text-xs font-semibold">
-            {activeOption?.label || 'Select...'}
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">{group.label}:</span>
+          <span className="text-xs font-semibold">{activeOption?.label || 'Select...'}</span>
           <ChevronDown className="size-3 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
@@ -44,9 +35,9 @@ function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }:
         {group.options.map((option: FilterOption) => {
           const isActive = currentValue === option.value
           const url = buildUrl(option.value)
-          
+
           return (
-            <DropdownMenuItem 
+            <DropdownMenuItem
               key={option.value}
               onClick={() => {
                 // TEAM-423: Environment-aware navigation
@@ -58,10 +49,7 @@ function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }:
                   window.location.href = url
                 }
               }}
-              className={cn(
-                "flex items-center justify-between w-full cursor-pointer",
-                isActive && "font-semibold"
-              )}
+              className={cn('flex items-center justify-between w-full cursor-pointer', isActive && 'font-semibold')}
             >
               <span>{option.label}</span>
               {isActive && <Check className="size-4" />}
@@ -90,10 +78,10 @@ export interface CategoryFilterBarProps<T = Record<string, string>> {
 
 /**
  * CategoryFilterBar - Dropdown-based filter bar with proper SSR support
- * 
+ *
  * Used for SSG-compatible filtering with Link-based navigation.
  * Filters on the left, sorting on the right.
- * 
+ *
  * @example
  * ```tsx
  * <CategoryFilterBar
@@ -110,13 +98,10 @@ export function CategoryFilterBar<T = Record<string, string>>({
   currentFilters,
   buildUrl,
   onFilterChange,
-  className
+  className,
 }: CategoryFilterBarProps<T>) {
   return (
-    <div className={cn(
-      "flex flex-wrap items-center justify-between gap-4 mb-6",
-      className
-    )}>
+    <div className={cn('flex flex-wrap items-center justify-between gap-4 mb-6', className)}>
       {/* Left: Filters */}
       <div className="flex flex-wrap items-center gap-2">
         {groups.map((group) => (

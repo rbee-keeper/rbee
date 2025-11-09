@@ -1,4 +1,4 @@
-export * from './types'
+export * from './bridge'
 export * from './config'
 export * from './parser'
-export * from './bridge'
+export * from './types'

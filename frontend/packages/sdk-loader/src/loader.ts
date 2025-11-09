@@ -1,22 +1,22 @@
 /**
  * TEAM-356: Core SDK loader with retry logic
- * 
+ *
  * Loads WASM/SDK modules with exponential backoff, timeout handling,
  * and export validation. Supports singleflight pattern to prevent
  * duplicate loads.
  */
 
-import type { LoadOptions, SDKLoadResult } from './types'
-import { withTimeout, sleep, calculateBackoff } from './utils'
 import { getGlobalSlot } from './singleflight'
+import type { LoadOptions, SDKLoadResult } from './types'
+import { calculateBackoff, sleep, withTimeout } from './utils'
 
 /**
  * Load SDK with retry logic and timeout
- * 
+ *
  * @param options - Load options
  * @returns SDK load result with timing information
  * @throws Error if load fails after all retry attempts
- * 
+ *
  * @example
  * ```typescript
  * const result = await loadSDK({
@@ -29,14 +29,7 @@ import { getGlobalSlot } from './singleflight'
  * ```
  */
 export async function loadSDK<T>(options: LoadOptions): Promise<SDKLoadResult<T>> {
-  const {
-    packageName,
-    requiredExports,
-    timeout = 15000,
-    maxAttempts = 3,
-    baseBackoffMs = 300,
-    initArg,
-  } = options
+  const { packageName, requiredExports, timeout = 15000, maxAttempts = 3, baseBackoffMs = 300, initArg } = options
 
   // Environment guards
   if (typeof window === 'undefined') {
@@ -54,14 +47,14 @@ export async function loadSDK<T>(options: LoadOptions): Promise<SDKLoadResult<T>
     try {
       // TEAM-377: Debug logging for SDK loading
       console.log(`[sdk-loader] Attempt ${attempt}/${maxAttempts}: Importing ${packageName}`)
-      
+
       // Dynamic import with timeout
       const mod = await withTimeout(
         import(/* @vite-ignore */ packageName),
         timeout,
-        `SDK import (attempt ${attempt}/${maxAttempts})`
+        `SDK import (attempt ${attempt}/${maxAttempts})`,
       )
-      
+
       console.log(`[sdk-loader] ✅ Import successful for ${packageName}`, mod)
 
       // Handle ESM/CJS shims (default export vs named exports)
@@ -69,11 +62,7 @@ export async function loadSDK<T>(options: LoadOptions): Promise<SDKLoadResult<T>
 
       // Initialize WASM if init function exists
       if (typeof wasmModule.init === 'function') {
-        await withTimeout(
-          wasmModule.init(initArg),
-          timeout,
-          'WASM initialization'
-        )
+        await withTimeout(wasmModule.init(initArg), timeout, 'WASM initialization')
       }
 
       // Validate required exports
@@ -97,7 +86,7 @@ export async function loadSDK<T>(options: LoadOptions): Promise<SDKLoadResult<T>
         const backoffMs = calculateBackoff(attempt, baseBackoffMs, baseBackoffMs)
         console.warn(
           `[sdk-loader] Attempt ${attempt}/${maxAttempts} failed, retrying in ${backoffMs}ms:`,
-          lastError.message
+          lastError.message,
         )
         await sleep(backoffMs)
       }
@@ -109,15 +98,15 @@ export async function loadSDK<T>(options: LoadOptions): Promise<SDKLoadResult<T>
 
 /**
  * Load SDK once (singleflight pattern)
- * 
+ *
  * Ensures only one load operation happens at a time per package.
  * If multiple callers request the same package simultaneously,
  * only one load executes and all callers receive the same result.
- * 
+ *
  * @param options - Load options
  * @returns SDK load result
  * @throws Error if load fails or previous load failed
- * 
+ *
  * @example
  * ```typescript
  * // Multiple concurrent calls - only one load executes
@@ -148,12 +137,12 @@ export async function loadSDKOnce<T>(options: LoadOptions): Promise<SDKLoadResul
 
   // Start new load
   slot.promise = loadSDK<T>(options)
-    .then(result => {
+    .then((result) => {
       slot.value = result
       slot.promise = undefined
       return result
     })
-    .catch(err => {
+    .catch((err) => {
       slot.error = err
       slot.promise = undefined
       throw err
@@ -164,17 +153,17 @@ export async function loadSDKOnce<T>(options: LoadOptions): Promise<SDKLoadResul
 
 /**
  * Create SDK loader factory with default options
- * 
+ *
  * @param defaultOptions - Default load options (without initArg)
  * @returns Factory object with load and loadOnce methods
- * 
+ *
  * @example
  * ```typescript
  * const queenLoader = createSDKLoader({
  *   packageName: '@rbee/queen-rbee-sdk',
  *   requiredExports: ['QueenClient', 'HeartbeatMonitor'],
  * })
- * 
+ *
  * // Load with optional init arg
  * const { sdk } = await queenLoader.loadOnce()
  * ```
@@ -185,7 +174,7 @@ export function createSDKLoader<T>(defaultOptions: Omit<LoadOptions, 'initArg'>)
      * Load SDK (may load multiple times)
      */
     load: (initArg?: any) => loadSDK<T>({ ...defaultOptions, initArg }),
-    
+
     /**
      * Load SDK once (singleflight pattern)
      */

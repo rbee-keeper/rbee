@@ -1,7 +1,7 @@
 // TEAM-381: Model Details Panel - Shows selected model details and actions
 
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { Play, Trash2 } from 'lucide-react'
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@rbee/ui/atoms'
 import type { ModelInfo } from './types'
 
 interface ModelDetailsPanelProps {
@@ -12,13 +12,7 @@ interface ModelDetailsPanelProps {
   isPending: boolean
 }
 
-export function ModelDetailsPanel({
-  model,
-  onLoad,
-  onUnload,
-  onDelete,
-  isPending,
-}: ModelDetailsPanelProps) {
+export function ModelDetailsPanel({ model, onLoad, onUnload, onDelete, isPending }: ModelDetailsPanelProps) {
   if (!model) return null
 
   return (
@@ -43,43 +37,27 @@ export function ModelDetailsPanel({
           <div>
             <span className="text-muted-foreground">Status:</span>
             <div>
-              <Badge variant={model.status === 'available' ? 'default' : 'secondary'}>
-                {model.status}
-              </Badge>
+              <Badge variant={model.status === 'available' ? 'default' : 'secondary'}>{model.status}</Badge>
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
           {!model.loaded && (
-            <Button
-              className="w-full"
-              onClick={() => onLoad(model.id)}
-              disabled={isPending}
-            >
+            <Button className="w-full" onClick={() => onLoad(model.id)} disabled={isPending}>
               <Play className="h-4 w-4 mr-2" />
               Load to RAM
             </Button>
           )}
 
           {model.loaded && (
-            <Button
-              className="w-full"
-              variant="outline"
-              onClick={() => onUnload(model.id)}
-              disabled={isPending}
-            >
+            <Button className="w-full" variant="outline" onClick={() => onUnload(model.id)} disabled={isPending}>
               <Trash2 className="h-4 w-4 mr-2" />
               Unload from RAM
             </Button>
           )}
 
-          <Button
-            className="w-full"
-            variant="destructive"
-            onClick={() => onDelete(model.id)}
-            disabled={isPending}
-          >
+          <Button className="w-full" variant="destructive" onClick={() => onDelete(model.id)} disabled={isPending}>
             <Trash2 className="h-4 w-4 mr-2" />
             Delete Model
           </Button>

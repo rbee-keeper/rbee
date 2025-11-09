@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { FilterButton } from './FilterButton'
 import { Check } from 'lucide-react'
+import { FilterButton } from './FilterButton'
 
 const meta = {
   title: 'Molecules/FilterButton',

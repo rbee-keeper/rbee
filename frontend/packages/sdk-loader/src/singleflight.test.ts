@@ -2,8 +2,8 @@
  * TEAM-356: Tests for singleflight pattern
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getGlobalSlot, clearGlobalSlot, clearAllGlobalSlots } from './singleflight'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { clearAllGlobalSlots, clearGlobalSlot, getGlobalSlot } from './singleflight'
 import type { SDKLoadResult } from './types'
 
 describe('singleflight', () => {
@@ -60,7 +60,7 @@ describe('singleflight', () => {
     it('should not affect other slots', () => {
       const slot1 = getGlobalSlot<any>('@rbee/sdk-1')
       const slot2 = getGlobalSlot<any>('@rbee/sdk-2')
-      
+
       slot1.value = { sdk: { id: 1 }, loadTime: 100, attempts: 1 }
       slot2.value = { sdk: { id: 2 }, loadTime: 200, attempts: 2 }
 
@@ -79,7 +79,7 @@ describe('singleflight', () => {
     it('should clear all slots', () => {
       const slot1 = getGlobalSlot<any>('@rbee/sdk-1')
       const slot2 = getGlobalSlot<any>('@rbee/sdk-2')
-      
+
       slot1.value = { sdk: {}, loadTime: 100, attempts: 1 }
       slot2.value = { sdk: {}, loadTime: 200, attempts: 2 }
 
@@ -102,9 +102,9 @@ describe('singleflight', () => {
         loadTime: 150,
         attempts: 2,
       }
-      
+
       slot.value = result
-      
+
       expect(slot.value.sdk.test).toBe(true)
       expect(slot.value.loadTime).toBe(150)
       expect(slot.value.attempts).toBe(2)
@@ -113,9 +113,9 @@ describe('singleflight', () => {
     it('should store error from failed load', () => {
       const slot = getGlobalSlot('@rbee/test-sdk')
       const error = new Error('Load failed')
-      
+
       slot.error = error
-      
+
       expect(slot.error).toBe(error)
       expect(slot.error.message).toBe('Load failed')
     })
@@ -123,9 +123,9 @@ describe('singleflight', () => {
     it('should store in-progress promise', () => {
       const slot = getGlobalSlot('@rbee/test-sdk')
       const promise = Promise.resolve({ sdk: {}, loadTime: 100, attempts: 1 })
-      
+
       slot.promise = promise
-      
+
       expect(slot.promise).toBe(promise)
     })
   })

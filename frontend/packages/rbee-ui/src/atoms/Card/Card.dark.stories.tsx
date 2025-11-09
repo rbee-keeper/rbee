@@ -242,10 +242,7 @@ export const BrandProgression: Story = {
           <div className="space-y-2">
             <p className="text-sm font-medium">Link States:</p>
             <div className="space-y-1">
-              <a
-                href="#"
-                className="text-[var(--accent)] underline underline-offset-2 decoration-amber-400 text-sm"
-              >
+              <a href="#" className="text-[var(--accent)] underline underline-offset-2 decoration-amber-400 text-sm">
                 Default link (#d97706)
               </a>
               <br />

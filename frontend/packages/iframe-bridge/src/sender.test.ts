@@ -1,6 +1,6 @@
 /**
  * TEAM-351: Tests for message sender
- * 
+ *
  * Behavioral tests covering:
  * - Message sending
  * - Validation
@@ -9,14 +9,8 @@
  * - Error handling
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import {
-  createMessageSender,
-  getSendStats,
-  resetSendStats,
-  isValidSenderConfig,
-  type SenderConfig,
-} from './sender'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMessageSender, getSendStats, isValidSenderConfig, resetSendStats, type SenderConfig } from './sender'
 import type { IframeMessage } from './types'
 
 const mockPostMessage = vi.fn()
@@ -24,7 +18,7 @@ const mockPostMessage = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
   resetSendStats()
-  
+
   // Mock window.parent as a different object
   Object.defineProperty(window, 'parent', {
     writable: true,
@@ -41,7 +35,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       expect(isValidSenderConfig(config)).toBe(true)
     })
 
@@ -49,7 +43,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config: SenderConfig = {
         targetOrigin: '*',
       }
-      
+
       expect(isValidSenderConfig(config)).toBe(true)
     })
 
@@ -57,7 +51,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config = {
         targetOrigin: 'not-a-url',
       }
-      
+
       expect(isValidSenderConfig(config)).toBe(false)
     })
 
@@ -76,7 +70,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       expect(typeof sender).toBe('function')
     })
@@ -85,7 +79,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config = {
         targetOrigin: 'not-a-url',
       } as SenderConfig
-      
+
       expect(() => createMessageSender(config)).toThrow('Invalid sender config')
     })
 
@@ -93,7 +87,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -101,9 +95,9 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       const result = sender(message)
-      
+
       expect(result).toBe(true)
       expect(mockPostMessage).toHaveBeenCalledTimes(1)
       expect(mockPostMessage).toHaveBeenCalledWith(message, 'http://localhost:3000')
@@ -111,11 +105,11 @@ describe('@rbee/iframe-bridge - sender', () => {
 
     it('should return false when parent is same window', () => {
       global.window.parent = global.window as any
-      
+
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -123,7 +117,7 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       const result = sender(message)
       expect(result).toBe(false)
     })
@@ -133,7 +127,7 @@ describe('@rbee/iframe-bridge - sender', () => {
         targetOrigin: 'http://localhost:3000',
         validate: true,
       }
-      
+
       const sender = createMessageSender(config)
       const invalidMessage = {
         type: 'COMMAND',
@@ -141,7 +135,7 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         // missing command field
       } as any
-      
+
       const result = sender(invalidMessage)
       expect(result).toBe(false)
       expect(mockPostMessage).not.toHaveBeenCalled()
@@ -152,26 +146,28 @@ describe('@rbee/iframe-bridge - sender', () => {
         targetOrigin: 'http://localhost:3000',
         validate: false,
       }
-      
+
       const sender = createMessageSender(config)
       const invalidMessage = {
         type: 'COMMAND',
         source: 'test',
         timestamp: Date.now(),
       } as any
-      
+
       const result = sender(invalidMessage)
       expect(result).toBe(true)
       expect(mockPostMessage).toHaveBeenCalled()
     })
 
     it('should handle postMessage errors', () => {
-      mockPostMessage.mockImplementation(() => { throw new Error('Failed') })
-      
+      mockPostMessage.mockImplementation(() => {
+        throw new Error('Failed')
+      })
+
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -179,7 +175,7 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       const result = sender(message)
       expect(result).toBe(false)
     })
@@ -190,12 +186,12 @@ describe('@rbee/iframe-bridge - sender', () => {
         callCount++
         if (callCount === 1) throw new Error('Failed')
       })
-      
+
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
         retry: true,
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -203,13 +199,13 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       const result = sender(message)
       expect(result).toBe(false)
       expect(mockPostMessage).toHaveBeenCalledTimes(1)
-      
+
       // Wait for retry
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise((resolve) => setTimeout(resolve, 150))
       expect(mockPostMessage).toHaveBeenCalledTimes(2)
     })
   })
@@ -219,7 +215,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -227,10 +223,10 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       sender(message)
       sender(message)
-      
+
       const stats = getSendStats()
       expect(stats.total).toBe(2)
       expect(stats.success).toBe(2)
@@ -238,12 +234,14 @@ describe('@rbee/iframe-bridge - sender', () => {
     })
 
     it('should track failed sends', () => {
-      mockPostMessage.mockImplementation(() => { throw new Error('Failed') })
-      
+      mockPostMessage.mockImplementation(() => {
+        throw new Error('Failed')
+      })
+
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -251,9 +249,9 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       sender(message)
-      
+
       const stats = getSendStats()
       expect(stats.total).toBe(1)
       expect(stats.success).toBe(0)
@@ -264,7 +262,7 @@ describe('@rbee/iframe-bridge - sender', () => {
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -272,10 +270,10 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       sender(message)
       resetSendStats()
-      
+
       const stats = getSendStats()
       expect(stats.total).toBe(0)
       expect(stats.success).toBe(0)
@@ -287,11 +285,11 @@ describe('@rbee/iframe-bridge - sender', () => {
     it('should handle very large messages', () => {
       // Reset mock to ensure it doesn't throw
       mockPostMessage.mockImplementation(() => {})
-      
+
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'NARRATION_EVENT',
@@ -303,7 +301,7 @@ describe('@rbee/iframe-bridge - sender', () => {
           human: 'a'.repeat(100000),
         },
       }
-      
+
       const result = sender(message)
       expect(result).toBe(true)
     })
@@ -315,11 +313,11 @@ describe('@rbee/iframe-bridge - sender', () => {
         configurable: true,
         value: window, // parent is same as window
       })
-      
+
       const config: SenderConfig = {
         targetOrigin: 'http://localhost:3000',
       }
-      
+
       const sender = createMessageSender(config)
       const message: IframeMessage = {
         type: 'COMMAND',
@@ -327,7 +325,7 @@ describe('@rbee/iframe-bridge - sender', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       const result = sender(message)
       expect(result).toBe(false)
     })

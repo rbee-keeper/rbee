@@ -46,12 +46,7 @@ export function NavigationActions({ docs, github, cta }: NavigationActionsProps)
       <div className="flex items-center gap-1 rounded-md p-0.5 bg-muted/40 ring-1 ring-border/60 shadow-[inset_0_0_0_1px_var(--border)]">
         {github && (
           <IconButton asChild aria-label="Open rbee on GitHub" title="GitHub">
-            <a
-              href={github.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="motion-safe:hover:animate-pulse"
-            >
+            <a href={github.url} target="_blank" rel="noopener noreferrer" className="motion-safe:hover:animate-pulse">
               <GitHubIcon size={20} />
             </a>
           </IconButton>

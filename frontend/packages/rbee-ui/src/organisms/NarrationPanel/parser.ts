@@ -5,15 +5,15 @@ import type { NarrationEvent } from './types'
 
 /**
  * Parse raw SSE line into structured NarrationEvent
- * 
+ *
  * Handles two formats:
- * 
+ *
  * 1. Raw text format (rbee-hive):
  *    ```
  *    lifecycle_local::rebuild::rebuild_daemon rebuild_start
  *    🔄 Rebuilding rbee-hive locally
  *    ```
- * 
+ *
  * 2. JSON format (rbee-keeper via iframe-bridge):
  *    ```json
  *    {
@@ -24,7 +24,7 @@ import type { NarrationEvent } from './types'
  *      ...
  *    }
  *    ```
- * 
+ *
  * @param line - Raw SSE line (text or JSON string)
  * @returns Structured NarrationEvent
  */
@@ -112,7 +112,7 @@ function normalizeLevel(level?: string): 'error' | 'warn' | 'info' | 'debug' {
 
 /**
  * Detect log level from message content and action
- * 
+ *
  * Uses emoji and keywords to infer level:
  * - ❌, Error, error, failed → error
  * - ⚠️, Warning, warn → warn
@@ -155,10 +155,10 @@ function detectLevel(message: string, action: string | null): 'error' | 'warn' |
 
 /**
  * Extract function name from ANSI-formatted string
- * 
+ *
  * Format: "\x1b[1mfunction_name\x1b[0m \x1b[2maction\x1b[0m\nmessage"
  * The \x1b[1m...\x1b[0m is the function name in bold
- * 
+ *
  * Used by rbee-keeper when receiving events via iframe-bridge
  */
 export function extractFnNameFromFormatted(formatted?: string): string | null {

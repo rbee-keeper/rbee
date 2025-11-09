@@ -1,31 +1,31 @@
 {
-	"name": "@rbee/global-worker-catalog",
-	"version": "0.1.6",
-	"description": "Global worker catalog API - Cloudflare Worker for worker discovery and metadata",
-	"type": "module",
-	"scripts": {
-		"dev": "wrangler dev",
-		"build": "echo '✅ Cloudflare Workers deploy directly from TypeScript - no build needed'",
-		"deploy": "wrangler deploy --minify",
-		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
-		"type-check": "tsc --noEmit",
-		"lint": "oxlint .",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
-		"test:unit": "vitest run tests/unit",
-		"test:integration": "vitest run tests/integration",
-		"test:e2e": "vitest run tests/e2e"
-	},
-	"dependencies": {
-		"hono": "^4.10.4"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241127.0",
-		"@vitest/coverage-v8": "^4.0.8",
-		"oxlint": "^1.26.0",
-		"typescript": "^5.7.2",
-		"vitest": "^4.0.8",
-		"wrangler": "^4.46.0"
-	}
+  "name": "@rbee/global-worker-catalog",
+  "version": "0.1.6",
+  "description": "Global worker catalog API - Cloudflare Worker for worker discovery and metadata",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "echo '✅ Cloudflare Workers deploy directly from TypeScript - no build needed'",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "type-check": "tsc --noEmit",
+    "lint": "oxlint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e"
+  },
+  "dependencies": {
+    "hono": "^4.10.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@vitest/coverage-v8": "^4.0.8",
+    "oxlint": "^1.26.0",
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.8",
+    "wrangler": "^4.46.0"
+  }
 }

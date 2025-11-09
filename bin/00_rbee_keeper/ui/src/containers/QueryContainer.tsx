@@ -30,14 +30,7 @@ interface QueryContainerProps<T> {
 
 // TEAM-352: Generic container - type-safe, simple, dumb UI
 // TEAM-354: Added stale-while-revalidate indicator per CORRECT_ARCHITECTURE.md
-export function QueryContainer<T>({
-  isLoading,
-  error,
-  data,
-  children,
-  onRetry,
-  metadata,
-}: QueryContainerProps<T>) {
+export function QueryContainer<T>({ isLoading, error, data, children, onRetry, metadata }: QueryContainerProps<T>) {
   // Loading state (but show stale data if available)
   if (isLoading && !data) {
     return (
@@ -45,9 +38,7 @@ export function QueryContainer<T>({
         {metadata && (
           <CardHeader>
             <CardTitle>{metadata.name}</CardTitle>
-            {metadata.description && (
-              <CardDescription>{metadata.description}</CardDescription>
-            )}
+            {metadata.description && <CardDescription>{metadata.description}</CardDescription>}
           </CardHeader>
         )}
         <CardContent>
@@ -66,9 +57,7 @@ export function QueryContainer<T>({
         {metadata && (
           <CardHeader>
             <CardTitle>{metadata.name}</CardTitle>
-            {metadata.description && (
-              <CardDescription>{metadata.description}</CardDescription>
-            )}
+            {metadata.description && <CardDescription>{metadata.description}</CardDescription>}
           </CardHeader>
         )}
         <CardContent>

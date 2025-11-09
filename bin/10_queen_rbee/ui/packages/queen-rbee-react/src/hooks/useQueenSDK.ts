@@ -4,11 +4,10 @@
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import type { RbeeSDK } from '../types'
-
 // TEAM-377: Static import - Vite can resolve this properly
 import * as QueenSDK from '@rbee/queen-rbee-sdk'
+import { useEffect, useRef, useState } from 'react'
+import type { RbeeSDK } from '../types'
 
 /**
  * React hook for loading the Queen WASM SDK (client-only, retries with backoff)
@@ -38,12 +37,12 @@ export function useQueenSDK() {
     // Just validate exports and set state
     try {
       console.log('[useQueenSDK] Validating SDK exports...', QueenSDK)
-      
+
       // Validate required exports
       if (!QueenSDK.QueenClient || !QueenSDK.HeartbeatMonitor || !QueenSDK.OperationBuilder || !QueenSDK.RhaiClient) {
         throw new Error('SDK missing required exports')
       }
-      
+
       console.log('[useQueenSDK] ✅ SDK loaded successfully')
       setSDK(QueenSDK as RbeeSDK)
       setLoading(false)

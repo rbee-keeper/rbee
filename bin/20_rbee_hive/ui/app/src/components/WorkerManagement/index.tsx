@@ -2,33 +2,32 @@
 // TEAM-405: Removed "Catalog" tab - marketplace search moved to separate component
 // TEAM-405: Now focuses on LOCAL CATALOG management (Installed, Active, Spawn)
 
-import { useState } from 'react'
-import { Server, Plus, Activity } from 'lucide-react'
+import { useModels, useWorkerOperations, useWorkers } from '@rbee/rbee-hive-react'
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  Badge,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
 } from '@rbee/ui/atoms'
-import { useWorkers, useWorkerOperations } from '@rbee/rbee-hive-react'
-import { useModels } from '@rbee/rbee-hive-react'
+import { Activity, Plus, Server } from 'lucide-react'
+import { useState } from 'react'
 import { ActiveWorkersView } from './ActiveWorkersView'
-import { SpawnWorkerView } from './SpawnWorkerView'
 import { InstalledWorkersView } from './InstalledWorkersView'
-import type { ViewMode, SpawnFormState } from './types'
+import { SpawnWorkerView } from './SpawnWorkerView'
+import type { SpawnFormState, ViewMode } from './types'
 
 export function WorkerManagement() {
   const { workers, loading, error } = useWorkers()
   const { models } = useModels()
-  
+
   const { spawnWorker, terminateWorker, isPending } = useWorkerOperations()
-  
+
   const [viewMode, setViewMode] = useState<ViewMode>('installed') // Start with installed workers
 
   // Separate idle and active workers
@@ -42,9 +41,9 @@ export function WorkerManagement() {
       deviceId: params.deviceId,
     })
   }
-  
+
   // TEAM-405: Removed handleInstallWorker and handleRemoveWorker - use MarketplaceSearch component
-  
+
   // TEAM-384: Handle worker termination (stop running worker)
   const handleTerminateWorker = (pid: number) => {
     console.log('[WorkerManagement] 🛑 Terminating worker PID:', pid)
@@ -60,9 +59,7 @@ export function WorkerManagement() {
               <Server className="h-5 w-5" />
               Worker Management
             </CardTitle>
-            <CardDescription>
-              Install workers, monitor performance, and manage processes
-            </CardDescription>
+            <CardDescription>Install workers, monitor performance, and manage processes</CardDescription>
           </div>
           <div className="flex gap-2">
             <Badge variant="secondary">{idleWorkers.length} Idle</Badge>
@@ -97,21 +94,12 @@ export function WorkerManagement() {
 
           {/* Active Workers Tab */}
           <TabsContent value="active" className="space-y-4">
-            <ActiveWorkersView
-              workers={workers}
-              loading={loading}
-              error={error}
-              onTerminate={handleTerminateWorker}
-            />
+            <ActiveWorkersView workers={workers} loading={loading} error={error} onTerminate={handleTerminateWorker} />
           </TabsContent>
 
           {/* Spawn Worker Tab - REQUIRES INSTALLED WORKERS + MODELS */}
           <TabsContent value="spawn" className="space-y-4">
-            <SpawnWorkerView
-              models={models}
-              onSpawn={handleSpawnWorker}
-              isPending={isPending}
-            />
+            <SpawnWorkerView models={models} onSpawn={handleSpawnWorker} isPending={isPending} />
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -120,4 +108,4 @@ export function WorkerManagement() {
 }
 
 // Re-export types for convenience
-export type { ViewMode, SpawnFormState } from './types'
+export type { SpawnFormState, ViewMode } from './types'

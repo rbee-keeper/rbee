@@ -1,7 +1,7 @@
-import type { BackendNarrationEvent, NarrationMessage } from './types'
 import type { ServiceConfig } from './config'
 import { getParentOrigin, isValidServiceConfig } from './config'
 import { parseNarrationLine } from './parser'
+import type { BackendNarrationEvent, NarrationMessage } from './types'
 
 /**
  * TEAM-351: Bug fixes - Validation, production logging, error handling, retry logic
@@ -15,9 +15,9 @@ const isProduction = (import.meta as any).env?.PROD ?? false
 
 /**
  * Send narration event to parent window (rbee-keeper)
- * 
+ *
  * TEAM-351: Bug fixes - Validation, production logging, error handling
- * 
+ *
  * @param event - Narration event to send
  * @param serviceConfig - Service configuration
  * @param options - Send options
@@ -26,15 +26,15 @@ const isProduction = (import.meta as any).env?.PROD ?? false
 export function sendToParent(
   event: BackendNarrationEvent,
   serviceConfig: ServiceConfig,
-  options: { debug?: boolean; retry?: boolean } = {}
+  options: { debug?: boolean; retry?: boolean } = {},
 ): boolean {
   const { debug = !isProduction, retry = false } = options
-  
+
   // TEAM-351: Validate environment
   if (typeof window === 'undefined' || window.parent === window) {
     return false
   }
-  
+
   // TEAM-351: Validate service config
   if (!isValidServiceConfig(serviceConfig)) {
     console.error('[NarrationClient] Invalid service config:', serviceConfig)
@@ -51,7 +51,7 @@ export function sendToParent(
 
   try {
     const parentOrigin = getParentOrigin(serviceConfig)
-    
+
     // TEAM-351: Only log in debug mode (not production)
     if (debug) {
       console.log(`[${serviceConfig.name}] Sending to parent:`, {
@@ -60,7 +60,7 @@ export function sendToParent(
         actor: event.actor,
       })
     }
-    
+
     window.parent.postMessage(message, parentOrigin)
     return true
   } catch (error) {
@@ -68,7 +68,7 @@ export function sendToParent(
       error: error instanceof Error ? error.message : String(error),
       action: event.action,
     })
-    
+
     // TEAM-351: Retry once if requested
     if (retry) {
       try {
@@ -79,16 +79,16 @@ export function sendToParent(
         console.error(`[${serviceConfig.name}] Retry failed:`, retryError)
       }
     }
-    
+
     return false
   }
 }
 
 /**
  * Create a stream handler for SSE narration events
- * 
+ *
  * TEAM-351: Bug fixes - Options, error handling, validation
- * 
+ *
  * @param serviceConfig - Service configuration
  * @param onLocal - Optional local handler for events
  * @param options - Handler options
@@ -102,20 +102,20 @@ export function createStreamHandler(
     silent?: boolean
     validate?: boolean
     retry?: boolean
-  } = {}
+  } = {},
 ) {
   const { debug = !isProduction, silent = false, validate = true, retry = false } = options
-  
+
   // TEAM-351: Validate service config at creation time
   if (!isValidServiceConfig(serviceConfig)) {
     throw new Error(`Invalid service config: ${JSON.stringify(serviceConfig)}`)
   }
-  
+
   return (line: string) => {
     const event = parseNarrationLine(line, { silent, validate })
     if (event) {
       sendToParent(event, serviceConfig, { debug, retry })
-      
+
       // TEAM-351: Error handling for local handler
       if (onLocal) {
         try {

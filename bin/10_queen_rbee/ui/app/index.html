@@ -7,7 +7,7 @@
     <title>Queen Dashboard</title>
     <!-- TEAM-375: Apply theme immediately to prevent flash -->
     <script>
-      (function() {
+      (() => {
         const theme = localStorage.getItem('theme') || 'dark';
         document.documentElement.classList.add(theme);
       })();

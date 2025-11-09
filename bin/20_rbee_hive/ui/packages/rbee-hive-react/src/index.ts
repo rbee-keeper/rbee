@@ -7,21 +7,21 @@
 //   import { QueryProvider } from '@rbee/ui/providers'
 // This ensures consistent configuration across all apps
 
-import { useQuery, useMutation } from '@tanstack/react-query'
 // TEAM-381: Import WASM SDK dynamically to avoid module load issues
-import type { HiveClient, OperationBuilder, HeartbeatMonitor, ModelInfo } from '@rbee/rbee-hive-sdk'
+import type { HeartbeatMonitor, HiveClient, ModelInfo, OperationBuilder } from '@rbee/rbee-hive-sdk'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 // TEAM-381: Re-export types only (NOT classes - they must be imported directly from SDK)
-export type { 
+export type {
+  HeartbeatMonitor,
   // WASM classes (import these from @rbee/rbee-hive-sdk when needed)
   HiveClient,
-  HeartbeatMonitor,
+  HiveHeartbeatEvent,
+  HiveInfo,
+  ModelInfo,
   OperationBuilder,
   // TEAM-381: Auto-generated types from Rust contract crates
   ProcessStats,
-  HiveInfo,
-  HiveHeartbeatEvent,
-  ModelInfo,
 } from '@rbee/rbee-hive-sdk'
 
 // TEAM-381: HuggingFace model types (for search - UI only, not from backend)
@@ -69,7 +69,7 @@ export interface Worker {
 
 /**
  * Hook for fetching model list from Hive
- * 
+ *
  * TEAM-353: Migrated to TanStack Query + WASM SDK (job-based architecture)
  * - Automatic caching
  * - Automatic error handling
@@ -81,7 +81,7 @@ export function useModels() {
     data: models,
     isLoading: loading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ['hive-models'],
     queryFn: async () => {
@@ -89,25 +89,28 @@ export function useModels() {
       const client = await getClient() // TEAM-381: Lazy client initialization
       const hiveId = client.hiveId // TEAM-353: Get hive_id from client
       const op = sdk.OperationBuilder.modelList(hiveId)
-      
+
       // TEAM-384: Capture data events from dual-channel SSE
       let modelsData: any = null
-      
+
       // TEAM-381: Add timeout to prevent infinite hanging if backend doesn't respond
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout: Backend did not respond within 10 seconds. Is rbee-hive running?')), 10000)
+        setTimeout(
+          () => reject(new Error('Request timeout: Backend did not respond within 10 seconds. Is rbee-hive running?')),
+          10000,
+        )
       })
-      
+
       const streamPromise = client.submitAndStream(op, (line: string) => {
         if (line === '[DONE]') return
-        
+
         // TEAM-384: Check if this is a data event (starts with "event: data")
         // SSE format: "event: data\n{json}"
         if (line.startsWith('event: data')) {
           // Next line will be the JSON payload - we'll get it on next callback
           return
         }
-        
+
         // TEAM-384: Parse data event payload
         if (line.startsWith('{') && line.includes('"action"')) {
           try {
@@ -120,9 +123,9 @@ export function useModels() {
           }
         }
       })
-      
+
       await Promise.race([streamPromise, timeoutPromise])
-      
+
       // TEAM-384: Return models from data event, or empty array
       return modelsData || []
     },
@@ -135,13 +138,13 @@ export function useModels() {
     models: models || [],
     loading,
     error: error as Error | null,
-    refetch
+    refetch,
   }
 }
 
 /**
  * Hook for fetching worker list from Hive
- * 
+ *
  * TEAM-353: Migrated to TanStack Query + WASM SDK (job-based architecture)
  * - Automatic polling (refetchInterval)
  * - Automatic caching
@@ -149,11 +152,11 @@ export function useModels() {
  * - Automatic retry
  */
 export function useWorkers() {
-  const { 
-    data: workers, 
-    isLoading: loading, 
+  const {
+    data: workers,
+    isLoading: loading,
     error,
-    refetch 
+    refetch,
   } = useQuery({
     queryKey: ['hive-workers'],
     queryFn: async () => {
@@ -162,13 +165,13 @@ export function useWorkers() {
       const hiveId = client.hiveId // TEAM-353: Get hive_id from client
       const op = sdk.OperationBuilder.workerList(hiveId)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
         }
       })
-      
+
       // Parse JSON response from last line
       const lastLine = lines[lines.length - 1]
       return lastLine ? JSON.parse(lastLine) : []
@@ -179,35 +182,32 @@ export function useWorkers() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
-  return { 
-    workers: workers || [], 
+  return {
+    workers: workers || [],
     loading,
     error: error as Error | null,
-    refetch
+    refetch,
   }
 }
 
+export type {
+  SpawnWorkerParams,
+  UseHiveOperationsResult,
+  WorkerType,
+  WorkerTypeOption,
+} from './hooks/useHiveOperations'
 // Export operation hooks
 export { useHiveOperations, WORKER_TYPE_OPTIONS, WORKER_TYPES } from './hooks/useHiveOperations'
-export type { 
-  UseHiveOperationsResult, 
-  WorkerType, 
-  WorkerTypeOption,
-  SpawnWorkerParams 
-} from './hooks/useHiveOperations'
-
-export { useModelOperations } from './hooks/useModelOperations'
-export type {
-  UseModelOperationsResult,
-  LoadModelParams,
-  UnloadModelParams,
-  DeleteModelParams
-} from './hooks/useModelOperations'
-
-// TEAM-378: Worker operations (install + spawn)
-export { useWorkerOperations } from './hooks/useWorkerOperations'
-export type { UseWorkerOperationsResult } from './hooks/useWorkerOperations'
-
+export type { InstalledWorker } from './hooks/useInstalledWorkers'
 // TEAM-382: Installed workers listing
 export { useInstalledWorkers } from './hooks/useInstalledWorkers'
-export type { InstalledWorker } from './hooks/useInstalledWorkers'
+export type {
+  DeleteModelParams,
+  LoadModelParams,
+  UnloadModelParams,
+  UseModelOperationsResult,
+} from './hooks/useModelOperations'
+export { useModelOperations } from './hooks/useModelOperations'
+export type { UseWorkerOperationsResult } from './hooks/useWorkerOperations'
+// TEAM-378: Worker operations (install + spawn)
+export { useWorkerOperations } from './hooks/useWorkerOperations'

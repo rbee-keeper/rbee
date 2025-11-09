@@ -3,52 +3,52 @@
 //! Pure presentation + control, NO data fetching
 //! NOTE: This component uses hooks and requires 'use client' in consuming code
 
-import { FilterBar } from '../../organisms/FilterBar'
-import { ModelTable } from '../../organisms/ModelTable'
-import type { ModelTableItem } from '../../organisms/ModelTable'
-import { useModelFilters } from '../../hooks'
 import type { UseModelFiltersOptions } from '../../hooks'
+import { useModelFilters } from '../../hooks'
+import { FilterBar } from '../../organisms/FilterBar'
+import type { ModelTableItem } from '../../organisms/ModelTable'
+import { ModelTable } from '../../organisms/ModelTable'
 
 export interface ModelListTableTemplateProps {
   /** Models to display */
   models: ModelTableItem[]
-  
+
   /** Called when a model is clicked */
   onModelClick?: (modelId: string) => void
-  
+
   /** Loading state */
   isLoading?: boolean
-  
+
   /** Error message */
   error?: string
-  
+
   /** Empty state message */
   emptyMessage?: string
-  
+
   /** Empty state description */
   emptyDescription?: string
-  
+
   /** Filter options */
   filterOptions?: UseModelFiltersOptions
-  
+
   /** Controlled filters (optional) */
   filters?: {
     search: string
     sort: string
     tags: string[]
   }
-  
+
   /** Filter change handler (for controlled mode) */
   onFiltersChange?: (filters: { search: string; sort: string; tags: string[] }) => void
 }
 
 /**
  * Complete model list template with filtering and table
- * 
+ *
  * Can be used in two modes:
  * 1. **Uncontrolled** (manages its own filter state)
  * 2. **Controlled** (filters passed from parent)
- * 
+ *
  * @example Uncontrolled (for client-side filtering)
  * ```tsx
  * <ModelListTableTemplate
@@ -56,7 +56,7 @@ export interface ModelListTableTemplateProps {
  *   onModelClick={(id) => navigate(`/models/${id}`)}
  * />
  * ```
- * 
+ *
  * @example Controlled (for server-side filtering)
  * ```tsx
  * const [filters, setFilters] = useState({ search: '', sort: 'downloads', tags: [] })
@@ -64,7 +64,7 @@ export interface ModelListTableTemplateProps {
  *   queryKey: ['models', filters],
  *   queryFn: () => fetchModels(filters)
  * })
- * 
+ *
  * <ModelListTableTemplate
  *   models={models}
  *   filters={filters}
@@ -86,10 +86,10 @@ export function ModelListTableTemplate({
 }: ModelListTableTemplateProps) {
   // Use internal state if not controlled
   const internalFilters = useModelFilters(filterOptions)
-  
+
   // Determine if controlled or uncontrolled
   const isControlled = controlledFilters !== undefined && onFiltersChange !== undefined
-  
+
   const filters = isControlled ? controlledFilters : internalFilters.filters
   const setSearch = isControlled
     ? (search: string) => onFiltersChange?.({ ...controlledFilters!, search })
@@ -108,7 +108,7 @@ export function ModelListTableTemplate({
   const clearFilters = isControlled
     ? () => onFiltersChange?.({ search: '', sort: filterOptions?.defaultSort || 'downloads', tags: [] })
     : internalFilters.clearFilters
-  
+
   const sortOptions = internalFilters.sortOptions
   const filterChips = isControlled
     ? (filterOptions?.availableChips || []).map((chip) => ({

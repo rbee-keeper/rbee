@@ -110,9 +110,7 @@ export const Interactive: Story = {
     }
 
     const handleFilterChipToggle = (chipId: string) => {
-      setFilterChips((prev) =>
-        prev.map((chip) => (chip.id === chipId ? { ...chip, active: !chip.active } : chip))
-      )
+      setFilterChips((prev) => prev.map((chip) => (chip.id === chipId ? { ...chip, active: !chip.active } : chip)))
     }
 
     return (

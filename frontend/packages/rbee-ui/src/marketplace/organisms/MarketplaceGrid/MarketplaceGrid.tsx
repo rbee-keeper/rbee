@@ -3,7 +3,7 @@ import { Alert } from '@rbee/ui/atoms/Alert'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@rbee/ui/atoms/Empty'
 import { Spinner } from '@rbee/ui/atoms/Spinner'
 import { PackageOpen } from 'lucide-react'
-import * as React from 'react'
+import type * as React from 'react'
 
 export interface MarketplaceGridProps<T> {
   items: T[]
@@ -82,7 +82,7 @@ export function MarketplaceGrid<T>({
           <div key={index}>{renderItem(item, index)}</div>
         ))}
       </div>
-      
+
       {pagination && <div className="flex justify-center">{pagination}</div>}
     </div>
   )

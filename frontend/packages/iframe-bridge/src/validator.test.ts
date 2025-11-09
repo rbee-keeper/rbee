@@ -1,6 +1,6 @@
 /**
  * TEAM-351: Tests for origin validation
- * 
+ *
  * Behavioral tests covering:
  * - Origin format validation
  * - Localhost detection
@@ -9,14 +9,14 @@
  * - Validator creation
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  isValidOriginFormat,
-  isLocalhostOrigin,
-  validateOrigin,
-  isValidOriginConfig,
   createOriginValidator,
+  isLocalhostOrigin,
+  isValidOriginConfig,
+  isValidOriginFormat,
   type OriginConfig,
+  validateOrigin,
 } from './validator'
 
 describe('@rbee/iframe-bridge - validator', () => {
@@ -109,7 +109,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const wildcardConfig: OriginConfig = {
         allowedOrigins: ['*'],
       }
-      
+
       expect(validateOrigin('http://anything.com', wildcardConfig)).toBe(true)
     })
 
@@ -118,7 +118,7 @@ describe('@rbee/iframe-bridge - validator', () => {
         allowedOrigins: ['*'],
         strictMode: true,
       }
-      
+
       expect(validateOrigin('http://anything.com', strictConfig)).toBe(false)
     })
 
@@ -127,7 +127,7 @@ describe('@rbee/iframe-bridge - validator', () => {
         allowedOrigins: ['http://localhost:3000'],
         allowLocalhost: true,
       }
-      
+
       expect(validateOrigin('http://localhost:4000', localhostConfig)).toBe(true)
       expect(validateOrigin('http://127.0.0.1:5000', localhostConfig)).toBe(true)
     })
@@ -137,7 +137,7 @@ describe('@rbee/iframe-bridge - validator', () => {
         allowedOrigins: ['https://example.com'],
         allowLocalhost: true,
       }
-      
+
       expect(validateOrigin('http://localhost:3000', noLocalhostConfig)).toBe(false)
     })
 
@@ -145,7 +145,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const emptyConfig: OriginConfig = {
         allowedOrigins: [],
       }
-      
+
       expect(validateOrigin('http://localhost:3000', emptyConfig)).toBe(false)
     })
   })
@@ -155,7 +155,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config: OriginConfig = {
         allowedOrigins: ['http://localhost:3000'],
       }
-      
+
       expect(isValidOriginConfig(config)).toBe(true)
     })
 
@@ -165,7 +165,7 @@ describe('@rbee/iframe-bridge - validator', () => {
         strictMode: true,
         allowLocalhost: true,
       }
-      
+
       expect(isValidOriginConfig(config)).toBe(true)
     })
 
@@ -186,7 +186,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config = {
         allowedOrigins: [],
       }
-      
+
       expect(isValidOriginConfig(config)).toBe(false)
     })
 
@@ -194,7 +194,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config = {
         allowedOrigins: 'not-an-array',
       }
-      
+
       expect(isValidOriginConfig(config)).toBe(false)
     })
 
@@ -202,7 +202,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config = {
         allowedOrigins: ['http://localhost:3000', 'not-a-url'],
       }
-      
+
       expect(isValidOriginConfig(config)).toBe(false)
     })
   })
@@ -212,7 +212,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config: OriginConfig = {
         allowedOrigins: ['http://localhost:3000'],
       }
-      
+
       const validator = createOriginValidator(config)
       expect(typeof validator).toBe('function')
     })
@@ -221,7 +221,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config: OriginConfig = {
         allowedOrigins: ['http://localhost:3000'],
       }
-      
+
       const validator = createOriginValidator(config)
       expect(validator('http://localhost:3000')).toBe(true)
       expect(validator('http://localhost:4000')).toBe(false)
@@ -231,7 +231,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const invalidConfig = {
         allowedOrigins: [],
       } as OriginConfig
-      
+
       expect(() => createOriginValidator(invalidConfig)).toThrow('Invalid origin config')
     })
 
@@ -243,13 +243,9 @@ describe('@rbee/iframe-bridge - validator', () => {
   describe('Edge cases', () => {
     it('should handle multiple allowed origins', () => {
       const config: OriginConfig = {
-        allowedOrigins: [
-          'http://localhost:3000',
-          'http://localhost:4000',
-          'https://example.com',
-        ],
+        allowedOrigins: ['http://localhost:3000', 'http://localhost:4000', 'https://example.com'],
       }
-      
+
       expect(validateOrigin('http://localhost:3000', config)).toBe(true)
       expect(validateOrigin('http://localhost:4000', config)).toBe(true)
       expect(validateOrigin('https://example.com', config)).toBe(true)
@@ -260,7 +256,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config: OriginConfig = {
         allowedOrigins: ['http://localhost:3000'],
       }
-      
+
       expect(validateOrigin('HTTP://LOCALHOST:3000', config)).toBe(false)
     })
 
@@ -268,7 +264,7 @@ describe('@rbee/iframe-bridge - validator', () => {
       const config: OriginConfig = {
         allowedOrigins: ['http://localhost:3000'],
       }
-      
+
       expect(validateOrigin('http://localhost:3000', config)).toBe(true)
       expect(validateOrigin('http://localhost:3001', config)).toBe(false)
     })

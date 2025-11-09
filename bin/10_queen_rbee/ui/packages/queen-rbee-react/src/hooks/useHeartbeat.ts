@@ -3,33 +3,33 @@
 // New implementation: ~40 LOC using shared hooks
 // Reduction: 54 LOC (57%)
 
-"use client";
+'use client'
 
-import * as React from "react";
 // TEAM-381: Import types from SDK (single source of truth)
 // These types should eventually be auto-generated from Rust
-import type { ProcessStats } from "@rbee/queen-rbee-sdk";
+import type { ProcessStats } from '@rbee/queen-rbee-sdk'
+import * as React from 'react'
 
 export interface HiveData {
-  hive_id: string;
-  workers: ProcessStats[];
-  last_update: string;
+  hive_id: string
+  workers: ProcessStats[]
+  last_update: string
 }
 
 export interface HeartbeatData {
-  workers_online: number;
-  workers_available: number;
-  hives_online: number;
-  hives_available: number;
-  hives: HiveData[];
-  timestamp: string;
+  workers_online: number
+  workers_available: number
+  hives_online: number
+  hives_available: number
+  hives: HiveData[]
+  timestamp: string
 }
 
 export interface UseHeartbeatResult {
-  data: HeartbeatData | null;
-  connected: boolean;
-  loading: boolean;
-  error: Error | null;
+  data: HeartbeatData | null
+  connected: boolean
+  loading: boolean
+  error: Error | null
 }
 
 /**
@@ -41,44 +41,42 @@ export interface UseHeartbeatResult {
  * @param baseUrl - Queen API URL (default: http://localhost:7833)
  * @returns Heartbeat data and connection status
  */
-export function useHeartbeat(
-  baseUrl: string = "http://localhost:7833",
-): UseHeartbeatResult {
-  const [data, setData] = React.useState<HeartbeatData | null>(null);
-  const [connected, setConnected] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<Error | null>(null);
+export function useHeartbeat(baseUrl: string = 'http://localhost:7833'): UseHeartbeatResult {
+  const [data, setData] = React.useState<HeartbeatData | null>(null)
+  const [connected, setConnected] = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<Error | null>(null)
 
   // TEAM-364: Store hive telemetry by hive_id
-  const hivesRef = React.useRef<Map<string, HiveData>>(new Map());
+  const hivesRef = React.useRef<Map<string, HiveData>>(new Map())
   const queenDataRef = React.useRef<{
-    workers_online: number;
-    workers_available: number;
-    hives_online: number;
-    hives_available: number;
-    timestamp: string;
-  } | null>(null);
+    workers_online: number
+    workers_available: number
+    hives_online: number
+    hives_available: number
+    timestamp: string
+  } | null>(null)
 
   // TEAM-375: Track if we've received any data (not just SSE connection open)
-  const hasReceivedDataRef = React.useRef(false);
+  const hasReceivedDataRef = React.useRef(false)
 
   React.useEffect(() => {
-    const eventSource = new EventSource(`${baseUrl}/v1/heartbeats/stream`);
+    const eventSource = new EventSource(`${baseUrl}/v1/heartbeats/stream`)
 
     eventSource.onopen = () => {
       // TEAM-375: Don't set connected=true until we receive actual data
-      setLoading(false);
-      setError(null);
-    };
+      setLoading(false)
+      setError(null)
+    }
 
     eventSource.addEventListener('heartbeat', (event) => {
       try {
-        const heartbeatEvent = JSON.parse(event.data);
+        const heartbeatEvent = JSON.parse(event.data)
 
         // TEAM-375: Mark that we've received data (Queen is actually working)
         if (!hasReceivedDataRef.current) {
-          hasReceivedDataRef.current = true;
-          setConnected(true);
+          hasReceivedDataRef.current = true
+          setConnected(true)
         }
 
         if (heartbeatEvent.type === 'hive_telemetry') {
@@ -87,7 +85,7 @@ export function useHeartbeat(
             hive_id: heartbeatEvent.hive_id,
             workers: heartbeatEvent.workers,
             last_update: heartbeatEvent.timestamp,
-          });
+          })
         } else if (heartbeatEvent.type === 'queen') {
           // TEAM-364: Update queen stats
           queenDataRef.current = {
@@ -96,7 +94,7 @@ export function useHeartbeat(
             hives_online: heartbeatEvent.hives_online,
             hives_available: heartbeatEvent.hives_available,
             timestamp: heartbeatEvent.timestamp,
-          };
+          }
         }
 
         // TEAM-364: Aggregate data
@@ -107,28 +105,28 @@ export function useHeartbeat(
           hives_available: queenDataRef.current?.hives_available ?? 0,
           hives: Array.from(hivesRef.current.values()),
           timestamp: queenDataRef.current?.timestamp ?? new Date().toISOString(),
-        };
+        }
 
-        setData(aggregated);
+        setData(aggregated)
       } catch (err) {
-        console.error('Failed to parse heartbeat event:', err);
+        console.error('Failed to parse heartbeat event:', err)
       }
-    });
+    })
 
     eventSource.onerror = () => {
-      setConnected(false);
-      setError(new Error('SSE connection failed'));
-    };
+      setConnected(false)
+      setError(new Error('SSE connection failed'))
+    }
 
     return () => {
-      eventSource.close();
-    };
-  }, [baseUrl]);
+      eventSource.close()
+    }
+  }, [baseUrl])
 
   return {
     data,
     connected,
     loading,
     error,
-  };
+  }
 }

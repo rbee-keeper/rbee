@@ -34,8 +34,8 @@ import {
   Gamepad,
   Gauge,
   GitBranch,
-  GitPullRequest,
   Github,
+  GitPullRequest,
   Globe,
   GraduationCap,
   Heart,
@@ -47,6 +47,7 @@ import {
   Laptop,
   Layers,
   Lock,
+  type LucideIcon,
   MemoryStick,
   MessageSquare,
   Mic,
@@ -78,7 +79,6 @@ import {
   X,
   XCircle,
   Zap,
-  type LucideIcon,
 } from 'lucide-react'
 
 export type IconName =

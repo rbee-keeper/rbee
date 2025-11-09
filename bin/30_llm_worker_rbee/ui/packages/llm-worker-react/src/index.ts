@@ -1,6 +1,7 @@
 // TEAM-353: Migrated to use TanStack Query + WASM SDK
-import { useMutation } from '@tanstack/react-query'
+
 import { init, WorkerClient } from '@rbee/llm-worker-sdk'
+import { useMutation } from '@tanstack/react-query'
 
 // TEAM-353: Initialize WASM module once
 let wasmInitialized = false
@@ -30,7 +31,7 @@ export function useInference() {
   const mutation = useMutation({
     mutationFn: async (request: InferenceRequest) => {
       await ensureWasmInit()
-      
+
       // Build operation object
       const operation = {
         operation: 'infer',
@@ -39,15 +40,15 @@ export function useInference() {
         max_tokens: request.max_tokens,
         temperature: request.temperature,
       }
-      
+
       const lines: string[] = []
-      
+
       await client.submitAndStream(operation, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
         }
       })
-      
+
       // Parse JSON response from last line
       const lastLine = lines[lines.length - 1]
       return lastLine ? JSON.parse(lastLine) : { response: '' }

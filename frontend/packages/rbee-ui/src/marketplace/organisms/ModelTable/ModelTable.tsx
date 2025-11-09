@@ -2,8 +2,7 @@
 //! Pure presentational component for displaying models in a table
 //! Works with any data source (Tauri, SSG, API)
 
-import { Badge } from '@rbee/ui/atoms'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@rbee/ui/atoms'
+import { Badge, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@rbee/ui/atoms'
 import { Download, Heart } from 'lucide-react'
 
 export interface ModelTableItem {
@@ -19,22 +18,22 @@ export interface ModelTableItem {
 export interface ModelTableProps {
   /** Models to display */
   models: ModelTableItem[]
-  
+
   /** Called when a model row is clicked */
   onModelClick?: (modelId: string) => void
-  
+
   /** Format number for display (e.g., 1000 -> "1K") */
   formatNumber?: (num: number) => string
-  
+
   /** Loading state */
   isLoading?: boolean
-  
+
   /** Error message */
   error?: string
-  
+
   /** Empty state message */
   emptyMessage?: string
-  
+
   /** Empty state description */
   emptyDescription?: string
 }
@@ -109,32 +108,18 @@ export function ModelTable({
         </TableHeader>
         <TableBody>
           {models.map((model) => (
-            <TableRow
-              key={model.id}
-              className="cursor-pointer"
-              onClick={() => onModelClick?.(model.id)}
-            >
+            <TableRow key={model.id} className="cursor-pointer" onClick={() => onModelClick?.(model.id)}>
               <TableCell>
                 <div className="min-w-0">
-                  <div className="font-semibold text-foreground truncate">
-                    {model.name}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate mt-0.5">
-                    {model.description}
-                  </div>
+                  <div className="font-semibold text-foreground truncate">{model.name}</div>
+                  <div className="text-xs text-muted-foreground truncate mt-0.5">{model.description}</div>
                 </div>
               </TableCell>
               <TableCell>
-                <span className="text-sm text-muted-foreground truncate block">
-                  {model.author || '—'}
-                </span>
+                <span className="text-sm text-muted-foreground truncate block">{model.author || '—'}</span>
               </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {formatNumber(model.downloads)}
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {formatNumber(model.likes)}
-              </TableCell>
+              <TableCell className="text-right tabular-nums">{formatNumber(model.downloads)}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatNumber(model.likes)}</TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-1">
                   {model.tags.slice(0, 2).map((tag) => (

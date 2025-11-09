@@ -10,9 +10,9 @@
 // ============================================================================
 // TEAM-381: ✅ ALL TYPES NOW AUTO-GENERATED FROM RUST!
 // ============================================================================
-// 
+//
 // HOW TO ADD NEW TYPES FROM RUST:
-// 
+//
 // 1. Add type to contract crate (bin/97_contracts/hive-contract/src/telemetry.rs):
 //    #[derive(Debug, Clone, Serialize, Deserialize)]
 //    #[cfg_attr(feature = "wasm", derive(Tsify))]
@@ -38,35 +38,34 @@
 // See: bin/.plan/TEAM_381_HOW_TO_MIGRATE_TYPES_FROM_RUST.md
 // ============================================================================
 
-
-// TEAM-381: ✅ ALL TYPES AUTO-GENERATED FROM RUST! 
+// TEAM-381: ✅ ALL TYPES AUTO-GENERATED FROM RUST!
 // Re-export WASM SDK types (all generated from Rust via tsify!)
-import type { 
-  QueenClient, 
-  HeartbeatMonitor, 
+import type {
+  HeartbeatMonitor,
+  HeartbeatSnapshot,
+  HiveDevice,
+  HiveInfo,
+  HiveTelemetry,
   OperationBuilder,
-  RhaiClient,
-  RhaiScript,
-  TestResult,
-  // TEAM-381: ✅ ALL AUTO-GENERATED FROM RUST! 
+  // TEAM-381: ✅ ALL AUTO-GENERATED FROM RUST!
   // These types are defined in hive-contract/telemetry.rs with Tsify annotations
   // Source: bin/97_contracts/hive-contract/src/telemetry.rs
   ProcessStats,
-  HiveInfo,
-  HiveDevice,
-  HiveTelemetry,
+  QueenClient,
   QueenHeartbeat,
-  HeartbeatSnapshot,
+  RhaiClient,
+  RhaiScript,
+  TestResult,
 } from '../pkg/bundler/queen_rbee_sdk'
 
 export type {
-  QueenClient, 
-  HeartbeatMonitor, 
+  QueenClient,
+  HeartbeatMonitor,
   OperationBuilder,
   RhaiClient,
   RhaiScript,
   TestResult,
-  // TEAM-381: ✅ ALL AUTO-GENERATED FROM RUST! 
+  // TEAM-381: ✅ ALL AUTO-GENERATED FROM RUST!
   // These types are defined in hive-contract/telemetry.rs with Tsify annotations
   // Source: bin/97_contracts/hive-contract/src/telemetry.rs
   ProcessStats,

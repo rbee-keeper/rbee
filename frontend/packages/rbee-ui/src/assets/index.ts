@@ -1,7 +1,7 @@
 /**
  * Shared raster images exported as ES modules
  * For SVG icons, use @rbee/ui/icons instead
- * 
+ *
  * NOTE: Commercial/marketing images have been moved to the commercial app.
  * This package only exports generic placeholders for component library use.
  */

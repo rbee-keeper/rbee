@@ -8,10 +8,19 @@ import { Navigation } from '@/components/Navigation'
 export const metadata: Metadata = {
   title: {
     default: 'rbee Documentation',
-    template: '%s – rbee Docs'
+    template: '%s – rbee Docs',
   },
-  description: 'Technical documentation for rbee, the self-hosted AI orchestration layer. Learn how to deploy colonies, connect heterogeneous hardware, and use premium modules for routing, telemetry, and GDPR-focused auditing.',
-  keywords: ['rbee', 'AI orchestration', 'self-hosted AI', 'LLM hosting', 'GPU management', 'distributed AI', 'GDPR compliance'],
+  description:
+    'Technical documentation for rbee, the self-hosted AI orchestration layer. Learn how to deploy colonies, connect heterogeneous hardware, and use premium modules for routing, telemetry, and GDPR-focused auditing.',
+  keywords: [
+    'rbee',
+    'AI orchestration',
+    'self-hosted AI',
+    'LLM hosting',
+    'GPU management',
+    'distributed AI',
+    'GDPR compliance',
+  ],
   authors: [{ name: 'Vince Liem', url: 'https://www.linkedin.com/in/vincepaulliem/' }],
   creator: 'rbee',
   publisher: 'rbee',

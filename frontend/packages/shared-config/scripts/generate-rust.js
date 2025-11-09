@@ -3,10 +3,9 @@
 // TEAM-351: Rust constant generator
 // TEAM-351: Bug fixes - Import from source, validation, error handling
 
-import { writeFileSync, mkdirSync } from 'fs'
-import { fileURLToPath } from 'url'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
-import { readFileSync } from 'fs'
+import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -27,9 +26,9 @@ let PORTS
 try {
   // Convert TypeScript object literal to JavaScript
   const portsCode = portsMatch[1]
-    .replace(/\/\/.*$/gm, '')  // Remove single-line comments
-    .replace(/\/\*[\s\S]*?\*\//g, '')  // Remove multi-line comments
-  
+    .replace(/\/\/.*$/gm, '') // Remove single-line comments
+    .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+
   PORTS = eval(`(${portsCode})`)
 } catch (error) {
   console.error('❌ Failed to parse PORTS constant:', error.message)
@@ -41,8 +40,8 @@ const MIN_PORT = 1
 const MAX_PORT = 65535
 
 function validatePort(port, serviceName, portType) {
-  if (port === null) return true  // null is valid (e.g., keeper.prod)
-  
+  if (port === null) return true // null is valid (e.g., keeper.prod)
+
   if (!Number.isInteger(port) || port < MIN_PORT || port > MAX_PORT) {
     console.error(`❌ Invalid port: ${serviceName}.${portType} = ${port} (must be 1-65535 or null)`)
     process.exit(1)

@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query'
 export type WorkerType = 'cpu' | 'cuda' | 'metal'
 export type Platform = 'linux' | 'macos' | 'windows'
 export type Architecture = 'x86_64' | 'aarch64'
-export type WorkerImplementation = 
+export type WorkerImplementation =
   | 'llm-worker-rbee'
   | 'llama-cpp-adapter'
   | 'vllm-adapter'
@@ -23,16 +23,16 @@ export interface WorkerCatalogEntry {
   implementation: WorkerImplementation
   worker_type: WorkerType
   version: string
-  
+
   // Platform Support
   platforms: Platform[]
   architectures: Architecture[]
-  
+
   // Metadata
   name: string
   description: string
   license: string
-  
+
   // Build Instructions
   pkgbuild_url: string
   build_system: 'cargo' | 'cmake' | 'pip' | 'npm'
@@ -48,15 +48,15 @@ export interface WorkerCatalogEntry {
     profile?: string
     flags?: string[]
   }
-  
+
   // Dependencies
   depends: string[]
   makedepends: string[]
-  
+
   // Binary Info
   binary_name: string
   install_path: string
-  
+
   // Capabilities
   supported_formats: string[]
   max_context_length?: number
@@ -76,11 +76,11 @@ const CATALOG_URL = 'http://localhost:8787'
 
 async function fetchWorkerCatalog(): Promise<WorkerCatalogResponse> {
   const response = await fetch(`${CATALOG_URL}/workers`)
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch worker catalog: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
@@ -106,7 +106,7 @@ export function useWorkerCatalog() {
  */
 export function getWorkerByType(
   catalog: WorkerCatalogResponse | undefined,
-  workerType: WorkerType
+  workerType: WorkerType,
 ): WorkerCatalogEntry | undefined {
   return catalog?.workers.find((w) => w.worker_type === workerType)
 }
@@ -116,7 +116,7 @@ export function getWorkerByType(
  */
 export function getCurrentPlatform(): Platform {
   const userAgent = navigator.userAgent.toLowerCase()
-  
+
   if (userAgent.includes('mac')) return 'macos'
   if (userAgent.includes('win')) return 'windows'
   return 'linux'
@@ -125,10 +125,7 @@ export function getCurrentPlatform(): Platform {
 /**
  * Check if worker is supported on current platform
  */
-export function isWorkerSupported(
-  worker: WorkerCatalogEntry,
-  platform: Platform = getCurrentPlatform()
-): boolean {
+export function isWorkerSupported(worker: WorkerCatalogEntry, platform: Platform = getCurrentPlatform()): boolean {
   return worker.platforms.includes(platform)
 }
 
@@ -137,7 +134,7 @@ export function isWorkerSupported(
  */
 export function getAvailableWorkers(
   catalog: WorkerCatalogResponse | undefined,
-  platform: Platform = getCurrentPlatform()
+  platform: Platform = getCurrentPlatform(),
 ): WorkerCatalogEntry[] {
   if (!catalog) return []
   return catalog.workers.filter((w) => isWorkerSupported(w, platform))

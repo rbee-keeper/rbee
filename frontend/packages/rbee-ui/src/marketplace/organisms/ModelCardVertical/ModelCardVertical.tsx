@@ -1,11 +1,8 @@
 // TEAM-422: Vertical model card for CivitAI-style portrait images
 // TEAM-461: Added automatic image fallback handling
 import { Badge } from '@rbee/ui/atoms/Badge'
-import {
-  Card,
-  CardFooter,
-} from '@rbee/ui/atoms/Card'
-import { Download, Heart, User, Sparkles } from 'lucide-react'
+import { Card, CardFooter } from '@rbee/ui/atoms/Card'
+import { Download, Heart, Sparkles, User } from 'lucide-react'
 import { ImageWithFallback } from './ImageWithFallback'
 
 export interface ModelCardVerticalProps {
@@ -57,8 +54,8 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
           <div className="flex flex-wrap gap-1.5">
             {model.tags.slice(0, 2).map((tag) => (
-              <Badge 
-                key={tag} 
+              <Badge
+                key={tag}
                 variant="secondary"
                 className="text-xs font-medium bg-black/40 backdrop-blur-sm text-white border-white/20"
               >
@@ -92,9 +89,7 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
           )}
 
           {/* Model name */}
-          <h3 className="text-xl font-bold text-white drop-shadow-lg line-clamp-2 leading-tight">
-            {model.name}
-          </h3>
+          <h3 className="text-xl font-bold text-white drop-shadow-lg line-clamp-2 leading-tight">{model.name}</h3>
         </div>
       </div>
 
@@ -103,7 +98,7 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
         <Badge variant="outline" className="font-mono text-xs">
           {model.size}
         </Badge>
-        
+
         {/* Additional tags if any */}
         {model.tags.length > 2 && (
           <Badge variant="outline" className="text-xs">

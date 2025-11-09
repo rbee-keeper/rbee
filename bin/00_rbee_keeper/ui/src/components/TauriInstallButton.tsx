@@ -1,10 +1,10 @@
 // TEAM-413: Install button for Tauri (Keeper GUI)
 // Actually downloads models/workers (unlike web version which triggers rbee:// protocol)
 
-import { useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
 import { Button } from '@rbee/ui/atoms'
-import { DownloadIcon, CheckCircle2Icon, Loader2Icon } from 'lucide-react'
+import { invoke } from '@tauri-apps/api/core'
+import { CheckCircle2Icon, DownloadIcon, Loader2Icon } from 'lucide-react'
+import { useState } from 'react'
 import { useDownloadStore } from '@/store/downloadStore'
 
 interface TauriInstallButtonProps {
@@ -29,7 +29,7 @@ export function TauriInstallButton({
 
   // Check if already downloading
   const itemId = modelId || workerId || ''
-  const existingDownload = downloads.find(d => d.name === itemId)
+  const existingDownload = downloads.find((d) => d.name === itemId)
   const isDownloading = existingDownload?.status === 'downloading'
   const isComplete = existingDownload?.status === 'complete'
 
@@ -74,12 +74,7 @@ export function TauriInstallButton({
   // Show different states
   if (isComplete) {
     return (
-      <Button
-        variant={variant}
-        size={size}
-        className={className}
-        disabled
-      >
+      <Button variant={variant} size={size} className={className} disabled>
         <CheckCircle2Icon className="w-4 h-4 mr-2" />
         Installed
       </Button>
@@ -88,12 +83,7 @@ export function TauriInstallButton({
 
   if (isDownloading) {
     return (
-      <Button
-        variant={variant}
-        size={size}
-        className={className}
-        disabled
-      >
+      <Button variant={variant} size={size} className={className} disabled>
         <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
         Downloading {existingDownload.percentage ? `${existingDownload.percentage.toFixed(0)}%` : '...'}
       </Button>
@@ -101,13 +91,7 @@ export function TauriInstallButton({
   }
 
   return (
-    <Button
-      variant={variant}
-      size={size}
-      className={className}
-      onClick={handleInstall}
-      disabled={isSubmitting}
-    >
+    <Button variant={variant} size={size} className={className} onClick={handleInstall} disabled={isSubmitting}>
       {isSubmitting ? (
         <>
           <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />

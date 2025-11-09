@@ -1,10 +1,10 @@
 // TEAM-350: Error boundary to catch and display React errors gracefully
 // Prevents the entire app from crashing when a component errors
 
-import { Component } from 'react'
-import type { ErrorInfo, ReactNode } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@rbee/ui/atoms'
 import { AlertCircle } from 'lucide-react'
+import type { ErrorInfo, ReactNode } from 'react'
+import { Component } from 'react'
 
 interface Props {
   children: ReactNode
@@ -44,9 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <AlertTitle>Component Error</AlertTitle>
           <AlertDescription>
             <div className="space-y-2">
-              <p>
-                {this.props.fallbackMessage || 'Something went wrong in this component.'}
-              </p>
+              <p>{this.props.fallbackMessage || 'Something went wrong in this component.'}</p>
               {this.state.error && (
                 <details className="text-xs">
                   <summary className="cursor-pointer font-semibold">Error Details</summary>

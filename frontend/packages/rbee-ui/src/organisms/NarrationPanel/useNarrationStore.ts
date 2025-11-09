@@ -7,7 +7,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { NarrationEvent, NarrationEntry } from './types'
+import type { NarrationEntry, NarrationEvent } from './types'
 
 interface NarrationState {
   entries: NarrationEntry[]
@@ -22,18 +22,18 @@ interface NarrationState {
 
 /**
  * Zustand store for narration events
- * 
+ *
  * Features:
  * - Persists last 100 entries to localStorage
  * - Prepends new entries (newest first)
  * - Tracks panel visibility state
  * - Uses immer for immutable updates
- * 
+ *
  * @example
  * ```tsx
  * const entries = useNarrationStore((state) => state.entries)
  * const addEntry = useNarrationStore((state) => state.addEntry)
- * 
+ *
  * // Add new entry
  * addEntry({
  *   level: 'info',

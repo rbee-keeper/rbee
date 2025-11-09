@@ -1,18 +1,19 @@
 // TEAM-410: Sitemap generation for SEO
-import { MetadataRoute } from 'next'
+
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
+import type { MetadataRoute } from 'next'
 import { modelIdToSlug } from '@/lib/slugify'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // TEAM-457: Use environment variable with production fallback
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace.rbee.dev'
-  
+
   let modelUrls: MetadataRoute.Sitemap = []
-  
+
   try {
     // Fetch all models for sitemap
     const models = await listHuggingFaceModels({ limit: 100 })
-    
+
     // Generate model URLs
     modelUrls = models.map((model) => ({
       url: `${baseUrl}/models/${modelIdToSlug(model.id)}`,
@@ -24,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Failed to fetch models for sitemap:', error)
     // Return basic sitemap if model fetch fails
   }
-  
+
   return [
     {
       url: baseUrl,

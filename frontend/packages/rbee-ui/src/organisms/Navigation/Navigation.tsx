@@ -8,7 +8,7 @@ import { IconButton } from '@rbee/ui/atoms/IconButton'
 import { NavigationMenu, NavigationMenuList } from '@rbee/ui/atoms/NavigationMenu'
 import { Separator } from '@rbee/ui/atoms/Separator'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@rbee/ui/atoms/Sheet'
-import { BrandLogo, NavigationDropdown, LinkGroup, NavigationActions, NavLink } from '@rbee/ui/molecules'
+import { BrandLogo, LinkGroup, NavigationActions, NavigationDropdown, NavLink } from '@rbee/ui/molecules'
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -84,27 +84,17 @@ export function Navigation({ config }: NavigationProps) {
               </div>
 
               {/* Zone C: Actions (Desktop) */}
-              <NavigationActions
-                docs={config.actions.docs}
-                github={config.actions.github}
-                cta={config.actions.cta}
-              />
+              <NavigationActions docs={config.actions.docs} github={config.actions.github} cta={config.actions.cta} />
 
               {/* Mobile Menu Toggle */}
               <div className="md:hidden justify-self-end">
                 <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                   <SheetTrigger asChild>
-                    <IconButton
-                      aria-label="Open navigation menu"
-                      className="hover:bg-accent"
-                    >
+                    <IconButton aria-label="Open navigation menu" className="hover:bg-accent">
                       <Menu className="size-5" />
                     </IconButton>
                   </SheetTrigger>
-                  <SheetContent
-                    side="right"
-                    className="w-[min(400px,100vw)] sm:w-[400px] p-0 overflow-y-auto"
-                  >
+                  <SheetContent side="right" className="w-[min(400px,100vw)] sm:w-[400px] p-0 overflow-y-auto">
                     <div className="flex flex-col h-full">
                       {/* Mobile Header */}
                       <div className="flex items-center justify-between p-4 border-b border-border">

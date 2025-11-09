@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
-import { SegmentedControl } from './SegmentedControl'
 import { useState } from 'react'
+import { SegmentedControl } from './SegmentedControl'
 
 const meta = {
   title: 'Molecules/SegmentedControl',

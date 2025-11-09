@@ -1,8 +1,8 @@
 // TEAM-461: Client component for image error handling with automatic fallbacks
 'use client'
 
-import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
+import { useState } from 'react'
 
 interface ImageWithFallbackProps {
   src: string
@@ -16,19 +16,14 @@ interface ImageWithFallbackProps {
  * Tries alternative image URLs when primary fails
  * Falls back to placeholder if all images fail
  */
-export function ImageWithFallback({ 
-  src, 
-  alt, 
-  className,
-  fallbackImages = []
-}: ImageWithFallbackProps) {
+export function ImageWithFallback({ src, alt, className, fallbackImages = [] }: ImageWithFallbackProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [hasError, setHasError] = useState(false)
-  
+
   // All possible image sources (primary + fallbacks)
   const allSources = [src, ...fallbackImages]
   const currentSrc = allSources[currentIndex]
-  
+
   const handleError = () => {
     // Try next fallback image
     if (currentIndex < allSources.length - 1) {
@@ -38,7 +33,7 @@ export function ImageWithFallback({
       setHasError(true)
     }
   }
-  
+
   if (hasError) {
     // Fallback placeholder when all images fail
     return (
@@ -47,14 +42,6 @@ export function ImageWithFallback({
       </div>
     )
   }
-  
-  return (
-    <img
-      src={currentSrc}
-      alt={alt}
-      className={className}
-      loading="lazy"
-      onError={handleError}
-    />
-  )
+
+  return <img src={currentSrc} alt={alt} className={className} loading="lazy" onError={handleError} />
 }

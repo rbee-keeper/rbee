@@ -1,6 +1,6 @@
-import React from 'react'
-import { Alert, AlertTitle, AlertDescription } from '@rbee/ui/atoms'
-import { Info, AlertTriangle, XCircle, CheckCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@rbee/ui/atoms'
+import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react'
+import type React from 'react'
 
 interface CalloutProps {
   variant?: 'info' | 'warning' | 'error' | 'success'
@@ -22,13 +22,9 @@ const variantMap = {
   success: 'default',
 } as const
 
-export function Callout({ 
-  variant = 'info', 
-  title, 
-  children 
-}: CalloutProps) {
+export function Callout({ variant = 'info', title, children }: CalloutProps) {
   const Icon = icons[variant]
-  
+
   return (
     <Alert variant={variantMap[variant]} className="my-6">
       <Icon className="h-4 w-4" />

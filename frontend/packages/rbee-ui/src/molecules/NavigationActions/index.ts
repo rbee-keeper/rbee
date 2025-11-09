@@ -1,2 +1,2 @@
-export { NavigationActions } from './NavigationActions'
 export type { NavigationActionsProps } from './NavigationActions'
+export { NavigationActions } from './NavigationActions'

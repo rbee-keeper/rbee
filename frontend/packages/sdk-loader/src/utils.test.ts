@@ -2,8 +2,8 @@
  * TEAM-356: Tests for utility functions
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { sleep, addJitter, withTimeout, calculateBackoff } from './utils'
+import { describe, expect, it, vi } from 'vitest'
+import { addJitter, calculateBackoff, sleep, withTimeout } from './utils'
 
 describe('utils', () => {
   describe('sleep', () => {
@@ -27,7 +27,7 @@ describe('utils', () => {
     it('should add random jitter within range', () => {
       const baseMs = 100
       const maxJitterMs = 50
-      
+
       for (let i = 0; i < 100; i++) {
         const result = addJitter(baseMs, maxJitterMs)
         expect(result).toBeGreaterThanOrEqual(baseMs)
@@ -55,24 +55,18 @@ describe('utils', () => {
     })
 
     it('should reject if timeout exceeded', async () => {
-      const promise = new Promise(resolve => setTimeout(resolve, 200))
-      await expect(
-        withTimeout(promise, 50, 'slow operation')
-      ).rejects.toThrow('Timeout after 50ms: slow operation')
+      const promise = new Promise((resolve) => setTimeout(resolve, 200))
+      await expect(withTimeout(promise, 50, 'slow operation')).rejects.toThrow('Timeout after 50ms: slow operation')
     })
 
     it('should propagate promise rejection', async () => {
       const promise = Promise.reject(new Error('original error'))
-      await expect(
-        withTimeout(promise, 1000, 'test operation')
-      ).rejects.toThrow('original error')
+      await expect(withTimeout(promise, 1000, 'test operation')).rejects.toThrow('original error')
     })
 
     it('should include operation name in timeout error', async () => {
-      const promise = new Promise(resolve => setTimeout(resolve, 200))
-      await expect(
-        withTimeout(promise, 50, 'custom operation name')
-      ).rejects.toThrow('custom operation name')
+      const promise = new Promise((resolve) => setTimeout(resolve, 200))
+      await expect(withTimeout(promise, 50, 'custom operation name')).rejects.toThrow('custom operation name')
     })
   })
 

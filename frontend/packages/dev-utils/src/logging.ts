@@ -48,52 +48,53 @@ function formatTimestamp(): string {
  */
 function getLogLevelEmoji(level: LogLevel): string {
   switch (level) {
-    case 'debug': return '🐛'
-    case 'info': return 'ℹ️'
-    case 'warn': return '⚠️'
-    case 'error': return '❌'
-    default: return ''
+    case 'debug':
+      return '🐛'
+    case 'info':
+      return 'ℹ️'
+    case 'warn':
+      return '⚠️'
+    case 'error':
+      return '❌'
+    default:
+      return ''
   }
 }
 
 /**
  * Log with level and options
- * 
+ *
  * TEAM-351: Generic logging utility
- * 
+ *
  * @param level - Log level
  * @param message - Message to log
  * @param options - Log options
  */
-export function log(
-  level: LogLevel,
-  message: string,
-  options: LogOptions = {}
-): void {
+export function log(level: LogLevel, message: string, options: LogOptions = {}): void {
   const { timestamp = false, prefix = '', color = true } = options
-  
+
   const parts: string[] = []
-  
+
   // TEAM-351: Add timestamp
   if (timestamp) {
     parts.push(`[${formatTimestamp()}]`)
   }
-  
+
   // TEAM-351: Add level emoji
   if (color) {
     parts.push(getLogLevelEmoji(level))
   }
-  
+
   // TEAM-351: Add prefix
   if (prefix) {
     parts.push(`[${prefix}]`)
   }
-  
+
   // TEAM-351: Add message
   parts.push(message)
-  
+
   const fullMessage = parts.join(' ')
-  
+
   // TEAM-351: Log at appropriate level
   switch (level) {
     case 'debug':
@@ -113,9 +114,9 @@ export function log(
 
 /**
  * Log startup mode with validation and options
- * 
+ *
  * TEAM-351: Bug fixes - Validation, options, HTTPS support
- * 
+ *
  * @param serviceName - Service name (e.g., 'QUEEN UI')
  * @param isDev - Development mode flag
  * @param port - Port number (optional)
@@ -125,21 +126,16 @@ export function logStartupMode(
   serviceName: string,
   isDev: boolean,
   port?: number,
-  options: StartupLogOptions = {}
+  options: StartupLogOptions = {},
 ): void {
-  const {
-    timestamp = false,
-    showUrl = true,
-    showProtocol = false,
-    showHostname = false,
-  } = options
-  
+  const { timestamp = false, showUrl = true, showProtocol = false, showHostname = false } = options
+
   // TEAM-351: Validate service name
   if (!serviceName || typeof serviceName !== 'string') {
     console.warn('[dev-utils] Invalid service name')
     return
   }
-  
+
   // TEAM-351: Validate port if provided
   if (port !== undefined) {
     const validation = validatePort(port)
@@ -148,10 +144,10 @@ export function logStartupMode(
       port = undefined
     }
   }
-  
+
   const emoji = isDev ? '🔧' : '🚀'
   const mode = isDev ? 'DEVELOPMENT' : 'PRODUCTION'
-  
+
   // TEAM-351: Main log line
   const mainMessage = `${emoji} [${serviceName}] Running in ${mode} mode`
   if (timestamp) {
@@ -159,11 +155,11 @@ export function logStartupMode(
   } else {
     console.log(mainMessage)
   }
-  
+
   // TEAM-351: Development mode details
   if (isDev && port) {
     console.log(`   - Vite dev server active (hot reload enabled)`)
-    
+
     if (showUrl) {
       const protocol = showProtocol ? 'http' : ''
       const hostname = showHostname ? window.location.hostname : 'localhost'
@@ -171,11 +167,11 @@ export function logStartupMode(
       console.log(`   - Running on: ${url}`)
     }
   }
-  
+
   // TEAM-351: Production mode details
   if (!isDev) {
     console.log(`   - Serving embedded static files`)
-    
+
     if (showProtocol && typeof window !== 'undefined') {
       console.log(`   - Protocol: ${window.location.protocol.replace(':', '')}`)
     }
@@ -184,22 +180,18 @@ export function logStartupMode(
 
 /**
  * Log environment information
- * 
+ *
  * TEAM-351: Comprehensive environment logging
- * 
+ *
  * @param serviceName - Service name
  * @param envInfo - Environment information
  * @param options - Log options
  */
-export function logEnvironmentInfo(
-  serviceName: string,
-  envInfo: EnvironmentInfo,
-  options: LogOptions = {}
-): void {
+export function logEnvironmentInfo(serviceName: string, envInfo: EnvironmentInfo, options: LogOptions = {}): void {
   const { timestamp = false } = options
-  
+
   const prefix = timestamp ? `[${formatTimestamp()}]` : ''
-  
+
   console.log(`${prefix} 🌍 [${serviceName}] Environment Information:`)
   console.log(`   - Mode: ${envInfo.isDev ? 'Development' : 'Production'}`)
   console.log(`   - SSR: ${envInfo.isSSR ? 'Yes' : 'No'}`)
@@ -213,9 +205,9 @@ export function logEnvironmentInfo(
 
 /**
  * Create a logger with prefix
- * 
+ *
  * TEAM-351: Logger factory
- * 
+ *
  * @param prefix - Logger prefix
  * @param options - Default log options
  * @returns Logger functions

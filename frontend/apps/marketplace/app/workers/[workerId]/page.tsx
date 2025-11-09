@@ -25,11 +25,7 @@ const WORKERS: Record<string, Worker> = {
     type: 'cpu',
     platform: ['linux', 'macos', 'windows'],
     version: '0.1.0',
-    requirements: [
-      'x86_64 or ARM64 processor',
-      '8GB RAM minimum (16GB recommended)',
-      'No GPU required',
-    ],
+    requirements: ['x86_64 or ARM64 processor', '8GB RAM minimum (16GB recommended)', 'No GPU required'],
     features: [
       'Universal compatibility',
       'No special drivers needed',
@@ -44,17 +40,8 @@ const WORKERS: Record<string, Worker> = {
     type: 'cuda',
     platform: ['linux', 'windows'],
     version: '0.1.0',
-    requirements: [
-      'NVIDIA GPU (Compute Capability 7.0+)',
-      'CUDA 11.8 or later',
-      '8GB VRAM minimum',
-    ],
-    features: [
-      '10-100x faster than CPU',
-      'Supports larger models',
-      'Flash Attention 2 support',
-      'Multi-GPU support',
-    ],
+    requirements: ['NVIDIA GPU (Compute Capability 7.0+)', 'CUDA 11.8 or later', '8GB VRAM minimum'],
+    features: ['10-100x faster than CPU', 'Supports larger models', 'Flash Attention 2 support', 'Multi-GPU support'],
   },
   'metal-llm': {
     id: 'metal-llm',
@@ -63,11 +50,7 @@ const WORKERS: Record<string, Worker> = {
     type: 'metal',
     platform: ['macos'],
     version: '0.1.0',
-    requirements: [
-      'Apple Silicon (M1/M2/M3) or AMD GPU',
-      'macOS 13.0 or later',
-      '8GB unified memory minimum',
-    ],
+    requirements: ['Apple Silicon (M1/M2/M3) or AMD GPU', 'macOS 13.0 or later', '8GB unified memory minimum'],
     features: [
       'Native Apple Silicon acceleration',
       'Unified memory architecture',
@@ -82,17 +65,8 @@ const WORKERS: Record<string, Worker> = {
     type: 'rocm',
     platform: ['linux'],
     version: '0.1.0',
-    requirements: [
-      'AMD GPU (GCN 4th gen or later)',
-      'ROCm 5.7 or later',
-      '8GB VRAM minimum',
-    ],
-    features: [
-      'AMD GPU acceleration',
-      'Open-source stack',
-      'Competitive with CUDA',
-      'Growing ecosystem',
-    ],
+    requirements: ['AMD GPU (GCN 4th gen or later)', 'ROCm 5.7 or later', '8GB VRAM minimum'],
+    features: ['AMD GPU acceleration', 'Open-source stack', 'Competitive with CUDA', 'Growing ecosystem'],
   },
 }
 
@@ -109,7 +83,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { workerId } = await params
   const worker = WORKERS[workerId]
-  
+
   if (!worker) {
     return {
       title: 'Worker Not Found',

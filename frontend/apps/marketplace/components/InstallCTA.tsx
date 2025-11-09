@@ -14,7 +14,7 @@ interface InstallCTAProps {
 /**
  * Conversion CTA for Next.js marketplace
  * Prompts users to install rbee to download/install artifacts
- * 
+ *
  * Only renders in Next.js environment (hidden in Tauri)
  */
 export function InstallCTA({ artifactType, artifactName }: InstallCTAProps) {
@@ -32,15 +32,15 @@ export function InstallCTA({ artifactType, artifactName }: InstallCTAProps) {
         <div className="rounded-full bg-primary/10 p-3">
           <Download className="size-6 text-primary" />
         </div>
-        
+
         <div className="flex-1 space-y-3">
           <div>
             <h3 className="text-lg font-semibold mb-1">
               {actionVerb} {artifactName} with rbee
             </h3>
             <p className="text-sm text-muted-foreground">
-              rbee is a free, open-source AI orchestration tool that lets you {action} {artifactType}s 
-              directly to your system with one click.
+              rbee is a free, open-source AI orchestration tool that lets you {action} {artifactType}s directly to your
+              system with one click.
             </p>
           </div>
 

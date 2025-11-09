@@ -3,13 +3,13 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelCardVertical grid
 
-import { useNavigate } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
-import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
-import { ModelCardVertical, UniversalFilterBar } from "@rbee/ui/marketplace";
-import type { FilterGroup } from "@rbee/ui/marketplace";
-import type { Model } from "@/generated/bindings";
+import type { FilterGroup } from '@rbee/ui/marketplace'
+import { ModelCardVertical, UniversalFilterBar } from '@rbee/ui/marketplace'
+import { useQuery } from '@tanstack/react-query'
+import { invoke } from '@tauri-apps/api/core'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { Model } from '@/generated/bindings'
 
 // TEAM-423: Filter state matching Next.js
 interface CivitaiFilters {
@@ -50,7 +50,7 @@ const CIVITAI_FILTER_GROUPS: FilterGroup[] = [
       { label: 'SD 2.1', value: 'SD 2.1' },
     ],
   },
-];
+]
 
 const CIVITAI_SORT_GROUP: FilterGroup = {
   id: 'sort',
@@ -60,10 +60,10 @@ const CIVITAI_SORT_GROUP: FilterGroup = {
     { label: 'Most Likes', value: 'likes' },
     { label: 'Newest', value: 'newest' },
   ],
-};
+}
 
 export function MarketplaceCivitai() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   // TEAM-423: Filter state
   const [filters, setFilters] = useState<CivitaiFilters>({
@@ -71,51 +71,55 @@ export function MarketplaceCivitai() {
     modelType: 'All',
     baseModel: 'All',
     sort: 'downloads',
-  });
+  })
 
   // DATA LAYER: Fetch models from Tauri
-  const { data: rawModels = [], isLoading, error } = useQuery({
-    queryKey: ["marketplace", "civitai-models"],
+  const {
+    data: rawModels = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['marketplace', 'civitai-models'],
     queryFn: async () => {
-      const result = await invoke<Model[]>("marketplace_list_civitai_models", {
+      const result = await invoke<Model[]>('marketplace_list_civitai_models', {
         limit: 100,
-      });
-      return result;
+      })
+      return result
     },
     staleTime: 5 * 60 * 1000,
-  });
+  })
 
   // TEAM-423: Client-side filtering and sorting
   const filteredModels = useMemo(() => {
-    let result = [...rawModels];
+    let result = [...rawModels]
 
     // Filter by model type (if available in tags)
     if (filters.modelType !== 'All') {
-      result = result.filter(model => {
-        const tags = model.tags.map(t => t.toLowerCase());
-        return tags.includes(filters.modelType.toLowerCase());
-      });
+      result = result.filter((model) => {
+        const tags = model.tags.map((t) => t.toLowerCase())
+        return tags.includes(filters.modelType.toLowerCase())
+      })
     }
 
     // Filter by base model (if available in tags)
     if (filters.baseModel !== 'All') {
-      result = result.filter(model => {
-        const tags = model.tags.map(t => t.toLowerCase());
-        const baseModel = filters.baseModel.toLowerCase().replace(/\s/g, '');
-        return tags.some(tag => tag.includes(baseModel));
-      });
+      result = result.filter((model) => {
+        const tags = model.tags.map((t) => t.toLowerCase())
+        const baseModel = filters.baseModel.toLowerCase().replace(/\s/g, '')
+        return tags.some((tag) => tag.includes(baseModel))
+      })
     }
 
     // Sort
     result.sort((a, b) => {
-      if (filters.sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0);
-      if (filters.sort === 'likes') return (b.likes || 0) - (a.likes || 0);
+      if (filters.sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0)
+      if (filters.sort === 'likes') return (b.likes || 0) - (a.likes || 0)
       // newest - would need createdAt field
-      return 0;
-    });
+      return 0
+    })
 
-    return result;
-  }, [rawModels, filters]);
+    return result
+  }, [rawModels, filters])
 
   // PRESENTATION LAYER: Full layout matching Next.js
   return (
@@ -123,14 +127,12 @@ export function MarketplaceCivitai() {
       {/* Header Section */}
       <div className="mb-8 space-y-4">
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Civitai Models
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Civitai Models</h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl">
             Discover and download Stable Diffusion models from Civitai's community
           </p>
         </div>
-        
+
         {/* Stats */}
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -154,21 +156,13 @@ export function MarketplaceCivitai() {
         sortGroup={CIVITAI_SORT_GROUP}
         currentFilters={filters}
         onFiltersChange={(newFilters) => {
-          setFilters({ ...filters, ...newFilters });
+          setFilters({ ...filters, ...newFilters })
         }}
       />
 
       {/* Loading/Error States */}
-      {isLoading && (
-        <div className="text-center py-12 text-muted-foreground">
-          Loading models...
-        </div>
-      )}
-      {error && (
-        <div className="text-center py-12 text-destructive">
-          Error: {String(error)}
-        </div>
-      )}
+      {isLoading && <div className="text-center py-12 text-muted-foreground">Loading models...</div>}
+      {error && <div className="text-center py-12 text-destructive">Error: {String(error)}</div>}
 
       {/* Vertical Card Grid - Portrait aspect ratio for CivitAI images */}
       {!isLoading && !error && (
@@ -179,7 +173,7 @@ export function MarketplaceCivitai() {
               onClick={() => navigate(`/marketplace/civitai/${encodeURIComponent(model.id)}`)}
               className="cursor-pointer"
             >
-              <ModelCardVertical 
+              <ModelCardVertical
                 model={{
                   ...model,
                   author: model.author || undefined, // Normalize null to undefined
@@ -191,5 +185,5 @@ export function MarketplaceCivitai() {
         </div>
       )}
     </div>
-  );
+  )
 }

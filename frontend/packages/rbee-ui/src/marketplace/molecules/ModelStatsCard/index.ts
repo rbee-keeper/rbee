@@ -1,2 +1,2 @@
-export { ModelStatsCard, Download, Heart, HardDrive } from './ModelStatsCard'
-export type { ModelStatsCardProps, ModelStat } from './ModelStatsCard'
+export type { ModelStat, ModelStatsCardProps } from './ModelStatsCard'
+export { Download, HardDrive, Heart, ModelStatsCard } from './ModelStatsCard'

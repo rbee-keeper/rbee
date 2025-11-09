@@ -2,31 +2,31 @@
 // TEAM-405: Removed "Search HuggingFace" tab - marketplace search moved to separate component
 // TEAM-405: Now focuses on LOCAL CATALOG management (Downloaded, Loaded)
 
-import { useState } from 'react'
-import { HardDrive, Play } from 'lucide-react'
+import { useModelOperations, useModels } from '@rbee/rbee-hive-react'
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  Badge,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
 } from '@rbee/ui/atoms'
-import { useModels, useModelOperations } from '@rbee/rbee-hive-react'
+import { HardDrive, Play } from 'lucide-react'
+import { useState } from 'react'
 import { DownloadedModelsView } from './DownloadedModelsView'
 import { LoadedModelsView } from './LoadedModelsView'
 import { ModelDetailsPanel } from './ModelDetailsPanel'
-import type { ViewMode, ModelInfo } from './types'
+import type { ModelInfo, ViewMode } from './types'
 
 export function ModelManagement() {
   const { models, loading, error } = useModels()
   const [viewMode, setViewMode] = useState<ViewMode>('downloaded')
   const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null)
-  
+
   const { loadModel, unloadModel, deleteModel, isPending } = useModelOperations()
 
   // Filter models by state
@@ -55,9 +55,7 @@ export function ModelManagement() {
               <HardDrive className="h-5 w-5" />
               Model Management
             </CardTitle>
-            <CardDescription>
-              Download models, load to RAM, and deploy to workers
-            </CardDescription>
+            <CardDescription>Download models, load to RAM, and deploy to workers</CardDescription>
           </div>
           <div className="flex gap-2">
             <Badge variant="secondary">{downloadedModels.length} Downloaded</Badge>
@@ -121,4 +119,4 @@ export function ModelManagement() {
 }
 
 // Re-export types for convenience
-export type { ViewMode, ModelInfo } from './types'
+export type { ModelInfo, ViewMode } from './types'

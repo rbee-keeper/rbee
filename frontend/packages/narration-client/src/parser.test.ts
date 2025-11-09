@@ -1,6 +1,6 @@
 /**
  * TEAM-351: Tests for narration parser
- * 
+ *
  * Behavioral tests covering:
  * - Valid JSON parsing
  * - [DONE] marker handling
@@ -10,12 +10,8 @@
  * - Statistics tracking
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  parseNarrationLine,
-  getParseStats,
-  resetParseStats,
-} from './parser'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { getParseStats, parseNarrationLine, resetParseStats } from './parser'
 
 describe('@rbee/narration-client - parser', () => {
   beforeEach(() => {
@@ -26,7 +22,7 @@ describe('@rbee/narration-client - parser', () => {
     it('should parse valid narration event', () => {
       const line = '{"actor":"test","action":"test_action","human":"Test message"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result).toEqual({
         actor: 'test',
         action: 'test_action',
@@ -37,7 +33,7 @@ describe('@rbee/narration-client - parser', () => {
     it('should parse event with data: prefix', () => {
       const line = 'data: {"actor":"test","action":"test_action","human":"Test"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result).toEqual({
         actor: 'test',
         action: 'test_action',
@@ -48,7 +44,7 @@ describe('@rbee/narration-client - parser', () => {
     it('should parse event without data: prefix', () => {
       const line = '{"actor":"test","action":"test_action","human":"Test"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result).not.toBeNull()
       expect(result?.actor).toBe('test')
     })
@@ -56,14 +52,14 @@ describe('@rbee/narration-client - parser', () => {
     it('should handle formatted field', () => {
       const line = '{"actor":"test","action":"test","human":"Test","formatted":"Formatted"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result?.formatted).toBe('Formatted')
     })
 
     it('should handle optional fields', () => {
       const line = '{"actor":"test","action":"test","human":"Test","level":"info","job_id":"123"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result?.level).toBe('info')
       expect(result?.job_id).toBe('123')
     })
@@ -83,7 +79,7 @@ describe('@rbee/narration-client - parser', () => {
     it('should count [DONE] markers', () => {
       parseNarrationLine('[DONE]')
       const stats = getParseStats()
-      
+
       expect(stats.doneMarkers).toBe(1)
     })
   })
@@ -108,7 +104,7 @@ describe('@rbee/narration-client - parser', () => {
       parseNarrationLine('')
       parseNarrationLine('   ')
       const stats = getParseStats()
-      
+
       expect(stats.emptyLines).toBe(2)
     })
   })
@@ -137,7 +133,7 @@ describe('@rbee/narration-client - parser', () => {
     it('should handle data: with JSON', () => {
       const line = 'data: {"actor":"test","action":"test","human":"Test"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result).not.toBeNull()
     })
   })
@@ -166,7 +162,7 @@ describe('@rbee/narration-client - parser', () => {
     it('should count malformed JSON as failed', () => {
       parseNarrationLine('{invalid}')
       const stats = getParseStats()
-      
+
       expect(stats.failed).toBe(1)
     })
   })
@@ -176,7 +172,7 @@ describe('@rbee/narration-client - parser', () => {
       parseNarrationLine('{"actor":"test","action":"test","human":"Test"}')
       parseNarrationLine('{"actor":"test","action":"test","human":"Test"}')
       const stats = getParseStats()
-      
+
       expect(stats.total).toBe(2)
       expect(stats.success).toBe(2)
     })
@@ -185,7 +181,7 @@ describe('@rbee/narration-client - parser', () => {
       parseNarrationLine('{invalid}')
       parseNarrationLine('{also invalid}')
       const stats = getParseStats()
-      
+
       expect(stats.failed).toBe(2)
     })
 
@@ -193,7 +189,7 @@ describe('@rbee/narration-client - parser', () => {
       parseNarrationLine('[DONE]')
       parseNarrationLine('[DONE]')
       const stats = getParseStats()
-      
+
       expect(stats.doneMarkers).toBe(2)
     })
 
@@ -201,7 +197,7 @@ describe('@rbee/narration-client - parser', () => {
       parseNarrationLine('')
       parseNarrationLine('   ')
       const stats = getParseStats()
-      
+
       expect(stats.emptyLines).toBe(2)
     })
 
@@ -211,7 +207,7 @@ describe('@rbee/narration-client - parser', () => {
       parseNarrationLine('[DONE]') // done marker
       parseNarrationLine('') // empty
       const stats = getParseStats()
-      
+
       expect(stats.total).toBe(4)
       expect(stats.success).toBe(1)
       expect(stats.failed).toBe(1)
@@ -224,10 +220,10 @@ describe('@rbee/narration-client - parser', () => {
     it('should reset all statistics to zero', () => {
       parseNarrationLine('{"actor":"test","action":"test","human":"Test"}')
       parseNarrationLine('{invalid}')
-      
+
       resetParseStats()
       const stats = getParseStats()
-      
+
       expect(stats.total).toBe(0)
       expect(stats.success).toBe(0)
       expect(stats.failed).toBe(0)
@@ -241,28 +237,28 @@ describe('@rbee/narration-client - parser', () => {
       const longMessage = 'a'.repeat(10000)
       const line = `{"actor":"test","action":"test","human":"${longMessage}"}`
       const result = parseNarrationLine(line)
-      
+
       expect(result?.human).toBe(longMessage)
     })
 
     it('should handle special characters', () => {
       const line = '{"actor":"test","action":"test","human":"Test\\n\\t\\"quote\\""}'
       const result = parseNarrationLine(line)
-      
+
       expect(result).not.toBeNull()
     })
 
     it('should handle unicode', () => {
       const line = '{"actor":"test","action":"test","human":"Test 🎉 emoji"}'
       const result = parseNarrationLine(line)
-      
+
       expect(result?.human).toBe('Test 🎉 emoji')
     })
 
     it('should handle nested objects gracefully', () => {
       const line = '{"actor":"test","action":"test","human":"Test","extra":{"nested":"value"}}'
       const result = parseNarrationLine(line)
-      
+
       expect(result).not.toBeNull()
     })
   })

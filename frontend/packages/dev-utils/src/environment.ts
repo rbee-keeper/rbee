@@ -53,9 +53,9 @@ export function isSSR(): boolean {
 
 /**
  * Get current port with validation
- * 
+ *
  * TEAM-351: Bug fixes - Handle NaN, HTTPS default, validation
- * 
+ *
  * @returns Port number (80 for HTTP, 443 for HTTPS if not specified)
  */
 export function getCurrentPort(): number {
@@ -63,9 +63,9 @@ export function getCurrentPort(): number {
   if (isSSR()) {
     return 0
   }
-  
+
   const portStr = window.location.port
-  
+
   // TEAM-351: If port is specified, parse it
   if (portStr) {
     const port = parseInt(portStr, 10)
@@ -76,7 +76,7 @@ export function getCurrentPort(): number {
     }
     return port
   }
-  
+
   // TEAM-351: Default ports based on protocol
   return window.location.protocol === 'https:' ? 443 : 80
 }
@@ -89,7 +89,7 @@ export function getProtocol(): 'http' | 'https' | 'unknown' {
   if (isSSR()) {
     return 'unknown'
   }
-  
+
   const protocol = window.location.protocol
   if (protocol === 'http:') return 'http'
   if (protocol === 'https:') return 'https'
@@ -109,9 +109,9 @@ export function getHostname(): string {
 
 /**
  * Validate port number
- * 
+ *
  * TEAM-351: Port validation with feedback
- * 
+ *
  * @param port - Port number to validate
  * @returns Validation result
  */
@@ -123,7 +123,7 @@ export function validatePort(port: number): PortValidation {
       error: 'Port must be a number',
     }
   }
-  
+
   if (isNaN(port)) {
     return {
       valid: false,
@@ -131,7 +131,7 @@ export function validatePort(port: number): PortValidation {
       error: 'Port is NaN',
     }
   }
-  
+
   if (port < 1 || port > 65535) {
     return {
       valid: false,
@@ -139,7 +139,7 @@ export function validatePort(port: number): PortValidation {
       error: `Port must be between 1 and 65535 (got ${port})`,
     }
   }
-  
+
   return {
     valid: true,
     port,
@@ -148,9 +148,9 @@ export function validatePort(port: number): PortValidation {
 
 /**
  * Check if running on specific port
- * 
+ *
  * TEAM-351: Bug fixes - Validation, SSR support
- * 
+ *
  * @param port - Port number to check
  * @returns true if running on specified port
  */
@@ -161,7 +161,7 @@ export function isRunningOnPort(port: number): boolean {
     console.warn(`[dev-utils] ${validation.error}`)
     return false
   }
-  
+
   return getCurrentPort() === port
 }
 
@@ -173,13 +173,9 @@ export function isLocalhost(): boolean {
   if (isSSR()) {
     return false
   }
-  
+
   const hostname = window.location.hostname
-  return (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '[::1]'
-  )
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
 }
 
 /**
@@ -192,9 +188,9 @@ export function isHTTPS(): boolean {
 
 /**
  * Get complete environment information
- * 
+ *
  * TEAM-351: Comprehensive environment data
- * 
+ *
  * @returns Environment information object
  */
 export function getEnvironmentInfo(): EnvironmentInfo {

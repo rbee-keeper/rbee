@@ -12,7 +12,5 @@
     "build:web": "wasm-pack build --target web --out-dir pkg/web",
     "build:nodejs": "wasm-pack build --target nodejs --out-dir pkg/nodejs"
   },
-  "files": [
-    "pkg"
-  ]
+  "files": ["pkg"]
 }

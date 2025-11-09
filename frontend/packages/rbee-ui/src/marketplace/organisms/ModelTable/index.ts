@@ -1,2 +1,2 @@
+export type { ModelTableItem, ModelTableProps } from './ModelTable'
 export { ModelTable } from './ModelTable'
-export type { ModelTableProps, ModelTableItem } from './ModelTable'

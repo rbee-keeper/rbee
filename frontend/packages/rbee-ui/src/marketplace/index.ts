@@ -6,39 +6,34 @@
 // SSR-SAFE EXPORTS (No hooks, pure presentation)
 // ============================================================================
 
-// Types
-export * from './types/compatibility'
-export * from './types/filters'
-
 // Atoms (Pure presentation)
 export * from './atoms/CompatibilityBadge'
-
-// Organisms (Pure presentation, no hooks)
-export * from './organisms/ModelCard'
-export * from './organisms/ModelCardVertical'
-export * from './organisms/WorkerCard'
-export * from './organisms/MarketplaceGrid'
-export * from './organisms/ModelTable'
-export * from './organisms/WorkerCompatibilityList'
-export * from './organisms/CategoryFilterBar'
-export * from './organisms/UniversalFilterBar' // TEAM-423: Works in both SSG and GUI
-
+export * from './molecules/ModelFilesList'
 // Molecules (Pure presentation)
 export * from './molecules/ModelMetadataCard'
 export * from './molecules/ModelStatsCard'
-export * from './molecules/ModelFilesList'
-
-// Templates (Pure presentation, no hooks)
-export * from './templates/ModelListTemplate'
-export * from './templates/ModelDetailTemplate'
-export * from './templates/WorkerListTemplate'
-export * from './templates/ModelDetailPageTemplate'
-export * from './templates/ArtifactDetailPageTemplate' // TEAM-421: Unified artifact detail template
-
+export * from './organisms/CategoryFilterBar'
+export * from './organisms/MarketplaceGrid'
+// Organisms (Pure presentation, no hooks)
+export * from './organisms/ModelCard'
+export * from './organisms/ModelCardVertical'
+export * from './organisms/ModelTable'
+export * from './organisms/UniversalFilterBar' // TEAM-423: Works in both SSG and GUI
+export * from './organisms/WorkerCard'
+export * from './organisms/WorkerCompatibilityList'
+export * from './pages/ModelDetailPage'
 // Pages (Pure presentation)
 export * from './pages/ModelsPage'
-export * from './pages/ModelDetailPage'
 export * from './pages/WorkersPage'
+export * from './templates/ArtifactDetailPageTemplate' // TEAM-421: Unified artifact detail template
+export * from './templates/ModelDetailPageTemplate'
+export * from './templates/ModelDetailTemplate'
+// Templates (Pure presentation, no hooks)
+export * from './templates/ModelListTemplate'
+export * from './templates/WorkerListTemplate'
+// Types
+export * from './types/compatibility'
+export * from './types/filters'
 
 // ============================================================================
 // CLIENT-ONLY EXPORTS (Use hooks, require 'use client')

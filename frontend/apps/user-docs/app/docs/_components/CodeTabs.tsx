@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@rbee/ui/atoms'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@rbee/ui/atoms'
 import { CodeBlock } from '@rbee/ui/molecules'
+import { useEffect, useState } from 'react'
 
 interface CodeTab {
   label: string
@@ -17,49 +17,38 @@ interface CodeTabsProps {
   storageKey?: string
 }
 
-export function CodeTabs({ 
-  tabs, 
-  defaultTab, 
-  storageKey = 'code-tabs-preference' 
-}: CodeTabsProps) {
-  const [activeTab, setActiveTab] = useState(
-    defaultTab || tabs[0]?.label || ''
-  )
-  
+export function CodeTabs({ tabs, defaultTab, storageKey = 'code-tabs-preference' }: CodeTabsProps) {
+  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.label || '')
+
   useEffect(() => {
     // Load saved preference from localStorage
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(storageKey)
-      if (saved && tabs.find(t => t.label === saved)) {
+      if (saved && tabs.find((t) => t.label === saved)) {
         setActiveTab(saved)
       }
     }
   }, [storageKey, tabs])
-  
+
   const handleTabChange = (value: string) => {
     setActiveTab(value)
     if (typeof window !== 'undefined') {
       localStorage.setItem(storageKey, value)
     }
   }
-  
+
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="my-6">
       <TabsList>
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <TabsTrigger key={tab.label} value={tab.label}>
             {tab.label}
           </TabsTrigger>
         ))}
       </TabsList>
-      {tabs.map(tab => (
+      {tabs.map((tab) => (
         <TabsContent key={tab.label} value={tab.label} className="mt-0">
-          <CodeBlock 
-            code={tab.code}
-            language={tab.language}
-            title={tab.title}
-            copyable={true}
-          />
+          <CodeBlock code={tab.code} language={tab.language} title={tab.title} copyable={true} />
         </TabsContent>
       ))}
     </Tabs>

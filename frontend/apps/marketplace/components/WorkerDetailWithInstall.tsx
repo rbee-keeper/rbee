@@ -3,10 +3,10 @@
 // TEAM-421: Client wrapper for worker detail page with conversion CTA
 // Uses shared ArtifactDetailPageTemplate from rbee-ui
 
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { ArtifactDetailPageTemplate, useArtifactActions } from '@rbee/ui/marketplace'
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@rbee/ui/atoms'
+import { CheckCircle, Cpu, GitBranch, Package } from 'lucide-react'
 import { InstallCTA } from './InstallCTA'
-import { Cpu, Package, GitBranch, CheckCircle } from 'lucide-react'
 
 interface Worker {
   id: string

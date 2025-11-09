@@ -1,21 +1,21 @@
 // TEAM-391: SD Worker UI main component
 // Pattern: Simple stub for now, TEAM-399+ will implement full UI
 
-import { useState } from 'react';
-import { useTextToImage } from '@rbee/sd-worker-react';
+import { useTextToImage } from '@rbee/sd-worker-react'
+import { useState } from 'react'
 
 function App() {
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState('')
   const { generate, isLoading, progress, result, error } = useTextToImage({
     baseUrl: 'http://localhost:8600',
     workerId: 'sd-worker-1',
-  });
+  })
 
   const handleGenerate = () => {
     if (prompt) {
-      generate({ prompt, steps: 20 });
+      generate({ prompt, steps: 20 })
     }
-  };
+  }
 
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
@@ -102,17 +102,15 @@ function App() {
             alt="Generated"
             style={{ maxWidth: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
           />
-          <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#666' }}>
-            Seed: {result.seed}
-          </p>
+          <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#666' }}>Seed: {result.seed}</p>
         </div>
       )}
 
       <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
         <h3>📝 Status: Stub Implementation</h3>
         <p>
-          This is a basic stub created by TEAM-391. The SDK and React hooks are in place but not yet
-          connected to the backend.
+          This is a basic stub created by TEAM-391. The SDK and React hooks are in place but not yet connected to the
+          backend.
         </p>
         <p>
           <strong>TEAM-399+</strong> will implement:
@@ -126,7 +124,7 @@ function App() {
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

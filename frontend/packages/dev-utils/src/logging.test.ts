@@ -1,17 +1,12 @@
 /**
  * TEAM-351: Tests for logging utilities
- * 
+ *
  * Tests the ACTUAL product behavior - no masking bugs in test harness!
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import {
-  log,
-  logStartupMode,
-  logEnvironmentInfo,
-  createLogger,
-} from './logging'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EnvironmentInfo } from './environment'
+import { createLogger, log, logEnvironmentInfo, logStartupMode } from './logging'
 
 // Mock console methods
 const mockConsole = {
@@ -96,7 +91,7 @@ describe('@rbee/dev-utils - logging', () => {
   describe.skip('logStartupMode()', () => {
     it('should log development mode', () => {
       setupWindow({ hostname: 'localhost', protocol: 'http:' })
-      
+
       logStartupMode('TEST UI', true, 3000)
       expect(mockConsole.log).toHaveBeenCalled()
       const output = mockConsole.log.mock.calls[0][0]
@@ -116,25 +111,25 @@ describe('@rbee/dev-utils - logging', () => {
 
     it('should include port in dev mode', () => {
       setupWindow({ hostname: 'localhost' })
-      
+
       logStartupMode('TEST UI', true, 3000)
-      const calls = mockConsole.log.mock.calls.map(call => call[0]).join('\n')
+      const calls = mockConsole.log.mock.calls.map((call) => call[0]).join('\n')
       expect(calls).toContain('3000')
     })
 
     it('should show URL when showUrl=true', () => {
       setupWindow({ hostname: 'localhost' })
-      
+
       logStartupMode('TEST UI', true, 3000, { showUrl: true })
-      const calls = mockConsole.log.mock.calls.map(call => call[0]).join('\n')
+      const calls = mockConsole.log.mock.calls.map((call) => call[0]).join('\n')
       expect(calls).toContain('http://localhost:3000')
     })
 
     it('should not show URL when showUrl=false', () => {
       setupWindow({ hostname: 'localhost' })
-      
+
       logStartupMode('TEST UI', true, 3000, { showUrl: false })
-      const calls = mockConsole.log.mock.calls.map(call => call[0]).join('\n')
+      const calls = mockConsole.log.mock.calls.map((call) => call[0]).join('\n')
       expect(calls).not.toContain('http://localhost:3000')
     })
 
@@ -162,11 +157,11 @@ describe('@rbee/dev-utils - logging', () => {
         hostname: 'localhost',
         url: 'http://localhost:3000',
       }
-      
+
       logEnvironmentInfo('TEST UI', envInfo)
       expect(mockConsole.log).toHaveBeenCalled()
-      
-      const calls = mockConsole.log.mock.calls.map(call => call[0]).join('\n')
+
+      const calls = mockConsole.log.mock.calls.map((call) => call[0]).join('\n')
       expect(calls).toContain('TEST UI')
       expect(calls).toContain('Development')
       expect(calls).toContain('http')
@@ -185,9 +180,9 @@ describe('@rbee/dev-utils - logging', () => {
         hostname: 'example.com',
         url: 'https://example.com',
       }
-      
+
       logEnvironmentInfo('TEST UI', envInfo)
-      const calls = mockConsole.log.mock.calls.map(call => call[0]).join('\n')
+      const calls = mockConsole.log.mock.calls.map((call) => call[0]).join('\n')
       expect(calls).toContain('Production')
     })
 
@@ -201,9 +196,9 @@ describe('@rbee/dev-utils - logging', () => {
         hostname: '',
         url: '',
       }
-      
+
       logEnvironmentInfo('TEST UI', envInfo)
-      const calls = mockConsole.log.mock.calls.map(call => call[0]).join('\n')
+      const calls = mockConsole.log.mock.calls.map((call) => call[0]).join('\n')
       expect(calls).toContain('SSR: Yes')
     })
   })
@@ -211,7 +206,7 @@ describe('@rbee/dev-utils - logging', () => {
   describe('createLogger()', () => {
     it('should create logger with prefix', () => {
       const logger = createLogger('MyApp')
-      
+
       logger.info('Test message')
       expect(mockConsole.log).toHaveBeenCalled()
       expect(mockConsole.log.mock.calls[0][0]).toContain('[MyApp]')

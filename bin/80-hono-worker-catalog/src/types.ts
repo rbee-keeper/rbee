@@ -11,30 +11,30 @@
  * Generated via: marketplace-sdk WASM build
  * TEAM-461: Added ROCm support for AMD GPUs
  */
-export type WorkerType = "cpu" | "cuda" | "metal" | "rocm";
+export type WorkerType = 'cpu' | 'cuda' | 'metal' | 'rocm'
 
 /**
  * Platform (operating system)
  * CANONICAL SOURCE: artifacts-contract::Platform
  * Generated via: marketplace-sdk WASM build
  */
-export type Platform = "linux" | "macos" | "windows";
+export type Platform = 'linux' | 'macos' | 'windows'
 
 /**
  * Architecture (CPU instruction set)
  */
-export type Architecture = "x86_64" | "aarch64";
+export type Architecture = 'x86_64' | 'aarch64'
 
 /**
  * Worker implementation type
  * TEAM-421: Must match Rust enum WorkerImplementation in artifacts-contract
  */
-export type WorkerImplementation = "rust" | "python" | "cpp";
+export type WorkerImplementation = 'rust' | 'python' | 'cpp'
 
 /**
  * Build system type
  */
-export type BuildSystem = "cargo" | "cmake" | "pip" | "npm";
+export type BuildSystem = 'cargo' | 'cmake' | 'pip' | 'npm'
 
 /**
  * Worker catalog entry
@@ -43,85 +43,85 @@ export type BuildSystem = "cargo" | "cmake" | "pip" | "npm";
 export interface WorkerCatalogEntry {
   // ━━━ Identity ━━━
   /** Unique worker ID (e.g., "llm-worker-rbee-cpu") */
-  id: string;
-  
+  id: string
+
   /** Worker implementation type */
-  implementation: WorkerImplementation;
-  
+  implementation: WorkerImplementation
+
   /** Worker type (backend) - MUST be camelCase to match Rust */
-  workerType: WorkerType;
-  
+  workerType: WorkerType
+
   /** Version (semver) */
-  version: string;
-  
+  version: string
+
   // ━━━ Platform Support ━━━
   /** Supported platforms */
-  platforms: Platform[];
-  
+  platforms: Platform[]
+
   /** Supported architectures */
-  architectures: Architecture[];
-  
+  architectures: Architecture[]
+
   // ━━━ Metadata ━━━
   /** Human-readable name */
-  name: string;
-  
+  name: string
+
   /** Short description */
-  description: string;
-  
+  description: string
+
   /** License (SPDX identifier) */
-  license: string;
-  
+  license: string
+
   // ━━━ Build Instructions ━━━
   /** URL to PKGBUILD file - MUST be camelCase */
-  pkgbuildUrl: string;
-  
+  pkgbuildUrl: string
+
   /** Build system - MUST be camelCase */
-  buildSystem: BuildSystem;
-  
+  buildSystem: BuildSystem
+
   /** Source repository */
   source: {
     /** Source type - Rust uses #[serde(rename = "type")] which overrides camelCase */
-    type: "git" | "tarball";
-    url: string;
-    branch?: string;
-    tag?: string;
-    path?: string;  // Path within repo (e.g., "bin/30_llm_worker_rbee")
-  };
-  
+    type: 'git' | 'tarball'
+    url: string
+    branch?: string
+    tag?: string
+    path?: string // Path within repo (e.g., "bin/30_llm_worker_rbee")
+  }
+
   /** Build configuration */
   build: {
     /** Cargo features (for Rust) */
-    features?: string[];
+    features?: string[]
     /** Build profile (release, debug) */
-    profile?: string;
+    profile?: string
     /** Additional build flags */
-    flags?: string[];
-  };
-  
+    flags?: string[]
+  }
+
   // ━━━ Dependencies ━━━
   /** Runtime dependencies */
-  depends: string[];
-  
+  depends: string[]
+
   /** Build dependencies */
-  makedepends: string[];
-  
+  makedepends: string[]
+
   // ━━━ Binary Info ━━━
   /** Binary name (output) - MUST be camelCase */
-  binaryName: string;
-  
+  binaryName: string
+
   /** Installation path - MUST be camelCase */
-  installPath: string;
-  
+  installPath: string
+
   // ━━━ Capabilities ━━━
   /** Supported model formats - MUST be camelCase */
-  supportedFormats: string[];
-  
+  supportedFormats: string[]
+
   /** Maximum context length - MUST be camelCase */
-  maxContextLength?: number;
-  
+  maxContextLength?: number
+
   /** Supports streaming - MUST be camelCase */
-  supportsStreaming: boolean;
-  
+  supportsStreaming: boolean
+
   /** Supports batching - MUST be camelCase */
-  supportsBatching: boolean;
+  supportsBatching: boolean
 }

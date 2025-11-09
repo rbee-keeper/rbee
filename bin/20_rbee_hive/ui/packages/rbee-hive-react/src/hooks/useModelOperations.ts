@@ -3,8 +3,8 @@
 
 'use client'
 
+import { HiveClient, init, OperationBuilder } from '@rbee/rbee-hive-sdk'
 import { useMutation } from '@tanstack/react-query'
-import { init, HiveClient, OperationBuilder } from '@rbee/rbee-hive-sdk'
 
 // Initialize WASM (same pattern as useHiveOperations)
 let wasmInitialized = false
@@ -46,21 +46,21 @@ export interface UseModelOperationsResult {
 
 /**
  * Hook for model operations using TanStack Query mutations
- * 
+ *
  * Follows the same pattern as useHiveOperations:
  * - Uses HiveClient from rbee-hive-sdk
  * - Uses OperationBuilder for type-safe operations
  * - Streams narration through submitAndStream
  * - Automatic loading states and error handling
- * 
+ *
  * @returns Mutation functions and state
- * 
+ *
  * @example
  * ```tsx
  * const { loadModel, unloadModel, deleteModel, isPending } = useModelOperations()
- * 
- * <button 
- *   onClick={() => loadModel({ 
+ *
+ * <button
+ *   onClick={() => loadModel({
  *     modelId: 'meta-llama-Llama-2-7b',
  *     device: 'cuda:0'
  *   })}
@@ -77,14 +77,14 @@ export function useModelOperations(): UseModelOperationsResult {
       const hiveId = client.hiveId
       const op = OperationBuilder.modelLoad(hiveId, modelId, device)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[Hive] Model load:', line)
         }
       })
-      
+
       return { modelId, device }
     },
     retry: 1,
@@ -97,14 +97,14 @@ export function useModelOperations(): UseModelOperationsResult {
       const hiveId = client.hiveId
       const op = OperationBuilder.modelUnload(hiveId, modelId)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[Hive] Model unload:', line)
         }
       })
-      
+
       return { modelId }
     },
     retry: 1,
@@ -117,14 +117,14 @@ export function useModelOperations(): UseModelOperationsResult {
       const hiveId = client.hiveId
       const op = OperationBuilder.modelDelete(hiveId, modelId)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[Hive] Model delete:', line)
         }
       })
-      
+
       return { modelId }
     },
     retry: 1,

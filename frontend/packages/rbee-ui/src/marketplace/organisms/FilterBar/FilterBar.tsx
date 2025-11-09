@@ -1,13 +1,7 @@
 // TEAM-401: Filter controls for marketplace
 import { Button } from '@rbee/ui/atoms/Button'
 import { Input } from '@rbee/ui/atoms/Input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@rbee/ui/atoms/Select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@rbee/ui/atoms/Select'
 import { FilterButton } from '@rbee/ui/molecules/FilterButton'
 import { Search, X } from 'lucide-react'
 import * as React from 'react'
@@ -64,8 +58,7 @@ export function FilterBar({
     setLocalSearch(search)
   }, [search])
 
-  const hasActiveFilters =
-    search !== '' || sort !== sortOptions[0]?.value || filterChips.some((chip) => chip.active)
+  const hasActiveFilters = search !== '' || sort !== sortOptions[0]?.value || filterChips.some((chip) => chip.active)
 
   return (
     <div className="space-y-3">

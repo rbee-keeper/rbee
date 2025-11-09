@@ -1,6 +1,6 @@
 /**
  * TEAM-351: Tests for iframe message types
- * 
+ *
  * Behavioral tests covering:
  * - Type guards and validation
  * - Message structure validation
@@ -8,15 +8,15 @@
  * - Edge cases
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
+  type CommandMessage,
+  type ErrorMessage,
   isValidBaseMessage,
   isValidIframeMessage,
-  validateMessage,
   type NarrationMessage,
-  type CommandMessage,
   type ResponseMessage,
-  type ErrorMessage,
+  validateMessage,
 } from './types'
 
 describe('@rbee/iframe-bridge - types', () => {
@@ -27,7 +27,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidBaseMessage(msg)).toBe(true)
     })
 
@@ -46,7 +46,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidBaseMessage(msg)).toBe(false)
     })
 
@@ -55,7 +55,7 @@ describe('@rbee/iframe-bridge - types', () => {
         type: 'NARRATION_EVENT',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidBaseMessage(msg)).toBe(false)
     })
 
@@ -64,7 +64,7 @@ describe('@rbee/iframe-bridge - types', () => {
         type: 'NARRATION_EVENT',
         source: 'test',
       }
-      
+
       expect(isValidBaseMessage(msg)).toBe(false)
     })
 
@@ -74,7 +74,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidBaseMessage(msg)).toBe(false)
     })
 
@@ -86,7 +86,7 @@ describe('@rbee/iframe-bridge - types', () => {
         id: 'msg-123',
         version: '1.0.0',
       }
-      
+
       expect(isValidBaseMessage(msg)).toBe(true)
     })
   })
@@ -103,7 +103,7 @@ describe('@rbee/iframe-bridge - types', () => {
           human: 'Test message',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -113,7 +113,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
 
@@ -127,7 +127,7 @@ describe('@rbee/iframe-bridge - types', () => {
           human: 'Test',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
 
@@ -141,7 +141,7 @@ describe('@rbee/iframe-bridge - types', () => {
           human: 'Test',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
 
@@ -155,7 +155,7 @@ describe('@rbee/iframe-bridge - types', () => {
           action: 'test_action',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
 
@@ -172,7 +172,7 @@ describe('@rbee/iframe-bridge - types', () => {
           job_id: '123',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
   })
@@ -185,7 +185,7 @@ describe('@rbee/iframe-bridge - types', () => {
         timestamp: Date.now(),
         command: 'test_command',
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -197,7 +197,7 @@ describe('@rbee/iframe-bridge - types', () => {
         command: 'test_command',
         args: { key: 'value' },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -207,7 +207,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
   })
@@ -221,7 +221,7 @@ describe('@rbee/iframe-bridge - types', () => {
         requestId: 'req-123',
         success: true,
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -234,7 +234,7 @@ describe('@rbee/iframe-bridge - types', () => {
         success: true,
         data: { result: 'ok' },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -247,7 +247,7 @@ describe('@rbee/iframe-bridge - types', () => {
         success: false,
         error: 'Failed',
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -258,7 +258,7 @@ describe('@rbee/iframe-bridge - types', () => {
         timestamp: Date.now(),
         success: true,
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
 
@@ -269,7 +269,7 @@ describe('@rbee/iframe-bridge - types', () => {
         timestamp: Date.now(),
         requestId: 'req-123',
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
   })
@@ -282,7 +282,7 @@ describe('@rbee/iframe-bridge - types', () => {
         timestamp: Date.now(),
         error: 'Something failed',
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -294,7 +294,7 @@ describe('@rbee/iframe-bridge - types', () => {
         error: 'Failed',
         code: 'ERR_TEST',
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -306,7 +306,7 @@ describe('@rbee/iframe-bridge - types', () => {
         error: 'Failed',
         details: { reason: 'timeout' },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -316,7 +316,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
   })
@@ -328,7 +328,7 @@ describe('@rbee/iframe-bridge - types', () => {
         source: 'test',
         timestamp: Date.now(),
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
 
@@ -337,7 +337,7 @@ describe('@rbee/iframe-bridge - types', () => {
         type: 'NARRATION_EVENT',
         // missing source and timestamp
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(false)
     })
   })
@@ -350,7 +350,7 @@ describe('@rbee/iframe-bridge - types', () => {
         timestamp: Date.now(),
         command: 'test',
       }
-      
+
       const result = validateMessage(msg)
       expect(result.valid).toBe(true)
       expect(result.error).toBeUndefined()
@@ -373,7 +373,7 @@ describe('@rbee/iframe-bridge - types', () => {
         type: 'COMMAND',
         // missing source and timestamp
       }
-      
+
       const result = validateMessage(msg)
       expect(result.valid).toBe(false)
       expect(result.error).toBe('Missing required fields')
@@ -387,7 +387,7 @@ describe('@rbee/iframe-bridge - types', () => {
         timestamp: Date.now(),
         // missing command field
       }
-      
+
       const result = validateMessage(msg)
       expect(result.valid).toBe(false)
       expect(result.error).toContain('Invalid message type or structure')
@@ -406,7 +406,7 @@ describe('@rbee/iframe-bridge - types', () => {
           human: 'a'.repeat(100000),
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -421,7 +421,7 @@ describe('@rbee/iframe-bridge - types', () => {
           human: 'Test\n\t"quote"',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
 
@@ -436,7 +436,7 @@ describe('@rbee/iframe-bridge - types', () => {
           human: 'Test 🎉 emoji',
         },
       }
-      
+
       expect(isValidIframeMessage(msg)).toBe(true)
     })
   })

@@ -39,15 +39,14 @@ export const Default: Story = {
 export const SingleAction: Story = {
   args: {
     message: 'Join the Waitlist - Be the first to know when we launch new features.',
-    ctas: [
-      { label: 'Join Waitlist', href: '/waitlist', variant: 'default' },
-    ],
+    ctas: [{ label: 'Join Waitlist', href: '/waitlist', variant: 'default' }],
   },
 }
 
 export const WithLongMessage: Story = {
   args: {
-    message: 'Transform Your AI Infrastructure - Deploy language models and image generation workers across your infrastructure with ease. Get started in minutes with our comprehensive documentation and support.',
+    message:
+      'Transform Your AI Infrastructure - Deploy language models and image generation workers across your infrastructure with ease. Get started in minutes with our comprehensive documentation and support.',
     ctas: [
       { label: 'Start Free Trial', href: '/trial', variant: 'default' },
       { label: 'Talk to Sales', href: '/contact', variant: 'outline' },

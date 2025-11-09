@@ -1,5 +1,5 @@
 // TEAM-403: HTTP API integration tests
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import app from '../../src/index'
 
 describe('Worker Catalog API', () => {
@@ -11,8 +11,8 @@ describe('Worker Catalog API', () => {
 
     it('should return correct health check data', async () => {
       const res = await app.request('/health')
-      const data = await res.json() as { status: string; service: string; version: string }
-      
+      const data = (await res.json()) as { status: string; service: string; version: string }
+
       expect(data.status).toBe('ok')
       expect(data.service).toBe('worker-catalog')
       expect(data.version).toBe('0.1.0')
@@ -27,8 +27,8 @@ describe('Worker Catalog API', () => {
 
     it('should return JSON array', async () => {
       const res = await app.request('/workers')
-      const data = await res.json() as { workers: unknown[] }
-      
+      const data = (await res.json()) as { workers: unknown[] }
+
       expect(data).toHaveProperty('workers')
       expect(Array.isArray(data.workers)).toBe(true)
       expect(data.workers.length).toBeGreaterThan(0)
@@ -36,8 +36,8 @@ describe('Worker Catalog API', () => {
 
     it('should return workers with required fields', async () => {
       const res = await app.request('/workers')
-      const data = await res.json() as { workers: Record<string, unknown>[] }
-      
+      const data = (await res.json()) as { workers: Record<string, unknown>[] }
+
       const worker = data.workers[0]
       expect(worker).toHaveProperty('id')
       expect(worker).toHaveProperty('name')
@@ -51,7 +51,7 @@ describe('Worker Catalog API', () => {
       const start = Date.now()
       const res = await app.request('/workers')
       const duration = Date.now() - start
-      
+
       expect(res.status).toBe(200)
       expect(duration).toBeLessThan(200) // Less than 200ms
     })
@@ -65,8 +65,8 @@ describe('Worker Catalog API', () => {
 
     it('should return worker details', async () => {
       const res = await app.request('/workers/llm-worker-rbee-cpu')
-      const data = await res.json() as { id: string; workerType: string; implementation: string }
-      
+      const data = (await res.json()) as { id: string; workerType: string; implementation: string }
+
       expect(data.id).toBe('llm-worker-rbee-cpu')
       expect(data.workerType).toBe('cpu')
       expect(data.implementation).toBe('rust')
@@ -79,8 +79,8 @@ describe('Worker Catalog API', () => {
 
     it('should return error message for 404', async () => {
       const res = await app.request('/workers/non-existent')
-      const data = await res.json() as { error: string }
-      
+      const data = (await res.json()) as { error: string }
+
       expect(data.error).toBe('Worker not found')
     })
   })
@@ -93,8 +93,8 @@ describe('Worker Catalog API', () => {
 
     it('should return error for non-existent worker', async () => {
       const res = await app.request('/workers/non-existent/PKGBUILD')
-      const data = await res.json() as { error: string }
-      
+      const data = (await res.json()) as { error: string }
+
       expect(data.error).toBe('Worker not found')
     })
 

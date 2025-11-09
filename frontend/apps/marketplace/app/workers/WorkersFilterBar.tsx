@@ -1,9 +1,9 @@
 'use client'
 
+import type { FilterGroup } from '@rbee/ui/marketplace'
 // Client wrapper for CategoryFilterBar to handle function props
 import { CategoryFilterBar } from '@rbee/ui/marketplace'
 import { buildWorkerFilterUrl, type WorkerFilters } from './filters'
-import type { FilterGroup } from '@rbee/ui/marketplace'
 
 interface WorkersFilterBarProps {
   groups: FilterGroup[]

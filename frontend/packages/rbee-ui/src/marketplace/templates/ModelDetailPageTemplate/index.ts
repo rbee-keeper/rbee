@@ -1,2 +1,2 @@
+export type { ModelDetailData, ModelDetailPageTemplateProps } from './ModelDetailPageTemplate'
 export { ModelDetailPageTemplate } from './ModelDetailPageTemplate'
-export type { ModelDetailPageTemplateProps, ModelDetailData } from './ModelDetailPageTemplate'

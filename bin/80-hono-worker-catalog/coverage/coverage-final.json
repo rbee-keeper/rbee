@@ -1,4 +1,158 @@
-{"/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/data.ts": {"path":"/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/data.ts","statementMap":{"0":{"start":{"line":6,"column":45},"end":{"line":100,"column":null}}},"fnMap":{},"branchMap":{},"s":{"0":5},"f":{},"b":{},"meta":{"lastBranch":0,"lastFunction":0,"lastStatement":1,"seen":{"s:6:45:100:Infinity":0}}}
-,"/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/index.ts": {"path":"/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/index.ts","statementMap":{"0":{"start":{"line":8,"column":12},"end":{"line":8,"column":56}},"1":{"start":{"line":15,"column":0},"end":{"line":29,"column":null}},"2":{"start":{"line":35,"column":0},"end":{"line":35,"column":null}},"3":{"start":{"line":38,"column":0},"end":{"line":44,"column":null}},"4":{"start":{"line":39,"column":2},"end":{"line":43,"column":null}}},"fnMap":{"0":{"name":"(anonymous_0)","decl":{"start":{"line":38,"column":8},"end":{"line":38,"column":20}},"loc":{"start":{"line":38,"column":26},"end":{"line":44,"column":null}},"line":38}},"branchMap":{},"s":{"0":3,"1":3,"2":3,"3":3,"4":2},"f":{"0":2},"b":{},"meta":{"lastBranch":0,"lastFunction":1,"lastStatement":5,"seen":{"s:8:12:8:56":0,"s:15:0:29:Infinity":1,"s:35:0:35:Infinity":2,"s:38:0:44:Infinity":3,"f:38:8:38:20":0,"s:39:2:43:Infinity":4}}}
-,"/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/routes.ts": {"path":"/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/routes.ts","statementMap":{"0":{"start":{"line":6,"column":22},"end":{"line":6,"column":66}},"1":{"start":{"line":16,"column":0},"end":{"line":18,"column":null}},"2":{"start":{"line":17,"column":2},"end":{"line":17,"column":null}},"3":{"start":{"line":24,"column":0},"end":{"line":33,"column":null}},"4":{"start":{"line":25,"column":13},"end":{"line":25,"column":30}},"5":{"start":{"line":26,"column":17},"end":{"line":26,"column":47}},"6":{"start":{"line":26,"column":35},"end":{"line":26,"column":47}},"7":{"start":{"line":29,"column":4},"end":{"line":29,"column":null}},"8":{"start":{"line":32,"column":2},"end":{"line":32,"column":null}},"9":{"start":{"line":43,"column":0},"end":{"line":72,"column":null}},"10":{"start":{"line":44,"column":13},"end":{"line":44,"column":30}},"11":{"start":{"line":47,"column":17},"end":{"line":47,"column":47}},"12":{"start":{"line":47,"column":35},"end":{"line":47,"column":47}},"13":{"start":{"line":49,"column":4},"end":{"line":49,"column":null}},"14":{"start":{"line":54,"column":21},"end":{"line":55,"column":null}},"15":{"start":{"line":59,"column":6},"end":{"line":59,"column":null}},"16":{"start":{"line":62,"column":4},"end":{"line":67,"column":null}},"17":{"start":{"line":69,"column":4},"end":{"line":69,"column":null}},"18":{"start":{"line":70,"column":4},"end":{"line":70,"column":null}}},"fnMap":{"0":{"name":"(anonymous_0)","decl":{"start":{"line":16,"column":11},"end":{"line":16,"column":24}},"loc":{"start":{"line":16,"column":30},"end":{"line":18,"column":null}},"line":16},"1":{"name":"(anonymous_1)","decl":{"start":{"line":24,"column":11},"end":{"line":24,"column":28}},"loc":{"start":{"line":24,"column":34},"end":{"line":33,"column":null}},"line":24},"2":{"name":"(anonymous_2)","decl":{"start":{"line":26,"column":25},"end":{"line":26,"column":30}},"loc":{"start":{"line":26,"column":35},"end":{"line":26,"column":47}},"line":26},"3":{"name":"(anonymous_3)","decl":{"start":{"line":43,"column":36},"end":{"line":43,"column":43}},"loc":{"start":{"line":43,"column":49},"end":{"line":72,"column":null}},"line":43},"4":{"name":"(anonymous_4)","decl":{"start":{"line":47,"column":25},"end":{"line":47,"column":30}},"loc":{"start":{"line":47,"column":35},"end":{"line":47,"column":47}},"line":47}},"branchMap":{},"s":{"0":3,"1":3,"2":11,"3":3,"4":10,"5":10,"6":19,"7":3,"8":7,"9":3,"10":4,"11":4,"12":8,"13":2,"14":2,"15":0,"16":0,"17":2,"18":2},"f":{"0":11,"1":10,"2":19,"3":4,"4":8},"b":{},"meta":{"lastBranch":0,"lastFunction":5,"lastStatement":19,"seen":{"s:6:22:6:66":0,"s:16:0:18:Infinity":1,"f:16:11:16:24":0,"s:17:2:17:Infinity":2,"s:24:0:33:Infinity":3,"f:24:11:24:28":1,"s:25:13:25:30":4,"s:26:17:26:47":5,"f:26:25:26:30":2,"s:26:35:26:47":6,"s:29:4:29:Infinity":7,"s:32:2:32:Infinity":8,"s:43:0:72:Infinity":9,"f:43:36:43:43":3,"s:44:13:44:30":10,"s:47:17:47:47":11,"f:47:25:47:30":4,"s:47:35:47:47":12,"s:49:4:49:Infinity":13,"s:54:21:55:Infinity":14,"s:59:6:59:Infinity":15,"s:62:4:67:Infinity":16,"s:69:4:69:Infinity":17,"s:70:4:70:Infinity":18}}}
+{
+  "/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/data.ts": {
+    "path": "/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/data.ts",
+    "statementMap": { "0": { "start": { "line": 6, "column": 45 }, "end": { "line": 100, "column": null } } },
+    "fnMap": {},
+    "branchMap": {},
+    "s": { "0": 5 },
+    "f": {},
+    "b": {},
+    "meta": { "lastBranch": 0, "lastFunction": 0, "lastStatement": 1, "seen": { "s:6:45:100:Infinity": 0 } }
+  },
+  "/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/index.ts": {
+    "path": "/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/index.ts",
+    "statementMap": {
+      "0": { "start": { "line": 8, "column": 12 }, "end": { "line": 8, "column": 56 } },
+      "1": { "start": { "line": 15, "column": 0 }, "end": { "line": 29, "column": null } },
+      "2": { "start": { "line": 35, "column": 0 }, "end": { "line": 35, "column": null } },
+      "3": { "start": { "line": 38, "column": 0 }, "end": { "line": 44, "column": null } },
+      "4": { "start": { "line": 39, "column": 2 }, "end": { "line": 43, "column": null } }
+    },
+    "fnMap": {
+      "0": {
+        "name": "(anonymous_0)",
+        "decl": { "start": { "line": 38, "column": 8 }, "end": { "line": 38, "column": 20 } },
+        "loc": { "start": { "line": 38, "column": 26 }, "end": { "line": 44, "column": null } },
+        "line": 38
+      }
+    },
+    "branchMap": {},
+    "s": { "0": 3, "1": 3, "2": 3, "3": 3, "4": 2 },
+    "f": { "0": 2 },
+    "b": {},
+    "meta": {
+      "lastBranch": 0,
+      "lastFunction": 1,
+      "lastStatement": 5,
+      "seen": {
+        "s:8:12:8:56": 0,
+        "s:15:0:29:Infinity": 1,
+        "s:35:0:35:Infinity": 2,
+        "s:38:0:44:Infinity": 3,
+        "f:38:8:38:20": 0,
+        "s:39:2:43:Infinity": 4
+      }
+    }
+  },
+  "/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/routes.ts": {
+    "path": "/home/vince/Projects/llama-orch/bin/80-hono-worker-catalog/src/routes.ts",
+    "statementMap": {
+      "0": { "start": { "line": 6, "column": 22 }, "end": { "line": 6, "column": 66 } },
+      "1": { "start": { "line": 16, "column": 0 }, "end": { "line": 18, "column": null } },
+      "2": { "start": { "line": 17, "column": 2 }, "end": { "line": 17, "column": null } },
+      "3": { "start": { "line": 24, "column": 0 }, "end": { "line": 33, "column": null } },
+      "4": { "start": { "line": 25, "column": 13 }, "end": { "line": 25, "column": 30 } },
+      "5": { "start": { "line": 26, "column": 17 }, "end": { "line": 26, "column": 47 } },
+      "6": { "start": { "line": 26, "column": 35 }, "end": { "line": 26, "column": 47 } },
+      "7": { "start": { "line": 29, "column": 4 }, "end": { "line": 29, "column": null } },
+      "8": { "start": { "line": 32, "column": 2 }, "end": { "line": 32, "column": null } },
+      "9": { "start": { "line": 43, "column": 0 }, "end": { "line": 72, "column": null } },
+      "10": { "start": { "line": 44, "column": 13 }, "end": { "line": 44, "column": 30 } },
+      "11": { "start": { "line": 47, "column": 17 }, "end": { "line": 47, "column": 47 } },
+      "12": { "start": { "line": 47, "column": 35 }, "end": { "line": 47, "column": 47 } },
+      "13": { "start": { "line": 49, "column": 4 }, "end": { "line": 49, "column": null } },
+      "14": { "start": { "line": 54, "column": 21 }, "end": { "line": 55, "column": null } },
+      "15": { "start": { "line": 59, "column": 6 }, "end": { "line": 59, "column": null } },
+      "16": { "start": { "line": 62, "column": 4 }, "end": { "line": 67, "column": null } },
+      "17": { "start": { "line": 69, "column": 4 }, "end": { "line": 69, "column": null } },
+      "18": { "start": { "line": 70, "column": 4 }, "end": { "line": 70, "column": null } }
+    },
+    "fnMap": {
+      "0": {
+        "name": "(anonymous_0)",
+        "decl": { "start": { "line": 16, "column": 11 }, "end": { "line": 16, "column": 24 } },
+        "loc": { "start": { "line": 16, "column": 30 }, "end": { "line": 18, "column": null } },
+        "line": 16
+      },
+      "1": {
+        "name": "(anonymous_1)",
+        "decl": { "start": { "line": 24, "column": 11 }, "end": { "line": 24, "column": 28 } },
+        "loc": { "start": { "line": 24, "column": 34 }, "end": { "line": 33, "column": null } },
+        "line": 24
+      },
+      "2": {
+        "name": "(anonymous_2)",
+        "decl": { "start": { "line": 26, "column": 25 }, "end": { "line": 26, "column": 30 } },
+        "loc": { "start": { "line": 26, "column": 35 }, "end": { "line": 26, "column": 47 } },
+        "line": 26
+      },
+      "3": {
+        "name": "(anonymous_3)",
+        "decl": { "start": { "line": 43, "column": 36 }, "end": { "line": 43, "column": 43 } },
+        "loc": { "start": { "line": 43, "column": 49 }, "end": { "line": 72, "column": null } },
+        "line": 43
+      },
+      "4": {
+        "name": "(anonymous_4)",
+        "decl": { "start": { "line": 47, "column": 25 }, "end": { "line": 47, "column": 30 } },
+        "loc": { "start": { "line": 47, "column": 35 }, "end": { "line": 47, "column": 47 } },
+        "line": 47
+      }
+    },
+    "branchMap": {},
+    "s": {
+      "0": 3,
+      "1": 3,
+      "2": 11,
+      "3": 3,
+      "4": 10,
+      "5": 10,
+      "6": 19,
+      "7": 3,
+      "8": 7,
+      "9": 3,
+      "10": 4,
+      "11": 4,
+      "12": 8,
+      "13": 2,
+      "14": 2,
+      "15": 0,
+      "16": 0,
+      "17": 2,
+      "18": 2
+    },
+    "f": { "0": 11, "1": 10, "2": 19, "3": 4, "4": 8 },
+    "b": {},
+    "meta": {
+      "lastBranch": 0,
+      "lastFunction": 5,
+      "lastStatement": 19,
+      "seen": {
+        "s:6:22:6:66": 0,
+        "s:16:0:18:Infinity": 1,
+        "f:16:11:16:24": 0,
+        "s:17:2:17:Infinity": 2,
+        "s:24:0:33:Infinity": 3,
+        "f:24:11:24:28": 1,
+        "s:25:13:25:30": 4,
+        "s:26:17:26:47": 5,
+        "f:26:25:26:30": 2,
+        "s:26:35:26:47": 6,
+        "s:29:4:29:Infinity": 7,
+        "s:32:2:32:Infinity": 8,
+        "s:43:0:72:Infinity": 9,
+        "f:43:36:43:43": 3,
+        "s:44:13:44:30": 10,
+        "s:47:17:47:47": 11,
+        "f:47:25:47:30": 4,
+        "s:47:35:47:47": 12,
+        "s:49:4:49:Infinity": 13,
+        "s:54:21:55:Infinity": 14,
+        "s:59:6:59:Infinity": 15,
+        "s:62:4:67:Infinity": 16,
+        "s:69:4:69:Infinity": 17,
+        "s:70:4:70:Infinity": 18
+      }
+    }
+  }
 }

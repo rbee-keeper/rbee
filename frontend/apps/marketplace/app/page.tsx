@@ -1,9 +1,10 @@
 // TEAM-405: Marketplace home page - using reusable rbee-ui components
-import Link from "next/link";
-import { Button } from "@rbee/ui/atoms/Button";
-import { IconPlate } from "@rbee/ui/molecules/IconPlate";
-import { FeatureInfoCard } from "@rbee/ui/molecules/FeatureInfoCard";
-import { ArrowRight, Sparkles, Zap, Search, Database } from "lucide-react";
+
+import { Button } from '@rbee/ui/atoms/Button'
+import { FeatureInfoCard } from '@rbee/ui/molecules/FeatureInfoCard'
+import { IconPlate } from '@rbee/ui/molecules/IconPlate'
+import { ArrowRight, Database, Search, Sparkles, Zap } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -11,23 +12,16 @@ export default function Home() {
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto text-center mb-20">
         <div className="mb-8 inline-flex justify-center">
-          <IconPlate 
-            icon={<Sparkles />} 
-            size="xl" 
-            tone="primary" 
-            shape="rounded"
-          />
+          <IconPlate icon={<Sparkles />} size="xl" tone="primary" shape="rounded" />
         </div>
-        
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
-          AI Model Marketplace
-        </h1>
-        
+
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">AI Model Marketplace</h1>
+
         <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-          Discover and explore state-of-the-art language models from HuggingFace.
-          Pre-rendered for blazing-fast performance and maximum SEO.
+          Discover and explore state-of-the-art language models from HuggingFace. Pre-rendered for blazing-fast
+          performance and maximum SEO.
         </p>
-        
+
         <div className="flex gap-4 justify-center">
           <Button size="lg" className="h-12 px-8 text-base" asChild>
             <Link href="/models">
@@ -47,7 +41,7 @@ export default function Home() {
           tone="default"
           showBorder
         />
-        
+
         <FeatureInfoCard
           icon={Search}
           title="SEO Optimized"
@@ -55,7 +49,7 @@ export default function Home() {
           tone="default"
           showBorder
         />
-        
+
         <FeatureInfoCard
           icon={Database}
           title="Rich Metadata"
@@ -65,5 +59,5 @@ export default function Home() {
         />
       </div>
     </div>
-  );
+  )
 }

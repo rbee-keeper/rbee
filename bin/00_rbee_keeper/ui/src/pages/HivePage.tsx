@@ -3,16 +3,16 @@
 // Disabled when Hive is not running
 // Uses dynamic hiveId from URL params
 
-import { Alert, AlertDescription, AlertTitle, Button } from "@rbee/ui/atoms";
-import { AlertCircle, PlayCircle, Loader2 } from "lucide-react";
-import { useParams } from "react-router-dom";
-import { getIframeUrl } from "@rbee/shared-config";
-import { useHive, useHiveActions } from "../store/hiveQueries";
+import { getIframeUrl } from '@rbee/shared-config'
+import { Alert, AlertDescription, AlertTitle, Button } from '@rbee/ui/atoms'
+import { AlertCircle, Loader2, PlayCircle } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { useHive, useHiveActions } from '../store/hiveQueries'
 
 // TEAM-367: Rewritten to use React Query
 function HiveIframeContent({ hiveId }: { hiveId: string }) {
-  const { data: hive, isLoading, error } = useHive(hiveId);
-  const { start } = useHiveActions();
+  const { data: hive, isLoading, error } = useHive(hiveId)
+  const { start } = useHiveActions()
 
   // Loading state
   if (isLoading && !hive) {
@@ -20,7 +20,7 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
-    );
+    )
   }
 
   // Error state
@@ -35,7 +35,7 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   if (!hive) {
@@ -52,7 +52,7 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   if (!hive.isInstalled) {
@@ -69,10 +69,10 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
-  if (hive.status !== "online") {
+  if (hive.status !== 'online') {
     return (
       <div className="flex items-center justify-center h-full">
         <Alert variant="destructive" className="max-w-md">
@@ -92,7 +92,7 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   // TEAM-378: Build iframe URL from actual hive address (not localhost!)
@@ -100,10 +100,10 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
   // For localhost, use getIframeUrl for dev/prod port detection
   const isDev = import.meta.env.DEV
   const isLocalhost = hive.hostname === 'localhost' || hive.hostname === '127.0.0.1'
-  
+
   const hiveUrl = isLocalhost
-    ? getIframeUrl('hive', isDev)  // localhost: use dev (7836) or prod (7835)
-    : `http://${hive.hostname}:7835`  // remote: always use prod port 7835
+    ? getIframeUrl('hive', isDev) // localhost: use dev (7836) or prod (7835)
+    : `http://${hive.hostname}:7835` // remote: always use prod port 7835
 
   return (
     <iframe
@@ -112,11 +112,11 @@ function HiveIframeContent({ hiveId }: { hiveId: string }) {
       title={`${hive.host} Web Interface`}
       sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
     />
-  );
+  )
 }
 
 export default function HivePage() {
-  const { hiveId } = useParams<{ hiveId: string }>();
+  const { hiveId } = useParams<{ hiveId: string }>()
 
   if (!hiveId) {
     return (
@@ -129,10 +129,10 @@ export default function HivePage() {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   // TEAM-374: No PageContainer - causes double title and padding issues
   // Iframe needs full height without extra padding (matching QueenPage pattern)
-  return <HiveIframeContent hiveId={hiveId} />;
+  return <HiveIframeContent hiveId={hiveId} />
 }

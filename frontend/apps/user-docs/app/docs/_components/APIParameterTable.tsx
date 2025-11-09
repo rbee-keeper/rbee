@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from '@rbee/ui/atoms'
-import { Badge } from '@rbee/ui/atoms'
-import { Input } from '@rbee/ui/atoms'
+import { Badge, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@rbee/ui/atoms'
 import { Search } from 'lucide-react'
+import { useState } from 'react'
 
 export interface APIParameter {
   name: string
@@ -19,19 +17,17 @@ interface APIParameterTableProps {
   searchable?: boolean
 }
 
-export function APIParameterTable({ 
-  parameters, 
-  searchable = true 
-}: APIParameterTableProps) {
+export function APIParameterTable({ parameters, searchable = true }: APIParameterTableProps) {
   const [search, setSearch] = useState('')
-  
-  const filtered = parameters.filter(p => 
-    search === '' ||
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.description.toLowerCase().includes(search.toLowerCase()) ||
-    p.type.toLowerCase().includes(search.toLowerCase())
+
+  const filtered = parameters.filter(
+    (p) =>
+      search === '' ||
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.description.toLowerCase().includes(search.toLowerCase()) ||
+      p.type.toLowerCase().includes(search.toLowerCase()),
   )
-  
+
   return (
     <div className="my-6">
       {searchable && parameters.length > 5 && (
@@ -64,29 +60,25 @@ export function APIParameterTable({
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map(param => (
+              filtered.map((param) => (
                 <TableRow key={param.name}>
-                  <TableCell className="font-mono font-semibold">
-                    {param.name}
-                  </TableCell>
+                  <TableCell className="font-mono font-semibold">{param.name}</TableCell>
                   <TableCell>
-                    <code className="text-sm bg-muted px-2 py-1 rounded">
-                      {param.type}
-                    </code>
+                    <code className="text-sm bg-muted px-2 py-1 rounded">{param.type}</code>
                   </TableCell>
                   <TableCell>
                     {param.required ? (
-                      <Badge variant="destructive" className="text-xs">Required</Badge>
+                      <Badge variant="destructive" className="text-xs">
+                        Required
+                      </Badge>
                     ) : (
-                      <Badge variant="secondary" className="text-xs">Optional</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Optional
+                      </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    {param.default || '—'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {param.description}
-                  </TableCell>
+                  <TableCell className="font-mono text-sm text-muted-foreground">{param.default || '—'}</TableCell>
+                  <TableCell className="text-sm">{param.description}</TableCell>
                 </TableRow>
               ))
             )}

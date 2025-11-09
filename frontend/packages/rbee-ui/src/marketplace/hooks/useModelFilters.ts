@@ -2,7 +2,7 @@
 //! Control layer for model filtering
 //! Manages filter state and logic, independent of data source
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { FilterChip } from '../organisms/FilterBar'
 
 export interface ModelFilters {
@@ -14,10 +14,10 @@ export interface ModelFilters {
 export interface UseModelFiltersOptions {
   /** Initial sort value */
   defaultSort?: string
-  
+
   /** Available sort options */
   sortOptions?: Array<{ value: string; label: string }>
-  
+
   /** Available filter chips */
   availableChips?: Array<{ id: string; label: string }>
 }
@@ -25,22 +25,22 @@ export interface UseModelFiltersOptions {
 export interface UseModelFiltersReturn {
   /** Current filter state */
   filters: ModelFilters
-  
+
   /** Update search query */
   setSearch: (search: string) => void
-  
+
   /** Update sort order */
   setSort: (sort: string) => void
-  
+
   /** Toggle a filter chip */
   toggleTag: (tagId: string) => void
-  
+
   /** Clear all filters */
   clearFilters: () => void
-  
+
   /** Sort options for FilterBar */
   sortOptions: Array<{ value: string; label: string }>
-  
+
   /** Filter chips for FilterBar */
   filterChips: FilterChip[]
 }
@@ -61,7 +61,7 @@ const DEFAULT_CHIPS = [
 
 /**
  * Hook for managing model filter state
- * 
+ *
  * @example
  * ```tsx
  * const {
@@ -73,13 +73,13 @@ const DEFAULT_CHIPS = [
  *   sortOptions,
  *   filterChips
  * } = useModelFilters()
- * 
+ *
  * // Use filters in your data fetching
  * const { data } = useQuery({
  *   queryKey: ['models', filters],
  *   queryFn: () => fetchModels(filters)
  * })
- * 
+ *
  * // Pass to FilterBar
  * <FilterBar
  *   search={filters.search}
@@ -115,9 +115,7 @@ export function useModelFilters({
   const toggleTag = (tagId: string) => {
     setFilters((prev) => ({
       ...prev,
-      tags: prev.tags.includes(tagId)
-        ? prev.tags.filter((t) => t !== tagId)
-        : [...prev.tags, tagId],
+      tags: prev.tags.includes(tagId) ? prev.tags.filter((t) => t !== tagId) : [...prev.tags, tagId],
     }))
   }
 
@@ -137,7 +135,7 @@ export function useModelFilters({
         label: chip.label,
         active: filters.tags.includes(chip.id),
       })),
-    [availableChips, filters.tags]
+    [availableChips, filters.tags],
   )
 
   return {

@@ -1,16 +1,16 @@
 // TEAM-338: Installed hives list - shows all installed hives with lifecycle controls
 // TEAM-353: Rewritten to use query hooks (deleted DaemonContainer pattern)
 
-import { useSshHives, useInstalledHives } from "../store/hiveQueries";
-import { HiveCard } from "./cards/HiveCard";
-import { Card, CardHeader } from "@rbee/ui/atoms";
-import { Loader2 } from "lucide-react";
-import type { SshHive } from "../store/hiveQueries";
+import { Card, CardHeader } from '@rbee/ui/atoms'
+import { Loader2 } from 'lucide-react'
+import type { SshHive } from '../store/hiveQueries'
+import { useInstalledHives, useSshHives } from '../store/hiveQueries'
+import { HiveCard } from './cards/HiveCard'
 
 // TEAM-368: Get actual install status from backend (no more Zustand!)
 export function InstalledHiveList() {
-  const { data: hives = [], isLoading: hivesLoading } = useSshHives();
-  const { data: installedHives = [], isLoading: installedLoading } = useInstalledHives();
+  const { data: hives = [], isLoading: hivesLoading } = useSshHives()
+  const { data: installedHives = [], isLoading: installedLoading } = useInstalledHives()
 
   // TEAM-368: Show loading state while fetching
   if (hivesLoading || installedLoading) {
@@ -23,18 +23,15 @@ export function InstalledHiveList() {
           </div>
         </CardHeader>
       </Card>
-    );
+    )
   }
 
   // TEAM-368: Filter hives by actual install status from backend
-  const installedSshHives = hives.filter(
-    (hive: SshHive) => installedHives.includes(hive.host)
-  );
-
+  const installedSshHives = hives.filter((hive: SshHive) => installedHives.includes(hive.host))
 
   // Empty state - return null, no cards needed
   if (installedSshHives.length === 0) {
-    return null;
+    return null
   }
 
   return (
@@ -45,11 +42,9 @@ export function InstalledHiveList() {
           key={hive.host}
           hiveId={hive.host}
           title={hive.host}
-          description={
-            hive.host_subtitle || `${hive.user}@${hive.hostname}:${hive.port}`
-          }
+          description={hive.host_subtitle || `${hive.user}@${hive.hostname}:${hive.port}`}
         />
       ))}
     </>
-  );
+  )
 }

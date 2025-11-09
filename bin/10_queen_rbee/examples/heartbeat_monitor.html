@@ -324,7 +324,7 @@
         }
         
         // Start connection when page loads
-        let eventSource = connect();
+        const eventSource = connect();
         
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {

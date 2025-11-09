@@ -8,9 +8,7 @@
   "exports": {
     ".": "./pkg/bundler/queen_rbee_sdk.js"
   },
-  "files": [
-    "pkg"
-  ],
+  "files": ["pkg"],
   "scripts": {
     "build": "wasm-pack build --target bundler --out-dir pkg/bundler",
     "build:web": "wasm-pack build --target web --out-dir pkg/web",

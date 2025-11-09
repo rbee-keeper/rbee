@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { Building, Code, Server } from 'lucide-react'
 import { Navigation } from './Navigation'
 import type { NavigationConfig } from './types'
-import { Code, Building, Server } from 'lucide-react'
 
 // Mock config for Storybook
 const mockConfig: NavigationConfig = {

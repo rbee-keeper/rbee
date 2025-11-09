@@ -1,9 +1,9 @@
 // TEAM-411: Compatibility badge for Keeper
 // Shows compatibility status with tooltip
 
+import { Badge } from '@rbee/ui/atoms'
 import { useQuery } from '@tanstack/react-query'
 import { checkModelCompatibility } from '@/api/compatibility'
-import { Badge } from '@rbee/ui/atoms'
 
 interface CompatibilityBadgeProps {
   modelId: string
@@ -35,16 +35,14 @@ export function CompatibilityBadge({ modelId, workerType, className = '' }: Comp
 
   return (
     <div className={`group relative inline-block ${className}`}>
-      <Badge variant={variant}>
-        {label}
-      </Badge>
-      
+      <Badge variant={variant}>{label}</Badge>
+
       {/* Tooltip */}
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-64">
         <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
           <p className="font-semibold mb-1">{workerType.toUpperCase()} Worker</p>
           <p className="text-gray-300 text-xs mb-1">Confidence: {compat.confidence}</p>
-          
+
           {compat.reasons.length > 0 && (
             <div className="mt-2">
               <p className="font-medium text-xs">Reasons:</p>
@@ -55,7 +53,7 @@ export function CompatibilityBadge({ modelId, workerType, className = '' }: Comp
               </ul>
             </div>
           )}
-          
+
           {compat.warnings.length > 0 && (
             <div className="mt-2">
               <p className="font-medium text-xs text-yellow-400">Warnings:</p>
@@ -66,7 +64,7 @@ export function CompatibilityBadge({ modelId, workerType, className = '' }: Comp
               </ul>
             </div>
           )}
-          
+
           {compat.recommendations.length > 0 && (
             <div className="mt-2">
               <p className="font-medium text-xs text-blue-400">Recommendations:</p>
@@ -77,7 +75,7 @@ export function CompatibilityBadge({ modelId, workerType, className = '' }: Comp
               </ul>
             </div>
           )}
-          
+
           {/* Arrow */}
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
             <div className="border-4 border-transparent border-t-gray-900"></div>

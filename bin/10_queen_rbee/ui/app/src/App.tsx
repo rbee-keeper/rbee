@@ -35,14 +35,14 @@
 // - Checked browser console - no QueryClient errors
 // ============================================================
 
-import { useEffect } from 'react'
+import { logStartupMode } from '@rbee/dev-utils'
+import { receiveThemeChanges } from '@rbee/iframe-bridge'
 import { QueryProvider } from '@rbee/ui/providers'
-import { logStartupMode } from "@rbee/dev-utils";
-import DashboardPage from "./pages/DashboardPage";
-import { receiveThemeChanges } from "@rbee/iframe-bridge";
+import { useEffect } from 'react'
+import DashboardPage from './pages/DashboardPage'
 
 // TEAM-352: Use shared startup logging
-logStartupMode("QUEEN UI", import.meta.env.DEV, 7834);
+logStartupMode('QUEEN UI', import.meta.env.DEV, 7834)
 
 function App() {
   // TEAM-375: Listen for theme changes from parent (Keeper)
@@ -58,7 +58,7 @@ function App() {
         <DashboardPage />
       </div>
     </QueryProvider>
-  );
+  )
 }
 
-export default App;
+export default App

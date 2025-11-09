@@ -2,5 +2,5 @@
  * Barrel exports for all providers
  */
 
-export * from './ThemeProvider';
-export * from './QueryProvider';
+export * from './QueryProvider'
+export * from './ThemeProvider'

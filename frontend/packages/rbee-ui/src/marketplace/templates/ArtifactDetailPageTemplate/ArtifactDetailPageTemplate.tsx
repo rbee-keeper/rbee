@@ -2,20 +2,20 @@
 // Used by both ModelDetailPageTemplate and WorkerDetailPageTemplate for consistency
 //! Generic presentation layer for marketplace artifacts (models, workers, etc.)
 
-import { Button, Badge, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export interface ArtifactDetailPageTemplateProps {
   /** Artifact name (displayed as H1) */
   name: string
-  
+
   /** Artifact description */
   description: string
-  
+
   /** Author/creator name (optional) */
   author?: string
-  
+
   /** Primary action button (e.g., "Download Model", "Install Worker") */
   primaryAction?: {
     label: string
@@ -23,54 +23,54 @@ export interface ArtifactDetailPageTemplateProps {
     onClick: () => void
     disabled?: boolean
   }
-  
+
   /** Secondary action button (e.g., "View on HuggingFace", "View on GitHub") */
   secondaryAction?: {
     label: string
     icon?: ReactNode
     href: string
   }
-  
+
   /** Back button configuration */
   backButton?: {
     label: string
     onClick: () => void
   }
-  
+
   /** Stats to display below title (downloads, likes, size, etc.) */
   stats?: Array<{
     icon: ReactNode
     value: string | number
     label: string
   }>
-  
+
   /** Badges to display (version, type, license, etc.) */
   badges?: Array<{
     label: string
     variant?: 'default' | 'secondary' | 'outline' | 'accent'
   }>
-  
+
   /** Left sidebar content (model files, worker info, etc.) */
   leftSidebar?: ReactNode
-  
+
   /** Main content sections (cards, descriptions, etc.) */
   mainContent: ReactNode
-  
+
   /** Loading state */
   isLoading?: boolean
 }
 
 /**
  * Unified artifact detail page template
- * 
+ *
  * Provides consistent layout and styling for all marketplace artifacts.
  * Used by ModelDetailPageTemplate and WorkerDetailPageTemplate.
- * 
+ *
  * Layout:
  * - Back button
  * - Hero header (name, author, stats, badges, actions)
  * - Two-column grid (left sidebar + main content)
- * 
+ *
  * @example Model Usage
  * ```tsx
  * <ArtifactDetailPageTemplate
@@ -90,7 +90,7 @@ export interface ArtifactDetailPageTemplateProps {
  *   mainContent={<ModelDetailsCards model={model} />}
  * />
  * ```
- * 
+ *
  * @example Worker Usage
  * ```tsx
  * <ArtifactDetailPageTemplate
@@ -136,12 +136,7 @@ export function ArtifactDetailPageTemplate({
     <div className="space-y-8">
       {/* Back button */}
       {backButton && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={backButton.onClick}
-          className="mb-4"
-        >
+        <Button variant="ghost" size="sm" onClick={backButton.onClick} className="mb-4">
           <ArrowLeft className="size-4 mr-2" />
           {backButton.label}
         </Button>
@@ -152,9 +147,7 @@ export function ArtifactDetailPageTemplate({
         <div className="space-y-4">
           {/* Artifact name and author */}
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
-              {name}
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">{name}</h1>
             {author && (
               <p className="text-xl text-muted-foreground">
                 by <span className="font-semibold">{author}</span>
@@ -191,22 +184,14 @@ export function ArtifactDetailPageTemplate({
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3">
             {primaryAction && (
-              <Button 
-                size="lg" 
-                onClick={primaryAction.onClick}
-                disabled={primaryAction.disabled}
-              >
+              <Button size="lg" onClick={primaryAction.onClick} disabled={primaryAction.disabled}>
                 {primaryAction.icon}
                 {primaryAction.label}
               </Button>
             )}
             {secondaryAction && (
               <Button variant="outline" size="lg" asChild>
-                <a
-                  href={secondaryAction.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={secondaryAction.href} target="_blank" rel="noopener noreferrer">
                   {secondaryAction.icon}
                   {secondaryAction.label}
                 </a>
@@ -219,14 +204,10 @@ export function ArtifactDetailPageTemplate({
       {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Sidebar (model files, worker info, etc.) */}
-        {leftSidebar && (
-          <aside className="lg:col-span-1 space-y-6">
-            {leftSidebar}
-          </aside>
-        )}
+        {leftSidebar && <aside className="lg:col-span-1 space-y-6">{leftSidebar}</aside>}
 
         {/* Right column - Main content */}
-        <article className={leftSidebar ? "lg:col-span-2 space-y-6" : "lg:col-span-3 space-y-6"}>
+        <article className={leftSidebar ? 'lg:col-span-2 space-y-6' : 'lg:col-span-3 space-y-6'}>
           {/* Description card */}
           <section>
             <Card>

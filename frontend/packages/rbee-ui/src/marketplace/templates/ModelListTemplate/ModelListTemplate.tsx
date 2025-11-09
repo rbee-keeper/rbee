@@ -52,13 +52,7 @@ export function ModelListTemplate({
       {/* Grid */}
       <MarketplaceGrid
         items={models}
-        renderItem={(model) => (
-          <ModelCard
-            key={model.id}
-            model={model}
-            onAction={onModelAction}
-          />
-        )}
+        renderItem={(model) => <ModelCard key={model.id} model={model} onAction={onModelAction} />}
         isLoading={isLoading}
         error={error}
         emptyMessage={emptyMessage}

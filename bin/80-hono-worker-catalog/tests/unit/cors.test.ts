@@ -1,11 +1,11 @@
 // TEAM-403: CORS configuration validation tests
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe('CORS Configuration', () => {
   const expectedOrigins = [
-    'http://localhost:7836',  // Hive UI
-    'http://localhost:8500',  // Queen Rbee
-    'http://localhost:8501',  // Rbee Keeper
+    'http://localhost:7836', // Hive UI
+    'http://localhost:8500', // Queen Rbee
+    'http://localhost:8501', // Rbee Keeper
     'http://127.0.0.1:7836',
     'http://127.0.0.1:8500',
     'http://127.0.0.1:8501',

@@ -2,15 +2,15 @@
 // TEAM-353: Rewritten to use query hooks (deleted DaemonContainer pattern)
 // TEAM-352: Uses @rbee/shared-config for iframe URL (no hardcoded URLs)
 
-import { Alert, AlertDescription, AlertTitle, Button } from "@rbee/ui/atoms";
-import { AlertCircle, Loader2, PlayCircle } from "lucide-react";
-import { getIframeUrl } from "@rbee/shared-config";
-import { useQueen, useQueenActions } from "../store/queenQueries";
+import { getIframeUrl } from '@rbee/shared-config'
+import { Alert, AlertDescription, AlertTitle, Button } from '@rbee/ui/atoms'
+import { AlertCircle, Loader2, PlayCircle } from 'lucide-react'
+import { useQueen, useQueenActions } from '../store/queenQueries'
 
 // TEAM-353: Rewritten to use query hooks
 function QueenIframe() {
-  const { data: queen, isLoading, error } = useQueen();
-  const { start } = useQueenActions();
+  const { data: queen, isLoading, error } = useQueen()
+  const { start } = useQueenActions()
 
   // Loading state
   if (isLoading && !queen) {
@@ -18,7 +18,7 @@ function QueenIframe() {
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
-    );
+    )
   }
 
   // Error state
@@ -33,7 +33,7 @@ function QueenIframe() {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   if (!queen?.isRunning) {
@@ -56,13 +56,13 @@ function QueenIframe() {
           </AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   // TEAM-352: Use shared-config for iframe URL (no hardcoded URLs)
   const isDev = import.meta.env.DEV
   const queenUrl = getIframeUrl('queen', isDev)
-  
+
   return (
     <iframe
       src={queenUrl}
@@ -71,11 +71,11 @@ function QueenIframe() {
       sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
       allow="cross-origin-isolated"
     />
-  );
+  )
 }
 
 export default function QueenPage() {
   // No PageContainer - causes double title and padding issues
   // Iframe needs full height without extra padding
-  return <QueenIframe />;
+  return <QueenIframe />
 }

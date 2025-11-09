@@ -1,8 +1,8 @@
 // TEAM-413: Download tracking panel for models and workers
 // Shows active downloads with progress bars (like ML Studio / Ollama)
 
-import { DownloadIcon, CheckCircle2Icon, XCircleIcon, Loader2Icon } from 'lucide-react'
 import { Progress } from '@rbee/ui/atoms'
+import { CheckCircle2Icon, DownloadIcon, Loader2Icon, XCircleIcon } from 'lucide-react'
 
 export interface Download {
   id: string
@@ -29,10 +29,15 @@ function formatBytes(bytes: number): string {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
+  return `${(bytes / k ** i).toFixed(2)} ${sizes[i]}`
 }
 
-function DownloadItem({ download, onCancel, onRetry, onClear }: {
+function DownloadItem({
+  download,
+  onCancel,
+  onRetry,
+  onClear,
+}: {
   download: Download
   onCancel?: (id: string) => void
   onRetry?: (id: string) => void
@@ -91,16 +96,9 @@ function DownloadItem({ download, onCancel, onRetry, onClear }: {
       {/* Progress Bar */}
       {isActive && (
         <div className="space-y-1">
-          <Progress 
-            value={download.percentage || 0} 
-            className="h-1.5"
-          />
+          <Progress value={download.percentage || 0} className="h-1.5" />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {download.percentage !== null 
-                ? `${download.percentage.toFixed(1)}%` 
-                : 'Calculating...'}
-            </span>
+            <span>{download.percentage !== null ? `${download.percentage.toFixed(1)}%` : 'Calculating...'}</span>
             {download.totalSize && (
               <span>
                 {formatBytes(download.bytesDownloaded)} / {formatBytes(download.totalSize)}
@@ -118,25 +116,19 @@ function DownloadItem({ download, onCancel, onRetry, onClear }: {
 
       {/* Complete State */}
       {isComplete && download.totalSize && (
-        <div className="text-xs text-muted-foreground">
-          {formatBytes(download.totalSize)} downloaded
-        </div>
+        <div className="text-xs text-muted-foreground">{formatBytes(download.totalSize)} downloaded</div>
       )}
 
       {/* Error State */}
-      {isFailed && download.error && (
-        <div className="text-xs text-destructive">
-          {download.error}
-        </div>
-      )}
+      {isFailed && download.error && <div className="text-xs text-destructive">{download.error}</div>}
     </div>
   )
 }
 
 export function DownloadPanel({ downloads, onCancel, onRetry, onClear }: DownloadPanelProps) {
-  const activeDownloads = downloads.filter(d => d.status === 'downloading')
-  const completedDownloads = downloads.filter(d => d.status === 'complete')
-  const failedDownloads = downloads.filter(d => d.status === 'failed' || d.status === 'cancelled')
+  const activeDownloads = downloads.filter((d) => d.status === 'downloading')
+  const completedDownloads = downloads.filter((d) => d.status === 'complete')
+  const failedDownloads = downloads.filter((d) => d.status === 'failed' || d.status === 'cancelled')
 
   if (downloads.length === 0) {
     return null // Don't show panel if no downloads
@@ -146,43 +138,26 @@ export function DownloadPanel({ downloads, onCancel, onRetry, onClear }: Downloa
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-2">
         <DownloadIcon className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-xs font-semibold font-serif text-muted-foreground uppercase tracking-wider">
-          Downloads
-        </h3>
+        <h3 className="text-xs font-semibold font-serif text-muted-foreground uppercase tracking-wider">Downloads</h3>
         {activeDownloads.length > 0 && (
-          <span className="text-xs text-muted-foreground">
-            ({activeDownloads.length} active)
-          </span>
+          <span className="text-xs text-muted-foreground">({activeDownloads.length} active)</span>
         )}
       </div>
 
       <div className="space-y-2">
         {/* Active Downloads */}
-        {activeDownloads.map(download => (
-          <DownloadItem
-            key={download.id}
-            download={download}
-            onCancel={onCancel}
-          />
+        {activeDownloads.map((download) => (
+          <DownloadItem key={download.id} download={download} onCancel={onCancel} />
         ))}
 
         {/* Failed Downloads */}
-        {failedDownloads.map(download => (
-          <DownloadItem
-            key={download.id}
-            download={download}
-            onRetry={onRetry}
-            onClear={onClear}
-          />
+        {failedDownloads.map((download) => (
+          <DownloadItem key={download.id} download={download} onRetry={onRetry} onClear={onClear} />
         ))}
 
         {/* Completed Downloads (show last 3) */}
-        {completedDownloads.slice(0, 3).map(download => (
-          <DownloadItem
-            key={download.id}
-            download={download}
-            onClear={onClear}
-          />
+        {completedDownloads.slice(0, 3).map((download) => (
+          <DownloadItem key={download.id} download={download} onClear={onClear} />
         ))}
       </div>
     </div>

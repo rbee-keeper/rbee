@@ -7,12 +7,12 @@ interface Props {
 
 export default async function ModelPage({ params }: Props) {
   const { slug } = await params
-  
+
   // Check if it's a Civitai model (starts with civitai-)
   if (slug.startsWith('civitai-')) {
     redirect(`/models/civitai/${slug}`)
   }
-  
+
   // Default to HuggingFace
   redirect(`/models/huggingface/${slug}`)
 }

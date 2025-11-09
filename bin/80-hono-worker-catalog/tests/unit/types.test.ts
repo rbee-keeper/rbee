@@ -1,6 +1,13 @@
 // TEAM-403: Type validation tests
-import { describe, it, expect } from 'vitest'
-import type { WorkerCatalogEntry, WorkerType, Platform, Architecture, WorkerImplementation, BuildSystem } from '../../src/types'
+import { describe, expect, it } from 'vitest'
+import type {
+  Architecture,
+  BuildSystem,
+  Platform,
+  WorkerCatalogEntry,
+  WorkerImplementation,
+  WorkerType,
+} from '../../src/types'
 
 describe('WorkerType Enum', () => {
   it('should validate worker type enum values', () => {
@@ -33,11 +40,7 @@ describe('Architecture Enum', () => {
 
 describe('WorkerImplementation Enum', () => {
   it('should validate worker implementation enum values', () => {
-    const validImplementations: WorkerImplementation[] = [
-      'rust',
-      'python',
-      'cpp'
-    ]
+    const validImplementations: WorkerImplementation[] = ['rust', 'python', 'cpp']
     expect(validImplementations).toHaveLength(3)
     expect(validImplementations).toContain('rust')
   })
@@ -68,11 +71,11 @@ describe('WorkerCatalogEntry Structure', () => {
       source: {
         type: 'git',
         url: 'https://github.com/test/repo.git',
-        branch: 'main'
+        branch: 'main',
       },
       build: {
         features: ['cpu'],
-        profile: 'release'
+        profile: 'release',
       },
       depends: ['gcc'],
       makedepends: ['rust', 'cargo'],
@@ -80,9 +83,9 @@ describe('WorkerCatalogEntry Structure', () => {
       installPath: '/usr/local/bin/test-worker',
       supportedFormats: ['gguf'],
       supportsStreaming: true,
-      supportsBatching: false
+      supportsBatching: false,
     }
-    
+
     expect(worker.id).toBe('test-worker')
     expect(worker.platforms).toContain('linux')
     expect(worker.workerType).toBe('cpu')
@@ -94,9 +97,9 @@ describe('WorkerCatalogEntry Structure', () => {
       type: 'git' as const,
       url: 'https://github.com/test/repo.git',
       branch: 'main',
-      path: 'bin/worker'
+      path: 'bin/worker',
     }
-    
+
     expect(gitSource.type).toBe('git')
     expect(gitSource.url).toMatch(/^https:\/\//)
     expect(gitSource.branch).toBeDefined()
@@ -108,10 +111,10 @@ describe('WorkerCatalogEntry Structure', () => {
       build: {
         features: ['cpu', 'avx2'],
         profile: 'release',
-        flags: ['--target', 'x86_64-unknown-linux-gnu']
-      }
+        flags: ['--target', 'x86_64-unknown-linux-gnu'],
+      },
     }
-    
+
     expect(workerWithOptionals.maxContextLength).toBe(32768)
     expect(workerWithOptionals.build?.features).toHaveLength(2)
     expect(workerWithOptionals.build?.flags).toBeDefined()

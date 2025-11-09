@@ -1,15 +1,15 @@
 /**
  * TEAM-356: SSE connection with health check
- * 
+ *
  * Prevents CORS errors by checking health before connecting to SSE stream.
  * Includes automatic retry logic and cleanup.
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Monitor interface for SSE connections
- * 
+ *
  * Must implement:
  * - checkHealth(): Promise<boolean> - Health check before SSE
  * - start(onData): void - Start SSE connection
@@ -18,10 +18,10 @@ import { useState, useEffect, useRef } from 'react'
 export interface Monitor<T> {
   /** Check if service is healthy before connecting */
   checkHealth: () => Promise<boolean>
-  
+
   /** Start SSE connection with data callback */
   start: (onData: (data: T) => void) => void
-  
+
   /** Stop SSE connection */
   stop: () => void
 }
@@ -32,10 +32,10 @@ export interface Monitor<T> {
 export interface SSEHealthCheckOptions {
   /** Auto-retry on connection failure (default: true) */
   autoRetry?: boolean
-  
+
   /** Retry delay in ms (default: 5000) */
   retryDelayMs?: number
-  
+
   /** Max retry attempts (default: 3) */
   maxRetries?: number
 }
@@ -46,34 +46,34 @@ export interface SSEHealthCheckOptions {
 export interface SSEHealthCheckResult<T> {
   /** Latest data from SSE stream */
   data: T | null
-  
+
   /** Connection state */
   connected: boolean
-  
+
   /** Loading state (initial connection) */
   loading: boolean
-  
+
   /** Error if connection failed */
   error: Error | null
-  
+
   /** Manually trigger retry */
   retry: () => void
 }
 
 /**
  * Hook for SSE connection with health check
- * 
+ *
  * Automatically handles:
  * - Health check before SSE connection
  * - Connection state management
  * - Auto-retry on failure
  * - Cleanup on unmount
- * 
+ *
  * @param createMonitor - Factory function to create monitor
  * @param baseUrl - Base URL for the service
  * @param options - Optional configuration
  * @returns Object with data, connected, loading, error, and retry
- * 
+ *
  * @example
  * ```typescript
  * const { data, connected, error } = useSSEWithHealthCheck(
@@ -85,19 +85,15 @@ export interface SSEHealthCheckResult<T> {
 export function useSSEWithHealthCheck<T>(
   createMonitor: (baseUrl: string) => Monitor<T>,
   baseUrl: string,
-  options: SSEHealthCheckOptions = {}
+  options: SSEHealthCheckOptions = {},
 ): SSEHealthCheckResult<T> {
-  const {
-    autoRetry = true,
-    retryDelayMs = 5000,
-    maxRetries = 3,
-  } = options
+  const { autoRetry = true, retryDelayMs = 5000, maxRetries = 3 } = options
 
   const [data, setData] = useState<T | null>(null)
   const [connected, setConnected] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  
+
   const mountedRef = useRef(true)
   const monitorRef = useRef<Monitor<T> | null>(null)
   const retriesRef = useRef(0)
@@ -142,9 +138,7 @@ export function useSSEWithHealthCheck<T>(
       // Auto-retry if enabled
       if (autoRetry && retriesRef.current < maxRetries) {
         retriesRef.current++
-        console.warn(
-          `[useSSEWithHealthCheck] Retry ${retriesRef.current}/${maxRetries} in ${retryDelayMs}ms`
-        )
+        console.warn(`[useSSEWithHealthCheck] Retry ${retriesRef.current}/${maxRetries} in ${retryDelayMs}ms`)
         setTimeout(startMonitoring, retryDelayMs)
       }
     }

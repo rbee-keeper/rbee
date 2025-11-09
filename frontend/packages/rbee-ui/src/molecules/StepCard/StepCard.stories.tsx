@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
+import { Download, Rocket, Settings } from 'lucide-react'
 import { StepCard } from './StepCard'
-import { Download, Settings, Rocket } from 'lucide-react'
 
 const meta = {
   title: 'Molecules/StepCard',
@@ -51,7 +51,8 @@ export const LongDescription: Story = {
   args: {
     index: 3,
     title: 'Deploy Your First Model',
-    intro: 'Choose a model from the marketplace, configure your deployment settings, and launch your first inference endpoint. Monitor the deployment status in real-time.',
+    intro:
+      'Choose a model from the marketplace, configure your deployment settings, and launch your first inference endpoint. Monitor the deployment status in real-time.',
     items: ['Select model', 'Configure settings', 'Launch endpoint', 'Monitor status'],
     icon: <Rocket className="size-6" />,
   },

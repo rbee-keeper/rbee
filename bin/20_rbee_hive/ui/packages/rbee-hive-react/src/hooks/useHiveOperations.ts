@@ -3,8 +3,8 @@
 
 'use client'
 
+import { HiveClient, init, OperationBuilder } from '@rbee/rbee-hive-sdk'
 import { useMutation } from '@tanstack/react-query'
-import { init, HiveClient, OperationBuilder } from '@rbee/rbee-hive-sdk'
 
 // TEAM-377: Initialize WASM (same pattern as index.ts)
 let wasmInitialized = false
@@ -55,21 +55,21 @@ export interface UseHiveOperationsResult {
 
 /**
  * Hook for Hive operations using TanStack Query mutations
- * 
+ *
  * TEAM-377: Refactored to use useMutation (consistent with useModels/useWorkers)
  * - Automatic loading states
  * - Automatic error handling
  * - Automatic retry logic
  * - Consistent with other hooks in this package
- * 
+ *
  * @returns Mutation functions and state
- * 
+ *
  * @example
  * ```tsx
  * const { spawnWorker, isPending, error } = useHiveOperations()
- * 
- * <button 
- *   onClick={() => spawnWorker({ 
+ *
+ * <button
+ *   onClick={() => spawnWorker({
  *     modelId: 'llama-3.2-1b',
  *     workerType: 'cuda',
  *     deviceId: 0
@@ -89,14 +89,14 @@ export function useHiveOperations(): UseHiveOperationsResult {
       // Worker types: 'cpu', 'cuda', 'metal' (matches Rust WorkerType enum)
       const op = OperationBuilder.workerSpawn(hiveId, modelId, workerType, deviceId)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[Hive] Worker spawn:', line)
         }
       })
-      
+
       // Parse response from last line
       const lastLine = lines[lines.length - 1]
       return lastLine ? JSON.parse(lastLine) : null
@@ -113,14 +113,14 @@ export function useHiveOperations(): UseHiveOperationsResult {
       // TEAM-378: workerInstall(hive_id, worker_id)
       const op = OperationBuilder.workerInstall(hiveId, workerId)
       const lines: string[] = []
-      
+
       await client.submitAndStream(op, (line: string) => {
         if (line !== '[DONE]') {
           lines.push(line)
           console.log('[Hive] Worker install:', line)
         }
       })
-      
+
       return { success: true, workerId }
     },
     retry: 1,

@@ -18,7 +18,7 @@ export function useKeeperInstalled(): KeeperInstallationStatus {
       try {
         // TEAM-413: Method 1 - Try to detect rbee:// protocol support
         // This is a heuristic approach since browsers don't expose protocol handler info
-        
+
         // Check if we're in a browser environment
         if (typeof window === 'undefined') {
           setChecking(false)
@@ -37,14 +37,14 @@ export function useKeeperInstalled(): KeeperInstallationStatus {
         try {
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), 1000)
-          
+
           await fetch('http://localhost:9200/health', {
             signal: controller.signal,
             mode: 'no-cors', // Avoid CORS issues
           })
-          
+
           clearTimeout(timeoutId)
-          
+
           // If we get any response, Keeper is likely running
           setInstalled(true)
           localStorage.setItem('rbee-keeper-detected', 'true')

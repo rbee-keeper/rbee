@@ -1,21 +1,21 @@
 // TEAM-381: Loaded Models View - Shows models loaded in RAM
 
-import { Play, Trash2 } from 'lucide-react'
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
   Badge,
   Button,
   Empty,
+  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyDescription,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@rbee/ui/atoms'
+import { Play, Trash2 } from 'lucide-react'
 import type { ModelInfo } from './types'
 
 interface LoadedModelsViewProps {
@@ -25,12 +25,7 @@ interface LoadedModelsViewProps {
   onUnload: (modelId: string) => void
 }
 
-export function LoadedModelsView({
-  models,
-  selectedModel,
-  onSelect,
-  onUnload,
-}: LoadedModelsViewProps) {
+export function LoadedModelsView({ models, selectedModel, onSelect, onUnload }: LoadedModelsViewProps) {
   if (models.length === 0) {
     return (
       <Empty>
@@ -68,9 +63,7 @@ export function LoadedModelsView({
                 <div className="text-xs text-muted-foreground">Ready for inference</div>
               </div>
             </TableCell>
-            <TableCell>
-              {model.vram_mb ? `${(model.vram_mb / 1024).toFixed(1)} GB` : 'N/A'}
-            </TableCell>
+            <TableCell>{model.vram_mb ? `${(model.vram_mb / 1024).toFixed(1)} GB` : 'N/A'}</TableCell>
             <TableCell>
               <Badge variant="outline">worker-gpu-0</Badge>
             </TableCell>

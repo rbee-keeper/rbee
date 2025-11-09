@@ -10,28 +10,38 @@ use std::path::PathBuf;
 use super::bump_rust::bump_rust_crates;
 use super::bump_js::bump_js_packages;
 
-pub fn run(_tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> Result<()> {
+pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> Result<()> {
     println!("{}", "🐝 rbee Release Manager".bright_blue().bold());
     println!("{}", "━".repeat(80).bright_blue());
     println!();
 
     // TEAM-452: FUCK TIERS - Just ask which app directly!
-    println!();
-    let app_choice = Select::new(
-        "Which app to release?",
-        vec![
-            "gwc - Worker Catalog (gwc.rbee.dev)",
-            "commercial - Commercial Site (rbee.dev)",
-            "marketplace - Marketplace (marketplace.rbee.dev)",
-            "docs - Documentation (docs.rbee.dev)",
-            "keeper - rbee-keeper (CLI tool)",
-            "queen - queen-rbee (Orchestrator)",
-            "hive - rbee-hive (Worker manager)",
-        ],
-    )
-    .prompt()?;
-    
-    let selected_app = app_choice.split_whitespace().next().unwrap().to_string();
+    // TEAM-XXX: Support --app flag for non-interactive usage
+    let selected_app = if let Some(app) = app_arg {
+        // Validate app name
+        let valid_apps = vec!["gwc", "commercial", "marketplace", "docs", "keeper", "queen", "hive"];
+        if !valid_apps.contains(&app.as_str()) {
+            anyhow::bail!("Invalid app: {}. Must be one of: {}", app, valid_apps.join(", "));
+        }
+        app
+    } else {
+        println!();
+        let app_choice = Select::new(
+            "Which app to release?",
+            vec![
+                "gwc - Worker Catalog (gwc.rbee.dev)",
+                "commercial - Commercial Site (rbee.dev)",
+                "marketplace - Marketplace (marketplace.rbee.dev)",
+                "docs - Documentation (docs.rbee.dev)",
+                "keeper - rbee-keeper (CLI tool)",
+                "queen - queen-rbee (Orchestrator)",
+                "hive - rbee-hive (Worker manager)",
+            ],
+        )
+        .prompt()?;
+        
+        app_choice.split_whitespace().next().unwrap().to_string()
+    };
     
     // Map app to tier (internal only - for config loading)
     let tier = match selected_app.as_str() {

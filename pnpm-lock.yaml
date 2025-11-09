@@ -476,7 +476,7 @@ importers:
 
   bin/79_marketplace_core/marketplace-sdk: {}
 
-  bin/80-hono-worker-catalog:
+  bin/80-global-worker-catalog:
     dependencies:
       hono:
         specifier: ^4.10.4

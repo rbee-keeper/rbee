@@ -23,7 +23,7 @@ export const marketplaceNavConfig: NavigationConfig = {
   ],
   actions: {
     docs: {
-      url: urls.github.docs,
+      url: urls.docs,
       label: 'Docs',
     },
     github: {
@@ -31,7 +31,7 @@ export const marketplaceNavConfig: NavigationConfig = {
     },
     cta: {
       label: 'Back to rbee.dev',
-      href: urls.commercial,
+      href: 'https://rbee.dev',
       ariaLabel: 'Back to rbee.dev',
     },
   },

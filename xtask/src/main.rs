@@ -178,8 +178,9 @@ fn main() -> Result<()> {
         Cmd::Rbee { args } => tasks::rbee::run_rbee_keeper(args)?,
         // TEAM-451: Release management
         // TEAM-452: Removed tier argument
-        Cmd::Release { r#type, dry_run } => {
-            release::run(None, r#type, dry_run)?
+        // TEAM-XXX: Pass app argument for non-interactive usage
+        Cmd::Release { app, r#type, dry_run } => {
+            release::run(app, r#type, dry_run)?
         }
         // TEAM-451: Cloudflare deployment
         Cmd::Deploy { app, bump, dry_run } => {

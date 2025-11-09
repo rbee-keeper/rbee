@@ -1,13 +1,14 @@
-// Deploy commercial site to Cloudflare Workers (with OpenNext)
+// Deploy commercial site to Cloudflare Pages (SSG)
 // Created by: TEAM-451
-// TEAM-XXX: Updated to use opennextjs-cloudflare for SSR deployment
+// TEAM-XXX: Updated to use Next.js static export (SSG) - matches marketplace/docs pattern
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::process::Command;
 use std::fs;
 
 pub fn deploy(dry_run: bool) -> Result<()> {
-    println!("🚀 Deploying Commercial Site to rbee.dev (OpenNext SSR)");
+    println!("🚀 Deploying Commercial Site to Cloudflare Pages (Static Export)");
+    println!("📄 All pages pre-rendered at build time");
     println!();
 
     let app_dir = "frontend/apps/commercial";
@@ -18,30 +19,59 @@ pub fn deploy(dry_run: bool) -> Result<()> {
 
     if dry_run {
         println!("🔍 Dry run - would execute:");
-        println!("  cd {} && pnpm run deploy", app_dir);
-        println!("  (This runs: opennextjs-cloudflare build && opennextjs-cloudflare deploy)");
+        println!("  cd {} && pnpm run build", app_dir);
+        println!("  wrangler pages deploy out/ --project-name=rbee-commercial --branch=main");
         return Ok(());
     }
 
-    // Deploy using opennextjs-cloudflare (builds and deploys in one step)
-    println!("🔨 Building and deploying with OpenNext...");
-    println!("  (This creates a Cloudflare Worker with SSR support)");
-    
+    // Build static site
+    println!("🔨 Building static site with Next.js export...");
     let status = Command::new("pnpm")
-        .args(&["run", "deploy"])
+        .args(&["run", "build"])
         .current_dir(app_dir)
-        .status()?;
+        .status()
+        .context("Failed to run build")?;
 
     if !status.success() {
-        anyhow::bail!("OpenNext deployment failed");
+        anyhow::bail!("Build failed");
+    }
+
+    // Verify out/ directory exists
+    let out_dir = format!("{}/out", app_dir);
+    if !std::path::Path::new(&out_dir).exists() {
+        anyhow::bail!("Build output directory 'out/' not found. Check next.config.ts has output: 'export'");
+    }
+
+    println!("✅ Static export complete - {} files ready", 
+        fs::read_dir(&out_dir)?.count());
+
+    // Deploy to Cloudflare Pages
+    println!("📤 Deploying to Cloudflare Pages...");
+    let status = Command::new("npx")
+        .args(&[
+            "wrangler", "pages", "deploy", "out/",
+            "--project-name=rbee-commercial",
+            "--branch=main",
+            "--commit-dirty=true"
+        ])
+        .current_dir(app_dir)
+        .status()
+        .context("Failed to deploy to Cloudflare Pages")?;
+
+    if !status.success() {
+        anyhow::bail!("Deployment failed");
     }
 
     println!();
-    println!("✅ Commercial site deployed!");
-    println!("🌐 URL: https://commercial.pages.dev (or custom domain if configured)");
+    println!("✅ Commercial site deployed to Cloudflare Pages!");
+    println!("🌐 Production URL: https://main.rbee-commercial.pages.dev");
+    println!("🌐 Custom domain: https://rbee.dev (when configured)");
     println!();
-    println!("Note: This uses Cloudflare Workers + Pages (not static Pages)");
-    println!("OpenNext enables SSR, API routes, and dynamic rendering");
+    println!("📊 Deployment details:");
+    println!("  - Build output: out/ directory (Next.js static export)");
+    println!("  - No server-side rendering (pure static)");
+    println!("  - No CPU limits (just CDN-served files)");
+    println!("  - Global edge caching");
 
     Ok(())
 }

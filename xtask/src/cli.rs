@@ -101,8 +101,12 @@ pub enum Cmd {
     },
     // TEAM-451: Release management
     // TEAM-452: Removed tier system - now app-based
+    // TEAM-XXX: Added --app flag for non-interactive usage
     #[command(name = "release")]
     Release {
+        /// App to release (gwc, commercial, marketplace, docs, keeper, queen, hive)
+        #[arg(long)]
+        app: Option<String>,
         /// Bump type (patch, minor, major)
         #[arg(long)]
         r#type: Option<String>,

@@ -27,8 +27,7 @@ const nextConfig: NextConfig = {
 
     return config
   },
-  // Turbopack disabled: OpenNext doesn't support Turbopack builds
-  // Use webpack for production builds to ensure Cloudflare Workers compatibility
+  // TEAM-XXX: SSG output - no server-side rendering
 }
 
 // Fix for WASM chunks in Next.js

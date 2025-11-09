@@ -1,12 +1,13 @@
-// Deploy commercial site to Cloudflare Pages
+// Deploy commercial site to Cloudflare Workers (with OpenNext)
 // Created by: TEAM-451
+// TEAM-XXX: Updated to use opennextjs-cloudflare for SSR deployment
 
 use anyhow::Result;
 use std::process::Command;
 use std::fs;
 
 pub fn deploy(dry_run: bool) -> Result<()> {
-    println!("🚀 Deploying Commercial Site to rbee.dev");
+    println!("🚀 Deploying Commercial Site to rbee.dev (OpenNext SSR)");
     println!();
 
     let app_dir = "frontend/apps/commercial";
@@ -17,45 +18,30 @@ pub fn deploy(dry_run: bool) -> Result<()> {
 
     if dry_run {
         println!("🔍 Dry run - would execute:");
-        println!("  cd {} && pnpm build", app_dir);
-        println!("  cd {} && wrangler pages deploy .next --project-name=rbee-commercial --branch=production", app_dir);
+        println!("  cd {} && pnpm run deploy", app_dir);
+        println!("  (This runs: opennextjs-cloudflare build && opennextjs-cloudflare deploy)");
         return Ok(());
     }
 
-    // Build
-    println!("🔨 Building...");
+    // Deploy using opennextjs-cloudflare (builds and deploys in one step)
+    println!("🔨 Building and deploying with OpenNext...");
+    println!("  (This creates a Cloudflare Worker with SSR support)");
+    
     let status = Command::new("pnpm")
-        .args(&["build"])
+        .args(&["run", "deploy"])
         .current_dir(app_dir)
         .status()?;
 
     if !status.success() {
-        anyhow::bail!("Build failed");
-    }
-
-    // Deploy
-    println!("📦 Deploying to Cloudflare Pages...");
-    let status = Command::new("wrangler")
-        .args(&[
-            "pages",
-            "deploy",
-            ".next",
-            "--project-name=rbee-commercial",
-            "--branch=production",
-        ])
-        .current_dir(app_dir)
-        .status()?;
-
-    if !status.success() {
-        anyhow::bail!("Deployment failed");
+        anyhow::bail!("OpenNext deployment failed");
     }
 
     println!();
     println!("✅ Commercial site deployed!");
-    println!("🌐 URL: https://rbee.dev");
+    println!("🌐 URL: https://commercial.pages.dev (or custom domain if configured)");
     println!();
-    println!("Note: First deployment may need custom domain setup:");
-    println!("  wrangler pages domain add rbee-commercial rbee.dev");
+    println!("Note: This uses Cloudflare Workers + Pages (not static Pages)");
+    println!("OpenNext enables SSR, API routes, and dynamic rendering");
 
     Ok(())
 }

@@ -18,7 +18,7 @@ pub fn deploy(dry_run: bool) -> Result<()> {
     if dry_run {
         println!("🔍 Dry run - would execute:");
         println!("  cd {} && pnpm build", app_dir);
-        println!("  cd {} && wrangler pages deploy .next --project-name=rbee-docs --branch=production", app_dir);
+        println!("  cd {} && wrangler pages deploy out --project-name=rbee-user-docs --branch=main", app_dir);
         return Ok(());
     }
 
@@ -39,9 +39,9 @@ pub fn deploy(dry_run: bool) -> Result<()> {
         .args(&[
             "pages",
             "deploy",
-            ".next",
-            "--project-name=rbee-docs",
-            "--branch=production",
+            "out",
+            "--project-name=rbee-user-docs",
+            "--branch=main",
         ])
         .current_dir(app_dir)
         .status()?;
@@ -52,10 +52,10 @@ pub fn deploy(dry_run: bool) -> Result<()> {
 
     println!();
     println!("✅ User docs deployed!");
-    println!("🌐 URL: https://docs.rbee.dev");
+    println!("🌐 URL: https://rbee-user-docs.pages.dev");
     println!();
     println!("Note: First deployment may need custom domain setup:");
-    println!("  wrangler pages domain add rbee-docs docs.rbee.dev");
+    println!("  wrangler pages domain add rbee-user-docs docs.rbee.dev");
 
     Ok(())
 }

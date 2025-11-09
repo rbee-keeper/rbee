@@ -15,10 +15,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "deploy": "pnpm run build && npx wrangler pages deploy out/ --project-name=rbee-marketplace --branch=main"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.11.1",
     "@rbee/env-config": "workspace:*",
     "@rbee/marketplace-node": "workspace:*",
     "@rbee/ui": "workspace:*",

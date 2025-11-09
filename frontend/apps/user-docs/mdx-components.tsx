@@ -33,12 +33,12 @@ import {
 } from '@rbee/ui/atoms'
 import { CodeBlock, TerminalWindow, ThemeToggle } from '@rbee/ui/molecules'
 import { useMDXComponents as getDocsComponents } from 'nextra-theme-docs'
-import { APIParameterTable } from './app/docs/_components/APIParameterTable'
+import { APIParameterTable } from './app/_components/APIParameterTable'
 // Import custom MDX wrappers
-import { Callout } from './app/docs/_components/Callout'
-import { CardGrid } from './app/docs/_components/CardGrid'
-import { CodeTabs } from './app/docs/_components/CodeTabs'
-import { LinkCard } from './app/docs/_components/LinkCard'
+import { Callout } from './app/_components/Callout'
+import { CardGrid } from './app/_components/CardGrid'
+import { CodeTabs } from './app/_components/CodeTabs'
+import { LinkCard } from './app/_components/LinkCard'
 
 export function useMDXComponents(components: any): any {
   return {

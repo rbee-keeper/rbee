@@ -4,8 +4,9 @@
 use anyhow::Result;
 use std::process::Command;
 
-pub fn deploy(dry_run: bool) -> Result<()> {
-    println!("🚀 Deploying Worker Catalog to gwc.rbee.dev");
+pub fn deploy(production: bool, dry_run: bool) -> Result<()> {
+    let env = if production { "PRODUCTION" } else { "PREVIEW" };
+    println!("🚀 Deploying Worker Catalog to gwc.rbee.dev - {}", env);
     println!();
 
     let worker_dir = "bin/80-hono-worker-catalog";

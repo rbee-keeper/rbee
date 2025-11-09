@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { getPageMap } from 'nextra/page-map'
+import { Layout } from 'nextra-theme-docs'
 // Import order: app CSS (JIT scanning) → UI CSS (tokens) → Nextra theme
 import './globals.css'
 import '@rbee/ui/styles.css'
@@ -43,16 +45,42 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const pageMap = await getPageMap('/')
+
+  const footerContent = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <span>{new Date().getFullYear()} © rbee. Your private AI cloud, in one command.</span>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <a key="github" href="https://github.com/veighnsche/llama-orch" target="_blank" rel="noopener noreferrer">
+          GitHub
+        </a>
+        <a key="website" href="https://rbee.dev" target="_blank" rel="noopener noreferrer">
+          rbee.dev
+        </a>
+      </div>
+    </div>
+  )
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
         <Navigation />
-        <main id="main">{children}</main>
+        <Layout
+          pageMap={pageMap}
+          docsRepositoryBase="https://github.com/veighnsche/llama-orch/tree/main/frontend/apps/user-docs/app"
+          sidebar={{
+            defaultMenuCollapseLevel: 1,
+            toggleButton: true,
+          }}
+          footer={footerContent}
+        >
+          {children}
+        </Layout>
       </body>
     </html>
   )

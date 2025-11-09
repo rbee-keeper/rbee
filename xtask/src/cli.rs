@@ -115,6 +115,7 @@ pub enum Cmd {
         dry_run: bool,
     },
     // TEAM-451: Cloudflare deployment
+    // TEAM-463: Added --production flag for production deployments
     #[command(name = "deploy")]
     Deploy {
         /// App to deploy (worker, commercial, marketplace, docs)
@@ -123,6 +124,9 @@ pub enum Cmd {
         /// Version bump type (patch, minor, major) - bumps version before deploying
         #[arg(long)]
         bump: Option<String>,
+        /// Deploy to production (default: preview)
+        #[arg(long)]
+        production: bool,
         /// Dry run (preview commands without executing)
         #[arg(long)]
         dry_run: bool,

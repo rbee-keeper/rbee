@@ -1,12 +1,14 @@
 // Deployment commands
 // Created by: TEAM-451
 // Individual deployment commands for each app and binary
+// TEAM-463: Added nextjs_ssg abstraction for Next.js deployments
 
 pub mod binaries;
 pub mod commercial;
 pub mod docs;
 pub mod gates;
 pub mod marketplace;
+pub mod nextjs_ssg; // TEAM-463: Shared Next.js SSG deployment logic
 pub mod worker_catalog;
 
 use anyhow::{Context, Result};
@@ -85,7 +87,8 @@ fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
 
 // TEAM-452: RULE ZERO FIX - Removed duplicate interactive menu
 // The release command already has an interactive menu that handles this
-pub fn run(app: &str, bump: Option<&str>, dry_run: bool) -> Result<()> {
+// TEAM-463: Added production flag for production deployments
+pub fn run(app: &str, bump: Option<&str>, production: bool, dry_run: bool) -> Result<()> {
     // TEAM-452: Bump is optional - if called from release, version already bumped
     if let Some(bump_type) = bump {
         println!("📦 Bumping version ({})...", bump_type);
@@ -111,10 +114,10 @@ pub fn run(app: &str, bump: Option<&str>, dry_run: bool) -> Result<()> {
     // Step 3: Deploy
     match app {
         // Cloudflare deployments
-        "worker" | "gwc" | "worker-catalog" => worker_catalog::deploy(dry_run),
-        "commercial" => commercial::deploy(dry_run),
-        "marketplace" => marketplace::deploy(dry_run),
-        "docs" | "user-docs" => docs::deploy(dry_run),
+        "worker" | "gwc" | "worker-catalog" => worker_catalog::deploy(production, dry_run),
+        "commercial" => commercial::deploy(production, dry_run),
+        "marketplace" => marketplace::deploy(production, dry_run),
+        "docs" | "user-docs" => docs::deploy(production, dry_run),
         
         // Binary deployments (GitHub Releases)
         "keeper" | "rbee-keeper" => binaries::deploy_keeper(dry_run),

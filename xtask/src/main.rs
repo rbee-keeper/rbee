@@ -183,8 +183,9 @@ fn main() -> Result<()> {
             release::run(app, r#type, dry_run)?
         }
         // TEAM-451: Cloudflare deployment
-        Cmd::Deploy { app, bump, dry_run } => {
-            deploy::run(&app, bump.as_deref(), dry_run)?
+        // TEAM-463: Added production flag
+        Cmd::Deploy { app, bump, production, dry_run } => {
+            deploy::run(&app, bump.as_deref(), production, dry_run)?
         }
     }
     Ok(())

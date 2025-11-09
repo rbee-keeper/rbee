@@ -208,11 +208,12 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
                 if deploy_now {
                     if app == "all" {
                         // Deploy all frontend apps
+                        // TEAM-463: Deploy to production (true) after release
                         let apps = vec!["gwc", "commercial", "marketplace", "docs"];
                         for app in apps {
                             println!();
                             println!("{}", format!("Deploying {}...", app).bright_cyan());
-                            if let Err(e) = crate::deploy::run(app, None, false) {
+                            if let Err(e) = crate::deploy::run(app, None, true, false) {
                                 eprintln!("{}", format!("❌ Failed to deploy {}: {}", app, e).bright_red());
                             }
                         }
@@ -220,9 +221,10 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
                         println!("{}", "✅ All deployments complete!".bright_green());
                     } else {
                         // Deploy single app
+                        // TEAM-463: Deploy to production (true) after release
                         println!();
                         println!("{}", format!("Deploying {}...", app).bright_cyan());
-                        crate::deploy::run(&app, None, false)?;
+                        crate::deploy::run(&app, None, true, false)?;
                         println!();
                         println!("{}", format!("✅ {} deployed successfully!", app).bright_green());
                     }

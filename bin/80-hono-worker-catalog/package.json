@@ -1,12 +1,13 @@
 {
 	"name": "@rbee/global-worker-catalog",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"description": "Global worker catalog API - Cloudflare Worker for worker discovery and metadata",
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",
 		"deploy": "wrangler deploy --minify",
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"type-check": "tsc --noEmit",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
@@ -18,7 +19,9 @@
 		"hono": "^4.10.4"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20241127.0",
 		"@vitest/coverage-v8": "^4.0.8",
+		"typescript": "^5.7.2",
 		"vitest": "^4.0.8",
 		"wrangler": "^4.46.0"
 	}

@@ -34,14 +34,12 @@ describe('Architecture Enum', () => {
 describe('WorkerImplementation Enum', () => {
   it('should validate worker implementation enum values', () => {
     const validImplementations: WorkerImplementation[] = [
-      'llm-worker-rbee',
-      'llama-cpp-adapter',
-      'vllm-adapter',
-      'ollama-adapter',
-      'comfyui-adapter'
+      'rust',
+      'python',
+      'cpp'
     ]
-    expect(validImplementations).toHaveLength(5)
-    expect(validImplementations).toContain('llm-worker-rbee')
+    expect(validImplementations).toHaveLength(3)
+    expect(validImplementations).toContain('rust')
   })
 })
 
@@ -57,16 +55,16 @@ describe('WorkerCatalogEntry Structure', () => {
   it('should validate complete worker entry structure', () => {
     const worker: WorkerCatalogEntry = {
       id: 'test-worker',
-      implementation: 'llm-worker-rbee',
-      worker_type: 'cpu',
+      implementation: 'rust',
+      workerType: 'cpu',
       version: '0.1.0',
       platforms: ['linux'],
       architectures: ['x86_64'],
       name: 'Test Worker',
       description: 'Test description',
       license: 'GPL-3.0-or-later',
-      pkgbuild_url: '/workers/test-worker/PKGBUILD',
-      build_system: 'cargo',
+      pkgbuildUrl: '/workers/test-worker/PKGBUILD',
+      buildSystem: 'cargo',
       source: {
         type: 'git',
         url: 'https://github.com/test/repo.git',
@@ -78,17 +76,17 @@ describe('WorkerCatalogEntry Structure', () => {
       },
       depends: ['gcc'],
       makedepends: ['rust', 'cargo'],
-      binary_name: 'test-worker',
-      install_path: '/usr/local/bin/test-worker',
-      supported_formats: ['gguf'],
-      supports_streaming: true,
-      supports_batching: false
+      binaryName: 'test-worker',
+      installPath: '/usr/local/bin/test-worker',
+      supportedFormats: ['gguf'],
+      supportsStreaming: true,
+      supportsBatching: false
     }
     
     expect(worker.id).toBe('test-worker')
     expect(worker.platforms).toContain('linux')
-    expect(worker.worker_type).toBe('cpu')
-    expect(worker.implementation).toBe('llm-worker-rbee')
+    expect(worker.workerType).toBe('cpu')
+    expect(worker.implementation).toBe('rust')
   })
 
   it('should validate source type variants - git', () => {
@@ -106,7 +104,7 @@ describe('WorkerCatalogEntry Structure', () => {
 
   it('should validate optional fields', () => {
     const workerWithOptionals: Partial<WorkerCatalogEntry> = {
-      max_context_length: 32768,
+      maxContextLength: 32768,
       build: {
         features: ['cpu', 'avx2'],
         profile: 'release',
@@ -114,7 +112,7 @@ describe('WorkerCatalogEntry Structure', () => {
       }
     }
     
-    expect(workerWithOptionals.max_context_length).toBe(32768)
+    expect(workerWithOptionals.maxContextLength).toBe(32768)
     expect(workerWithOptionals.build?.features).toHaveLength(2)
     expect(workerWithOptionals.build?.flags).toBeDefined()
   })

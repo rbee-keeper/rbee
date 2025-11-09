@@ -44,10 +44,10 @@ describe('Route Logic (Isolated)', () => {
     })
 
     it('should filter workers by type', () => {
-      const cpuWorkers = WORKERS.filter(w => w.worker_type === 'cpu')
+      const cpuWorkers = WORKERS.filter(w => w.workerType === 'cpu')
       expect(cpuWorkers.length).toBeGreaterThan(0)
       cpuWorkers.forEach(w => {
-        expect(w.worker_type).toBe('cpu')
+        expect(w.workerType).toBe('cpu')
       })
     })
   })

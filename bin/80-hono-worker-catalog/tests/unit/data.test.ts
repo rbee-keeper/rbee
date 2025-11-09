@@ -28,13 +28,13 @@ describe('Worker Catalog Data', () => {
 
   it('should have valid PKGBUILD URLs', () => {
     WORKERS.forEach(worker => {
-      expect(worker.pkgbuild_url).toMatch(/^\/workers\/[\w-]+\/PKGBUILD$/)
+      expect(worker.pkgbuildUrl).toMatch(/^\/workers\/[\w-]+\/PKGBUILD$/)
     })
   })
 
   it('should have matching ID in PKGBUILD URL', () => {
     WORKERS.forEach(worker => {
-      expect(worker.pkgbuild_url).toContain(worker.id)
+      expect(worker.pkgbuildUrl).toContain(worker.id)
     })
   })
 
@@ -68,7 +68,7 @@ describe('Worker-Specific Validation', () => {
   it('should validate llm-worker-rbee-cpu', () => {
     const cpuWorker = WORKERS.find(w => w.id === 'llm-worker-rbee-cpu')
     expect(cpuWorker).toBeDefined()
-    expect(cpuWorker?.worker_type).toBe('cpu')
+    expect(cpuWorker?.workerType).toBe('cpu')
     expect(cpuWorker?.platforms).toContain('linux')
     expect(cpuWorker?.build.features).toContain('cpu')
   })
@@ -76,14 +76,14 @@ describe('Worker-Specific Validation', () => {
   it('should validate llm-worker-rbee-cuda', () => {
     const cudaWorker = WORKERS.find(w => w.id === 'llm-worker-rbee-cuda')
     expect(cudaWorker).toBeDefined()
-    expect(cudaWorker?.worker_type).toBe('cuda')
+    expect(cudaWorker?.workerType).toBe('cuda')
     expect(cudaWorker?.depends).toContain('cuda')
   })
 
   it('should validate llm-worker-rbee-metal', () => {
     const metalWorker = WORKERS.find(w => w.id === 'llm-worker-rbee-metal')
     expect(metalWorker).toBeDefined()
-    expect(metalWorker?.worker_type).toBe('metal')
+    expect(metalWorker?.workerType).toBe('metal')
     expect(metalWorker?.platforms).toContain('macos')
   })
 })

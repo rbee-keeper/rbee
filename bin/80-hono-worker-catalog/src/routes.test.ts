@@ -10,7 +10,7 @@ describe('Worker Catalog API', () => {
       const res = await app.request('/health');
       expect(res.status).toBe(200);
       
-      const data = await res.json();
+      const data = await res.json() as Record<string, unknown>;
       expect(data).toHaveProperty('status', 'ok');
       expect(data).toHaveProperty('service', 'worker-catalog');
       expect(data).toHaveProperty('version');
@@ -22,7 +22,7 @@ describe('Worker Catalog API', () => {
       const res = await app.request('/workers');
       expect(res.status).toBe(200);
       
-      const data = await res.json();
+      const data = await res.json() as { workers: unknown[] };
       expect(data).toHaveProperty('workers');
       expect(Array.isArray(data.workers)).toBe(true);
       expect(data.workers.length).toBeGreaterThan(0);
@@ -30,9 +30,9 @@ describe('Worker Catalog API', () => {
 
     it('should include required worker variants', async () => {
       const res = await app.request('/workers');
-      const data = await res.json();
+      const data = await res.json() as { workers: Array<{ id: string }> };
       
-      const workerIds = data.workers.map((w: any) => w.id);
+      const workerIds = data.workers.map((w) => w.id);
       
       expect(workerIds).toContain('llm-worker-rbee-cpu');
       expect(workerIds).toContain('llm-worker-rbee-cuda');
@@ -47,7 +47,7 @@ describe('Worker Catalog API', () => {
       const res = await app.request('/workers/llm-worker-rbee-cpu');
       expect(res.status).toBe(200);
       
-      const data = await res.json();
+      const data = await res.json() as Record<string, unknown>;
       expect(data).toHaveProperty('id', 'llm-worker-rbee-cpu');
       expect(data).toHaveProperty('name');
       expect(data).toHaveProperty('version');
@@ -59,7 +59,7 @@ describe('Worker Catalog API', () => {
       const res = await app.request('/workers/invalid-worker-id');
       expect(res.status).toBe(404);
       
-      const data = await res.json();
+      const data = await res.json() as Record<string, unknown>;
       expect(data).toHaveProperty('error', 'Worker not found');
     });
 
@@ -76,7 +76,7 @@ describe('Worker Catalog API', () => {
         const res = await app.request(`/workers/${id}`);
         expect(res.status).toBe(200);
         
-        const data = await res.json();
+        const data = await res.json() as { id: string };
         expect(data.id).toBe(id);
       }
     });

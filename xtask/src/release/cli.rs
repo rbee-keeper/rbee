@@ -111,6 +111,21 @@ pub fn run(_tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -
     println!("Bump: {:?}", bump_type);
     println!();
 
+    // TEAM-452: CRITICAL FIX - Run gates BEFORE version bump!
+    // If gates fail, we don't want a dirty version bump in git
+    if !dry_run {
+        if let Some(ref app) = selected_app {
+            if app != "all" && app != "skip" {
+                println!("{}", "🚦 Running deployment gates...".bright_cyan());
+                println!();
+                crate::deploy::gates::check_gates(app)?;
+                println!();
+                println!("{}", "✅ All gates passed!".bright_green());
+                println!();
+            }
+        }
+    }
+
     // Bump Rust crates
     let rust_changes = bump_rust_crates(&config, &bump_type, dry_run)?;
 

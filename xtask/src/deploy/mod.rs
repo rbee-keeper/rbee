@@ -10,6 +10,7 @@ pub mod marketplace;
 pub mod worker_catalog;
 
 use anyhow::{Context, Result};
+use colored::Colorize;
 use std::path::PathBuf;
 
 fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
@@ -90,15 +91,22 @@ pub fn run(app: &str, bump: Option<&str>, dry_run: bool) -> Result<()> {
         println!("📦 Bumping version ({})...", bump_type);
         bump_version(app, bump_type, dry_run)?;
         println!();
+        
+        // TEAM-452: Only run gates if we're doing a standalone deploy with version bump
+        // If called from release command, gates already ran before version bump
+        if !dry_run {
+            println!("{}", "🚦 Running deployment gates...".bright_cyan());
+            println!();
+            gates::check_gates(app)?;
+            println!();
+            println!("{}", "✅ All gates passed!".bright_green());
+            println!();
+        } else {
+            println!("🔍 Dry run - skipping deployment gates");
+            println!();
+        }
     }
-
-    // Step 2: Run deployment gates (unless dry run)
-    if !dry_run {
-        gates::check_gates(app)?;
-    } else {
-        println!("🔍 Dry run - skipping deployment gates");
-        println!();
-    }
+    // If bump is None, gates were already checked by release command
 
     // Step 3: Deploy
     match app {

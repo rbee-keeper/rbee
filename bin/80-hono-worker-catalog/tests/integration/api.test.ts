@@ -11,7 +11,7 @@ describe('Worker Catalog API', () => {
 
     it('should return correct health check data', async () => {
       const res = await app.request('/health')
-      const data = await res.json()
+      const data = await res.json() as { status: string; service: string; version: string }
       
       expect(data.status).toBe('ok')
       expect(data.service).toBe('worker-catalog')
@@ -27,7 +27,7 @@ describe('Worker Catalog API', () => {
 
     it('should return JSON array', async () => {
       const res = await app.request('/workers')
-      const data = await res.json()
+      const data = await res.json() as { workers: unknown[] }
       
       expect(data).toHaveProperty('workers')
       expect(Array.isArray(data.workers)).toBe(true)
@@ -36,7 +36,7 @@ describe('Worker Catalog API', () => {
 
     it('should return workers with required fields', async () => {
       const res = await app.request('/workers')
-      const data = await res.json()
+      const data = await res.json() as { workers: Record<string, unknown>[] }
       
       const worker = data.workers[0]
       expect(worker).toHaveProperty('id')
@@ -44,7 +44,7 @@ describe('Worker Catalog API', () => {
       expect(worker).toHaveProperty('version')
       expect(worker).toHaveProperty('description')
       expect(worker).toHaveProperty('platforms')
-      expect(worker).toHaveProperty('worker_type')
+      expect(worker).toHaveProperty('workerType')
     })
 
     it('should return response in reasonable time', async () => {
@@ -65,11 +65,11 @@ describe('Worker Catalog API', () => {
 
     it('should return worker details', async () => {
       const res = await app.request('/workers/llm-worker-rbee-cpu')
-      const data = await res.json()
+      const data = await res.json() as { id: string; workerType: string; implementation: string }
       
       expect(data.id).toBe('llm-worker-rbee-cpu')
-      expect(data.worker_type).toBe('cpu')
-      expect(data.implementation).toBe('llm-worker-rbee')
+      expect(data.workerType).toBe('cpu')
+      expect(data.implementation).toBe('rust')
     })
 
     it('should return 404 for non-existent worker', async () => {
@@ -79,7 +79,7 @@ describe('Worker Catalog API', () => {
 
     it('should return error message for 404', async () => {
       const res = await app.request('/workers/non-existent')
-      const data = await res.json()
+      const data = await res.json() as { error: string }
       
       expect(data.error).toBe('Worker not found')
     })
@@ -93,7 +93,7 @@ describe('Worker Catalog API', () => {
 
     it('should return error for non-existent worker', async () => {
       const res = await app.request('/workers/non-existent/PKGBUILD')
-      const data = await res.json()
+      const data = await res.json() as { error: string }
       
       expect(data.error).toBe('Worker not found')
     })

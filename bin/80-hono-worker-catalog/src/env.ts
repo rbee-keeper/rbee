@@ -1,7 +1,7 @@
 // TEAM-457: Environment configuration for Hono worker catalog
 // Cloudflare Workers use a different env pattern (bindings)
 
-import type { Env as CloudflareEnv } from '../worker-configuration'
+type CloudflareEnv = Env
 
 /**
  * Get environment with automatic dev/prod detection

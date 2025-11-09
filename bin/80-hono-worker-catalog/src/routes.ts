@@ -3,7 +3,7 @@
 import { Hono } from "hono";
 import { WORKERS } from "./data";
 
-export const routes = new Hono<{ Bindings: CloudflareBindings }>();
+export const routes = new Hono<{ Bindings: Env }>();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INSTALL SCRIPT ENDPOINT

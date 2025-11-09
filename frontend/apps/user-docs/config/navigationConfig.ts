@@ -18,7 +18,7 @@ export const userDocsNavConfig: NavigationConfig = {
   ],
   actions: {
     github: {
-      url: 'https://github.com/veighnsche/llama-orch',
+      url: 'https://github.com/rbee-keeper/rbee',
     },
     cta: {
       label: 'Download',

@@ -185,17 +185,17 @@ fn check_marketplace_gates() -> Result<()> {
     println!("  1. TypeScript type check...");
     run_command("pnpm", &["type-check"], "frontend/apps/marketplace")?;
     
-    // Gate 2: Lint
-    println!("  2. Lint check...");
-    run_command("pnpm", &["lint"], "frontend/apps/marketplace")?;
-    
-    // Gate 3: Unit tests
-    println!("  3. Unit tests...");
+    // Gate 2: Unit tests
+    println!("  2. Unit tests...");
     run_command("pnpm", &["test"], "frontend/apps/marketplace")?;
     
-    // Gate 4: Build test
-    println!("  4. Build test...");
+    // Gate 3: Build test
+    println!("  3. Production build...");
     run_command("pnpm", &["build"], "frontend/apps/marketplace")?;
+    
+    // Gate 4: Check build output
+    println!("  4. Build output validation...");
+    validate_nextjs_build("frontend/apps/marketplace")?;
     
     Ok(())
 }

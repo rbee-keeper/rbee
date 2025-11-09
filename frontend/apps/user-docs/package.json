@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 7811",
-    "build": "next build --webpack",
+    "build": "NEXT_PUBLIC_SITE_URL=https://docs.rbee.dev next build --webpack",
     "comment": "TEAM-450: --webpack flag needed due to Nextra v4 + Next.js 16 Turbopack incompatibility (not a Tailwind issue)",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "pnpm run build && npx wrangler pages deploy out/ --project-name=rbee-user-docs --branch=main",
+    "preview": "pnpm run build && npx wrangler pages deploy out/ --project-name=rbee-user-docs --branch=preview",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
   },
   "dependencies": {

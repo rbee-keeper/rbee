@@ -2,6 +2,9 @@ import type { NextConfig } from 'next'
 import nextra from 'nextra'
 
 const nextConfig: NextConfig = {
+  // TEAM-427: Static export for Cloudflare Pages
+  output: 'export',
+  
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -25,7 +28,10 @@ const withNextra = nextra({
 
 export default withNextra(nextConfig)
 
-// added by create cloudflare to enable calling `getCloudflareContext()` in `next dev`
-import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'
-
-initOpenNextCloudflareForDev()
+// TEAM-427: OpenNext not needed for static export (output: 'export')
+// Only initialize for dev mode without top-level await
+if (process.env.NODE_ENV === 'development') {
+  import('@opennextjs/cloudflare').then(({ initOpenNextCloudflareForDev }) => {
+    initOpenNextCloudflareForDev()
+  })
+}

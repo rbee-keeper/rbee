@@ -5,7 +5,11 @@ import '@rbee/ui/styles.css'
 import 'nextra-theme-docs/style.css'
 import { Navigation } from '@/components/Navigation'
 
+// TEAM-427: Always set metadataBase to production URL to avoid warnings
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://docs.rbee.dev'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'rbee Documentation',
     template: '%s – rbee Docs',

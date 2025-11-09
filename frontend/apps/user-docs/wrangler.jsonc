@@ -1,20 +1,13 @@
 /**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
+ * TEAM-427: Cloudflare Pages configuration for static export
+ * For more details: https://developers.cloudflare.com/pages/
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "user-docs",
-	"main": ".open-next/worker.js",
+	"name": "rbee-user-docs",
 	"compatibility_date": "2025-03-01",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
-	"assets": {
-		"binding": "ASSETS",
-		"directory": ".open-next/assets"
-	},
+	"compatibility_flags": ["nodejs_compat"],
+	"pages_build_output_dir": "out",
 	"observability": {
 		"enabled": true
 	},
@@ -28,18 +21,13 @@
 	},
 	/**
 	 * Environment-specific overrides
+	 * TEAM-427: Only preview and production are supported by Pages
 	 */
 	"env": {
 		"preview": {
 			"vars": {
-				"NEXT_PUBLIC_SITE_URL": "https://preview.rbee.dev",
-				"NEXT_PUBLIC_MARKETPLACE_URL": "https://marketplace-preview.rbee.dev"
-			}
-		},
-		"development": {
-			"vars": {
-				"NEXT_PUBLIC_SITE_URL": "http://localhost:7822",
-				"NEXT_PUBLIC_MARKETPLACE_URL": "http://localhost:7823"
+				"NEXT_PUBLIC_SITE_URL": "https://preview-docs.rbee.dev",
+				"NEXT_PUBLIC_MARKETPLACE_URL": "https://preview-marketplace.rbee.dev"
 			}
 		}
 	}

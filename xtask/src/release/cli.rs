@@ -10,64 +10,37 @@ use std::path::PathBuf;
 use super::bump_rust::bump_rust_crates;
 use super::bump_js::bump_js_packages;
 
-pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> Result<()> {
+pub fn run(_tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> Result<()> {
     println!("{}", "🐝 rbee Release Manager".bright_blue().bold());
     println!("{}", "━".repeat(80).bright_blue());
     println!();
 
-    // TEAM-452: For frontend/main tier, ask which app FIRST, then bump type
-    let tier = if let Some(t) = tier_arg {
-        t
-    } else {
-        // Dynamically discover available tiers
-        let tier_options = discover_tier_options()?;
-        
-        if tier_options.is_empty() {
-            anyhow::bail!("No tier configurations found in .version-tiers/");
-        }
-        
-        Select::new("Which tier to release?", tier_options)
-            .prompt()?
-            .split_whitespace()
-            .next()
-            .unwrap()
-            .to_string()
+    // TEAM-452: FUCK TIERS - Just ask which app directly!
+    println!();
+    let app_choice = Select::new(
+        "Which app to release?",
+        vec![
+            "gwc - Worker Catalog (gwc.rbee.dev)",
+            "commercial - Commercial Site (rbee.dev)",
+            "marketplace - Marketplace (marketplace.rbee.dev)",
+            "docs - Documentation (docs.rbee.dev)",
+            "keeper - rbee-keeper (CLI tool)",
+            "queen - queen-rbee (Orchestrator)",
+            "hive - rbee-hive (Worker manager)",
+        ],
+    )
+    .prompt()?;
+    
+    let selected_app = app_choice.split_whitespace().next().unwrap().to_string();
+    
+    // Map app to tier (internal only - for config loading)
+    let tier = match selected_app.as_str() {
+        "gwc" | "commercial" | "marketplace" | "docs" => "frontend",
+        "keeper" | "queen" | "hive" => "main",
+        _ => "frontend",
     };
-
-    // TEAM-452: Ask which specific app/binary to bump FIRST
-    let selected_app = if tier == "frontend" {
-        println!();
-        let app_choice = Select::new(
-            "Which app to deploy?",
-            vec![
-                "gwc - Worker Catalog (gwc.rbee.dev)",
-                "commercial - Commercial Site (rbee.dev)",
-                "marketplace - Marketplace (marketplace.rbee.dev)",
-                "docs - Documentation (docs.rbee.dev)",
-                "all - Deploy all frontend apps",
-                "skip - Just bump versions, don't deploy",
-            ],
-        )
-        .prompt()?;
-        
-        Some(app_choice.split_whitespace().next().unwrap().to_string())
-    } else if tier == "main" {
-        println!();
-        let binary_choice = Select::new(
-            "Which binary to release?",
-            vec![
-                "keeper - rbee-keeper (CLI tool)",
-                "queen - queen-rbee (Orchestrator)",
-                "hive - rbee-hive (Worker manager)",
-                "all - Release all main binaries",
-            ],
-        )
-        .prompt()?;
-        
-        Some(binary_choice.split_whitespace().next().unwrap().to_string())
-    } else {
-        None
-    };
+    
+    let selected_app = Some(selected_app);
 
     // Prompt for bump type if not provided
     let bump_type = if let Some(t) = type_arg {
@@ -132,13 +105,10 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
     println!("{}", "📋 Preview:".bright_blue().bold());
     println!("{}", "━".repeat(80).bright_blue());
     println!();
-    println!("Tier: {}", tier.bright_green());
-    println!("Bump: {:?}", bump_type);
     if let Some(ref app) = selected_app {
-        if app != "all" && app != "skip" {
-            println!("App: {}", app.bright_green());
-        }
+        println!("App: {}", app.bright_green());
     }
+    println!("Bump: {:?}", bump_type);
     println!();
 
     // Bump Rust crates
@@ -203,7 +173,7 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
         println!("{}", "✅ Version bumped successfully!".bright_green());
         
         // TEAM-452: Deploy the selected app (already chosen earlier)
-        if let Some(app) = selected_app {
+        if let Some(ref app) = selected_app {
             if app != "skip" {
                 println!();
                 let deploy_now = Confirm::new(&format!("Deploy {} to Cloudflare now?", app))
@@ -240,15 +210,23 @@ pub fn run(tier_arg: Option<String>, type_arg: Option<String>, dry_run: bool) ->
         println!();
         println!("Next steps:");
         println!("  {}", "git add .".bright_blue());
-        println!(
-            "  {}",
-            format!("git commit -m \"chore: release {} v{}\"", tier, rust_changes.first().map(|(_, _, v)| v.to_string()).unwrap_or_default()).bright_blue()
-        );
-        println!("  {}", "git push origin development".bright_blue());
-        println!(
-            "  {}",
-            format!("gh pr create --base production --head development --title \"Release {} v{}\"", tier, rust_changes.first().map(|(_, _, v)| v.to_string()).unwrap_or_default()).bright_blue()
-        );
+        if let Some(ref app) = selected_app {
+            let version = rust_changes.first().map(|(_, _, v)| v.to_string())
+                .or_else(|| js_changes.first().map(|(_, _, v)| v.to_string()))
+                .unwrap_or_default();
+            println!(
+                "  {}",
+                format!("git commit -m \"chore: release {} v{}\"", app, version).bright_blue()
+            );
+            println!("  {}", "git push origin development".bright_blue());
+            println!(
+                "  {}",
+                format!("gh pr create --base production --head development --title \"Release {} v{}\"", app, version).bright_blue()
+            );
+        } else {
+            println!("  {}", "git commit -m \"chore: bump versions\"".bright_blue());
+            println!("  {}", "git push origin development".bright_blue());
+        }
     }
 
     Ok(())

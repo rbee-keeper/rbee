@@ -177,8 +177,9 @@ fn main() -> Result<()> {
         Cmd::E2eCascade => tokio::runtime::Runtime::new()?.block_on(e2e::test_cascade_shutdown())?,
         Cmd::Rbee { args } => tasks::rbee::run_rbee_keeper(args)?,
         // TEAM-451: Release management
-        Cmd::Release { tier, r#type, dry_run } => {
-            release::run(tier, r#type, dry_run)?
+        // TEAM-452: Removed tier argument
+        Cmd::Release { r#type, dry_run } => {
+            release::run(None, r#type, dry_run)?
         }
         // TEAM-451: Cloudflare deployment
         Cmd::Deploy { app, bump, dry_run } => {

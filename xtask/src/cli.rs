@@ -100,11 +100,9 @@ pub enum Cmd {
         stubs_only: bool,
     },
     // TEAM-451: Release management
+    // TEAM-452: Removed tier system - now app-based
     #[command(name = "release")]
     Release {
-        /// Tier to release (main, llm-worker, sd-worker, commercial)
-        #[arg(long)]
-        tier: Option<String>,
         /// Bump type (patch, minor, major)
         #[arg(long)]
         r#type: Option<String>,

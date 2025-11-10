@@ -1,23 +1,4 @@
 {
-  "name": "@rbee/marketplace",
-  "version": "0.1.11",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack -p 7823",
-    "prebuild": "bash scripts/validate-no-force-dynamic.sh",
-    "build": "NEXT_PUBLIC_SITE_URL=https://marketplace.rbee.dev next build --webpack",
-    "start": "next start",
-    "lint": "biome check .",
-    "lint:fix": "biome check . --write",
-    "type-check": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "deploy": "pnpm run build && npx wrangler pages deploy out/ --project-name=rbee-marketplace --branch=main"
-  },
   "dependencies": {
     "@rbee/env-config": "workspace:*",
     "@rbee/marketplace-node": "workspace:*",
@@ -51,5 +32,24 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.8",
     "wrangler": "^4.46.0"
-  }
+  },
+  "name": "@rbee/marketplace",
+  "private": true,
+  "scripts": {
+    "build": "NEXT_PUBLIC_SITE_URL=https://marketplace.rbee.dev next build --webpack",
+    "deploy": "pnpm run build && npx wrangler pages deploy out/ --project-name=rbee-marketplace --branch=main",
+    "dev": "next dev --turbopack -p 7823",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
+    "prebuild": "bash scripts/validate-no-force-dynamic.sh",
+    "start": "next start",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "version": "0.1.12"
 }

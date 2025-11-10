@@ -75,7 +75,7 @@ export function NavigationDropdown({ title, links, cta, width = 'sm' }: Navigati
                 <BookOpen className="size-3.5" />
                 Docs
               </Link>
-              <Button size="sm" className="h-7 text-xs" onClick={cta.onClick} asChild={!!cta.href}>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={cta.onClick} asChild={!!cta.href}>
                 {cta.href ? <Link href={cta.href}>{cta.label}</Link> : <span>{cta.label}</span>}
               </Button>
             </div>

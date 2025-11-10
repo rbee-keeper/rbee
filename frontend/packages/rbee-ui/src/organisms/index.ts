@@ -21,3 +21,9 @@ export * from './SectionCTAs/SectionCTAs'
 export * from './SecurityCard/SecurityCard'
 export { TemplateBackground, type TemplateBackgroundProps } from './TemplateBackground/TemplateBackground'
 export * from './TimelineCard/TimelineCard'
+
+// Blog-specific organisms
+export * from './BlogCallout'
+export * from './BlogComparisonTable'
+export * from './BlogCostBreakdown'
+export * from './BlogRoadmap'

@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   // TEAM-462: Static export for Cloudflare Pages
   output: 'export',
   
+  // TEAM-463: Disable image optimization for static export
+  images: {
+    unoptimized: true,
+  },
+  
   // TEAM-421: Enable WASM support for marketplace-sdk
   webpack: (config, { isServer }) => {
     // Add WASM support

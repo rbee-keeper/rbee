@@ -42,6 +42,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let title = 'CivitAI Models'
   const parts: string[] = []
 
+  // TEAM-463: Add NSFW level to title
+  if (config.nsfwLevel && config.nsfwLevel !== 'None') {
+    const ratingMap = { Soft: 'PG-13', Mature: 'R', X: 'X', XXX: 'XXX' }
+    parts.push(ratingMap[config.nsfwLevel] || config.nsfwLevel)
+  }
   if (config.timePeriod !== 'AllTime') parts.push(config.timePeriod)
   if (config.modelType !== 'All') parts.push(config.modelType)
   if (config.baseModel !== 'All') parts.push(config.baseModel)
@@ -82,7 +87,18 @@ export default async function FilteredCivitaiPage({ params }: PageProps) {
   }))
 
   // Build filter description
+  // TEAM-463: Add NSFW level to description
   const filterParts: string[] = []
+  if (currentFilter.nsfwLevel) {
+    const ratingLabels = {
+      None: 'PG (Safe for work)',
+      Soft: 'PG-13 (Suggestive)',
+      Mature: 'R (Mature)',
+      X: 'X (Explicit)',
+      XXX: 'XXX (Pornographic)',
+    }
+    filterParts.push(ratingLabels[currentFilter.nsfwLevel] || currentFilter.nsfwLevel)
+  }
   if (currentFilter.timePeriod !== 'AllTime') filterParts.push(currentFilter.timePeriod)
   if (currentFilter.modelType !== 'All') filterParts.push(currentFilter.modelType)
   if (currentFilter.baseModel !== 'All') filterParts.push(currentFilter.baseModel)
@@ -106,10 +122,31 @@ export default async function FilteredCivitaiPage({ params }: PageProps) {
             <div className="size-2 rounded-full bg-primary" />
             <span>{models.length.toLocaleString()} models</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-blue-500" />
-            <span>Safe for work</span>
-          </div>
+          {/* TEAM-463: Show NSFW rating badge */}
+          {currentFilter.nsfwLevel && (
+            <div className="flex items-center gap-2">
+              <div
+                className={`size-2 rounded-full ${
+                  currentFilter.nsfwLevel === 'None'
+                    ? 'bg-green-500'
+                    : currentFilter.nsfwLevel === 'Soft'
+                      ? 'bg-yellow-500'
+                      : currentFilter.nsfwLevel === 'Mature'
+                        ? 'bg-orange-500'
+                        : 'bg-red-500'
+                }`}
+              />
+              <span>
+                {currentFilter.nsfwLevel === 'None'
+                  ? 'Safe for work'
+                  : currentFilter.nsfwLevel === 'Soft'
+                    ? 'Suggestive content'
+                    : currentFilter.nsfwLevel === 'Mature'
+                      ? 'Mature content'
+                      : 'Explicit content'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

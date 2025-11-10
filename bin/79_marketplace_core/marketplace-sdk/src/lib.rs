@@ -129,3 +129,16 @@ pub fn platform_to_string(platform: Platform) -> String {
         Platform::Windows => "windows".to_string(),
     }
 }
+
+/// Check if a model is compatible with our workers (WASM binding)
+/// TEAM-463: Exposed compatibility checking to TypeScript/Node.js
+///
+/// # Arguments
+/// * `metadata` - Model metadata extracted from HuggingFace
+///
+/// # Returns
+/// CompatibilityResult with detailed compatibility information
+#[wasm_bindgen]
+pub fn is_model_compatible_wasm(metadata: ModelMetadata) -> CompatibilityResult {
+    is_model_compatible(&metadata)
+}

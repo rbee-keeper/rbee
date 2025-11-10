@@ -179,8 +179,8 @@ fn main() -> Result<()> {
         // TEAM-451: Release management
         // TEAM-452: Removed tier argument
         // TEAM-XXX: Pass app argument for non-interactive usage
-        Cmd::Release { app, r#type, dry_run } => {
-            release::run(app, r#type, dry_run)?
+        Cmd::Release { app, r#type, dry_run, ci } => {
+            release::run(app, r#type, dry_run, ci)?
         }
         // TEAM-451: Cloudflare deployment
         // TEAM-463: Added production flag

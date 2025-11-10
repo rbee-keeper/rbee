@@ -113,6 +113,9 @@ pub enum Cmd {
         /// Dry run (preview changes without applying)
         #[arg(long)]
         dry_run: bool,
+        /// CI mode - skip confirmation prompts
+        #[arg(long)]
+        ci: bool,
     },
     // TEAM-451: Cloudflare deployment
     // TEAM-463: Added --production flag for production deployments

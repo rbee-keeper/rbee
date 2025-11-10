@@ -4,7 +4,7 @@
 // TEAM-421: Updated to use shared InstallCTA component
 
 import type { ModelDetailData } from '@rbee/ui/marketplace'
-import { ModelDetailPageTemplate } from '@rbee/ui/marketplace'
+import { HuggingFaceModelDetail } from '@rbee/ui/marketplace'
 import { InstallCTA } from './InstallCTA'
 
 interface ModelDetailWithInstallProps {
@@ -19,7 +19,7 @@ export function ModelDetailWithInstall({ model }: ModelDetailWithInstallProps) {
       <InstallCTA artifactType="model" artifactName={model.name} />
 
       {/* Model Details */}
-      <ModelDetailPageTemplate model={model} showBackButton={false} />
+      <HuggingFaceModelDetail model={model} showBackButton={false} />
     </div>
   )
 }

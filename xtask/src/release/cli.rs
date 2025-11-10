@@ -10,7 +10,7 @@ use std::path::PathBuf;
 use super::bump_rust::bump_rust_crates;
 use super::bump_js::bump_js_packages;
 
-pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> Result<()> {
+pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool, ci_mode: bool) -> Result<()> {
     println!("{}", "🐝 rbee Release Manager".bright_blue().bold());
     println!("{}", "━".repeat(80).bright_blue());
     println!();
@@ -181,8 +181,8 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
         return Ok(());
     }
 
-    // Confirm if not dry-run
-    if !dry_run {
+    // Confirm if not dry-run and not CI mode
+    if !dry_run && !ci_mode {
         let proceed = Confirm::new("Proceed with version bump?")
             .with_default(false)
             .prompt()?;
@@ -191,6 +191,8 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
             println!("{}", "Aborted.".bright_yellow());
             return Ok(());
         }
+    } else if ci_mode && !dry_run {
+        println!("{}", "🤖 CI mode - auto-proceeding with version bump".bright_cyan());
     }
 
     if dry_run {
@@ -203,9 +205,14 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool) -> 
         if let Some(ref app) = selected_app {
             if app != "skip" {
                 println!();
-                let deploy_now = Confirm::new(&format!("Deploy {} to Cloudflare now?", app))
-                    .with_default(true)
-                    .prompt()?;
+                let deploy_now = if ci_mode {
+                    println!("{}", "🤖 CI mode - auto-deploying to Cloudflare".bright_cyan());
+                    true
+                } else {
+                    Confirm::new(&format!("Deploy {} to Cloudflare now?", app))
+                        .with_default(true)
+                        .prompt()?
+                };
                 
                 if deploy_now {
                     if app == "all" {

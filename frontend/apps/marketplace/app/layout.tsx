@@ -24,6 +24,12 @@ export const metadata: Metadata = {
     'Browse and discover AI language models for your projects. Pre-rendered static pages for optimal SEO and performance.',
   keywords: ['AI', 'language models', 'LLM', 'machine learning', 'marketplace'],
   authors: [{ name: 'rbee' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

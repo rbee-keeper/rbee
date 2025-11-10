@@ -30,6 +30,12 @@ export const metadata: Metadata = {
   authors: [{ name: 'Vince Liem', url: 'https://www.linkedin.com/in/vincepaulliem/' }],
   creator: 'rbee',
   publisher: 'rbee',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

@@ -30,7 +30,7 @@ import {
   fetchCivitAIModels 
 } from './civitai'
 import { fetchHFModel, fetchHFModels, type HFModel } from './huggingface'
-import type { CompatibilityResult, Model, ModelMetadata, SearchOptions } from './types'
+import type { CompatibilityConfidence, CompatibilityResult, Model, ModelMetadata, SearchOptions } from './types'
 
 // TEAM-413: Lazy-load WASM to avoid build-time issues in Next.js
 // The WASM module is only loaded when compatibility checking is actually used
@@ -208,12 +208,6 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
   const idMatch = model.id.match(/(\d+\.?\d*)[bB]/i)
   if (idMatch) {
     parameters = idMatch[1] + 'B'
-    // Find primary file
-    const primaryFile = model.siblings.find(f => f.primary)
-    if (primaryFile) {
-      model.downloadUrl = primaryFile.downloadUrl
-      model.sizeBytes = primaryFile.sizeKb ? primaryFile.sizeKb * 1024 : undefined
-    }
   }
 
   return {
@@ -255,9 +249,21 @@ export async function checkModelCompatibility(model: HFModel): Promise<Compatibi
     }
   }
 
-  // Lazy-load WASM and call compatibility function
+  // TEAM-463: Use WASM compatibility checking with proper type conversion
   const wasm = await getWasmModule()
-  return wasm.is_model_compatible_wasm(metadata)
+  
+  // Convert our ModelMetadata to WASM ModelMetadata format
+  // WASM expects enum values, not strings
+  const wasmMetadata = {
+    architecture: metadata.architecture as any, // WASM ModelArchitecture enum
+    format: metadata.format as any, // WASM ModelFormat enum
+    quantization: metadata.quantization as any, // WASM Quantization enum or null
+    parameters: metadata.parameters,
+    sizeBytes: metadata.sizeBytes,
+    maxContextLength: metadata.maxContextLength,
+  }
+  
+  return wasm.is_model_compatible_wasm(wasmMetadata)
 }
 
 /**

@@ -24,7 +24,8 @@ export const metadata: Metadata = {
 // TEAM-462: Removed searchParams - incompatible with output: 'export'
 // Pagination will be client-side or via separate routes
 export default async function CivitAIModelsPage() {
-  // Default filter (Most Downloaded, all types, all periods)
+  // Default filter (Most Downloaded, all types, all periods, PG only)
+  // TEAM-463: Now includes nsfwLevel: 'None' for safe-for-work content
   const currentFilter = PREGENERATED_FILTERS[0].filters
 
   // TEAM-422: Fetch top 100 compatible models

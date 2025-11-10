@@ -1,5 +1,5 @@
 packages:
-  - frontens/apps/admin
+  - frontend/apps/admin
   - frontend/apps/commercial
   - frontend/apps/marketplace
   - frontend/apps/user-docs

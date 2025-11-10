@@ -63,8 +63,9 @@ function convertHFModel(hf: HFModel): Model {
     createdAt: hf.createdAt,
     lastModified: hf.lastModified,
     config: hf.config,
+    // TEAM-463: Convert HuggingFace's rfilename → our canonical filename
     siblings:
-      hf.siblings?.map((s: { rfilename: string; size?: number }) => ({ rfilename: s.rfilename, size: s.size || 0 })) ||
+      hf.siblings?.map((s) => ({ filename: s.rfilename, size: s.size || 0 })) ||
       [],
   }
 }
@@ -166,10 +167,10 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
     architecture = model.config.model_type
   }
 
-  // Detect format from files
+  // Detect format from files (using raw HuggingFace API format with rfilename)
   const files = model.siblings || []
-  const hasSafetensors = files.some((f: { rfilename: string }) => f.rfilename.endsWith('.safetensors'))
-  const hasGguf = files.some((f: { rfilename: string }) => f.rfilename.endsWith('.gguf'))
+  const hasSafetensors = files.some((f) => f.rfilename.endsWith('.safetensors'))
+  const hasGguf = files.some((f) => f.rfilename.endsWith('.gguf'))
 
   let format = 'unknown'
   if (hasSafetensors) format = 'safetensors'

@@ -202,9 +202,18 @@ impl HuggingFaceClient {
         let size = "Unknown".to_string();
 
         // TEAM-421: Parse siblings (model files) from extra fields
+        // TEAM-463: Add narration for debugging
+        use observability_narration_core::n;
+        
+        n!("HuggingFaceClient::convert_hf_model", "📁 Parsing siblings for model: {}", hf_model.model_id);
+        
         let siblings = hf_model.extra.get("siblings")
-            .and_then(|v| v.as_array())
+            .and_then(|v| {
+                n!("HuggingFaceClient::convert_hf_model", "   Found siblings field in extra data");
+                v.as_array()
+            })
             .map(|arr| {
+                n!("HuggingFaceClient::convert_hf_model", "   Siblings array has {} items", arr.len());
                 arr.iter()
                     .filter_map(|file_obj| {
                         let filename = file_obj.get("rfilename")
@@ -216,11 +225,24 @@ impl HuggingFaceClient {
                             .and_then(|v| v.as_u64())
                             .map(|s| s as f64);
                         
+                        n!("HuggingFaceClient::convert_hf_model", "   ✅ Parsed file: {} ({:?} bytes)", filename, size);
                         Some(ModelFile { filename, size })
                     })
                     .collect::<Vec<_>>()
             })
-            .filter(|v| !v.is_empty()); // Only include if there are files
+            .filter(|v| {
+                let has_files = !v.is_empty();
+                if has_files {
+                    n!("HuggingFaceClient::convert_hf_model", "   ✅ Total files parsed: {}", v.len());
+                } else {
+                    n!("HuggingFaceClient::convert_hf_model", "   ⚠️ No files found in siblings");
+                }
+                has_files
+            }); // Only include if there are files
+        
+        if siblings.is_none() {
+            n!("HuggingFaceClient::convert_hf_model", "   ❌ No siblings field found in API response");
+        }
 
         Model {
             id: format!("huggingface-{}", hf_model.model_id),  // TEAM-460: Consistent prefix

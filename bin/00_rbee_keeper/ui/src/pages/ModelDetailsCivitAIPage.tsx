@@ -94,11 +94,7 @@ export function ModelDetailsCivitAIPage() {
   }
 
   return (
-    <PageContainer
-      title={model.name}
-      description={model.author ? `by ${model.author}` : 'CivitAI Image Model'}
-      padding="default"
-    >
+    <PageContainer title="" padding="default">
       <ModelDetailPageTemplate
         model={model}
         onBack={() => navigate('/marketplace/civitai')}

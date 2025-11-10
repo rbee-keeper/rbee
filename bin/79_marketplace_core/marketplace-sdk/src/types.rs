@@ -8,25 +8,13 @@ use wasm_bindgen::prelude::*;
 // TEAM-402: Re-export core artifact types (catalog types)
 // TEAM-404: WorkerType and Platform are now canonical from artifacts-contract
 // TEAM-407: Added ModelMetadata types for compatibility filtering
+// TEAM-463: ModelFile is now canonical from artifacts-contract
 pub use artifacts_contract::{
     ModelEntry as CatalogModelEntry, 
     WorkerBinary as CatalogWorkerBinary,
     WorkerType,
+    ModelFile,
 };
-
-/// Model file information
-/// TEAM-421: Added for displaying model files in detail view
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(target_arch = "wasm32", derive(tsify::Tsify))]
-#[cfg_attr(all(not(target_arch = "wasm32"), feature = "specta"), derive(specta::Type))]
-#[serde(rename_all = "camelCase")]
-pub struct ModelFile {
-    /// File name (relative path in repo)
-    pub filename: String,
-    /// File size in bytes (optional, using f64 for TypeScript compatibility)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<f64>,
-}
 
 /// Model from marketplace (HuggingFace or CivitAI)
 /// 

@@ -53,7 +53,8 @@ export interface ModelDetailData {
     license?: string
     language?: string[]
   }
-  siblings?: Array<{ rfilename: string }>
+  // TEAM-463: ⚠️ TYPE CONTRACT - must match artifacts-contract::ModelFile
+  siblings?: Array<{ filename: string; size?: number | null }>
   widgetData?: Array<{ text: string }>
   createdAt?: string
   lastModified?: string

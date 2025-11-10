@@ -21,8 +21,9 @@ pub mod status;
 
 // Re-export main types
 // TEAM-407: Added ModelMetadata exports
+// TEAM-463: Added ModelFile export
 pub use model::{
-    ModelEntry, ModelType, ModelSource,
+    ModelEntry, ModelType, ModelSource, ModelFile,
     ModelConfig, InferenceParams,
     LlmConfig, TokenizerConfig,
     ImageConfig, CheckpointType, ImagePreview,

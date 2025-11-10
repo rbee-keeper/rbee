@@ -1,6 +1,16 @@
 // TEAM-460: HuggingFace API types and fetchers
+// TEAM-463: HFModel represents RAW HuggingFace API response
 // Extracted from index.ts to fix missing module error
 
+/**
+ * RAW HuggingFace API response
+ * 
+ * ⚠️ This represents the EXTERNAL API format from HuggingFace.
+ * HuggingFace uses `rfilename` (relative filename) in their API.
+ * 
+ * We normalize this to our canonical `filename` format when converting to our Model type.
+ * See: convertHFModel() in index.ts
+ */
 export interface HFModel {
   id: string
   author?: string
@@ -8,6 +18,7 @@ export interface HFModel {
   tags?: string[]
   downloads?: number
   likes?: number
+  /** HuggingFace uses "rfilename" (relative filename) in their API */
   siblings?: Array<{
     rfilename: string
     size?: number

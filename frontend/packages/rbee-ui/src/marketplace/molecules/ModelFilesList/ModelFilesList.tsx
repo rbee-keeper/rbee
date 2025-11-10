@@ -1,11 +1,33 @@
 // TEAM-405: Model files list component
+// TEAM-463: Type contract - must match artifacts-contract ModelFile type
 //! Reusable component for displaying model files/siblings
+//! 
+//! ⚠️ TYPE CONTRACT: This ModelFile interface MUST match the canonical Rust type:
+//! `bin/97_contracts/artifacts-contract/src/model/mod.rs::ModelFile`
+//! 
+//! The type flows as:
+//! artifacts-contract (source of truth)
+//!   ↓ re-exported by
+//! marketplace-sdk
+//!   ↓ generates TypeScript types for
+//! keeper GUI (auto-generated bindings.ts)
+//!   
+//! This manual definition is for Next.js marketplace which can't import Tauri types.
+//! If the contract type changes, this interface must be updated manually.
 
 import { Badge, Card, CardContent, CardHeader, CardTitle, ScrollArea } from '@rbee/ui/atoms'
 import { File, FileCode, FileJson, FileText } from 'lucide-react'
 
+/**
+ * Model file information
+ * 
+ * ⚠️ MUST MATCH: artifacts-contract/src/model/mod.rs::ModelFile
+ */
 export interface ModelFile {
-  rfilename: string
+  /** File name (relative path in repo) */
+  filename: string
+  /** File size in bytes (optional) */
+  size?: number | null
 }
 
 export interface ModelFilesListProps {
@@ -41,7 +63,7 @@ const filterEssentialFiles = (files: ModelFile[]): ModelFile[] => {
     /^merges\.txt$/i, // BPE merges
   ]
 
-  return files.filter((file) => essentialPatterns.some((pattern) => pattern.test(file.rfilename)))
+  return files.filter((file) => essentialPatterns.some((pattern) => pattern.test(file.filename)))
 }
 
 /**
@@ -53,9 +75,9 @@ const filterEssentialFiles = (files: ModelFile[]): ModelFile[] => {
  * <ModelFilesList
  *   title="Essential Files"
  *   files={[
- *     { rfilename: 'config.json' },
- *     { rfilename: 'model.safetensors' },
- *     { rfilename: 'tokenizer.json' }
+ *     { filename: 'config.json' },
+ *     { filename: 'model.safetensors' },
+ *     { filename: 'tokenizer.json' }
  *   ]}
  * />
  * ```
@@ -81,14 +103,14 @@ export function ModelFilesList({
       <CardContent>
         <ScrollArea style={{ maxHeight }}>
           <div className="space-y-2">
-            {essentialFiles.map((file, index) => {
-              const Icon = getFileIcon(file.rfilename)
-              const ext = getFileExtension(file.rfilename)
+            {essentialFiles.map((file) => {
+              const Icon = getFileIcon(file.filename)
+              const ext = getFileExtension(file.filename)
 
               return (
-                <div key={index} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                <div key={file.filename} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
                   <Icon className="size-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm font-mono flex-1 truncate">{file.rfilename}</span>
+                  <span className="text-sm font-mono flex-1 truncate">{file.filename}</span>
                   <Badge variant="outline" className="text-xs">
                     {ext}
                   </Badge>

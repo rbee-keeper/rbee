@@ -152,11 +152,7 @@ export function ModelDetailsHuggingFacePage() {
   }
 
   return (
-    <PageContainer
-      title={model.name}
-      description={model.author ? `by ${model.author}` : 'HuggingFace Language Model'}
-      padding="default"
-    >
+    <PageContainer title="" padding="default">
       <ModelDetailPageTemplate
         model={model}
         onBack={() => navigate('/marketplace/huggingface')}

@@ -622,6 +622,7 @@ pub async fn marketplace_get_model(
     use observability_narration_core::n;
 
     n!("marketplace_get_model", "🔍 Fetching model: {}", model_id);
+    n!("marketplace_get_model", "🚨 TEAM-463 NEW CODE IS RUNNING - BUILD TIMESTAMP: 2025-11-10 15:35 🚨");
 
     // TEAM-463: Detect source from model ID prefix
     if model_id.starts_with("civitai-") {

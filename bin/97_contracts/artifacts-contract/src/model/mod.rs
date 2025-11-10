@@ -23,6 +23,24 @@ use tsify::Tsify;
 
 use crate::status::ArtifactStatus;
 
+/// Model file information from repository
+/// 
+/// TEAM-463: Canonical type for model files (siblings) in repositories.
+/// Used by marketplace SDK, catalog, and UI components.
+/// 
+/// This represents a single file in a model repository (e.g., HuggingFace).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(target_arch = "wasm32", derive(Tsify))]
+#[cfg_attr(all(not(target_arch = "wasm32"), feature = "specta"), derive(specta::Type))]
+#[serde(rename_all = "camelCase")]
+pub struct ModelFile {
+    /// File name (relative path in repo)
+    pub filename: String,
+    /// File size in bytes (optional, using f64 for TypeScript compatibility)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<f64>,
+}
+
 /// Model type enum
 #[derive(Debug, Clone, Serialize, Deserialize, Tsify, PartialEq, Eq)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

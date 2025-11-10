@@ -5,6 +5,7 @@
 
 import { Badge, Button, Card, Tabs, TabsContent, TabsList, TabsTrigger } from '@rbee/ui/atoms'
 import { ExternalLink, BookOpen, Lightbulb } from 'lucide-react'
+import { MarkdownContent } from '@rbee/ui/molecules'
 import { CivitAIImageGallery } from '../../organisms/CivitAIImageGallery'
 import { CivitAIStatsHeader } from '../../organisms/CivitAIStatsHeader'
 import { CivitAIDetailsCard } from '../../organisms/CivitAIDetailsCard'
@@ -80,12 +81,9 @@ export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="description" className="mt-6">
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {/* Description is pre-sanitized from CivitAI API */}
-                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: CivitAI API provides sanitized HTML */}
-                  <div dangerouslySetInnerHTML={{ __html: model.description }} />
-                </div>
+              <TabsContent value="about" className="mt-4">
+                {/* Description is pre-sanitized HTML from CivitAI API */}
+                <MarkdownContent html={model.description} asCard={false} className="prose-sm" />
               </TabsContent>
 
               <TabsContent value="usage" className="mt-6">

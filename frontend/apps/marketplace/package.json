@@ -23,6 +23,7 @@
     "@rbee/marketplace-node": "workspace:*",
     "@rbee/ui": "workspace:*",
     "lucide-react": "^0.553.0",
+    "marked": "^17.0.0",
     "next": "16.0.1",
     "next-themes": "^0.4.6",
     "react": "19.2.0",

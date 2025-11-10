@@ -51,17 +51,22 @@ export function WorkerListTemplate({
       )}
 
       {/* Grid */}
-      <MarketplaceGrid
-        items={workers}
-        renderItem={(worker) => (
-          <WorkerCard key={worker.id} worker={worker} onAction={onWorkerAction} onClick={onWorkerClick} />
-        )}
-        isLoading={isLoading}
-        error={error}
-        emptyMessage={emptyMessage}
-        emptyDescription={emptyDescription}
-        columns={3}
-      />
+      {isLoading ? (
+        <div className="text-center py-12">Loading...</div>
+      ) : error ? (
+        <div className="text-center py-12 text-destructive">{error}</div>
+      ) : workers.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-lg font-medium">{emptyMessage}</p>
+          <p className="text-muted-foreground mt-2">{emptyDescription}</p>
+        </div>
+      ) : (
+        <MarketplaceGrid>
+          {workers.map((worker) => (
+            <WorkerCard key={worker.id} worker={worker} onAction={onWorkerAction} onClick={onWorkerClick} />
+          ))}
+        </MarketplaceGrid>
+      )}
     </div>
   )
 }

@@ -8,6 +8,12 @@
 
 // Atoms (Pure presentation)
 export * from './atoms/CompatibilityBadge'
+// Molecules (Pure presentation)
+export * from './molecules/DatasetsUsedCard' // TEAM-464: HuggingFace datasets display
+export * from './molecules/InferenceProvidersCard' // TEAM-464: HuggingFace inference info
+export * from './molecules/ModelFilesList'
+export * from './molecules/ModelMetadataCard'
+export * from './molecules/WidgetDataCard' // TEAM-464: HuggingFace widget examples
 // Organisms (Pure presentation)
 export * from './organisms/CategoryFilterBar'
 export * from './organisms/CivitAIDetailsCard' // TEAM-463: Premium CivitAI components
@@ -20,6 +26,7 @@ export * from './organisms/ModelCardVertical'
 export * from './organisms/ModelTable'
 export * from './organisms/UniversalFilterBar' // TEAM-423: Works in both SSG and GUI
 export * from './organisms/WorkerCard'
+export * from './organisms/WorkerCompatibilityList'
 // Templates (Pure presentation, no hooks)
 export * from './templates/ArtifactDetailPageTemplate' // TEAM-421: Unified artifact detail template
 export * from './templates/CivitAIModelDetail' // TEAM-463: CivitAI Stable Diffusion model detail

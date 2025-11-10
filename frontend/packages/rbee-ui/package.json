@@ -3,7 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "sideEffects": ["**/*.css", "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.svg"],
+  "sideEffects": [
+    "**/*.css",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.webp",
+    "**/*.svg"
+  ],
   "exports": {
     "./styles.css": "./dist/index.css",
     "./globals": "./src/tokens/globals.css",
@@ -34,7 +41,10 @@
     "./marketplace": "./src/marketplace/index.ts",
     "./marketplace/*": "./src/marketplace/*/index.ts"
   },
-  "files": ["src", "dist"],
+  "files": [
+    "src",
+    "dist"
+  ],
   "scripts": {
     "build": "pnpm run build:styles && pnpm run build:components",
     "build:styles": "postcss ./src/tokens/globals.css -o ./dist/index.css",
@@ -134,8 +144,11 @@
     "prism-react-renderer": "^2.4.1",
     "react-day-picker": "^9.11.1",
     "react-hook-form": "^7.66.0",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.6",
     "recharts": "^3.3.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "vaul": "^1.1.2",

@@ -20,8 +20,12 @@ import {
   MessageSquare,
   Shield,
 } from 'lucide-react'
+import { MarkdownContent } from '@rbee/ui/molecules'
+import { DatasetsUsedCard } from '../../molecules/DatasetsUsedCard'
+import { InferenceProvidersCard } from '../../molecules/InferenceProvidersCard'
 import { ModelFilesList } from '../../molecules/ModelFilesList'
 import { ModelMetadataCard } from '../../molecules/ModelMetadataCard'
+import { WidgetDataCard } from '../../molecules/WidgetDataCard'
 import { WorkerCompatibilityList } from '../../organisms/WorkerCompatibilityList'
 import type { CompatibilityResult, Worker } from '../../types/compatibility'
 import { ArtifactDetailPageTemplate } from '../ArtifactDetailPageTemplate'
@@ -39,24 +43,66 @@ export interface HFModelDetailData {
 
   // HuggingFace specific (optional)
   pipeline_tag?: string
+  library_name?: string
   sha?: string
+  mask_token?: string
+  
+  // TEAM-464: Widget data for inference examples
+  widgetData?: Array<{
+    source_sentence?: string
+    sentences?: string[]
+    text?: string
+  }>
+  
   config?: {
     architectures?: string[]
     model_type?: string
     tokenizer_config?: {
+      unk_token?: string
+      sep_token?: string
+      pad_token?: string
+      cls_token?: string
+      mask_token?: string
       bos_token?: string | { content?: string; [key: string]: any }
       eos_token?: string | { content?: string; [key: string]: any }
       chat_template?: string
     }
   }
+  
+  // TEAM-464: Extended card data
   cardData?: {
     base_model?: string
     license?: string
-    language?: string[]
+    language?: string | string[]
+    datasets?: string[]
+    pipeline_tag?: string
   }
+  
+  // TEAM-464: Transformers info for inference
+  transformersInfo?: {
+    auto_model?: string
+    pipeline_tag?: string
+    processor?: string
+  }
+  
+  // TEAM-464: Inference status
+  inference?: 'warm' | 'cold' | string
+  
+  // TEAM-464: Safetensors parameters
+  safetensors?: {
+    parameters?: {
+      I64?: number
+      F32?: number
+      [key: string]: number | undefined
+    }
+    total?: number
+  }
+  
+  // TEAM-464: Spaces using this model
+  spaces?: string[]
+  
   // TEAM-463: ⚠️ TYPE CONTRACT - must match artifacts-contract::ModelFile
   siblings?: Array<{ filename: string; size?: number | null }>
-  widgetData?: Array<{ text: string }>
   createdAt?: string
   lastModified?: string
 
@@ -64,6 +110,9 @@ export interface HFModelDetailData {
   images?: Array<{ url: string; nsfw?: boolean }>
   externalUrl?: string // CivitAI or HuggingFace URL
   externalLabel?: string // "View on CivitAI" or "View on HuggingFace"
+  
+  // TEAM-464: README content (raw markdown for react-markdown)
+  readmeMarkdown?: string
 }
 
 export interface HFModelDetailPageTemplateProps {
@@ -154,6 +203,13 @@ export function HFModeldetail({
   // Main content sections
   const mainContent = (
     <>
+      {/* TEAM-464: README / Model Card */}
+      {model.readmeMarkdown && (
+        <section>
+          <MarkdownContent markdown={model.readmeMarkdown} title="Model Card" />
+        </section>
+      )}
+
       {/* TEAM-427: Image Gallery for CivitAI models */}
       {model.images && model.images.length > 0 && (
         <section>
@@ -194,6 +250,19 @@ export function HFModeldetail({
           </Card>
         </section>
       )}
+
+      {/* TEAM-464: Inference Providers */}
+      <InferenceProvidersCard
+        inferenceStatus={model.inference}
+        libraryName={model.library_name}
+        transformersInfo={model.transformersInfo}
+      />
+
+      {/* TEAM-464: Widget Data / Usage Examples */}
+      <WidgetDataCard widgetData={model.widgetData} pipelineTag={model.pipeline_tag} />
+
+      {/* TEAM-464: Datasets Used */}
+      <DatasetsUsedCard datasets={model.cardData?.datasets} />
 
       {/* Basic Info */}
       <section>
@@ -313,8 +382,10 @@ export function HFModeldetail({
                     {
                       label: 'Languages',
                       value:
-                        model.cardData.language.slice(0, 5).join(', ') +
-                        (model.cardData.language.length > 5 ? '...' : ''),
+                        typeof model.cardData.language === 'string'
+                          ? model.cardData.language
+                          : model.cardData.language.slice(0, 5).join(', ') +
+                            (model.cardData.language.length > 5 ? '...' : ''),
                       icon: <Languages className="size-4" />,
                     },
                   ]

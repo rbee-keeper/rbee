@@ -208,20 +208,23 @@ export function ArtifactDetailPageTemplate({
 
         {/* Right column - Main content */}
         <article className={leftSidebar ? 'lg:col-span-2 space-y-6' : 'lg:col-span-3 space-y-6'}>
-          {/* Description card */}
-          <section>
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: description }}
-                />
-              </CardContent>
-            </Card>
-          </section>
+          {/* Description card - only show if description has content */}
+          {description && description.trim() && (
+            <section>
+              <Card>
+                <CardHeader>
+                  <CardTitle>About</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div 
+                    className="text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: Description is sanitized
+                    dangerouslySetInnerHTML={{ __html: description }}
+                  />
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
           {/* Additional content sections */}
           {mainContent}

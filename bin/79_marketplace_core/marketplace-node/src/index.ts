@@ -29,7 +29,7 @@ import {
   fetchCivitAIModel, 
   fetchCivitAIModels 
 } from './civitai'
-import { fetchHFModel, fetchHFModels, type HFModel } from './huggingface'
+import { fetchHFModel, fetchHFModels, fetchHFModelReadme, type HFModel } from './huggingface'
 import type { CompatibilityConfidence, CompatibilityResult, Model, ModelMetadata, SearchOptions } from './types'
 
 // TEAM-413: Lazy-load WASM to avoid build-time issues in Next.js
@@ -56,6 +56,7 @@ export type {
 } from './civitai'
 // Re-export types
 export type { CompatibilityResult, Model, ModelFile, ModelMetadata, SearchOptions, Worker } from './types'
+export type { HFModel } from './huggingface'
 // TEAM-453: Export worker catalog functions
 export { getWorker, listWorkers } from './workers'
 export type { WorkerCatalogEntry } from './workers'
@@ -154,6 +155,27 @@ export async function listHuggingFaceModels(options: SearchOptions = {}): Promis
 export async function getHuggingFaceModel(modelId: string): Promise<Model> {
   const hfModel = await fetchHFModel(modelId)
   return convertHFModel(hfModel)
+}
+
+/**
+ * TEAM-464: Get raw HuggingFace model with ALL fields preserved
+ * 
+ * Use this for detail pages where you need all the HuggingFace-specific data
+ * like widgetData, spaces, safetensors, transformersInfo, etc.
+ *
+ * @param modelId - Model ID (e.g., "sentence-transformers/all-MiniLM-L6-v2")
+ * @returns Raw HuggingFace model with all API fields
+ *
+ * @example
+ * ```typescript
+ * const model = await getRawHuggingFaceModel('sentence-transformers/all-MiniLM-L6-v2')
+ * console.log(model.widgetData) // Inference examples
+ * console.log(model.spaces) // Spaces using this model
+ * console.log(model.safetensors) // Model parameters
+ * ```
+ */
+export async function getRawHuggingFaceModel(modelId: string): Promise<HFModel> {
+  return fetchHFModel(modelId)
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -454,6 +476,20 @@ export async function getCompatibleCivitaiModels(
  */
 export async function getCivitaiModel(modelId: number): Promise<CivitAIModel> {
   return fetchCivitAIModel(modelId)
+}
+
+/**
+ * TEAM-464: Fetch README.md from HuggingFace model repository
+ * 
+ * @param modelId - Model ID (e.g., "sentence-transformers/all-MiniLM-L6-v2")
+ * @param revision - Git revision (default: "main")
+ * @returns README content as markdown string, or null if not found
+ */
+export async function getHuggingFaceModelReadme(
+  modelId: string,
+  revision?: string,
+): Promise<string | null> {
+  return fetchHFModelReadme(modelId, revision)
 }
 
 // TODO: Implement Worker Catalog in future phases

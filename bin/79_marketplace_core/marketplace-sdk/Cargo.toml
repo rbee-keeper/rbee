@@ -58,6 +58,10 @@ thiserror = "1.0"
 # TEAM-405: Tauri type generation (non-WASM only)
 specta = { version = "=2.0.0-rc.22", features = ["derive"], optional = true }
 
+# TEAM-463: Narration for debugging
+observability-narration-core = { path = "../../99_shared_crates/narration-core" }
+stdext = "0.3"  # Required by narration-core for function_name!() macro
+
 [features]
 # TEAM-405: Enable specta for Tauri bindings
 specta = ["dep:specta"]

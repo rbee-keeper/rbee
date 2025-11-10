@@ -1,6 +1,7 @@
 // TEAM-421: Worker details page - Shows detailed info about a specific worker
+// TEAM-463: Updated comment - ModelDetailsPage split into HuggingFace/CivitAI pages
 // DATA LAYER: Tauri commands + React Query
-// PRESENTATION: ArtifactDetailPageTemplate (unified with ModelDetailsPage)
+// PRESENTATION: ArtifactDetailPageTemplate (unified with model detail pages)
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { ArtifactDetailPageTemplate, useArtifactActions } from '@rbee/ui/marketplace'

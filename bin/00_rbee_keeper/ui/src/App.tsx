@@ -7,6 +7,7 @@
 // TEAM-405: Added Marketplace pages (LLM Models, Image Models, Rbee Workers)
 // TEAM-423: Renamed to HuggingFace and Civitai for clarity
 // TEAM-413: Added protocol listener for rbee:// URL handling
+// TEAM-463: Separated model detail pages by source (HuggingFace, CivitAI)
 
 import { broadcastThemeChanges } from '@rbee/iframe-bridge'
 import { SidebarProvider } from '@rbee/ui/atoms'
@@ -19,7 +20,8 @@ import HivePage from './pages/HivePage'
 import { MarketplaceCivitai } from './pages/MarketplaceCivitai'
 import { MarketplaceHuggingFace } from './pages/MarketplaceHuggingFace'
 import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
-import { ModelDetailsPage } from './pages/ModelDetailsPage'
+import { ModelDetailsCivitAIPage } from './pages/ModelDetailsCivitAIPage'
+import { ModelDetailsHuggingFacePage } from './pages/ModelDetailsHuggingFacePage'
 import QueenPage from './pages/QueenPage'
 import KeeperPage from './pages/ServicesPage'
 import SettingsPage from './pages/SettingsPage'
@@ -62,8 +64,9 @@ function AppRoutes() {
           <Route path="/queen" element={<QueenPage />} />
           <Route path="/hive/:hiveId" element={<HivePage />} />
           <Route path="/marketplace/huggingface" element={<MarketplaceHuggingFace />} />
-          <Route path="/marketplace/huggingface/:modelId" element={<ModelDetailsPage />} />
+          <Route path="/marketplace/huggingface/:modelId" element={<ModelDetailsHuggingFacePage />} />
           <Route path="/marketplace/civitai" element={<MarketplaceCivitai />} />
+          <Route path="/marketplace/civitai/:modelId" element={<ModelDetailsCivitAIPage />} />
           <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
           <Route path="/marketplace/rbee-workers/:workerId" element={<WorkerDetailsPage />} />
           <Route path="/settings" element={<SettingsPage />} />

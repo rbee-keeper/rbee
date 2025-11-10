@@ -131,7 +131,11 @@ impl HuggingFaceClient {
     /// # Arguments
     /// * `model_id` - Model ID (e.g., "meta-llama/Llama-3.2-1B")
     pub async fn get_model(&self, model_id: &str) -> Result<Model> {
+        use observability_narration_core::n;
+        
         let url = format!("{}/models/{}", HF_API_BASE, model_id);
+
+        n!("HuggingFaceClient::get_model", "🔍 Fetching model from URL: {}", url);
 
         let response = self
             .client
@@ -140,15 +144,34 @@ impl HuggingFaceClient {
             .await
             .context("Failed to fetch model from HuggingFace")?;
 
+        let status = response.status();
+        n!("HuggingFaceClient::get_model", "📡 Response status: {}", status);
+
+        if !status.is_success() {
+            n!("HuggingFaceClient::get_model", "❌ API returned error status: {}", status);
+            anyhow::bail!("HuggingFace API returned status {}: {}", status.as_u16(), status.canonical_reason().unwrap_or("Unknown"));
+        }
+
         let raw_json = response
             .text()
             .await
             .context("Failed to get response text")?;
 
+        n!("HuggingFaceClient::get_model", "📦 Response length: {} bytes", raw_json.len());
+        n!("HuggingFaceClient::get_model", "📄 Response preview (first 500 chars): {}", 
+            if raw_json.len() > 500 { &raw_json[..500] } else { &raw_json });
+
         let hf_model: HFModelResponse = serde_json::from_str(&raw_json)
-            .context("Failed to parse HuggingFace model response")?;
+            .map_err(|e| {
+                n!("HuggingFaceClient::get_model", "❌ JSON parse error: {}", e);
+                n!("HuggingFaceClient::get_model", "📄 Full response body:\n{}", raw_json);
+                anyhow::anyhow!("Failed to parse HuggingFace model response: {}. See logs for full response.", e)
+            })?;
+
+        n!("HuggingFaceClient::get_model", "✅ Successfully parsed model: {}", hf_model.model_id);
 
         if hf_model.private {
+            n!("HuggingFaceClient::get_model", "🔒 Model is private");
             anyhow::bail!("Model is private");
         }
 

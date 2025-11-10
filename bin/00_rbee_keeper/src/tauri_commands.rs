@@ -612,28 +612,74 @@ pub async fn marketplace_search_models(
 
 /// Get a specific model by ID from HuggingFace
 /// TEAM-405: Fetch detailed information for a single model
+/// TEAM-463: Updated to handle both HuggingFace and CivitAI models
 #[tauri::command]
 #[specta::specta]
 pub async fn marketplace_get_model(
     model_id: String,
 ) -> Result<marketplace_sdk::Model, String> {
-    use marketplace_sdk::HuggingFaceClient;
+    use marketplace_sdk::{CivitaiClient, HuggingFaceClient};
     use observability_narration_core::n;
 
     n!("marketplace_get_model", "🔍 Fetching model: {}", model_id);
 
-    let client = HuggingFaceClient::new();
-    client
-        .get_model(&model_id)
-        .await
-        .map_err(|e| {
-            n!("marketplace_get_model", "❌ Error: {}", e);
-            format!("Failed to fetch model: {}", e)
-        })
-        .map(|model| {
-            n!("marketplace_get_model", "✅ Found model: {}", model.name);
-            model
-        })
+    // TEAM-463: Detect source from model ID prefix
+    if model_id.starts_with("civitai-") {
+        // CivitAI model - extract numeric ID
+        let civitai_id = model_id
+            .strip_prefix("civitai-")
+            .and_then(|id_str| id_str.parse::<i64>().ok())
+            .ok_or_else(|| {
+                n!("marketplace_get_model", "❌ Invalid CivitAI ID format: {}", model_id);
+                format!("Invalid CivitAI model ID format: {}", model_id)
+            })?;
+
+        n!("marketplace_get_model", "🎨 Fetching CivitAI model ID: {}", civitai_id);
+
+        let client = CivitaiClient::new();
+        client
+            .get_model(civitai_id)
+            .await
+            .map_err(|e| {
+                n!("marketplace_get_model", "❌ CivitAI Error: {}", e);
+                format!("Failed to fetch CivitAI model: {}", e)
+            })
+            .map(|civitai_model| {
+                let model = client.to_marketplace_model(&civitai_model);
+                n!("marketplace_get_model", "✅ Found CivitAI model: {}", model.name);
+                model
+            })
+    } else {
+        // HuggingFace model (default)
+        // TEAM-463: Strip "huggingface-" prefix if present (SDK adds it back)
+        let hf_model_id = model_id
+            .strip_prefix("huggingface-")
+            .unwrap_or(&model_id);
+
+        n!("marketplace_get_model", "🤗 Fetching HuggingFace model");
+        n!("marketplace_get_model", "   Original ID: {}", model_id);
+        n!("marketplace_get_model", "   Stripped ID: {}", hf_model_id);
+
+        let client = HuggingFaceClient::new();
+        
+        n!("marketplace_get_model", "📡 Calling HuggingFaceClient::get_model()...");
+        
+        match client.get_model(hf_model_id).await {
+            Ok(model) => {
+                n!("marketplace_get_model", "✅ Successfully fetched model: {}", model.name);
+                n!("marketplace_get_model", "   Model ID: {}", model.id);
+                n!("marketplace_get_model", "   Author: {:?}", model.author);
+                n!("marketplace_get_model", "   Downloads: {}", model.downloads);
+                Ok(model)
+            }
+            Err(e) => {
+                n!("marketplace_get_model", "❌ HuggingFace Error: {}", e);
+                n!("marketplace_get_model", "   Error details: {:?}", e);
+                n!("marketplace_get_model", "   Model ID attempted: {}", hf_model_id);
+                Err(format!("Failed to fetch model: {}", e))
+            }
+        }
+    }
 }
 
 /// List models from Civitai

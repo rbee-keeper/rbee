@@ -1,6 +1,5 @@
-// TEAM-405: Model details page - Using reusable template
-// TEAM-411: Added compatibility checking
-// TEAM-421: Added environment-aware actions
+// TEAM-463: CivitAI model details page - Separated from generic ModelDetailsPage
+// Created by: TEAM-463
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: ModelDetailPageTemplate from rbee-ui
 
@@ -12,14 +11,13 @@ import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { checkModelCompatibility } from '@/api/compatibility'
 import type { Model } from '@/generated/bindings'
 
-export function ModelDetailsPage() {
+export function ModelDetailsCivitAIPage() {
   const { modelId } = useParams<{ modelId: string }>()
   const navigate = useNavigate()
 
-  // TEAM-421: Environment-aware actions
+  // Environment-aware actions
   const actions = useArtifactActions({
     onActionSuccess: (action) => {
       console.log(`✅ ${action} started successfully`)
@@ -35,7 +33,7 @@ export function ModelDetailsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['marketplace', 'model', modelId],
+    queryKey: ['marketplace', 'civitai', 'model', modelId],
     queryFn: async () => {
       if (!modelId) throw new Error('No model ID provided')
       const result = await invoke<Model>('marketplace_get_model', {
@@ -45,30 +43,6 @@ export function ModelDetailsPage() {
     },
     enabled: !!modelId,
     staleTime: 5 * 60 * 1000,
-  })
-
-  // TEAM-411: Check compatibility with all worker types
-  const { data: compatibilityData } = useQuery({
-    queryKey: ['compatibility', modelId],
-    queryFn: async () => {
-      if (!modelId) return null
-      const decodedId = decodeURIComponent(modelId)
-
-      // Check compatibility with all worker types
-      const [cpuCompat, cudaCompat, metalCompat] = await Promise.all([
-        checkModelCompatibility(decodedId, 'cpu').catch(() => null),
-        checkModelCompatibility(decodedId, 'cuda').catch(() => null),
-        checkModelCompatibility(decodedId, 'metal').catch(() => null),
-      ])
-
-      return {
-        cpu: cpuCompat,
-        cuda: cudaCompat,
-        metal: metalCompat,
-      }
-    },
-    enabled: !!modelId,
-    staleTime: 60 * 60 * 1000, // Cache for 1 hour
   })
 
   // Transform Model to ModelDetailData format
@@ -82,42 +56,9 @@ export function ModelDetailsPage() {
         likes: rawModel.likes,
         size: rawModel.size,
         tags: rawModel.tags,
-        // Pass through all HuggingFace-specific fields
+        // Pass through all CivitAI-specific fields
         ...(rawModel as any),
       }
-    : undefined
-
-  // TEAM-411: Build compatible workers array for template
-  const compatibleWorkers = compatibilityData
-    ? ([
-        compatibilityData.cpu && {
-          worker: {
-            id: 'cpu',
-            name: 'CPU Worker',
-            worker_type: 'cpu' as const,
-            platform: ['linux', 'macos', 'windows'],
-          },
-          compatibility: compatibilityData.cpu,
-        },
-        compatibilityData.cuda && {
-          worker: {
-            id: 'cuda',
-            name: 'CUDA Worker',
-            worker_type: 'cuda' as const,
-            platform: ['linux'],
-          },
-          compatibility: compatibilityData.cuda,
-        },
-        compatibilityData.metal && {
-          worker: {
-            id: 'metal',
-            name: 'Metal Worker',
-            worker_type: 'metal' as const,
-            platform: ['macos'],
-          },
-          compatibility: compatibilityData.metal,
-        },
-      ].filter(Boolean) as any[])
     : undefined
 
   if (isLoading) {
@@ -142,9 +83,9 @@ export function ModelDetailsPage() {
             <p className="text-muted-foreground mb-6">
               {error ? `Error: ${String(error)}` : "The model you're looking for doesn't exist or has been removed."}
             </p>
-            <Button onClick={() => navigate('/marketplace/llm-models')}>
+            <Button onClick={() => navigate('/marketplace/civitai')}>
               <ArrowLeft className="size-4 mr-2" />
-              Back to Models
+              Back to CivitAI Models
             </Button>
           </CardContent>
         </Card>
@@ -155,15 +96,17 @@ export function ModelDetailsPage() {
   return (
     <PageContainer
       title={model.name}
-      description={model.author ? `by ${model.author}` : 'Language Model'}
+      description={model.author ? `by ${model.author}` : 'CivitAI Image Model'}
       padding="default"
     >
       <ModelDetailPageTemplate
         model={model}
-        onBack={() => navigate('/marketplace/llm-models')}
+        onBack={() => navigate('/marketplace/civitai')}
         onDownload={() => actions.downloadModel(model.id)}
         isLoading={isLoading}
-        compatibleWorkers={compatibleWorkers}
+        // CivitAI models are Stable Diffusion, not LLMs - different worker compatibility
+        // For now, pass undefined and let the component handle it gracefully
+        compatibleWorkers={undefined}
       />
     </PageContainer>
   )

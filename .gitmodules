@@ -1,11 +1,7 @@
 [submodule "frontend/apps/commercial"]
 	path = frontend/apps/commercial
 	url = git@github.com:veighnsche/rbee-commercial-private.git
-	# Private repository - shields commercial site from public repo
 
 [submodule "frontend/apps/admin"]
-    path = frontend/apps/admin
-    url = git@github.com:veighnsche/rbee-admin.git
-[submodule "bin/78-admin"]
-	path = bin/78-admin
+	path = frontend/apps/admin
 	url = git@github.com:veighnsche/rbee-admin.git

@@ -2,10 +2,12 @@
 
 // TEAM-427: Environment-aware conversion CTA using rbee-ui components
 // Refactored from ad-hoc implementation to use proper atomic design
+// TEAM-XXX: Using @rbee/env-config for environment-aware URLs
 
 import { getEnvironment } from '@rbee/ui/utils'
 import { Button, Card, CardContent } from '@rbee/ui/atoms'
 import { Download, ExternalLink, Sparkles } from 'lucide-react'
+import { urls } from '@rbee/env-config'
 
 interface InstallCTAProps {
   artifactType: 'model' | 'worker'
@@ -54,7 +56,7 @@ export function InstallCTA({ artifactType, artifactName }: InstallCTAProps) {
             <div className="flex flex-wrap gap-3">
               <Button size="lg" asChild>
                 <a
-                  href="https://docs.rbee.dev/docs/getting-started/installation"
+                  href={`${urls.docs}/docs/getting-started/installation`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -63,7 +65,7 @@ export function InstallCTA({ artifactType, artifactName }: InstallCTAProps) {
                 </a>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <a href="https://rbee.dev" target="_blank" rel="noopener noreferrer">
+                <a href={urls.commercial} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="size-4" />
                   Learn More
                 </a>

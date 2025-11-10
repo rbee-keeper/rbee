@@ -1,14 +1,16 @@
 // TEAM-424: User docs navigation config
+// TEAM-XXX: Using @rbee/env-config for environment-aware URLs
 import type { NavigationConfig } from '@rbee/ui/organisms/Navigation'
+import { urls } from '@rbee/env-config'
 
 export const userDocsNavConfig: NavigationConfig = {
-  logoHref: 'https://rbee.dev',
+  logoHref: urls.commercial,
   sections: [
     {
       type: 'linkGroup',
       links: [
-        { label: 'Home', href: 'https://rbee.dev' },
-        { label: 'Marketplace', href: 'https://marketplace.rbee.dev' },
+        { label: 'Home', href: urls.commercial },
+        { label: 'Marketplace', href: urls.marketplace.home },
         { label: 'Docs', href: '/docs' },
         { label: 'Quick Start', href: '/docs/getting-started/installation' },
         { label: 'API', href: '/docs/reference/api-openai-compatible' },
@@ -18,7 +20,7 @@ export const userDocsNavConfig: NavigationConfig = {
   ],
   actions: {
     github: {
-      url: 'https://github.com/rbee-keeper/rbee',
+      url: urls.github.repo,
     },
     cta: {
       label: 'Download',

@@ -5,6 +5,7 @@ import { Input } from '@rbee/ui/atoms/Input'
 import { DiscordIcon, GitHubIcon, XTwitterIcon } from '@rbee/ui/icons'
 import { BrandLogo, FooterColumn } from '@rbee/ui/molecules'
 import { MessageCircle } from 'lucide-react'
+import { urls } from '@rbee/env-config'
 
 export function Footer() {
   const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -41,11 +42,11 @@ export function Footer() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm" className="h-9">
-              <a href="https://docs.rbee.dev">Documentation</a>
+              <a href={urls.docs}>Documentation</a>
             </Button>
             <Button asChild variant="outline" size="sm" className="h-9">
               <a
-                href="https://github.com/rbee-keeper/rbee"
+                href={urls.github.repo}
                 target="_blank"
                 rel="noreferrer"
                 title="Opens in a new tab"
@@ -94,23 +95,23 @@ export function Footer() {
             title="Resources"
             links={[
               {
-                href: 'https://docs.rbee.dev',
+                href: urls.docs,
                 text: 'Documentation',
                 external: true,
               },
               {
-                href: 'https://docs.rbee.dev/getting-started',
+                href: `${urls.docs}/getting-started`,
                 text: 'Getting Started',
                 external: true,
               },
               {
-                href: 'https://marketplace.rbee.dev',
+                href: urls.marketplace.home,
                 text: 'Model Marketplace',
                 external: true,
               },
               { href: '/blog', text: 'Blog' },
               {
-                href: 'https://github.com/rbee-keeper/rbee',
+                href: urls.github.repo,
                 text: 'GitHub',
                 external: true,
               },
@@ -126,7 +127,7 @@ export function Footer() {
                 external: true,
               },
               {
-                href: 'https://github.com/rbee-keeper/rbee/discussions',
+                href: urls.github.discussions,
                 text: 'Discussions',
                 external: true,
               },
@@ -147,7 +148,7 @@ export function Footer() {
               { href: '/legal/privacy', text: 'Privacy' },
               { href: '/legal/terms', text: 'Terms' },
               {
-                href: 'https://github.com/rbee-keeper/rbee/blob/main/LICENSE',
+                href: `${urls.github.repo}/blob/main/LICENSE`,
                 text: 'License',
                 external: true,
               },
@@ -165,7 +166,7 @@ export function Footer() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="https://github.com/rbee-keeper/rbee"
+              href={urls.github.repo}
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub"
@@ -175,7 +176,7 @@ export function Footer() {
               <GitHubIcon size={20} />
             </a>
             <a
-              href="https://github.com/rbee-keeper/rbee/discussions"
+              href={urls.github.discussions}
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub Discussions"

@@ -37,7 +37,7 @@ const PROD_URLS = {
   commercial: 'https://rbee.dev',
   marketplace: 'https://marketplace.rbee.dev',
   docs: 'https://docs.rbee.dev',
-  github: 'https://github.com/veighnsche/llama-orch',
+  github: 'https://github.com/rbee-keeper/rbee',
 } as const
 
 /**
@@ -128,7 +128,7 @@ export const corsOrigins = {
 } as const
 
 // Build-time validation and logging (only in development, server-side only)
-if (isDev && typeof globalThis !== 'undefined' && typeof (globalThis as any).window === 'undefined') {
+if (isDev && typeof globalThis !== 'undefined' && typeof (globalThis as Record<string, unknown>).window === 'undefined') {
   console.log('[env-config] Environment configuration loaded:', {
     NODE_ENV: process.env.NODE_ENV,
     commercialUrl: env.commercialUrl,
@@ -136,6 +136,23 @@ if (isDev && typeof globalThis !== 'undefined' && typeof (globalThis as any).win
     docsUrl: env.docsUrl,
     githubUrl: env.githubUrl,
   })
+
+  // TEAM-XXX: Warn if .env.local contains production URLs in development
+  const hasProductionUrls =
+    process.env.NEXT_PUBLIC_SITE_URL?.includes('rbee.dev') ||
+    process.env.NEXT_PUBLIC_MARKETPLACE_URL?.includes('rbee.dev') ||
+    process.env.NEXT_PUBLIC_DOCS_URL?.includes('rbee.dev')
+
+  if (hasProductionUrls) {
+    console.warn('')
+    console.warn('⚠️  WARNING: .env.local contains production URLs!')
+    console.warn('⚠️  Development links will go to production instead of localhost.')
+    console.warn('⚠️  Update .env.local to use localhost URLs:')
+    console.warn('⚠️    NEXT_PUBLIC_SITE_URL=http://localhost:7822')
+    console.warn('⚠️    NEXT_PUBLIC_MARKETPLACE_URL=http://localhost:7823')
+    console.warn('⚠️    NEXT_PUBLIC_DOCS_URL=http://localhost:7811')
+    console.warn('')
+  }
 }
 
 // Export types for TypeScript

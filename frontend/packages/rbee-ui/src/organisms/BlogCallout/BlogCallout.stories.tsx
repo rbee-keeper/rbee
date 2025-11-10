@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { BlogCallout } from './BlogCallout'
 
 const meta: Meta<typeof BlogCallout> = {
@@ -18,9 +18,7 @@ export const Info: Story = {
     variant: 'info',
     title: 'Important Information',
     children: (
-      <p>
-        This is an informational callout. Use it to highlight important details that readers should know about.
-      </p>
+      <p>This is an informational callout. Use it to highlight important details that readers should know about.</p>
     ),
   },
 }
@@ -30,9 +28,7 @@ export const Success: Story = {
     variant: 'success',
     title: 'Success Story',
     children: (
-      <p>
-        This company reduced their AI infrastructure costs by 90% after switching to rbee. Monthly savings: $8,500.
-      </p>
+      <p>This company reduced their AI infrastructure costs by 90% after switching to rbee. Monthly savings: $8,500.</p>
     ),
   },
 }

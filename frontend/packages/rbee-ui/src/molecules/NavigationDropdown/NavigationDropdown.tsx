@@ -36,7 +36,7 @@ export function NavigationDropdown({ title, links, cta, width = 'sm' }: Navigati
 
   return (
     <NavigationMenuItem>
-      <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
+      <NavigationMenuTrigger className="!bg-transparent hover:!bg-transparent focus:!bg-transparent data-[state=open]:!bg-transparent px-2 text-sm font-medium text-foreground/80 hover:!text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
         {title}
       </NavigationMenuTrigger>
       <NavigationMenuContent className="animate-fade-in md:motion-safe:animate-slide-in-down border border-border">

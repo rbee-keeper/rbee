@@ -1,4 +1,5 @@
 // TEAM-460: Civitai API client for marketplace-sdk
+// TEAM-463: Now uses canonical CivitAI types from artifacts-contract
 //! Civitai API client for searching and listing Stable Diffusion models
 //!
 //! This is the NATIVE Rust implementation (not WASM) for use in Tauri/backend.
@@ -7,33 +8,20 @@ use crate::types::{Model, ModelFile, ModelProvider, ModelCategory};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
+// TEAM-463: Import canonical CivitAI types from artifacts-contract
+// TEAM-464: Import shared filter types
+use artifacts_contract::{
+    CivitaiStats, CivitaiCreator,
+    CivitaiFilters, CivitaiModelType, TimePeriod, BaseModel,
+};
+
 /// Civitai API base URL
 const CIVITAI_API_BASE: &str = "https://civitai.com/api/v1";
 
-/// Civitai model type
+/// Civitai model response from API (internal parsing type)
+/// TEAM-463: Keep for API parsing. Convert to marketplace Model via to_marketplace_model().
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub enum CivitaiModelType {
-    /// Stable Diffusion checkpoint model
-    Checkpoint,
-    /// Textual inversion embedding
-    TextualInversion,
-    /// Hypernetwork model
-    Hypernetwork,
-    /// Aesthetic gradient model
-    AestheticGradient,
-    /// LoRA (Low-Rank Adaptation) model
-    #[serde(rename = "LORA")]
-    Lora,
-    /// ControlNet model for guided generation
-    Controlnet,
-    /// Pose/skeleton models
-    Poses,
-}
-
-/// Civitai model response from API
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivitaiModelResponse {
+pub(crate) struct CivitaiModelResponse {
     /// Unique model ID
     pub id: i64,
     /// Model name
@@ -53,9 +41,9 @@ pub struct CivitaiModelResponse {
     /// Whether credit is required
     #[serde(rename = "allowNoCredit", default)]
     pub allow_no_credit: bool,
-    /// Commercial use permission level
+    /// Commercial use permission level (e.g., ["Image", "RentCivit", "Sell"])
     #[serde(rename = "allowCommercialUse", default)]
-    pub allow_commercial_use: String,
+    pub allow_commercial_use: Vec<String>,
     /// Whether derivatives are allowed
     #[serde(rename = "allowDerivatives", default)]
     pub allow_derivatives: bool,
@@ -71,42 +59,17 @@ pub struct CivitaiModelResponse {
     pub tags: Vec<String>,
     /// Available model versions
     #[serde(rename = "modelVersions", default)]
-    pub model_versions: Vec<CivitaiModelVersion>,
+    pub model_versions: Vec<CivitaiModelVersionResponse>,
 }
 
-/// Civitai model statistics
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivitaiStats {
-    /// Total number of downloads
-    #[serde(rename = "downloadCount", default)]
-    pub download_count: i64,
-    /// Number of favorites
-    #[serde(rename = "favoriteCount", default)]
-    pub favorite_count: i64,
-    /// Number of comments
-    #[serde(rename = "commentCount", default)]
-    pub comment_count: i64,
-    /// Number of ratings
-    #[serde(rename = "ratingCount", default)]
-    pub rating_count: i64,
-    /// Average rating score
-    #[serde(default)]
-    pub rating: f64,
-}
+// TEAM-463: CivitaiStats now imported from artifacts-contract (deleted duplicate)
 
-/// Civitai creator information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivitaiCreator {
-    /// Creator's username
-    pub username: String,
-    /// Creator's profile image URL
-    #[serde(default)]
-    pub image: Option<String>,
-}
+// TEAM-463: CivitaiCreator now imported from artifacts-contract (deleted duplicate)
 
-/// Civitai model version
+/// Civitai model version response from API (internal parsing type)
+/// TEAM-463: Keep this for API parsing. Has extra fields not in contract type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivitaiModelVersion {
+pub(crate) struct CivitaiModelVersionResponse {
     /// Version ID
     pub id: i64,
     /// Parent model ID
@@ -133,10 +96,10 @@ pub struct CivitaiModelVersion {
     pub stats: CivitaiVersionStats,
     /// Available files for this version
     #[serde(default)]
-    pub files: Vec<CivitaiFile>,
+    pub files: Vec<CivitaiFileResponse>,
     /// Example images
     #[serde(default)]
-    pub images: Vec<CivitaiImage>,
+    pub images: Vec<CivitaiImageResponse>,
     /// Direct download URL
     #[serde(rename = "downloadUrl")]
     pub download_url: String,
@@ -153,9 +116,10 @@ pub struct CivitaiVersionStats {
     pub rating: f64,
 }
 
-/// Civitai file information
+/// Civitai file response from API (internal parsing type)
+/// TEAM-463: Keep for API parsing. Has extra security/metadata fields not in contract type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivitaiFile {
+pub(crate) struct CivitaiFileResponse {
     /// File name
     pub name: String,
     /// File ID
@@ -211,9 +175,10 @@ pub struct CivitaiHashes {
     pub blake3: Option<String>,
 }
 
-/// Civitai image information
+/// Civitai image response from API (internal parsing type)
+/// TEAM-463: Keep for API parsing. Has extra metadata fields not in contract type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivitaiImage {
+pub(crate) struct CivitaiImageResponse {
     /// Image URL
     pub url: String,
     /// Whether image is NSFW
@@ -298,83 +263,125 @@ impl CivitaiClient {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn list_models(
-        &self,
-        limit: Option<i32>,
-        page: Option<i32>,
-        types: Option<&str>,
-        sort: Option<&str>,
-        nsfw: Option<bool>,
-        allow_commercial_use: Option<&str>,
-    ) -> Result<CivitaiListResponse> {
-        let mut url = format!("{}/models", CIVITAI_API_BASE);
-        let mut params = Vec::new();
+    pub async fn list_models(&self, filters: &CivitaiFilters) -> Result<CivitaiListResponse> {
+        use observability_narration_core::n;
+        
+        let url = format!("{}/models", CIVITAI_API_BASE);
+        let mut query_params: Vec<(&str, String)> = Vec::new();
 
-        if let Some(limit) = limit {
-            params.push(format!("limit={}", limit));
-        }
-        if let Some(page) = page {
-            params.push(format!("page={}", page));
-        }
-        if let Some(types) = types {
-            params.push(format!("types={}", urlencoding::encode(types)));
-        }
-        if let Some(sort) = sort {
-            params.push(format!("sort={}", urlencoding::encode(sort)));
-        }
-        if let Some(nsfw) = nsfw {
-            params.push(format!("nsfw={}", nsfw));
-        }
-        if let Some(allow_commercial_use) = allow_commercial_use {
-            params.push(format!("allowCommercialUse={}", urlencoding::encode(allow_commercial_use)));
+        // Limit and page
+        query_params.push(("limit", filters.limit.to_string()));
+        n!("civitai_list_models", "📋 limit={}", filters.limit);
+        
+        if let Some(page) = filters.page {
+            query_params.push(("page", page.to_string()));
+            n!("civitai_list_models", "📋 page={}", page);
         }
 
-        if !params.is_empty() {
-            url.push('?');
-            url.push_str(&params.join("&"));
+        // Model types
+        if filters.model_type != CivitaiModelType::All {
+            query_params.push(("types", filters.model_type.as_str().to_string()));
+            n!("civitai_list_models", "📋 types={}", filters.model_type.as_str());
+        } else {
+            query_params.push(("types", "Checkpoint".to_string()));
+            query_params.push(("types", "LORA".to_string()));
+            n!("civitai_list_models", "📋 types=Checkpoint,LORA (default)");
         }
+
+        // Sort
+        query_params.push(("sort", filters.sort.as_str().to_string()));
+        n!("civitai_list_models", "📋 sort={}", filters.sort.as_str());
+
+        // Time period
+        if filters.time_period != TimePeriod::AllTime {
+            query_params.push(("period", filters.time_period.as_str().to_string()));
+            n!("civitai_list_models", "📋 period={}", filters.time_period.as_str());
+        }
+
+        // Base model
+        if filters.base_model != BaseModel::All {
+            query_params.push(("baseModel", filters.base_model.as_str().to_string()));
+            n!("civitai_list_models", "📋 baseModel={}", filters.base_model.as_str());
+        }
+
+        // NSFW filtering
+        let nsfw_levels = filters.nsfw.max_level.allowed_levels();
+        for level in &nsfw_levels {
+            query_params.push(("nsfwLevel", level.as_number().to_string()));
+        }
+        n!("civitai_list_models", "📋 nsfwLevel={:?}", nsfw_levels.iter().map(|l| l.as_number()).collect::<Vec<_>>());
+
+        // TEAM-464: Debug logging - build URL for display
+        let debug_url = if query_params.is_empty() {
+            url.clone()
+        } else {
+            let params_str = query_params
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, urlencoding::encode(v)))
+                .collect::<Vec<_>>()
+                .join("&");
+            format!("{}?{}", url, params_str)
+        };
+        n!("civitai_list_models", "🌐 API Request URL: {}", debug_url);
+        n!("civitai_list_models", "🔢 Total query params: {}", query_params.len());
 
         let response = self
             .client
             .get(&url)
+            .query(&query_params)
             .header("Content-Type", "application/json")
             .send()
             .await
             .context("Failed to send request to Civitai API")?;
 
-        if !response.status().is_success() {
+        let status = response.status();
+        n!("civitai_list_models", "📡 Response status: {}", status);
+
+        if !status.is_success() {
+            let error_text = response.text().await.unwrap_or_default();
+            
+            // TEAM-463: Pretty-print JSON errors for better readability
+            let formatted_error = if let Ok(json) = serde_json::from_str::<serde_json::Value>(&error_text) {
+                serde_json::to_string_pretty(&json).unwrap_or(error_text)
+            } else {
+                error_text
+            };
+            
+            n!("civitai_list_models", "❌ API Error Response: {}", formatted_error);
             anyhow::bail!(
-                "Civitai API error: {} {}",
-                response.status(),
-                response.text().await.unwrap_or_default()
+                "Civitai API error: {}\n{}",
+                status,
+                formatted_error
             );
         }
 
-        let list_response: CivitaiListResponse = response
-            .json()
-            .await
-            .context("Failed to parse Civitai API response")?;
+        // TEAM-464: Get response text first for better error messages
+        let response_text = response.text().await
+            .context("Failed to read response body")?;
+        
+        n!("civitai_list_models", "📦 Response size: {} bytes", response_text.len());
+        
+        // Try to parse and show detailed error if it fails
+        let list_response: CivitaiListResponse = match serde_json::from_str(&response_text) {
+            Ok(parsed) => {
+                n!("civitai_list_models", "✅ Successfully parsed response");
+                parsed
+            }
+            Err(e) => {
+                n!("civitai_list_models", "❌ Parse error: {}", e);
+                n!("civitai_list_models", "📄 Response preview (first 500 chars): {}", 
+                    &response_text.chars().take(500).collect::<String>());
+                anyhow::bail!("Failed to parse Civitai API response: {}\nResponse: {}", e, 
+                    &response_text.chars().take(1000).collect::<String>());
+            }
+        };
 
         Ok(list_response)
     }
 
-    /// Get a specific model by ID
-    ///
-    /// # Arguments
-    /// * `model_id` - Civitai model ID
-    ///
-    /// # Example
-    /// ```no_run
-    /// use marketplace_sdk::CivitaiClient;
-    ///
-    /// # async fn example() -> anyhow::Result<()> {
-    /// let client = CivitaiClient::new();
-    /// let model = client.get_model(1102).await?;
-    /// println!("Model: {}", model.name);
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn get_model(&self, model_id: i64) -> Result<CivitaiModelResponse> {
+    /// Get a specific model by ID (returns internal response type)
+    /// TEAM-463: Internal method. Use get_marketplace_model() for public API.
+    pub(crate) async fn get_model(&self, model_id: i64) -> Result<CivitaiModelResponse> {
         let url = format!("{}/models/{}", CIVITAI_API_BASE, model_id);
 
         let response = self
@@ -401,8 +408,27 @@ impl CivitaiClient {
         Ok(model)
     }
 
+    /// Get a specific model by ID and convert to marketplace Model
+    /// TEAM-463: Public API that returns marketplace Model type
+    ///
+    /// # Example
+    /// ```no_run
+    /// use marketplace_sdk::CivitaiClient;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let client = CivitaiClient::new();
+    /// let model = client.get_marketplace_model(1102).await?;
+    /// println!("Model: {}", model.name);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_marketplace_model(&self, model_id: i64) -> Result<Model> {
+        let civitai_model = self.get_model(model_id).await?;
+        Ok(self.to_marketplace_model(&civitai_model))
+    }
+
     /// Get compatible Stable Diffusion models for rbee
-    /// Filters for safe, high-quality checkpoints and LORAs
+    /// Shows checkpoints and LORAs, sorted by downloads
     ///
     /// # Example
     /// ```no_run
@@ -415,20 +441,24 @@ impl CivitaiClient {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get_compatible_models(&self) -> Result<CivitaiListResponse> {
-        self.list_models(
-            Some(100),                // limit
-            None,                     // page
-            Some("Checkpoint,LORA"),  // types
-            Some("Most Downloaded"),  // sort
-            Some(false),              // nsfw
-            Some("Sell"),             // allow_commercial_use (most permissive)
-        )
-        .await
+    pub(crate) async fn get_compatible_models(&self) -> Result<CivitaiListResponse> {
+        let filters = CivitaiFilters::default();
+        self.list_models(&filters).await
+    }
+
+    /// Get compatible models and convert to marketplace Model types
+    /// TEAM-463: Public API that returns Vec<Model>
+    pub async fn get_compatible_marketplace_models(&self) -> Result<Vec<Model>> {
+        let response = self.get_compatible_models().await?;
+        Ok(response.items
+            .iter()
+            .map(|civitai_model| self.to_marketplace_model(civitai_model))
+            .collect())
     }
 
     /// Convert Civitai model to marketplace Model type
-    pub fn to_marketplace_model(&self, civitai_model: &CivitaiModelResponse) -> Model {
+    /// TEAM-463: Internal conversion function
+    pub(crate) fn to_marketplace_model(&self, civitai_model: &CivitaiModelResponse) -> Model {
         let latest_version = civitai_model.model_versions.first();
 
         Model {

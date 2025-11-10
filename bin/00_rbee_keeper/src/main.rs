@@ -125,6 +125,7 @@ fn launch_gui() {
             marketplace_list_models,
             marketplace_search_models,
             marketplace_get_model,
+            marketplace_list_civitai_models, // TEAM-463: CivitAI models listing
             marketplace_list_workers, // TEAM-421: Worker catalog listing
             // TEAM-413: Download commands
             model_download,
@@ -136,38 +137,13 @@ fn launch_gui() {
             // Events emitted on "narration" channel for React sidebar
             rbee_keeper::init_gui_tracing(app.handle().clone());
             
-            // TEAM-XXX: mac compat - DRASTIC DEBUG - Force load test HTML
+            // TEAM-464: Open DevTools in debug mode
             #[cfg(debug_assertions)]
             {
                 use tauri::Manager;
-                let windows: Vec<_> = app.webview_windows().keys().cloned().collect();
-                eprintln!("🔍 Available windows: {:?}", windows);
-                
-                if let Some((label, window)) = app.webview_windows().iter().next() {
-                    eprintln!("🔍 Found window: {}", label);
-                    
-                    // DRASTIC: Try to load test HTML directly
-                    let test_html = r#"
-                        <!DOCTYPE html>
-                        <html>
-                        <head><title>WEBVIEW TEST</title></head>
-                        <body style="background: red; color: white; font-size: 48px; padding: 50px;">
-                            <h1>🔥 WEBVIEW IS WORKING!</h1>
-                            <p>If you see this RED screen, the webview works!</p>
-                            <p>The problem is loading from http://localhost:5173</p>
-                        </body>
-                        </html>
-                    "#;
-                    
-                    match window.eval(&format!("document.write(`{}`)", test_html)) {
-                        Ok(_) => eprintln!("✅ Injected test HTML"),
-                        Err(e) => eprintln!("❌ Failed to inject HTML: {}", e),
-                    }
-                    
+                if let Some((_label, window)) = app.webview_windows().iter().next() {
                     window.open_devtools();
                     eprintln!("🔍 DevTools opened");
-                } else {
-                    eprintln!("⚠️  No windows found!");
                 }
             }
             

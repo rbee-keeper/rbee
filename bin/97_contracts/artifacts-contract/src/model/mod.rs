@@ -11,11 +11,16 @@ mod config;
 mod llm;
 mod image;
 mod metadata;
+mod civitai;
 
 pub use config::{ModelConfig, InferenceParams};
 pub use llm::{LlmConfig, TokenizerConfig};
 pub use image::{ImageConfig, CheckpointType, ImagePreview};
 pub use metadata::{ModelArchitecture, ModelFormat, Quantization, ModelMetadata};
+pub use civitai::{
+    CivitaiModel, CivitaiModelVersion, CivitaiStats, CivitaiCreator,
+    CivitaiFile, CivitaiImage,
+};
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

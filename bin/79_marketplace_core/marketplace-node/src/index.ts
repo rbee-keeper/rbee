@@ -344,8 +344,8 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
     tags,
     source: 'civitai' as const,
     imageUrl,
-    createdAt: latestVersion?.createdAt,
-    lastModified: latestVersion?.updatedAt,
+    createdAt: latestVersion?.createdAt ?? undefined,
+    lastModified: latestVersion?.updatedAt ?? undefined,
   }
 }
 
@@ -381,7 +381,7 @@ export async function getCompatibleCivitaiModels(
       page,
       types,
       sort: 'Most Downloaded',
-      nsfw: false, // Filter out NSFW models
+      // nsfw: show all content (no filtering)
       period,
       baseModel,
     })

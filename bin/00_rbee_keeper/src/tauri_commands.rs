@@ -639,14 +639,13 @@ pub async fn marketplace_get_model(
 
         let client = CivitaiClient::new();
         client
-            .get_model(civitai_id)
+            .get_marketplace_model(civitai_id)
             .await
             .map_err(|e| {
                 n!("marketplace_get_model", "❌ CivitAI Error: {}", e);
                 format!("Failed to fetch CivitAI model: {}", e)
             })
-            .map(|civitai_model| {
-                let model = client.to_marketplace_model(&civitai_model);
+            .map(|model| {
                 n!("marketplace_get_model", "✅ Found CivitAI model: {}", model.name);
                 model
             })
@@ -697,20 +696,19 @@ pub async fn marketplace_list_civitai_models(
 
     let client = CivitaiClient::new();
     client
-        .get_compatible_models()
+        .get_compatible_marketplace_models()
         .await
         .map_err(|e| {
             n!("marketplace_list_civitai_models", "❌ Error: {}", e);
             format!("Failed to list Civitai models: {}", e)
         })
-        .map(|response| {
-            let models: Vec<marketplace_sdk::Model> = response.items
+        .map(|models| {
+            let limited_models: Vec<marketplace_sdk::Model> = models
                 .into_iter()
                 .take(limit.unwrap_or(100) as usize)
-                .map(|civitai_model| client.to_marketplace_model(&civitai_model))
                 .collect();
-            n!("marketplace_list_civitai_models", "✅ Found {} models", models.len());
-            models
+            n!("marketplace_list_civitai_models", "✅ Found {} models", limited_models.len());
+            limited_models
         })
 }
 

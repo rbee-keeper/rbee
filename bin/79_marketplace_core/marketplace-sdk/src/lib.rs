@@ -32,9 +32,7 @@ mod wasm_worker;
 #[cfg(target_arch = "wasm32")]
 mod wasm_huggingface;
 
-// TEAM-460: WASM bindings for Civitai
-#[cfg(target_arch = "wasm32")]
-mod wasm_civitai;
+// TEAM-463: Civitai types now come from artifacts-contract (no separate WASM module)
 
 // TEAM-408: Re-export WASM worker functions
 #[cfg(target_arch = "wasm32")]
@@ -44,9 +42,7 @@ pub use wasm_worker::*;
 #[cfg(target_arch = "wasm32")]
 pub use wasm_huggingface::*;
 
-// TEAM-460: Re-export WASM Civitai functions
-#[cfg(target_arch = "wasm32")]
-pub use wasm_civitai::*;
+// TEAM-463: Civitai WASM types come from artifacts-contract
 
 // Re-export types
 pub use types::*;
@@ -55,11 +51,11 @@ pub use types::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use huggingface::HuggingFaceClient;
 
-// TEAM-460: Re-export Civitai client
+// TEAM-463: Re-export Civitai client
+// TEAM-464: CivitaiModelType now comes from artifacts-contract
 #[cfg(not(target_arch = "wasm32"))]
 pub use civitai::{
-    CivitaiClient, CivitaiModelResponse, CivitaiModelType, CivitaiStats,
-    CivitaiCreator, CivitaiModelVersion, CivitaiFile, CivitaiImage,
+    CivitaiClient,
     CivitaiListResponse, CivitaiMetadata,
 };
 
@@ -74,6 +70,7 @@ pub use compatibility::{
 
 // TEAM-404: Explicitly re-export WorkerType and Platform for WASM/TypeScript generation
 // TEAM-407: Added ModelMetadata types for marketplace compatibility filtering
+// TEAM-463: Added CivitAI types from artifacts-contract
 // These are canonical types from artifacts-contract
 // Note: Platform is used in wasm_bindgen function below
 #[allow(unused_imports)]
@@ -83,6 +80,8 @@ pub use artifacts_contract::{
     ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
     WorkerCatalogEntry, Architecture, WorkerImplementation, BuildSystem,
     ArtifactStatus,
+    CivitaiModel, CivitaiModelVersion, CivitaiStats, CivitaiCreator,
+    CivitaiFile, CivitaiImage,
 };
 
 /// Initialize WASM module

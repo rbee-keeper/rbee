@@ -1,87 +1,71 @@
-// Created by: TEAM-162
-// Smart wrapper for rbee-keeper: checks if build is stale, rebuilds if needed, then forwards command
-// TEAM-193: Updated to use auto-update crate for dependency-aware rebuilds
-// TEAM-309: Added narration context for auto-update visibility
-// TEAM-334: Used by desktop entry (./rbee → xtask rbee → rbee-keeper)
-//
-// TEAM-334 NOTE: Desktop entry integration
-// - Called by: ./rbee script (root of repo)
-// - Desktop entry: ~/.local/share/applications/rbee-dev.desktop
-// - When called with no args, launches rbee-keeper GUI
-// - Status: ⚠️ NOT WORKING YET from desktop entry (process starts but GUI doesn't show)
-// - Works fine when called directly: ./rbee
-// - See: DESKTOP_ENTRY.md for debugging info
+//! Smart wrapper for rbee-keeper - DEVELOPMENT BUILD ONLY
+//!
+//! WORKFLOW:
+//! 1. `cargo build` -> creates target/debug/rbee-keeper
+//! 2. `./rbee` -> auto-rebuilds if deps changed, then launches debug binary
+//!
+//! For production builds, use a different command (not this).
 
 use anyhow::{Context, Result};
-// use auto_update::AutoUpdater;
+use auto_update::AutoUpdater;
 use std::path::PathBuf;
 use std::process::Command;
 
-// const RBEE_KEEPER_BIN: &str = "bin/00_rbee_keeper";
-// TEAM-XXX: mac compat - check both debug and release, prefer release (build-all.sh uses --release)
+const RBEE_KEEPER_BIN: &str = "bin/00_rbee_keeper";
 const TARGET_BINARY_DEBUG: &str = "target/debug/rbee-keeper";
 const TARGET_BINARY_RELEASE: &str = "target/release/rbee-keeper";
 
 /// Check if rbee-keeper binary needs rebuilding
-/// TEAM-193: Now uses AutoUpdater to check ALL dependencies (including shared crates)
-// fn needs_rebuild(_workspace_root: &PathBuf) -> Result<bool> {
-//     // TEAM-193: Use auto-update crate for dependency-aware rebuild detection
-//     // This checks:
-//     // 1. bin/00_rbee_keeper/ (source)
-//     // 2. ALL Cargo.toml dependencies (daemon-lifecycle, narration-core, etc.)
-//     // 3. Transitive dependencies (dependencies of dependencies)
-//     let updater = AutoUpdater::new("rbee-keeper", RBEE_KEEPER_BIN)?;
-//     updater.needs_rebuild()
-// }
+/// Uses AutoUpdater to check ALL dependencies (including shared crates)
+fn needs_rebuild(_workspace_root: &PathBuf) -> Result<bool> {
+    let updater = AutoUpdater::new("rbee-keeper", RBEE_KEEPER_BIN)?;
+    updater.needs_rebuild()
+}
 
-// // TEAM-193: Removed check_dir_newer() - now handled by AutoUpdater
-// // AutoUpdater parses Cargo.toml and checks ALL dependencies recursively
+/// Build rbee-keeper in development mode (fast builds, debug symbols)
+fn build_rbee_keeper(workspace_root: &PathBuf) -> Result<()> {
+    println!("🔨 Building rbee-keeper (development build)...");
 
-// /// Build rbee-keeper binary
-// fn build_rbee_keeper(workspace_root: &PathBuf) -> Result<()> {
-//     println!("🔨 Building rbee-keeper...");
+    let status = Command::new("cargo")
+        .arg("build")
+        .arg("--bin")
+        .arg("rbee-keeper")
+        .current_dir(workspace_root)
+        .status()
+        .context("Failed to run cargo build")?;
 
-//     let status = Command::new("cargo")
-//         .arg("build")
-//         .arg("--bin")
-//         .arg("rbee-keeper")
-//         .current_dir(workspace_root)
-//         .status()
-//         .context("Failed to run cargo build")?;
+    if !status.success() {
+        anyhow::bail!("Failed to build rbee-keeper");
+    }
 
-//     if !status.success() {
-//         anyhow::bail!("Failed to build rbee-keeper");
-//     }
+    println!("✅ Build complete\n");
+    Ok(())
+}
 
-//     println!("✅ Build complete\n");
-//     Ok(())
-// }
-
-/// Main entry point: check build status, rebuild if needed, then forward to rbee-keeper
+/// Main entry point: auto-rebuild if needed, then launch development binary
 pub fn run_rbee_keeper(args: Vec<String>) -> Result<()> {
     let workspace_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .context("Failed to get workspace root")?
         .to_path_buf();
 
-    // // Check if rebuild is needed
-    // if needs_rebuild(&workspace_root)? {
-    //     build_rbee_keeper(&workspace_root)?;
-    // }
+    // Auto-rebuild if dependencies changed
+    if needs_rebuild(&workspace_root)? {
+        build_rbee_keeper(&workspace_root)?;
+    }
 
-    // TEAM-XXX: mac compat - check release first (build-all.sh uses --release), fallback to debug
+    // Use debug binary (development build)
     let binary_path = {
-        let release_path = workspace_root.join(TARGET_BINARY_RELEASE);
         let debug_path = workspace_root.join(TARGET_BINARY_DEBUG);
+        let release_path = workspace_root.join(TARGET_BINARY_RELEASE);
         
-        if release_path.exists() {
-            release_path
-        } else if debug_path.exists() {
+        if debug_path.exists() {
             debug_path
+        } else if release_path.exists() {
+            println!("⚠️  Using release binary (expected development build)");
+            release_path
         } else {
-            anyhow::bail!(
-                "rbee-keeper binary not found. Run 'cargo build --release' or 'cargo build --bin rbee-keeper'"
-            );
+            anyhow::bail!("rbee-keeper binary not found. Run: cargo build --bin rbee-keeper");
         }
     };
 

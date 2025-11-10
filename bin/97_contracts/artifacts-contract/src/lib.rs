@@ -18,16 +18,22 @@ pub mod worker;
 pub mod worker_catalog;
 /// Artifact status type
 pub mod status;
+/// NSFW filtering levels (TEAM-464)
+pub mod nsfw;
+/// Marketplace filter types (TEAM-464)
+pub mod filters;
 
 // Re-export main types
 // TEAM-407: Added ModelMetadata exports
-// TEAM-463: Added ModelFile export
+// TEAM-463: Added ModelFile and CivitAI types export
 pub use model::{
     ModelEntry, ModelType, ModelSource, ModelFile,
     ModelConfig, InferenceParams,
     LlmConfig, TokenizerConfig,
     ImageConfig, CheckpointType, ImagePreview,
     ModelArchitecture, ModelFormat, Quantization, ModelMetadata,
+    CivitaiModel, CivitaiModelVersion, CivitaiStats, CivitaiCreator,
+    CivitaiFile, CivitaiImage,
 };
 pub use worker::{Platform, WorkerBinary, WorkerType};
 pub use worker_catalog::{
@@ -35,3 +41,8 @@ pub use worker_catalog::{
     SourceInfo, BuildConfig, WorkerCatalogEntry,
 };
 pub use status::ArtifactStatus;
+pub use nsfw::{NsfwLevel, NsfwFilter};
+pub use filters::{
+    TimePeriod, CivitaiModelType, BaseModel, CivitaiSort, HuggingFaceSort,
+    CivitaiFilters, HuggingFaceFilters,
+};

@@ -1,62 +1,23 @@
 // TEAM-460: CivitAI API integration
+// TEAM-463: Now uses canonical types from WASM-generated artifacts-contract
 // API Documentation: https://github.com/civitai/civitai/wiki/REST-API-Reference
 
-export interface CivitAIModelVersion {
-  id: number
-  modelId: number
-  name: string
-  createdAt: string
-  updatedAt: string
-  trainedWords?: string[]
-  baseModel: string
-  files: Array<{
-    name: string
-    id: number
-    sizeKB: number
-    type: string
-    metadata?: {
-      fp?: string
-      size?: string
-      format?: string
-    }
-    downloadUrl: string
-    primary?: boolean
-  }>
-  images?: Array<{
-    url: string
-    nsfw: boolean
-    width: number
-    height: number
-  }>
-  downloadUrl: string
-}
+// TEAM-463: Import canonical CivitAI types from WASM bindings
+// These are generated from artifacts-contract via tsify
+import type {
+  CivitaiModel,
+  CivitaiModelVersion,
+  CivitaiStats,
+  CivitaiCreator,
+  CivitaiFile,
+  CivitaiImage,
+} from '../wasm/marketplace_sdk'
 
-export interface CivitAIModel {
-  id: number
-  name: string
-  description?: string
-  type: string
-  poi?: boolean
-  nsfw?: boolean
-  allowNoCredit?: boolean
-  allowCommercialUse?: string
-  allowDerivatives?: boolean
-  allowDifferentLicense?: boolean
-  stats?: {
-    downloadCount?: number
-    favoriteCount?: number
-    commentCount?: number
-    ratingCount?: number
-    rating?: number
-  }
-  creator?: {
-    username?: string
-    image?: string
-  }
-  tags?: string[]
-  modelVersions?: CivitAIModelVersion[]
-}
+// TEAM-463: Type aliases for backward compatibility
+export type CivitAIModel = CivitaiModel
+export type CivitAIModelVersion = CivitaiModelVersion
 
+// TEAM-463: API response wrapper (not in contract, specific to API pagination)
 export interface CivitAISearchResponse {
   items: CivitAIModel[]
   metadata: {
@@ -92,7 +53,7 @@ export async function fetchCivitAIModels(
     page = 1,
     types = ['Checkpoint', 'LORA'],
     sort = 'Most Downloaded',
-    nsfw = false,
+    nsfw, // No default - show all content
     period,
     baseModel,
   } = options
@@ -101,11 +62,14 @@ export async function fetchCivitAIModels(
     limit: String(limit),
     page: String(page),
     sort,
-    nsfw: String(nsfw),
   })
 
   if (query) {
     params.append('query', query)
+  }
+
+  if (nsfw !== undefined) {
+    params.append('nsfw', String(nsfw))
   }
 
   // TEAM-422: CivitAI API requires multiple 'types' parameters, not comma-separated

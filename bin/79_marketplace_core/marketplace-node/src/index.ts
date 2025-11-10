@@ -17,7 +17,18 @@
  * ```
  */
 
-import { type CivitAIModel, fetchCivitAIModel, fetchCivitAIModels } from './civitai'
+import { 
+  type CivitAIModel, 
+  type CivitaiFilters,
+  type TimePeriod,
+  type CivitaiModelType,
+  type BaseModel,
+  type CivitaiSort,
+  type NsfwLevel,
+  type NsfwFilter,
+  fetchCivitAIModel, 
+  fetchCivitAIModels 
+} from './civitai'
 import { fetchHFModel, fetchHFModels, type HFModel } from './huggingface'
 import type { CompatibilityResult, Model, ModelMetadata, SearchOptions } from './types'
 
@@ -32,7 +43,17 @@ async function getWasmModule() {
   return wasmModule
 }
 
-export type { CivitAIModel } from './civitai'
+// TEAM-429: Re-export CivitAI types and filters
+export type { 
+  CivitAIModel,
+  CivitaiFilters,
+  TimePeriod,
+  CivitaiModelType,
+  BaseModel,
+  CivitaiSort,
+  NsfwLevel,
+  NsfwFilter,
+} from './civitai'
 // Re-export types
 export type { CompatibilityResult, Model, ModelFile, ModelMetadata, SearchOptions, Worker } from './types'
 // TEAM-453: Export worker catalog functions
@@ -187,6 +208,12 @@ function extractModelMetadata(model: HFModel): ModelMetadata | null {
   const idMatch = model.id.match(/(\d+\.?\d*)[bB]/i)
   if (idMatch) {
     parameters = idMatch[1] + 'B'
+    // Find primary file
+    const primaryFile = model.siblings.find(f => f.primary)
+    if (primaryFile) {
+      model.downloadUrl = primaryFile.downloadUrl
+      model.sizeBytes = primaryFile.sizeKb ? primaryFile.sizeKb * 1024 : undefined
+    }
   }
 
   return {
@@ -321,7 +348,7 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
   const latestVersion = civitai.modelVersions?.[0]
 
   // Calculate total size from all files
-  const totalBytes = latestVersion?.files?.reduce((sum, file) => sum + file.sizeKB * 1024, 0) || 0
+  const totalBytes = latestVersion?.files?.reduce((sum, file) => sum + file.sizeKb * 1024, 0) || 0
 
   // TEAM-422: Get first non-NSFW image from latest version
   const imageUrl = latestVersion?.images?.find((img) => !img.nsfw)?.url
@@ -350,42 +377,56 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
 }
 
 /**
+ * Create default CivitAI filters
+ * TEAM-429: Helper function for creating filter objects
+ */
+export function createDefaultCivitaiFilters(): CivitaiFilters {
+  return {
+    time_period: 'AllTime',
+    model_type: 'All',
+    base_model: 'All',
+    sort: 'Most Downloaded',
+    nsfw: {
+      max_level: 'None',
+      blur_mature: true,
+    },
+    page: null,
+    limit: 100,
+  }
+}
+
+/**
  * Get compatible CivitAI models
  *
- * @param options - Search options (limit, types, period, baseModel)
+ * TEAM-429: Now uses CivitaiFilters for type-safe filtering
+ * @param filters - Optional filter configuration (uses defaults if not provided)
  * @returns Array of compatible CivitAI models
  *
  * @example
  * ```typescript
- * const models = await getCompatibleCivitaiModels({
- *   limit: 100,
- *   period: 'Month',
- *   baseModel: 'SDXL 1.0'
+ * // Use defaults
+ * const models = await getCompatibleCivitaiModels()
+ * 
+ * // Custom filters
+ * const filtered = await getCompatibleCivitaiModels({
+ *   ...createDefaultCivitaiFilters(),
+ *   timePeriod: 'Month',
+ *   baseModel: 'SDXL 1.0',
+ *   limit: 50,
  * })
  * ```
  */
 export async function getCompatibleCivitaiModels(
-  options: {
-    limit?: number
-    page?: number  // TEAM-462: For pagination
-    types?: string[]
-    period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
-    baseModel?: string
-  } = {},
+  filters?: Partial<CivitaiFilters>,
 ): Promise<Model[]> {
-  const { limit = 100, page, types = ['Checkpoint', 'LORA'], period, baseModel } = options
+  // Merge with defaults
+  const mergedFilters: CivitaiFilters = {
+    ...createDefaultCivitaiFilters(),
+    ...filters,
+  }
 
   try {
-    const civitaiModels = await fetchCivitAIModels({
-      limit,
-      page,
-      types,
-      sort: 'Most Downloaded',
-      // nsfw: show all content (no filtering)
-      period,
-      baseModel,
-    })
-
+    const civitaiModels = await fetchCivitAIModels(mergedFilters)
     return civitaiModels.map(convertCivitAIModel)
   } catch (error) {
     console.error('[marketplace-node] Failed to fetch CivitAI models:', error)

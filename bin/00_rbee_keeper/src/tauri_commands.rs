@@ -684,31 +684,33 @@ pub async fn marketplace_get_model(
 
 /// List models from Civitai
 /// TEAM-423: Marketplace integration with Civitai API
+/// TEAM-429: Updated to use CivitaiFilters for type-safe filtering
 #[tauri::command]
 #[specta::specta]
 pub async fn marketplace_list_civitai_models(
-    limit: Option<u32>,
+    filters: artifacts_contract::CivitaiFilters,
 ) -> Result<Vec<marketplace_sdk::Model>, String> {
     use marketplace_sdk::CivitaiClient;
     use observability_narration_core::n;
 
-    n!("marketplace_list_civitai_models", "🔍 Listing Civitai models");
+    n!("marketplace_list_civitai_models", "🔍 Listing Civitai models with filters");
+    n!("marketplace_list_civitai_models", "  Time period: {:?}", filters.time_period);
+    n!("marketplace_list_civitai_models", "  Model type: {:?}", filters.model_type);
+    n!("marketplace_list_civitai_models", "  Base model: {:?}", filters.base_model);
+    n!("marketplace_list_civitai_models", "  Sort: {:?}", filters.sort);
+    n!("marketplace_list_civitai_models", "  NSFW level: {:?}", filters.nsfw.max_level);
 
     let client = CivitaiClient::new();
     client
-        .get_compatible_marketplace_models()
+        .list_marketplace_models(&filters)
         .await
         .map_err(|e| {
             n!("marketplace_list_civitai_models", "❌ Error: {}", e);
             format!("Failed to list Civitai models: {}", e)
         })
         .map(|models| {
-            let limited_models: Vec<marketplace_sdk::Model> = models
-                .into_iter()
-                .take(limit.unwrap_or(100) as usize)
-                .collect();
-            n!("marketplace_list_civitai_models", "✅ Found {} models", limited_models.len());
-            limited_models
+            n!("marketplace_list_civitai_models", "✅ Found {} models", models.len());
+            models
         })
 }
 

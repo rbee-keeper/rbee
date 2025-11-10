@@ -240,26 +240,17 @@ impl CivitaiClient {
     /// List models from Civitai API
     ///
     /// # Arguments
-    /// * `limit` - Maximum number of models to return (default: 20)
-    /// * `page` - Page number for pagination (default: 1)
-    /// * `types` - Filter by model types (e.g., "Checkpoint,LORA")
-    /// * `sort` - Sort order ("Highest Rated", "Most Downloaded", "Newest")
-    /// * `nsfw` - Include NSFW models (default: false)
+    /// * `filters` - Filter configuration for the query
     ///
     /// # Example
     /// ```no_run
     /// use marketplace_sdk::CivitaiClient;
+    /// use artifacts_contract::CivitaiFilters;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let client = CivitaiClient::new();
-    /// let models = client.list_models(
-    ///     Some(100),
-    ///     None,
-    ///     Some("Checkpoint,LORA"),
-    ///     Some("Most Downloaded"),
-    ///     Some(false),
-    ///     Some("Sell"),
-    /// ).await?;
+    /// let filters = CivitaiFilters::default();
+    /// let models = client.list_models(&filters).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -456,9 +447,20 @@ impl CivitaiClient {
             .collect())
     }
 
+    /// List models and convert to marketplace Model types
+    /// TEAM-429: Public API for filtered model listing
+    pub async fn list_marketplace_models(&self, filters: &CivitaiFilters) -> Result<Vec<Model>> {
+        let response = self.list_models(filters).await?;
+        Ok(response.items
+            .iter()
+            .map(|civitai_model| self.to_marketplace_model(civitai_model))
+            .collect())
+    }
+
     /// Convert Civitai model to marketplace Model type
     /// TEAM-463: Internal conversion function
-    pub(crate) fn to_marketplace_model(&self, civitai_model: &CivitaiModelResponse) -> Model {
+    /// TEAM-429: Made public for Tauri command usage
+    pub fn to_marketplace_model(&self, civitai_model: &CivitaiModelResponse) -> Model {
         let latest_version = civitai_model.model_versions.first();
 
         Model {

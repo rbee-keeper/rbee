@@ -70,6 +70,7 @@ job-client = { path = "../99_shared_crates/job-client" }  # TEAM-259: Shared job
 keeper-config-contract = { path = "../97_contracts/keeper-config-contract" }  # TEAM-315: Keeper configuration contract
 ssh-config-parser = { path = "../99_shared_crates/ssh-config-parser" }  # TEAM-365: Shared SSH config parser
 marketplace-sdk = { path = "../79_marketplace_core/marketplace-sdk", features = ["specta"] }  # TEAM-405: Marketplace SDK for HuggingFace/CivitAI/Worker Catalog
+artifacts-contract = { path = "../97_contracts/artifacts-contract", features = ["specta"] }  # TEAM-429: Filter types for marketplace
 
 # TEAM-293/294: Tauri v2 dependencies for GUI
 # TEAM-297: Using tauri-specta v2.0.0-rc.21 for Tauri v2 support

@@ -1,9 +1,11 @@
 // TEAM-460: CivitAI API integration
 // TEAM-463: Now uses canonical types from WASM-generated artifacts-contract
+// TEAM-429: Updated to use CivitaiFilters for type-safe filtering
 // API Documentation: https://github.com/civitai/civitai/wiki/REST-API-Reference
 
 // TEAM-463: Import canonical CivitAI types from WASM bindings
 // These are generated from artifacts-contract via tsify
+// TEAM-429: Now includes filter types from WASM bindings
 import type {
   CivitaiModel,
   CivitaiModelVersion,
@@ -11,7 +13,17 @@ import type {
   CivitaiCreator,
   CivitaiFile,
   CivitaiImage,
+  CivitaiFilters,
+  TimePeriod,
+  CivitaiModelType,
+  BaseModel,
+  CivitaiSort,
+  NsfwLevel,
+  NsfwFilter,
 } from '../wasm/marketplace_sdk'
+
+// TEAM-429: Re-export filter types for convenience
+export type { TimePeriod, CivitaiModelType, BaseModel, CivitaiSort, NsfwLevel, NsfwFilter, CivitaiFilters }
 
 // TEAM-463: Type aliases for backward compatibility
 export type CivitAIModel = CivitaiModel
@@ -32,64 +44,55 @@ export interface CivitAISearchResponse {
 /**
  * Fetch models from CivitAI API
  *
- * @param options - Search options
+ * TEAM-429: Now uses CivitaiFilters for type-safe filtering
+ * @param filters - Filter configuration
  * @returns Array of CivitAI models
  */
 export async function fetchCivitAIModels(
-  options: {
-    query?: string
-    limit?: number
-    page?: number
-    types?: string[]
-    sort?: 'Highest Rated' | 'Most Downloaded' | 'Newest'
-    nsfw?: boolean
-    period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
-    baseModel?: string
-  } = {},
+  filters: CivitaiFilters,
 ): Promise<CivitAIModel[]> {
-  const {
-    query,
-    limit = 20,
-    page = 1,
-    types = ['Checkpoint', 'LORA'],
-    sort = 'Most Downloaded',
-    nsfw, // No default - show all content
-    period,
-    baseModel,
-  } = options
-
+  // TEAM-429: Build query params from filters
   const params = new URLSearchParams({
-    limit: String(limit),
-    page: String(page),
-    sort,
+    limit: String(filters.limit),
+    sort: filters.sort,
   })
 
-  if (query) {
-    params.append('query', query)
+  // Page (optional)
+  if (filters.page !== null) {
+    params.append('page', String(filters.page))
   }
 
-  if (nsfw !== undefined) {
-    params.append('nsfw', String(nsfw))
+  // Model types
+  if (filters.model_type !== 'All') {
+    params.append('types', filters.model_type)
+  } else {
+    // Default: Checkpoint and LORA
+    params.append('types', 'Checkpoint')
+    params.append('types', 'LORA')
   }
 
-  // TEAM-422: CivitAI API requires multiple 'types' parameters, not comma-separated
-  // Correct: ?types=Checkpoint&types=LORA
-  // Wrong: ?types=Checkpoint,LORA
-  if (types.length > 0) {
-    types.forEach((type) => {
-      params.append('types', type)
-    })
+  // Time period
+  if (filters.time_period !== 'AllTime') {
+    params.append('period', filters.time_period)
   }
 
-  // TEAM-422: Add period filter for time-based filtering
-  if (period && period !== 'AllTime') {
-    params.append('period', period)
+  // Base model
+  if (filters.base_model !== 'All') {
+    params.append('baseModel', filters.base_model)
   }
 
-  // TEAM-422: Add baseModel filter for compatibility filtering
-  if (baseModel) {
-    params.append('baseModel', baseModel)
+  // NSFW filtering - convert level to numeric values
+  const nsfwLevelMap: Record<NsfwLevel, number[]> = {
+    'None': [1],
+    'Soft': [1, 2],
+    'Mature': [1, 2, 4],
+    'X': [1, 2, 4, 8],
+    'XXX': [1, 2, 4, 8, 16],
   }
+  const nsfwLevels = nsfwLevelMap[filters.nsfw.max_level]
+  nsfwLevels.forEach((level: number) => {
+    params.append('nsfwLevel', String(level))
+  })
 
   const url = `https://civitai.com/api/v1/models?${params}`
 

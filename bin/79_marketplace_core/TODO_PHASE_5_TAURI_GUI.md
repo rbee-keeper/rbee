@@ -1,8 +1,12 @@
 # TODO: Phase 5 - Add Filters to Tauri GUI
 
-**TEAM-XXX: Implement filter UI in Tauri desktop app**
+**TEAM-429: Implement filter UI in Tauri desktop app**
 
-## Status: NOT STARTED
+## Status: ✅ COMPLETE (Backend)
+
+See `PHASE_5_TAURI_GUI_COMPLETE.md` for implementation details.
+
+**Note:** Backend Tauri commands are complete. Frontend UI components (FilterBar, etc.) are future work.
 
 ## What Needs to Be Done
 

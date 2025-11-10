@@ -17,7 +17,9 @@ mod huggingface;
 #[cfg(not(target_arch = "wasm32"))]
 mod civitai;
 
-// TEAM-408: Worker catalog client
+// TEAM-408: Worker catalog client (native only - uses reqwest)
+// TEAM-429: Made conditional - not available on WASM
+#[cfg(not(target_arch = "wasm32"))]
 pub mod worker_catalog;
 
 // TEAM-409: Compatibility checking for HuggingFace filtering
@@ -25,24 +27,30 @@ pub mod worker_catalog;
 pub mod compatibility;
 
 // TEAM-408: WASM bindings for worker catalog
-#[cfg(target_arch = "wasm32")]
-mod wasm_worker;
+// TEAM-429: Disabled - worker catalog uses reqwest which doesn't work on WASM
+// #[cfg(target_arch = "wasm32")]
+// mod wasm_worker;
 
 // TEAM-460: WASM bindings for HuggingFace
 #[cfg(target_arch = "wasm32")]
 mod wasm_huggingface;
 
-// TEAM-463: Civitai types now come from artifacts-contract (no separate WASM module)
+// TEAM-429: WASM bindings for Civitai
+#[cfg(target_arch = "wasm32")]
+mod wasm_civitai;
 
 // TEAM-408: Re-export WASM worker functions
-#[cfg(target_arch = "wasm32")]
-pub use wasm_worker::*;
+// TEAM-429: Disabled - worker catalog uses reqwest which doesn't work on WASM
+// #[cfg(target_arch = "wasm32")]
+// pub use wasm_worker::*;
 
 // TEAM-460: Re-export WASM HuggingFace functions
 #[cfg(target_arch = "wasm32")]
 pub use wasm_huggingface::*;
 
-// TEAM-463: Civitai WASM types come from artifacts-contract
+// TEAM-429: Re-export WASM Civitai functions
+#[cfg(target_arch = "wasm32")]
+pub use wasm_civitai::*;
 
 // Re-export types
 pub use types::*;
@@ -59,7 +67,9 @@ pub use civitai::{
     CivitaiListResponse, CivitaiMetadata,
 };
 
-// TEAM-408: Re-export worker catalog
+// TEAM-408: Re-export worker catalog (native only)
+// TEAM-429: Made conditional - not available on WASM
+#[cfg(not(target_arch = "wasm32"))]
 pub use worker_catalog::{WorkerCatalogClient, WorkerFilter};
 
 // TEAM-409: Re-export compatibility checking
@@ -71,6 +81,7 @@ pub use compatibility::{
 // TEAM-404: Explicitly re-export WorkerType and Platform for WASM/TypeScript generation
 // TEAM-407: Added ModelMetadata types for marketplace compatibility filtering
 // TEAM-463: Added CivitAI types from artifacts-contract
+// TEAM-429: Added filter types for WASM/TypeScript generation
 // These are canonical types from artifacts-contract
 // Note: Platform is used in wasm_bindgen function below
 #[allow(unused_imports)]
@@ -82,6 +93,10 @@ pub use artifacts_contract::{
     ArtifactStatus,
     CivitaiModel, CivitaiModelVersion, CivitaiStats, CivitaiCreator,
     CivitaiFile, CivitaiImage,
+    // TEAM-429: Filter types
+    CivitaiFilters, CivitaiModelType, TimePeriod, BaseModel, CivitaiSort,
+    HuggingFaceFilters, HuggingFaceSort,
+    NsfwLevel, NsfwFilter,
 };
 
 /// Initialize WASM module

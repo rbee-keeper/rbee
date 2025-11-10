@@ -1,17 +1,27 @@
 // TEAM-422: CivitAI filter definitions for SSG pre-generation
 // TEAM-461: Refactored to use generic FilterGroup pattern
+// TEAM-429: Import filter types from @rbee/marketplace-node
 import type { FilterGroup, FilterConfig as GenericFilterConfig } from '@/lib/filters/types'
+import type {
+  CivitaiFilters as NodeCivitaiFilters,
+  TimePeriod,
+  CivitaiModelType,
+  BaseModel,
+  CivitaiSort,
+  NsfwFilter,
+} from '@rbee/marketplace-node'
 
-export type TimePeriod = 'AllTime' | 'Month' | 'Week' | 'Day'
-export type ModelType = 'All' | 'Checkpoint' | 'LORA'
-export type BaseModel = 'All' | 'SDXL 1.0' | 'SD 1.5' | 'SD 2.1'
-export type SortBy = 'downloads' | 'likes' | 'newest'
+// TEAM-429: Re-export types from marketplace-node
+export type { TimePeriod, CivitaiModelType, BaseModel, CivitaiSort, NsfwFilter }
 
+// TEAM-429: Frontend-specific filter interface (extends Node SDK types)
+// Note: Frontend uses simpler sort values ('downloads' vs 'Most Downloaded')
 export interface CivitaiFilters {
   timePeriod: TimePeriod
-  modelType: ModelType
+  modelType: CivitaiModelType
   baseModel: BaseModel
-  sort: SortBy
+  sort: 'downloads' | 'likes' | 'newest'  // Frontend-specific sort values
+  nsfw?: NsfwFilter  // Optional for frontend
 }
 
 // Filter group definitions (left side - actual filters)
@@ -104,37 +114,34 @@ export const PREGENERATED_FILTERS: GenericFilterConfig<CivitaiFilters>[] = [
   },
 ]
 
+// TEAM-429: Convert frontend sort values to API sort values
+function convertSortToApi(sort: 'downloads' | 'likes' | 'newest'): CivitaiSort {
+  switch (sort) {
+    case 'downloads':
+      return 'Most Downloaded'
+    case 'likes':
+      return 'Highest Rated'
+    case 'newest':
+      return 'Newest'
+  }
+}
+
 // Helper to build API parameters from filter config
-export function buildFilterParams(filters: CivitaiFilters) {
-  const params: {
-    limit?: number
-    types?: string[]
-    sort?: string
-    period?: 'AllTime' | 'Year' | 'Month' | 'Week' | 'Day'
-    baseModel?: string
-  } = {
+// TEAM-429: Now returns NodeCivitaiFilters for type-safe API calls
+// Converts frontend camelCase to Node SDK snake_case
+export function buildFilterParams(filters: CivitaiFilters): NodeCivitaiFilters {
+  return {
+    time_period: filters.timePeriod,
+    model_type: filters.modelType,
+    base_model: filters.baseModel,
+    sort: convertSortToApi(filters.sort),
+    nsfw: filters.nsfw || {
+      max_level: 'None',
+      blur_mature: true,
+    },
+    page: null,
     limit: 100,
   }
-
-  // Model types
-  if (filters.modelType !== 'All') {
-    params.types = [filters.modelType]
-  } else {
-    params.types = ['Checkpoint', 'LORA']
-  }
-
-  // Time period (affects sort)
-  if (filters.timePeriod !== 'AllTime') {
-    params.period = filters.timePeriod
-  }
-  params.sort = 'Most Downloaded'
-
-  // Base model (would need API support)
-  if (filters.baseModel !== 'All') {
-    params.baseModel = filters.baseModel
-  }
-
-  return params
 }
 
 // Helper to get filter config from path

@@ -74,6 +74,7 @@ export function MarketplaceCivitai() {
   })
 
   // DATA LAYER: Fetch models from Tauri
+  // TEAM-429: Now uses CivitaiFilters object with snake_case fields
   const {
     data: rawModels = [],
     isLoading,
@@ -82,7 +83,18 @@ export function MarketplaceCivitai() {
     queryKey: ['marketplace', 'civitai-models'],
     queryFn: async () => {
       const result = await invoke<Model[]>('marketplace_list_civitai_models', {
-        limit: 100,
+        filters: {
+          time_period: 'AllTime',
+          model_type: 'All',
+          base_model: 'All',
+          sort: 'Most Downloaded',
+          nsfw: {
+            max_level: 'None',
+            blur_mature: true,
+          },
+          page: null,
+          limit: 100,
+        },
       })
       return result
     },

@@ -1,8 +1,10 @@
 # TODO: Phase 3 - Update Node.js SDK
 
-**TEAM-XXX: Import shared filter types from WASM bindings**
+**TEAM-429: Import shared filter types from WASM bindings**
 
-## Status: NOT STARTED
+## Status: ✅ COMPLETE
+
+See `PHASE_3_NODE_SDK_COMPLETE.md` for implementation details.
 
 ## What Needs to Be Done
 

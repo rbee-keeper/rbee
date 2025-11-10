@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
 pkgname=llm-worker-rbee-cpu
 pkgver=0.1.0
 pkgrel=1
-source=("git+https://github.com/veighnsche/llama-orch.git#branch=main")
+source=("git+https://github.com/rbee-keeper/rbee.git#branch=main")
 
 build() {
     cd "$srcdir/llama-orch/bin/30_llm_worker_rbee"

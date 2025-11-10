@@ -41,11 +41,11 @@ export function Footer() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm" className="h-9">
-              <a href="https://github.com/veighnsche/llama-orch/tree/main/docs">View Docs</a>
+              <a href="https://docs.rbee.dev">Documentation</a>
             </Button>
             <Button asChild variant="outline" size="sm" className="h-9">
               <a
-                href="https://github.com/veighnsche/llama-orch"
+                href="https://github.com/rbee-keeper/rbee"
                 target="_blank"
                 rel="noreferrer"
                 title="Opens in a new tab"
@@ -62,33 +62,56 @@ export function Footer() {
         </div>
 
         {/* 2. Sitemap Grid */}
-        <nav aria-label="Footer" className="grid gap-8 md:grid-cols-4 animate-fade-in">
+        <nav aria-label="Footer" className="grid gap-8 md:grid-cols-5 animate-fade-in">
           <FooterColumn
             title="Product"
             links={[
+              { href: '/features', text: 'Features' },
+              { href: '/pricing', text: 'Pricing' },
+              { href: '/security', text: 'Security' },
+              { href: '/use-cases', text: 'Use Cases' },
+              { href: '/compare', text: 'Compare' },
               {
-                href: 'https://github.com/veighnsche/llama-orch/tree/main/docs',
+                href: 'https://github.com/rbee-keeper/rbee/releases',
+                text: 'Changelog',
+                external: true,
+              },
+            ]}
+          />
+
+          <FooterColumn
+            title="Solutions"
+            links={[
+              { href: '/use-cases/homelab', text: 'For Homelabs' },
+              { href: '/developers', text: 'For Developers' },
+              { href: '/enterprise', text: 'For Enterprise' },
+              { href: '/use-cases/academic', text: 'For Academia' },
+              { href: '/earn', text: 'Earn with Your GPUs' },
+            ]}
+          />
+
+          <FooterColumn
+            title="Resources"
+            links={[
+              {
+                href: 'https://docs.rbee.dev',
                 text: 'Documentation',
                 external: true,
               },
               {
-                href: 'https://github.com/veighnsche/llama-orch/tree/main/QUICKSTART_INFERENCE.md',
-                text: 'Quickstart (15 min)',
+                href: 'https://docs.rbee.dev/getting-started',
+                text: 'Getting Started',
                 external: true,
               },
               {
-                href: 'https://github.com/veighnsche/llama-orch',
+                href: 'https://marketplace.rbee.dev',
+                text: 'Model Marketplace',
+                external: true,
+              },
+              { href: '/blog', text: 'Blog' },
+              {
+                href: 'https://github.com/rbee-keeper/rbee',
                 text: 'GitHub',
-                external: true,
-              },
-              {
-                href: 'https://github.com/veighnsche/llama-orch/milestones',
-                text: 'Roadmap',
-                external: true,
-              },
-              {
-                href: 'https://github.com/veighnsche/llama-orch/releases',
-                text: 'Changelog',
                 external: true,
               },
             ]}
@@ -103,16 +126,16 @@ export function Footer() {
                 external: true,
               },
               {
-                href: 'https://github.com/veighnsche/llama-orch/discussions',
-                text: 'GitHub Discussions',
+                href: 'https://github.com/rbee-keeper/rbee/discussions',
+                text: 'Discussions',
                 external: true,
               },
+              { href: '/community', text: 'Community Hub' },
               {
                 href: 'https://x.com/rbee',
                 text: 'X (Twitter)',
                 external: true,
               },
-              { href: '/blog', text: 'Blog' },
             ]}
           />
 
@@ -120,29 +143,12 @@ export function Footer() {
             title="Company"
             links={[
               { href: '/about', text: 'About' },
-              { href: '/#pricing', text: 'Pricing' },
               { href: '/contact', text: 'Contact' },
+              { href: '/legal/privacy', text: 'Privacy' },
+              { href: '/legal/terms', text: 'Terms' },
               {
-                href: 'https://github.com/veighnsche/llama-orch/issues',
-                text: 'Support',
-                external: true,
-              },
-            ]}
-          />
-
-          <FooterColumn
-            title="Legal"
-            links={[
-              { href: '/legal/privacy', text: 'Privacy Policy' },
-              { href: '/legal/terms', text: 'Terms of Service' },
-              {
-                href: 'https://github.com/veighnsche/llama-orch/blob/main/LICENSE',
-                text: 'License (GPL-3.0)',
-                external: true,
-              },
-              {
-                href: 'https://github.com/veighnsche/llama-orch/security',
-                text: 'Security',
+                href: 'https://github.com/rbee-keeper/rbee/blob/main/LICENSE',
+                text: 'License',
                 external: true,
               },
             ]}
@@ -159,7 +165,7 @@ export function Footer() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="https://github.com/veighnsche/llama-orch"
+              href="https://github.com/rbee-keeper/rbee"
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub"
@@ -169,7 +175,7 @@ export function Footer() {
               <GitHubIcon size={20} />
             </a>
             <a
-              href="https://github.com/veighnsche/llama-orch/discussions"
+              href="https://github.com/rbee-keeper/rbee/discussions"
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub Discussions"

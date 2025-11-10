@@ -140,7 +140,7 @@ Parent dir: /home/vince/Projects
 Checking for uncommitted changes...
 ✓ No uncommitted changes
 ✓ No untracked files
-✓ Remote URL: git@github.com:veighnsche/llama-orch.git
+✓ Remote URL: git@github.com:rbee-keeper/rbee.git
 ✓ Current branch: main
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -149,7 +149,7 @@ Checking for uncommitted changes...
 
 This script will:
   1. Delete the entire directory: /home/vince/Projects/llama-orch
-  2. Clone fresh from: git@github.com:veighnsche/llama-orch.git
+  2. Clone fresh from: git@github.com:rbee-keeper/rbee.git
   3. Checkout branch: main
 
 ALL local files will be PERMANENTLY DELETED!
@@ -161,7 +161,7 @@ Starting fresh clone...
 Deleting /home/vince/Projects/llama-orch...
 ✓ Deleted
 
-Cloning from git@github.com:veighnsche/llama-orch.git...
+Cloning from git@github.com:rbee-keeper/rbee.git...
 ✓ Cloned
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -316,7 +316,7 @@ cd /home/vince/Projects/llama-orch
 
 **Fix:**
 ```bash
-git remote add origin git@github.com:veighnsche/llama-orch.git
+git remote add origin git@github.com:rbee-keeper/rbee.git
 ```
 
 ### "Could not determine current branch"

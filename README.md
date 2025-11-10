@@ -390,13 +390,13 @@ rbee infer -m mistral-7b -p "Explain quantum computing"
 cargo install rbee-keeper
 
 # Or download binary from GitHub releases
-# https://github.com/veighnsche/llama-orch/releases
+# https://github.com/rbee-keeper/rbee/releases
 ```
 
 ### Build from Source
 ```bash
 # Clone repository
-git clone https://github.com/veighnsche/llama-orch.git
+git clone https://github.com/rbee-keeper/rbee.git
 cd llama-orch
 
 # Build all binaries
@@ -479,20 +479,20 @@ export OPENAI_API_KEY=your-rbee-token
 
 **Early stage project - Solo developer actively building**
 
-- **GitHub:** [veighnsche/llama-orch](https://github.com/veighnsche/llama-orch)
+- **GitHub:** [rbee-keeper/rbee](https://github.com/rbee-keeper/rbee)
 - **Status:** Active development (v0.1.0, 68% complete)
 - **License:** GPL-3.0-or-later (free forever)
 
 **Get Help:**
-- [GitHub Discussions](https://github.com/veighnsche/llama-orch/discussions) - Ask questions
-- [GitHub Issues](https://github.com/veighnsche/llama-orch/issues) - Report bugs
+- [GitHub Discussions](https://github.com/rbee-keeper/rbee/discussions) - Ask questions
+- [GitHub Issues](https://github.com/rbee-keeper/rbee/issues) - Report bugs
 - [Documentation](./docs) - Detailed guides
 - [Architecture Docs](./.arch) - Technical deep dives
 
 **Contribute:**
 - Read [CONTRIBUTING.md](./CONTRIBUTING.md)
 - Check [Engineering Rules](./.windsurf/rules/engineering-rules.md)
-- See [Good First Issues](https://github.com/veighnsche/llama-orch/labels/good-first-issue)
+- See [Good First Issues](https://github.com/rbee-keeper/rbee/labels/good-first-issue)
 
 ---
 

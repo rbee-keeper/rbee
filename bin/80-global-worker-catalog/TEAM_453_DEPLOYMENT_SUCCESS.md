@@ -39,7 +39,7 @@ if (!c.env?.ASSETS) {
 ```
 
 ### 4. Wrong Repository URL in PKGBUILDs
-**Problem:** PKGBUILD files referenced `github.com/rbee-keeper/rbee` instead of `github.com/veighnsche/llama-orch`
+**Problem:** PKGBUILD files referenced `github.com/rbee-keeper/rbee` instead of `github.com/rbee-keeper/rbee`
 
 **Fix:** Updated all 11 PKGBUILD files with correct repository URL using sed
 
@@ -48,7 +48,7 @@ if (!c.env?.ASSETS) {
 
 **Fix:** Added comment to all dev PKGBUILDs:
 ```bash
-# Release: For production, use https://github.com/veighnsche/llama-orch/releases/download/v${pkgver}/...
+# Release: For production, use https://github.com/rbee-keeper/rbee/releases/download/v${pkgver}/...
 ```
 
 ### 6. pnpm Workspace Deployment Issue

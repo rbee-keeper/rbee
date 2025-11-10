@@ -85,7 +85,7 @@ n!("package_start", "📦 Starting package phase...");
 ### Source Build PKGBUILD (Existing)
 ```bash
 pkgname=llm-worker-rbee-cpu
-source=("git+https://github.com/veighnsche/llama-orch.git")
+source=("git+https://github.com/rbee-keeper/rbee.git")
 
 build() {
     cargo build --release

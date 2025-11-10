@@ -292,7 +292,7 @@ llorch-remote mac.home.arpa test metal
 
 | Variable | Tool | Description | Default |
 |----------|------|-------------|---------|
-| `LLORCH_REPO_URL` | llorch-remote | Repository URL | `https://github.com/veighnsche/llama-orch.git` |
+| `LLORCH_REPO_URL` | llorch-remote | Repository URL | `https://github.com/rbee-keeper/rbee.git` |
 | `LLORCH_REMOTE_PATH` | Both | Remote path | `~/Projects/llama-orch` |
 | `LLORCH_TEST_MODEL_PATH` | llorch-remote | Model path for inference tests | - |
 | `LLORCH_MODEL_BASE_DIR` | llorch-models | Model base directory | `.test-models` |

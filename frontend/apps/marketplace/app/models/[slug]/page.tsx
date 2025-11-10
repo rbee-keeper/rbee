@@ -1,28 +1,25 @@
 // TEAM-427: Legacy redirect route for /models/[slug]
 // Auto-detects provider (HuggingFace vs CivitAI) and redirects to correct path
+// TEAM-464: Using manifest-based SSG (Phase 2)
 
 import { redirect } from 'next/navigation'
-import { listHuggingFaceModels, getCompatibleCivitaiModels } from '@rbee/marketplace-node'
-import { modelIdToSlug } from '@/lib/slugify'
+import { loadAllModels } from '@/lib/manifests'
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
 export async function generateStaticParams() {
-  // Generate params for all HuggingFace models
-  const hfModels = await listHuggingFaceModels({ limit: 100 })
-  const hfParams = hfModels.map((model) => ({
-    slug: modelIdToSlug((model as { id: string }).id),
-  }))
+  console.log('[SSG] Generating model redirect pages from manifest')
+  
+  // TEAM-464: Read from manifest instead of API
+  const models = await loadAllModels()
+  
+  console.log(`[SSG] Pre-building ${models.length} redirect pages`)
 
-  // Generate params for all CivitAI models
-  const civitaiModels = await getCompatibleCivitaiModels()
-  const civitaiParams = civitaiModels.map((model) => ({
-    slug: modelIdToSlug(model.id),
+  return models.map((model) => ({
+    slug: model.slug,
   }))
-
-  return [...hfParams, ...civitaiParams]
 }
 
 export default async function LegacyModelRedirect({ params }: PageProps) {

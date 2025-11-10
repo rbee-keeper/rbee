@@ -1,26 +1,28 @@
 // TEAM-460: Civitai model detail page with slugified URLs
 // TEAM-463: Updated to use CivitAI-style layout
-import { getCivitaiModel, getCompatibleCivitaiModels } from '@rbee/marketplace-node'
+// TEAM-464: Using manifest-based SSG (Phase 2)
+import { getCivitaiModel } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { CivitAIModelDetail } from '@rbee/ui/marketplace'
 import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
 import { InstallCTA } from '@/components/InstallCTA'
+import { loadModelsBySource } from '@/lib/manifests'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
 export async function generateStaticParams() {
-  console.log('[SSG] Pre-building top 100 Civitai models')
+  console.log('[SSG] Generating CivitAI model pages from manifest')
 
-  const models = await getCompatibleCivitaiModels()
+  // TEAM-464: Read from manifest instead of API
+  const models = await loadModelsBySource('civitai')
 
-  console.log(`[SSG] Pre-building ${models.length} Civitai model pages`)
+  console.log(`[SSG] Pre-building ${models.length} CivitAI model pages`)
 
-  // TEAM-422: models already have id in format "civitai-{id}"
   return models.map((model) => ({
-    slug: modelIdToSlug(model.id),
+    slug: model.slug,
   }))
 }
 

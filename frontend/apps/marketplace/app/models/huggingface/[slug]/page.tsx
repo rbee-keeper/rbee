@@ -5,31 +5,36 @@
 // TEAM-421: Pre-build top 100 popular models (WASM filtering doesn't work in SSG)
 // TEAM-464: Updated to use getRawHuggingFaceModel for complete HF data
 // TEAM-464: Added README.md fetching at build time (passed as markdown to react-markdown)
-import { getRawHuggingFaceModel, getHuggingFaceModelReadme, listHuggingFaceModels } from '@rbee/marketplace-node'
+// TEAM-464: Using manifest-based SSG (Phase 2)
+import { getRawHuggingFaceModel, getHuggingFaceModelReadme } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ModelDetailWithInstall } from '@/components/ModelDetailWithInstall'
 import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
+import { loadModelsBySource, shouldSkipModel } from '@/lib/manifests'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
 export async function generateStaticParams() {
-  // TEAM-421: WASM doesn't work in Next.js SSG build context
-  // Solution: Pre-build top 100 models, filter client-side at runtime
-  const FETCH_LIMIT = 100
+  console.log('[SSG] Generating HuggingFace model pages from manifest')
 
-  console.log(
-    `[SSG] Pre-building top ${FETCH_LIMIT} most popular HuggingFace models (compatibility check happens at runtime)`,
-  )
+  // TEAM-464: Read from manifest instead of API
+  const models = await loadModelsBySource('huggingface')
+  
+  // Filter out problematic models
+  const validModels = models.filter(model => !shouldSkipModel(model.id))
+  
+  const skippedCount = models.length - validModels.length
+  if (skippedCount > 0) {
+    console.log(`[SSG] Skipping ${skippedCount} problematic models`)
+  }
 
-  const models = await listHuggingFaceModels({ limit: FETCH_LIMIT })
+  console.log(`[SSG] Pre-building ${validModels.length} HuggingFace model pages`)
 
-  console.log(`[SSG] Pre-building ${models.length} HuggingFace model pages`)
-
-  return models.map((model) => ({
-    slug: modelIdToSlug((model as { id: string }).id),
+  return validModels.map((model) => ({
+    slug: model.slug,
   }))
 }
 
@@ -52,12 +57,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// TEAM-464: Helper to sanitize nested objects that might cause React rendering errors
+function sanitizeValue(value: unknown): unknown {
+  if (value === null || value === undefined) return value
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
+  if (Array.isArray(value)) return value.map(sanitizeValue)
+  if (typeof value === 'object') {
+    // Convert objects to strings to prevent "Objects are not valid as React child" errors
+    return JSON.stringify(value)
+  }
+  return value
+}
+
 export default async function HuggingFaceModelPage({ params }: Props) {
   const { slug } = await params
   const modelId = slugToModelId(slug)
 
   try {
-    // TEAM-464: Get raw HuggingFace model with ALL fields
+    // TEAM-464: Use raw HF model for complete data
     const hfModel = await getRawHuggingFaceModel(modelId)
     
     // TEAM-464: Fetch README.md at build time (SSG)

@@ -92,7 +92,7 @@ export function HFModelCard({ cardData, pipelineTag, libraryName, className }: H
         ]
       : []),
     // Datasets
-    ...(cardData?.datasets && cardData.datasets.length > 0
+    ...(cardData?.datasets && Array.isArray(cardData.datasets) && cardData.datasets.length > 0
       ? [
           {
             icon: Database,
@@ -142,7 +142,7 @@ export function HFModelCard({ cardData, pipelineTag, libraryName, className }: H
       </div>
 
       {/* Datasets List (if available) */}
-      {cardData?.datasets && cardData.datasets.length > 0 && (
+      {cardData?.datasets && Array.isArray(cardData.datasets) && cardData.datasets.length > 0 && (
         <div className="pt-3 border-t">
           <p className="text-xs text-muted-foreground mb-2">Training Datasets:</p>
           <div className="flex flex-wrap gap-2">

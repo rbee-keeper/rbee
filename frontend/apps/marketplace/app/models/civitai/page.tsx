@@ -1,19 +1,10 @@
 // TEAM-460: Civitai models marketplace page
-// TEAM-422: Changed to vertical card grid layout for CivitAI's portrait images
-// TEAM-462: Added pagination (3 pages, 300 models total)
+// TEAM-464: Hybrid SSG + client-side filtering (Phase 3)
+// Server renders with default filter for SEO, then client-side loads manifests
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
-import { ModelCardVertical } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { modelIdToSlug } from '@/lib/slugify'
-import { Pagination } from '@/components/Pagination'
-import { ModelsFilterBar } from '../ModelsFilterBar'
-import {
-  buildFilterUrl,
-  CIVITAI_FILTER_GROUPS,
-  CIVITAI_SORT_GROUP,
-  PREGENERATED_FILTERS,
-} from './filters'
+import { PREGENERATED_FILTERS } from './filters'
+import { CivitAIFilterPage } from './CivitAIFilterPage'
 
 export const metadata: Metadata = {
   title: 'Civitai Models | rbee Marketplace',
@@ -21,24 +12,21 @@ export const metadata: Metadata = {
     'Browse compatible Stable Diffusion models from Civitai. Pre-rendered for instant loading and maximum SEO.',
 }
 
-// TEAM-462: Removed searchParams - incompatible with output: 'export'
-// Pagination will be client-side or via separate routes
+// TEAM-464: SSG with default filter data, then client-side filtering
 export default async function CivitAIModelsPage() {
   // Default filter (Most Downloaded, all types, all periods, PG only)
-  // TEAM-463: Now includes nsfwLevel: 'None' for safe-for-work content
   const currentFilter = PREGENERATED_FILTERS[0].filters
 
-  // TEAM-422: Fetch top 100 compatible models
+  // Fetch top 100 compatible models for SSG/SEO
   const FETCH_LIMIT = 100
 
-  console.log(`[SSG] Fetching top ${FETCH_LIMIT} compatible Civitai models`)
+  console.log(`[SSG] Fetching top ${FETCH_LIMIT} compatible Civitai models for initial render`)
 
   const civitaiModels = await getCompatibleCivitaiModels({ limit: FETCH_LIMIT })
 
-  console.log(`[SSG] Showing ${civitaiModels.length} Civitai models`)
+  console.log(`[SSG] Pre-rendering ${civitaiModels.length} Civitai models`)
 
-  // TEAM-422: getCompatibleCivitaiModels() returns Model[], not CivitAIModel[]
-  // The data is already normalized and converted
+  // Normalize models for client component
   const models = civitaiModels.map((model) => ({
     id: model.id,
     name: model.name,
@@ -51,50 +39,6 @@ export default async function CivitAIModelsPage() {
     imageUrl: model.imageUrl,
   }))
 
-  return (
-    <div className="container mx-auto px-4 py-12 max-w-7xl">
-      {/* Header Section */}
-      <div className="mb-8 space-y-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Civitai Models</h1>
-          <p className="text-muted-foreground text-lg md:text-xl max-w-3xl">
-            Discover and download Stable Diffusion models from Civitai&apos;s community
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-primary" />
-            <span>{models.length.toLocaleString()} compatible models</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-green-500" />
-            <span>Checkpoints & LORAs</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-blue-500" />
-            <span>Safe for work</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <ModelsFilterBar
-        groups={CIVITAI_FILTER_GROUPS}
-        sortGroup={CIVITAI_SORT_GROUP}
-        currentFilters={currentFilter}
-        buildUrlFn="/models/civitai"
-      />
-
-      {/* Model Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {models.map((model) => (
-          <Link key={model.id} href={`/models/civitai/${modelIdToSlug(model.id)}`} className="block">
-            <ModelCardVertical model={model} />
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
+  // Pass SSG data to client component
+  return <CivitAIFilterPage initialModels={models} initialFilter={currentFilter} />
 }

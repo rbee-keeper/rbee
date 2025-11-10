@@ -7,6 +7,7 @@
 //! SEO-compatible, works with Tauri, Next.js SSG/SSR
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Separator } from '@rbee/ui/atoms'
+import { MarkdownContent } from '@rbee/ui/molecules'
 import {
   Calendar,
   CheckCircle2,
@@ -14,22 +15,21 @@ import {
   Cpu,
   Download,
   ExternalLink,
-  Hash,
   HardDrive,
-  Languages,
+  Hash,
+  Heart,
   Layers,
   MessageSquare,
   Package,
   Shield,
+  Sparkles,
   Tag,
 } from 'lucide-react'
-import { MarkdownContent } from '@rbee/ui/molecules'
-import { DatasetsUsedCard } from '../../molecules/DatasetsUsedCard'
 import { InferenceProvidersCard } from '../../molecules/InferenceProvidersCard'
 import { ModelFilesList } from '../../molecules/ModelFilesList'
 import { ModelMetadataCard } from '../../molecules/ModelMetadataCard'
 import { WidgetDataCard } from '../../molecules/WidgetDataCard'
-import { CivitAIStatsHeader } from '../../organisms/CivitAIStatsHeader'
+import { HFModelCard } from '../../organisms/HFModelCard'
 import { WorkerCompatibilityList } from '../../organisms/WorkerCompatibilityList'
 import type { CompatibilityResult, Worker } from '../../types/compatibility'
 
@@ -49,14 +49,14 @@ export interface HFModelDetailData {
   library_name?: string
   sha?: string
   mask_token?: string
-  
+
   // TEAM-464: Widget data for inference examples
   widgetData?: Array<{
     source_sentence?: string
     sentences?: string[]
     text?: string
   }>
-  
+
   config?: {
     architectures?: string[]
     model_type?: string
@@ -71,7 +71,7 @@ export interface HFModelDetailData {
       chat_template?: string
     }
   }
-  
+
   // TEAM-464: Extended card data
   cardData?: {
     base_model?: string
@@ -80,17 +80,17 @@ export interface HFModelDetailData {
     datasets?: string[]
     pipeline_tag?: string
   }
-  
+
   // TEAM-464: Transformers info for inference
   transformersInfo?: {
     auto_model?: string
     pipeline_tag?: string
     processor?: string
   }
-  
+
   // TEAM-464: Inference status
   inference?: 'warm' | 'cold' | string
-  
+
   // TEAM-464: Safetensors parameters
   safetensors?: {
     parameters?: {
@@ -100,10 +100,10 @@ export interface HFModelDetailData {
     }
     total?: number
   }
-  
+
   // TEAM-464: Spaces using this model
   spaces?: string[]
-  
+
   // TEAM-463: ⚠️ TYPE CONTRACT - must match artifacts-contract::ModelFile
   siblings?: Array<{ filename: string; size?: number | null }>
   createdAt?: string
@@ -113,7 +113,7 @@ export interface HFModelDetailData {
   images?: Array<{ url: string; nsfw?: boolean }>
   externalUrl?: string // CivitAI or HuggingFace URL
   externalLabel?: string // "View on CivitAI" or "View on HuggingFace"
-  
+
   // TEAM-464: README content (raw markdown for react-markdown)
   readmeMarkdown?: string
 }
@@ -210,21 +210,12 @@ export function HFModeldetail({
 
   return (
     <div className="space-y-6">
-      {/* Stats Header */}
-      <CivitAIStatsHeader
-        downloads={model.downloads || 0}
-        likes={model.likes || 0}
-        rating={0} // HF doesn't have ratings, show 0
-      />
-
       {/* Main Content Grid - 3 columns: 2 for content, 1 for sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Columns (span 2) - README & Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* TEAM-464: README / Model Card */}
-          {model.readmeMarkdown && (
-            <MarkdownContent markdown={model.readmeMarkdown} title="Model Card" />
-          )}
+          {/* TEAM-464: README Documentation */}
+          {model.readmeMarkdown && <MarkdownContent markdown={model.readmeMarkdown} />}
 
           {/* TEAM-427: Image Gallery for CivitAI models */}
           {model.images && model.images.length > 0 && (
@@ -236,6 +227,7 @@ export function HFModeldetail({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {model.images.map((image, index) => (
                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={image.url}
                         alt={`Example ${index + 1}`}
@@ -272,9 +264,6 @@ export function HFModeldetail({
 
           {/* TEAM-464: Widget Data / Usage Examples */}
           <WidgetDataCard widgetData={model.widgetData} pipelineTag={model.pipeline_tag} />
-
-          {/* TEAM-464: Datasets Used */}
-          <DatasetsUsedCard datasets={model.cardData?.datasets} />
 
           {/* Basic Info */}
           <ModelMetadataCard
@@ -360,45 +349,6 @@ export function HFModeldetail({
             </Card>
           )}
 
-          {/* Card Data */}
-          {model.cardData && (
-            <ModelMetadataCard
-              title="Additional Information"
-              items={[
-                ...(model.cardData.base_model
-                  ? [
-                      {
-                        label: 'Base Model',
-                        value: model.cardData.base_model,
-                      },
-                    ]
-                  : []),
-                ...(model.cardData.license
-                  ? [
-                      {
-                        label: 'License',
-                        value: model.cardData.license,
-                        icon: <Shield className="size-4" />,
-                      },
-                    ]
-                  : []),
-                ...(model.cardData.language
-                  ? [
-                      {
-                        label: 'Languages',
-                        value:
-                          typeof model.cardData.language === 'string'
-                            ? model.cardData.language
-                            : model.cardData.language.slice(0, 5).join(', ') +
-                              (model.cardData.language.length > 5 ? '...' : ''),
-                        icon: <Languages className="size-4" />,
-                      },
-                    ]
-                  : []),
-              ]}
-            />
-          )}
-
           {/* Timestamps */}
           {(model.createdAt || model.lastModified) && (
             <ModelMetadataCard
@@ -445,6 +395,49 @@ export function HFModeldetail({
 
         {/* Right Column (span 1) - Details Sidebar */}
         <div className="lg:col-span-1 space-y-6">
+          {/* Title, Author, Stats, and External Link */}
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight mb-2">{model.name}</h1>
+              {model.author && (
+                <p className="text-lg text-muted-foreground">
+                  by <span className="font-semibold">{model.author}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Subtle Stats */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              {model.downloads > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Download className="size-4" />
+                  <span>{model.downloads.toLocaleString()}</span>
+                </div>
+              )}
+              {model.likes > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Heart className="size-4" />
+                  <span>{model.likes.toLocaleString()}</span>
+                </div>
+              )}
+              {model.spaces && model.spaces.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="size-4" />
+                  <span>
+                    {model.spaces.length} {model.spaces.length === 1 ? 'Space' : 'Spaces'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Button variant="outline" size="lg" className="w-full shadow-md hover:shadow-lg transition-all" asChild>
+              <a href={externalUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="size-4 mr-2" />
+                {externalLabel}
+              </a>
+            </Button>
+          </div>
+
           {/* Model Details Card */}
           <Card className="p-6 space-y-4 shadow-lg">
             <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -502,6 +495,9 @@ export function HFModeldetail({
             </div>
           </Card>
 
+          {/* TEAM-464: Model Card - Structured metadata from YAML frontmatter */}
+          <HFModelCard cardData={model.cardData} pipelineTag={model.pipeline_tag} libraryName={model.library_name} />
+
           {/* Files Card - matching CivitAI position */}
           {model.siblings && model.siblings.length > 0 && (
             <Card className="p-6 space-y-4 shadow-lg">
@@ -523,7 +519,11 @@ export function HFModeldetail({
               <h3 className="font-semibold text-lg">Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {model.tags.slice(0, 10).map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs hover:bg-primary hover:text-primary-foreground transition-colors cursor-default">
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="text-xs hover:bg-primary hover:text-primary-foreground transition-colors cursor-default"
+                  >
                     {tag}
                   </Badge>
                 ))}
@@ -531,26 +531,9 @@ export function HFModeldetail({
             </Card>
           )}
 
-          {/* External Link */}
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full shadow-md hover:shadow-lg transition-all"
-            asChild
-          >
-            <a href={externalUrl} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="size-4 mr-2" />
-              {externalLabel}
-            </a>
-          </Button>
-
           {/* Download Button */}
           {onDownload && (
-            <Button
-              size="lg"
-              className="w-full shadow-md hover:shadow-lg transition-all"
-              onClick={onDownload}
-            >
+            <Button size="lg" className="w-full shadow-md hover:shadow-lg transition-all" onClick={onDownload}>
               <Download className="size-4 mr-2" />
               Download Model
             </Button>

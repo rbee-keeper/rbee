@@ -61,11 +61,19 @@ export function MarkdownContent({
   asCard = true 
 }: MarkdownContentProps) {
   // Use markdown if provided, otherwise use HTML
-  const content = markdown || html
+  let content = markdown || html
   
   // If no content, return null
   if (!content) {
     return null
+  }
+
+  // TEAM-464: Strip YAML frontmatter from markdown (it's redundant metadata)
+  if (content.startsWith('---')) {
+    const endOfYaml = content.indexOf('---', 3)
+    if (endOfYaml !== -1) {
+      content = content.substring(endOfYaml + 3).trim()
+    }
   }
   
   // Custom components that use our existing UI library

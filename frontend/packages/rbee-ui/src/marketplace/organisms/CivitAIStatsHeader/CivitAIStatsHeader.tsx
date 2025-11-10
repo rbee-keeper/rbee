@@ -15,6 +15,9 @@ export interface CivitAIStatsHeaderProps {
 }
 
 export function CivitAIStatsHeader({ downloads, likes, rating, className }: CivitAIStatsHeaderProps) {
+  // TEAM-464: Show "N/A" for unrated models (rating === 0 or null/undefined)
+  const ratingDisplay = rating > 0 ? rating.toFixed(1) : 'N/A'
+  
   const stats = [
     {
       icon: Download,
@@ -32,7 +35,7 @@ export function CivitAIStatsHeader({ downloads, likes, rating, className }: Civi
     },
     {
       icon: Star,
-      value: rating.toFixed(1),
+      value: ratingDisplay,
       label: 'Rating',
       color: 'text-yellow-500',
       bgColor: 'bg-yellow-500/10',

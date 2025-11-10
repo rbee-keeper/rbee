@@ -4,10 +4,9 @@
 'use client'
 
 import { Badge, Button, Card } from '@rbee/ui/atoms'
-import { ExternalLink } from 'lucide-react'
+import { Download, ExternalLink, Heart, Star } from 'lucide-react'
 import { MarkdownContent } from '@rbee/ui/molecules'
 import { CivitAIImageGallery } from '../../organisms/CivitAIImageGallery'
-import { CivitAIStatsHeader } from '../../organisms/CivitAIStatsHeader'
 import { CivitAIDetailsCard } from '../../organisms/CivitAIDetailsCard'
 import { CivitAIFileCard } from '../../organisms/CivitAIFileCard'
 import { CivitAITrainedWords } from '../../organisms/CivitAITrainedWords'
@@ -53,13 +52,6 @@ export interface CivitAIModelDetailProps {
 export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
   return (
     <div className="space-y-6">
-      {/* Stats Header */}
-      <CivitAIStatsHeader
-        downloads={model.downloads}
-        likes={model.likes}
-        rating={model.rating}
-      />
-
       {/* Main Content Grid - 3 columns: 2 for content, 1 for sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Columns (span 2) - Images & Description */}
@@ -76,6 +68,52 @@ export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
 
         {/* Right Column (span 1) - Details Sidebar */}
         <div className="lg:col-span-1 space-y-6">
+          {/* Title, Author, Stats, and External Link */}
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight mb-2">{model.name}</h1>
+              <p className="text-lg text-muted-foreground">
+                by <span className="font-semibold">{model.author}</span>
+              </p>
+            </div>
+
+            {/* Subtle Stats */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              {model.downloads > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Download className="size-4" />
+                  <span>{model.downloads.toLocaleString()}</span>
+                </div>
+              )}
+              {model.likes > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Heart className="size-4" />
+                  <span>{model.likes.toLocaleString()}</span>
+                </div>
+              )}
+              {model.rating > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Star className="size-4" />
+                  <span>{model.rating.toFixed(1)}</span>
+                </div>
+              )}
+            </div>
+
+            {model.externalUrl && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full shadow-md hover:shadow-lg transition-all"
+                asChild
+              >
+                <a href={model.externalUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="size-4 mr-2" />
+                  {model.externalLabel || 'View Original'}
+                </a>
+              </Button>
+            )}
+          </div>
+
           {/* Details Card */}
           <CivitAIDetailsCard
             type={model.type}
@@ -103,21 +141,6 @@ export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
                 ))}
               </div>
             </Card>
-          )}
-
-          {/* External Link */}
-          {model.externalUrl && (
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full shadow-md hover:shadow-lg transition-all"
-              asChild
-            >
-              <a href={model.externalUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="size-4 mr-2" />
-                {model.externalLabel || 'View Original'}
-              </a>
-            </Button>
           )}
         </div>
       </div>

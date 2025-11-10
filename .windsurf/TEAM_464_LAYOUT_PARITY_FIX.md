@@ -8,6 +8,8 @@
 
 Fixed layout inconsistencies between HuggingFace and CivitAI model detail pages by refactoring HFModelDetail to match CivitAI's layout structure. Files and essential details are now consistently positioned on the **right sidebar** for both templates. All spacing has been standardized to `gap-6` for visual consistency.
 
+**Key Layout:** Title, author, and external link button are positioned in the **3rd column (sidebar) ONLY**, between the stats header and the Details card.
+
 ## Changes Made
 
 ### 1. Layout Structure Refactor
@@ -41,19 +43,24 @@ Fixed layout inconsistencies between HuggingFace and CivitAI model detail pages 
 **Layout Changes:**
 ```tsx
 // NEW STRUCTURE - 3 COLUMN GRID (matching CivitAI)
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-  {/* Left Columns (span 2) - Main Content */}
-  <div className="lg:col-span-2 space-y-6">
-    {/* README, Images, Workers, Metadata, etc. */}
-  </div>
+<div className="space-y-6">
+  {/* Stats Header (full width) */}
+  <CivitAIStatsHeader />
 
-  {/* Right Column (span 1) - Details Sidebar */}
-  <div className="lg:col-span-1 space-y-6">
-    {/* Details Card */}
-    {/* Files Card */}
-    {/* Tags */}
-    {/* External Link */}
-    {/* Download Button */}
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {/* Left Columns (span 2) - Main Content */}
+    <div className="lg:col-span-2 space-y-6">
+      {/* Images, README, Metadata, etc. */}
+    </div>
+
+    {/* Right Column (span 1) - Details Sidebar */}
+    <div className="lg:col-span-1 space-y-6">
+      {/* Title, Author, External Link Button */}
+      {/* Details Card */}
+      {/* Files Card */}
+      {/* Tags */}
+      {/* Download Button (HF only) */}
+    </div>
   </div>
 </div>
 ```
@@ -118,6 +125,7 @@ This creates uniform visual rhythm across the entire page.
 3. `/frontend/packages/rbee-ui/src/marketplace/organisms/CivitAIStatsHeader/CivitAIStatsHeader.tsx`
    - Updated stats card gap from `gap-4` to `gap-6`
    - Removed unused `TrendingUp` import
+   - Fixed rating display: Shows "N/A" for unrated models instead of "0.0"
 
 ## Breaking Changes
 

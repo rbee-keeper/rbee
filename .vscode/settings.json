@@ -5,13 +5,11 @@
   "editor.tabSize": 4,
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "quickfix.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
   },
-  // Let Prettier handle formatting; ESLint applies fixes via codeActionsOnSave
-  "eslint.format.enable": false,
-
-  // Make sure Prettier reads .editorconfig for tab width rules
-  "prettier.useEditorConfig": true,
+  // TEAM-464: Using Biome for formatting and linting
+  "editor.defaultFormatter": "biomejs.biome",
 
   // Rust: 4 spaces via rust-analyzer / rustfmt
   "[rust]": {
@@ -20,52 +18,52 @@
     "editor.tabSize": 4
   },
 
-  // JavaScript family: 2 spaces via Prettier
+  // JavaScript family: 2 spaces via Biome
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "biomejs.biome",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.formatOnSave": true
   },
   "[javascriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "biomejs.biome",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.formatOnSave": true
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "biomejs.biome",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.formatOnSave": true
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "biomejs.biome",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.formatOnSave": true
   },
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "biomejs.biome",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.formatOnSave": true
   },
-  // Stylesheets: 4 spaces and Prettier formatting
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  // Stylesheets: 4 spaces via Biome
   "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.insertSpaces": true,
-    "editor.tabSize": 4,
-    "editor.formatOnSave": true
-  },
-  "[scss]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.insertSpaces": true,
-    "editor.tabSize": 4,
-    "editor.formatOnSave": true
-  },
-  "[less]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "biomejs.biome",
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
     "editor.formatOnSave": true

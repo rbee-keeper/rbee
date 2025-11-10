@@ -6,7 +6,6 @@ packages:
   - frontend/packages/rbee-ui
   - frontend/packages/tailwind-config
   - frontend/packages/typescript-config
-  - frontend/packages/eslint-config
   - frontend/packages/vite-config
   - frontend/packages/shared-config
   - frontend/packages/env-config

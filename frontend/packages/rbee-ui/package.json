@@ -42,6 +42,8 @@
     "dev": "pnpm run dev:styles & pnpm run dev:components & storybook dev -p 6006 --no-open",
     "dev:styles": "postcss ./src/tokens/globals.css -o ./dist/index.css --watch",
     "dev:components": "tsc --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -60,6 +62,7 @@
     "react-dom": ">=18"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.4",
     "@chromatic-com/storybook": "^4.1.2",
     "@playwright/experimental-ct-react": "^1.56.1",
     "@playwright/test": "^1.56.1",

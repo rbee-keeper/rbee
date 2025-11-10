@@ -52,7 +52,7 @@ export function TwoColumnDropdown({ title, leftColumn, rightColumn, cta }: TwoCo
 
   return (
     <NavigationMenuItem>
-      <NavigationMenuTrigger className="px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
+      <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent px-2 text-sm font-medium text-foreground/80 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
         {title}
       </NavigationMenuTrigger>
       <NavigationMenuContent className="animate-fade-in md:motion-safe:animate-slide-in-down border border-border">
@@ -73,11 +73,11 @@ export function TwoColumnDropdown({ title, leftColumn, rightColumn, cta }: TwoCo
           <div className="border-t border-border p-3 bg-muted/30">
             <div className="flex items-center justify-end">
               {cta.href ? (
-                <Button size="sm" className="h-7 text-xs" asChild>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
                   <Link href={cta.href}>{cta.label}</Link>
                 </Button>
               ) : (
-                <Button size="sm" className="h-7 text-xs" onClick={cta.onClick}>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={cta.onClick}>
                   {cta.label}
                 </Button>
               )}

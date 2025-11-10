@@ -1,28 +1,35 @@
 # rbee (pronounced "are-bee")
 
-**Stop Paying for AI APIs. Run Everything on Your Hardware.**
+**Your private AI cloud, in one command.**
 
-rbee turns your scattered GPUs into one intelligent swarm. Mac, PC, Linux—all working together like a coordinated bee colony. Zero ongoing costs. Zero vendor lock-in. One simple OpenAI-compatible API.
+rbee is a system that turns every GPU you own—across desktops, laptops, servers, and remote machines—into a single, unified AI cloud with one API and one interface.
 
-**🎯 For developers who build with AI but refuse to depend on big providers.**
+Mac, PC, Linux—all working together. Zero ongoing costs. Zero vendor lock-in. One OpenAI-compatible API.
 
----
-
-## The Problem You Know Too Well
-
-You're building with AI assistance (Claude, GPT-4, Cursor). Your codebase depends on it. **What happens when:**
-- The AI provider changes their models?
-- They shut down or change pricing?
-- Rate limits kill your productivity?
-- Your prompts leak to their servers?
-
-**You've created a dependency you can't control.**
+**🎯 Finally, the correct way to run AI across all your GPUs.**
 
 ---
 
-## The rbee Solution
+## The Problem
 
-**Turn your home network GPUs into your own AI infrastructure:**
+You have multiple GPUs across different machines. Maybe a gaming PC with an RTX 4090, a Mac Studio with M2 Ultra, an old server with dual RTX 3090s.
+
+**Right now, you're probably:**
+- Juggling multiple tools with different ports and configurations
+- Manually deciding which model runs where
+- Dealing with GPU memory conflicts and crashes
+- Leaving GPUs idle while others are overloaded
+- SSH'ing into different machines to manage everything
+
+**Or you're paying for cloud APIs when you already own the hardware.**
+
+---
+
+## The Solution
+
+**Of course you should use all your GPUs. Why wouldn't you?**
+
+rbee makes it obvious:
 
 ```bash
 # Single command. Zero configuration. Just works.
@@ -56,43 +63,42 @@ export OPENAI_API_KEY=your-rbee-token
 
 ---
 
-## Why rbee? Do What Was Impossible Before
+## Why rbee?
 
-### Run ChatGPT + Stable Diffusion Simultaneously
-Remember when running two AI models crashed your system? **Those days are over.**
+### All Your Machines, One System
+Your gaming PC with RTX 4090. Your Mac Studio with M2 Ultra. Your old server with 2x RTX 3090. **All working together as one unified system.**
 
-Your gaming PC with RTX 4090. Your Mac Studio with M2 Ultra. Your old server with 2x RTX 3090. **All working together. Zero conflicts. Zero crashes.**
+- Chat with an LLM and generate images at the same time
+- No manual port juggling
+- No SSH'ing into chaos
+- One OpenAI-compatible endpoint for everything
 
-### Use 40-60% More of Your GPU Capacity
-**Same hardware. Smarter scheduling.**
+### Zero Kubernetes. SSH In, Hive Up.
+No cluster PhD required. No complex orchestration. SSH-based deployment that just works.
 
+```bash
+# Add a machine like SSH config
+rbee hive install gaming-pc
+
+# Use it
+rbee infer -a gaming-pc -m llama-3-70b -p "Complex task"
+```
+
+### Intelligent Scheduling
 Like a bee colony: one queen coordinates, multiple workers execute. Your GPUs work at optimal capacity. No wasted compute. No idle resources.
 
-### Save $240-1,200/Year vs OpenAI API
-- **OpenAI:** $20-100/month = $240-1,200/year
+**Same hardware. Smarter scheduling. 40-60% better GPU utilization.**
+
+### Stop Paying for Cloud APIs
+- **Cloud APIs:** $20-100/month = $240-1,200/year
 - **rbee:** Electricity only (~$10-30/month)
-- **Your savings:** Invest in better GPUs instead
-
-### Never Crash Your System Again
-**Without rbee:**
-- ❌ GPU memory conflicts - Tasks fighting for resources
-- ❌ Manual resource management - You decide what runs where
-- ❌ Crashed processes - One task kills another
-- ❌ Wasted GPU time - Idle GPUs while others overload
-- ❌ Complex setup - Different APIs for different hardware
-
-**With rbee:**
-- ✅ Intelligent scheduling - Queen coordinates all tasks automatically
-- ✅ Automatic resource allocation - rbee handles everything
-- ✅ Zero conflicts - Tasks never interfere with each other
-- ✅ Maximum utilization - Every GPU working at optimal capacity
-- ✅ One simple API - OpenAI-compatible across all hardware
+- **Your hardware. Your control. Zero ongoing costs.**
 
 ---
 
 ## Up and Running in 5 Minutes
 
-**No complex configuration. No PhD required. No payment information. Just download and start orchestrating.**
+**No complex configuration. No Kubernetes. No payment information. Just download and start orchestrating.**
 
 ### Step 1: Install rbee
 ```bash
@@ -223,63 +229,61 @@ rbee CLI → Queen → Hive (gaming-pc) → Workers
 
 ---
 
-## Competitive Advantages
+## How rbee Compares
 
-### vs. Cloud APIs (OpenAI, Anthropic)
+### vs. Ollama / LM Studio
 
-**We win on:**
-- **Independence** - Never depend on external providers again
-- **Control** - Your models, your rules, never change without permission
-- **Privacy** - Code never leaves your network
-- **Cost** - Zero ongoing costs (electricity only = $120-360/year vs $240-1,200/year)
-- **Availability** - Your hardware, your uptime
+**Ollama and LM Studio are excellent single-machine tools.** They're simple, mature, and battle-tested.
 
-**They win on:**
-- Ease of use (no infrastructure management)
-- Model selection (access to latest models immediately)
+**rbee is for multiple machines:**
+- Multi-machine orchestration (use ALL your GPUs)
+- Heterogeneous hardware (CUDA + Metal + CPU together)
+- Production-grade scheduling and routing
+- OpenAI-compatible API across your entire fleet
 
-### vs. Self-Hosted (Ollama, llama.cpp)
+**Use Ollama if:** You have one machine and want simplicity  
+**Use rbee if:** You have multiple GPUs across multiple machines
 
-**We win on:**
-- **Multi-node orchestration** - Use ALL your computers' GPU power
-- **Zero conflicts** - Run multiple models simultaneously without crashes
-- **Smart scheduling** - 40-60% better GPU utilization
-- **Agentic API** - Task-based streaming for AI agents
-- **@rbee/utils** - TypeScript library for building LLM pipelines
-- **EU compliance** - GDPR built-in (7-year audit retention)
+### vs. Cloud APIs (OpenAI, Together.ai)
 
-**They win on:**
-- Simplicity (single binary)
-- Maturity (battle-tested)
+**Cloud APIs are convenient.** No infrastructure management, access to latest models immediately.
 
-### Unique Features (No One Else Has)
+**rbee gives you control:**
+- Your models, your rules (never change without permission)
+- Your data stays on your network (complete privacy)
+- Zero ongoing costs (electricity only)
+- Your hardware, your uptime
 
-**Home Network Power:**
-- Use GPUs across ALL your computers
-- Mac + PC + Linux working together
-- SSH-based deployment (no Kubernetes needed)
+**Use cloud APIs if:** You want zero infrastructure management  
+**Use rbee if:** You already own GPUs and want independence
 
-**Agentic API:**
-- Task-based streaming designed for AI agents
-- @rbee/utils TypeScript library
-- Job-based architecture (everything is a job)
+### vs. Kubernetes-based Stacks
 
-**Security-First:**
-- 5 security crates (auth-min, audit-logging, input-validation, secrets-management, deadline-propagation)
-- GDPR compliance from day 1
-- EU-native approach
+**Kubernetes is powerful.** It can orchestrate anything.
 
-**Character-Driven Development:**
-- 99% AI-generated code
-- 6 specialized AI teams
-- Proven: AI can build complex systems with proper architecture
+**rbee is focused:**
+- SSH-based deployment (no cluster complexity)
+- Built specifically for AI workloads
+- Works on home networks, not just data centers
+- Zero Kubernetes knowledge required
+
+**Use Kubernetes if:** You're running a data center  
+**Use rbee if:** You want AI orchestration without the PhD
+
+### What Only rbee Does
+
+- **Multi-machine + multi-device:** Mac + PC + Linux working as one system
+- **SSH-based:** No Kubernetes, no complex setup
+- **Heterogeneous hardware:** CUDA, Metal, CPU in one unified system
+- **Home network optimized:** Built for your hardware, not cloud data centers
+- **OpenAI-compatible:** Drop-in replacement for your existing tools
 
 ---
 
 ## Current Status
 
 **Version:** 0.1.0 (M0 - Core Orchestration)  
-**Completion:** 68% (42/62 BDD scenarios passing)  
+**Completion:** 95% (in progress)  
 **License:** GPL-3.0-or-later (free and open source, copyleft)
 
 ### What's Working Now (M0 - Complete)
@@ -592,25 +596,23 @@ See [LICENSE](./LICENSE) for full terms.
 
 ---
 
-## About the Author
+## About the Project
 
-**veighnsche (pronounced "Vince")**
+**Built by:** [Vince Liem](https://www.linkedin.com/in/vincepaulliem/)  
+**Development approach:** 99% AI-generated code via Character-Driven Development
 
-I don't know how to write Rust. I learned by building this project with AI. **The goal:** Prove that a good architect can vibe code beyond their normal capabilities.
+rbee was created because I needed a simple way to run multiple AI workloads across multiple machines—without Kubernetes, hacks, or guesswork. The architecture that solved my own setup scaled naturally into something anyone with GPUs can use.
 
 **I take ownership of:**
 - ✅ High-level architecture
 - ✅ Crate structure and code flow
-- ✅ Language choices
-- ✅ Specifications
+- ✅ Language choices and specifications
 
 **I take FULL responsibility for:**
 - ❌ Breaking bugs (I will fix them)
 - ❌ Security failures (I will patch them)
 
-**Honest disclaimer:** I cannot guarantee security until I've fully reviewed the code. **You should audit before production use.** I encourage audits. I NEED human code reviewers.
-
-If you refuse to use rbee due to "vibe coding" concerns—**I understand.** I'm skeptical too. But the product will speak for itself eventually.
+**Honest disclaimer:** This is 99% AI-generated code. **You should audit before production use.** I encourage audits and welcome human code reviewers.
 
 ---
 
@@ -649,6 +651,6 @@ export OPENAI_API_BASE=http://localhost:7833/v1
 # 4. Build with AI. Own your infrastructure.
 ```
 
-**Stop paying for AI APIs. Start orchestrating your GPUs. Transform your workflow in 5 minutes.**
+**Stop juggling tools. Stop SSH'ing into chaos. rbee is the system you needed.**
 
-🐝 **rbee - Your GPUs. Zero API fees. One simple API.**
+🐝 **rbee - All your GPUs, one system.**

@@ -4,7 +4,7 @@
 'use client'
 
 import { Card } from '@rbee/ui/atoms'
-import { Download, Heart, Star, TrendingUp } from 'lucide-react'
+import { Download, Heart, Star } from 'lucide-react'
 import { cn } from '@rbee/ui/utils'
 
 export interface CivitAIStatsHeaderProps {
@@ -40,7 +40,7 @@ export function CivitAIStatsHeader({ downloads, likes, rating, className }: Civi
   ]
 
   return (
-    <div className={cn('grid grid-cols-3 gap-4', className)}>
+    <div className={cn('grid grid-cols-3 gap-6', className)}>
       {stats.map((stat) => {
         const Icon = stat.icon
         return (

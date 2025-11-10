@@ -1,5 +1,6 @@
 // TEAM-464: Reusable markdown content renderer
 // Uses react-markdown with existing BlogHeading, CodeBlock, and other UI components
+// Converts HTML to markdown for consistent styling
 
 'use client'
 
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@rbee/ui/atoms'
 import { cn } from '@rbee/ui/utils'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { BlogHeading } from '../BlogHeading'
 import { CodeBlock } from '../CodeBlock'
@@ -58,36 +60,11 @@ export function MarkdownContent({
   className,
   asCard = true 
 }: MarkdownContentProps) {
-  // If HTML is provided (CivitAI), render it directly
-  if (html) {
-    const htmlContent = (
-      <div 
-        className={cn('markdown-content', className)}
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: CivitAI provides sanitized HTML
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    )
-    
-    if (!asCard) {
-      return htmlContent
-    }
-    
-    return (
-      <Card>
-        {title && (
-          <CardHeader>
-            <CardTitle>{title}</CardTitle>
-          </CardHeader>
-        )}
-        <CardContent>
-          {htmlContent}
-        </CardContent>
-      </Card>
-    )
-  }
+  // Use markdown if provided, otherwise use HTML
+  const content = markdown || html
   
-  // Otherwise use react-markdown for markdown content
-  if (!markdown) {
+  // If no content, return null
+  if (!content) {
     return null
   }
   
@@ -210,9 +187,10 @@ export function MarkdownContent({
     <div className={cn('markdown-content', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
         components={components}
       >
-        {markdown}
+        {content}
       </ReactMarkdown>
     </div>
   )

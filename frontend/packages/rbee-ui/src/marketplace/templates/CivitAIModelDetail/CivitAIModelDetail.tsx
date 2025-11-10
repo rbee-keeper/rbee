@@ -3,8 +3,8 @@
 
 'use client'
 
-import { Badge, Button, Card, Tabs, TabsContent, TabsList, TabsTrigger } from '@rbee/ui/atoms'
-import { ExternalLink, BookOpen, Lightbulb } from 'lucide-react'
+import { Badge, Button, Card } from '@rbee/ui/atoms'
+import { ExternalLink } from 'lucide-react'
 import { MarkdownContent } from '@rbee/ui/molecules'
 import { CivitAIImageGallery } from '../../organisms/CivitAIImageGallery'
 import { CivitAIStatsHeader } from '../../organisms/CivitAIStatsHeader'
@@ -52,7 +52,7 @@ export interface CivitAIModelDetailProps {
 
 export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Stats Header */}
       <CivitAIStatsHeader
         downloads={model.downloads}
@@ -60,49 +60,22 @@ export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
         rating={model.rating}
       />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-        {/* Left Column - Images & Description */}
-        <div className="space-y-6">
+      {/* Main Content Grid - 3 columns: 2 for content, 1 for sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Columns (span 2) - Images & Description */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Image Gallery */}
           <CivitAIImageGallery images={model.images} modelName={model.name} />
 
-          {/* Description Tabs */}
+          {/* Description */}
           <Card className="p-6 shadow-lg">
-            <Tabs defaultValue="description">
-              <TabsList className="w-full justify-start bg-muted/50">
-                <TabsTrigger value="description" className="flex items-center gap-2">
-                  <BookOpen className="size-4" />
-                  Description
-                </TabsTrigger>
-                <TabsTrigger value="usage" className="flex items-center gap-2">
-                  <Lightbulb className="size-4" />
-                  Usage Tips
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="about" className="mt-4">
-                {/* Description is pre-sanitized HTML from CivitAI API */}
-                <MarkdownContent html={model.description} asCard={false} className="prose-sm" />
-              </TabsContent>
-
-              <TabsContent value="usage" className="mt-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">How to use this model</h3>
-                  <ol className="list-decimal list-inside space-y-3 text-sm text-muted-foreground">
-                    <li className="pl-2">Download the model file from the Files section below</li>
-                    <li className="pl-2">Place it in your Stable Diffusion models folder</li>
-                    <li className="pl-2">Restart your SD interface if needed</li>
-                    <li className="pl-2">Select the model and use the trained words in your prompts</li>
-                  </ol>
-                </div>
-              </TabsContent>
-            </Tabs>
+            {/* Description is HTML from CivitAI API - converted to markdown for styling */}
+            <MarkdownContent html={model.description} asCard={false} className="prose-sm" />
           </Card>
         </div>
 
-        {/* Right Column - Details Sidebar */}
-        <div className="space-y-6">
+        {/* Right Column (span 1) - Details Sidebar */}
+        <div className="lg:col-span-1 space-y-6">
           {/* Details Card */}
           <CivitAIDetailsCard
             type={model.type}

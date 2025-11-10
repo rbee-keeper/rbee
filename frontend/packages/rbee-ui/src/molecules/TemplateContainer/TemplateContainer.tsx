@@ -19,7 +19,7 @@ import type { ReactNode } from 'react'
 
 export interface TemplateContainerProps {
   /** Section title (null to skip rendering) */
-  title: string | ReactNode | null
+  title?: string | ReactNode | null
   /** Optional description */
   description?: string | ReactNode
   /** Small badge/label above title (string will be rendered as Badge component) */

@@ -18,8 +18,8 @@ export default function Home() {
         <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">AI Model Marketplace</h1>
 
         <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-          Browse 1000s of LLMs from HuggingFace and image models from Civitai. 
-          Find compatible models, check hardware requirements, and download instantly.
+          Browse 1000s of LLMs from HuggingFace and image models from Civitai. Find compatible models, check hardware
+          requirements, and download instantly.
         </p>
 
         <div className="flex gap-4 justify-center">

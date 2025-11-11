@@ -3,10 +3,10 @@
 // TEAM-427: Install button using rbee-ui Button atom
 // Refactored from ad-hoc implementation to use proper atomic design
 
-import { useKeeperInstalled } from '../app/hooks/useKeeperInstalled'
 import { Button, Spinner } from '@rbee/ui/atoms'
-import { Download, ExternalLink } from 'lucide-react'
 import { cn } from '@rbee/ui/utils'
+import { Download, ExternalLink } from 'lucide-react'
+import { useKeeperInstalled } from '../app/hooks/useKeeperInstalled'
 
 interface InstallButtonProps {
   modelId: string

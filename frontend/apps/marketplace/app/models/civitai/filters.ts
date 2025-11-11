@@ -1,81 +1,84 @@
-// TEAM-422: CivitAI filter definitions for SSG pre-generation
-// TEAM-461: Refactored to use generic FilterGroup pattern
-// TEAM-429: Import filter types from @rbee/marketplace-node
-import type { FilterGroup, FilterConfig as GenericFilterConfig } from '@/lib/filters/types'
-import type {
-  CivitaiFilters as NodeCivitaiFilters,
-  TimePeriod,
-  CivitaiModelType,
-  BaseModel,
-  CivitaiSort,
-  NsfwFilter,
+// TEAM-XXX RULE ZERO: Import constants from marketplace-node (source of truth)
+
+import {
+  type BaseModel,
+  CIVITAI_BASE_MODELS,
+  CIVITAI_MODEL_TYPES,
+  CIVITAI_NSFW_LEVELS,
+  CIVITAI_SORTS,
+  CIVITAI_TIME_PERIODS,
+  CIVITAI_URL_SLUGS,
+  type CivitaiModelType,
+  type CivitaiSort,
+  type NsfwLevel,
+  type TimePeriod,
 } from '@rbee/marketplace-node'
+import type { FilterGroup, FilterConfig as GenericFilterConfig } from '@/lib/filters/types'
 
-// TEAM-429: Re-export types from marketplace-node
-export type { TimePeriod, CivitaiModelType, BaseModel, CivitaiSort, NsfwFilter }
-
-// TEAM-463: Frontend-specific filter interface (extends Node SDK types)
-// Note: Frontend uses simpler sort values ('downloads' vs 'Most Downloaded')
+// Local interface extending the core types
 export interface CivitaiFilters {
   timePeriod: TimePeriod
   modelType: CivitaiModelType
   baseModel: BaseModel
-  sort: 'downloads' | 'likes' | 'newest'  // Frontend-specific sort values
-  nsfwLevel?: 'None' | 'Soft' | 'Mature' | 'X' | 'XXX'  // NSFW filter level
+  sort?: CivitaiSort
+  nsfwLevel?: NsfwLevel
 }
 
 // Filter group definitions (left side - actual filters)
+// TEAM-XXX RULE ZERO: Using constants from marketplace-node
 export const CIVITAI_FILTER_GROUPS: FilterGroup[] = [
   {
     id: 'timePeriod',
     label: 'Time Period',
     options: [
-      { label: 'All Time', value: 'AllTime' },
-      { label: 'Month', value: 'Month' },
-      { label: 'Week', value: 'Week' },
-      { label: 'Day', value: 'Day' },
+      { label: 'All Time', value: CIVITAI_TIME_PERIODS[0] },
+      { label: 'Year', value: CIVITAI_TIME_PERIODS[1] },
+      { label: 'Month', value: CIVITAI_TIME_PERIODS[2] },
+      { label: 'Week', value: CIVITAI_TIME_PERIODS[3] },
+      { label: 'Day', value: CIVITAI_TIME_PERIODS[4] },
     ],
   },
   {
     id: 'modelType',
     label: 'Model Type',
     options: [
-      { label: 'All Types', value: 'All' },
-      { label: 'Checkpoint', value: 'Checkpoint' },
-      { label: 'LORA', value: 'LORA' },
+      { label: 'All Types', value: CIVITAI_MODEL_TYPES[0] },
+      { label: 'Checkpoint', value: CIVITAI_MODEL_TYPES[1] },
+      { label: 'LORA', value: CIVITAI_MODEL_TYPES[2] },
     ],
   },
   {
     id: 'baseModel',
     label: 'Base Model',
     options: [
-      { label: 'All Models', value: 'All' },
-      { label: 'SDXL 1.0', value: 'SDXL 1.0' },
-      { label: 'SD 1.5', value: 'SD 1.5' },
-      { label: 'SD 2.1', value: 'SD 2.1' },
+      { label: 'All Models', value: CIVITAI_BASE_MODELS[0] },
+      { label: 'SDXL 1.0', value: CIVITAI_BASE_MODELS[1] },
+      { label: 'SD 1.5', value: CIVITAI_BASE_MODELS[2] },
+      { label: 'SD 2.1', value: CIVITAI_BASE_MODELS[3] },
     ],
   },
   {
     id: 'nsfwLevel',
     label: 'Content Rating',
     options: [
-      { label: 'PG (Safe for work)', value: 'None' },
-      { label: 'PG-13 (Suggestive)', value: 'Soft' },
-      { label: 'R (Mature)', value: 'Mature' },
-      { label: 'X (Explicit)', value: 'X' },
-      { label: 'XXX (Pornographic)', value: 'XXX' },
+      { label: 'PG (Safe for work)', value: CIVITAI_NSFW_LEVELS[0] },
+      { label: 'PG-13 (Suggestive)', value: CIVITAI_NSFW_LEVELS[1] },
+      { label: 'R (Mature)', value: CIVITAI_NSFW_LEVELS[2] },
+      { label: 'X (Explicit)', value: CIVITAI_NSFW_LEVELS[3] },
+      { label: 'XXX (Pornographic)', value: CIVITAI_NSFW_LEVELS[4] },
     ],
   },
 ]
 
 // Sort group definition (right side - sorting only)
+// TEAM-XXX RULE ZERO: Using constants from marketplace-node
 export const CIVITAI_SORT_GROUP: FilterGroup = {
   id: 'sort',
   label: 'Sort By',
   options: [
-    { label: 'Most Downloads', value: 'downloads' },
-    { label: 'Most Likes', value: 'likes' },
-    { label: 'Newest', value: 'newest' },
+    { label: 'Most Downloads', value: CIVITAI_SORTS[0] },
+    { label: 'Most Likes', value: CIVITAI_SORTS[1] },
+    { label: 'Newest', value: CIVITAI_SORTS[2] },
   ],
 }
 
@@ -89,82 +92,195 @@ export const CIVITAI_FILTERS = {
 // Pre-generate these popular combinations
 // TEAM-460: Added 'filter/' prefix to avoid route conflicts with [slug]
 // TEAM-463: Added NSFW filter levels
+// TEAM-XXX RULE ZERO: Using constants from marketplace-node
 export const PREGENERATED_FILTERS: GenericFilterConfig<CivitaiFilters>[] = [
   // Default view (PG - Safe for work)
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'None' }, path: '' },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: '',
+  },
 
   // NSFW filter levels (most important - users want to filter by content rating)
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'None' }, path: 'filter/pg' },
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'Soft' }, path: 'filter/pg13' },
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'Mature' }, path: 'filter/r' },
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'X' }, path: 'filter/x' },
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'XXX' }, path: 'filter/xxx' },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.NSFW_LEVELS[1]}`,
+  },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[1],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.NSFW_LEVELS[2]}`,
+  },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[2],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.NSFW_LEVELS[3]}`,
+  },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[3],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.NSFW_LEVELS[4]}`,
+  },
 
   // Popular time periods (PG only)
-  { filters: { timePeriod: 'Month', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'None' }, path: 'filter/month' },
-  { filters: { timePeriod: 'Week', modelType: 'All', baseModel: 'All', sort: 'downloads', nsfwLevel: 'None' }, path: 'filter/week' },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[2],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.TIME_PERIODS[2]}`,
+  },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[3],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.TIME_PERIODS[3]}`,
+  },
 
   // Model type filters (PG only)
   {
-    filters: { timePeriod: 'AllTime', modelType: 'Checkpoint', baseModel: 'All', sort: 'downloads', nsfwLevel: 'None' },
-    path: 'filter/checkpoints',
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[1],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.MODEL_TYPES[1]}`,
   },
-  { filters: { timePeriod: 'AllTime', modelType: 'LORA', baseModel: 'All', sort: 'downloads', nsfwLevel: 'None' }, path: 'filter/loras' },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[2],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.MODEL_TYPES[2]}`,
+  },
 
   // Base model filters (PG only)
   {
-    filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'SDXL 1.0', sort: 'downloads', nsfwLevel: 'None' },
-    path: 'filter/sdxl',
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[1],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.BASE_MODELS[1]}`,
   },
-  { filters: { timePeriod: 'AllTime', modelType: 'All', baseModel: 'SD 1.5', sort: 'downloads', nsfwLevel: 'None' }, path: 'filter/sd15' },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[0],
+      baseModel: CIVITAI_BASE_MODELS[2],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.BASE_MODELS[2]}`,
+  },
 
   // Popular combinations (PG only)
   {
-    filters: { timePeriod: 'Month', modelType: 'Checkpoint', baseModel: 'SDXL 1.0', sort: 'downloads', nsfwLevel: 'None' },
-    path: 'filter/month/checkpoints/sdxl',
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[2],
+      modelType: CIVITAI_MODEL_TYPES[1],
+      baseModel: CIVITAI_BASE_MODELS[1],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.TIME_PERIODS[2]}/${CIVITAI_URL_SLUGS.MODEL_TYPES[1]}/${CIVITAI_URL_SLUGS.BASE_MODELS[1]}`,
   },
   {
-    filters: { timePeriod: 'Month', modelType: 'LORA', baseModel: 'SDXL 1.0', sort: 'downloads', nsfwLevel: 'None' },
-    path: 'filter/month/loras/sdxl',
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[2],
+      modelType: CIVITAI_MODEL_TYPES[2],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.TIME_PERIODS[2]}/${CIVITAI_URL_SLUGS.MODEL_TYPES[2]}`,
   },
   {
-    filters: { timePeriod: 'Week', modelType: 'Checkpoint', baseModel: 'SDXL 1.0', sort: 'downloads', nsfwLevel: 'None' },
-    path: 'filter/week/checkpoints/sdxl',
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[3],
+      modelType: CIVITAI_MODEL_TYPES[1],
+      baseModel: CIVITAI_BASE_MODELS[1],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[0],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.TIME_PERIODS[3]}/${CIVITAI_URL_SLUGS.MODEL_TYPES[1]}/${CIVITAI_URL_SLUGS.BASE_MODELS[1]}`,
   },
 
   // NSFW + Model Type combinations
-  { filters: { timePeriod: 'AllTime', modelType: 'Checkpoint', baseModel: 'All', sort: 'downloads', nsfwLevel: 'Mature' }, path: 'filter/r/checkpoints' },
-  { filters: { timePeriod: 'AllTime', modelType: 'LORA', baseModel: 'All', sort: 'downloads', nsfwLevel: 'Mature' }, path: 'filter/r/loras' },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[1],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[2],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.NSFW_LEVELS[3]}/${CIVITAI_URL_SLUGS.MODEL_TYPES[1]}`,
+  },
+  {
+    filters: {
+      timePeriod: CIVITAI_TIME_PERIODS[0],
+      modelType: CIVITAI_MODEL_TYPES[2],
+      baseModel: CIVITAI_BASE_MODELS[0],
+      sort: CIVITAI_SORTS[0],
+      nsfwLevel: CIVITAI_NSFW_LEVELS[2],
+    },
+    path: `filter/${CIVITAI_URL_SLUGS.NSFW_LEVELS[3]}/${CIVITAI_URL_SLUGS.MODEL_TYPES[2]}`,
+  },
 ]
 
-// TEAM-429: Convert frontend sort values to API sort values
-function convertSortToApi(sort: 'downloads' | 'likes' | 'newest'): CivitaiSort {
-  switch (sort) {
-    case 'downloads':
-      return 'Most Downloaded'
-    case 'likes':
-      return 'Highest Rated'
-    case 'newest':
-      return 'Newest'
-  }
-}
-
 // Helper to build API parameters from filter config
-// TEAM-429: Now returns NodeCivitaiFilters for type-safe API calls
+// TEAM-429: Convert frontend filter values to API parameter format
 // TEAM-463: Added NSFW level conversion
-// Converts frontend camelCase to Node SDK snake_case
-export function buildFilterParams(filters: CivitaiFilters): NodeCivitaiFilters {
+// TEAM-XXX RULE ZERO: Using constants from marketplace-node
+// Converts frontend constants to API parameters
+export function buildFilterParams(filters: CivitaiFilters): CivitaiFilters {
   return {
-    time_period: filters.timePeriod,
-    model_type: filters.modelType,
-    base_model: filters.baseModel,
-    sort: convertSortToApi(filters.sort),
-    nsfw: {
-      max_level: filters.nsfwLevel || 'None',
-      blur_mature: true,
-    },
-    page: null,
-    limit: 100,
+    timePeriod: filters.timePeriod,
+    modelType: filters.modelType,
+    baseModel: filters.baseModel,
+    sort: filters.sort || CIVITAI_SORTS[0],
+    nsfwLevel: filters.nsfwLevel || CIVITAI_NSFW_LEVELS[0],
   }
 }
 
@@ -175,12 +291,13 @@ export function getFilterFromPath(path: string): CivitaiFilters {
 }
 
 // Helper to build URL from filter config
+// TEAM-XXX RULE ZERO: Using constants from marketplace-node
 export function buildFilterUrl(filters: Partial<CivitaiFilters>): string {
   const found = PREGENERATED_FILTERS.find(
     (f) =>
-      f.filters.timePeriod === (filters.timePeriod || 'AllTime') &&
-      f.filters.modelType === (filters.modelType || 'All') &&
-      f.filters.baseModel === (filters.baseModel || 'All'),
+      f.filters.timePeriod === (filters.timePeriod || CIVITAI_TIME_PERIODS[0]) &&
+      f.filters.modelType === (filters.modelType || CIVITAI_MODEL_TYPES[0]) &&
+      f.filters.baseModel === (filters.baseModel || CIVITAI_BASE_MODELS[0]),
   )
 
   if (found) {

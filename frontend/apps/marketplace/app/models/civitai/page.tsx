@@ -1,11 +1,12 @@
 // TEAM-460: Civitai models marketplace page
 // TEAM-464: Hybrid SSG + client-side filtering (Phase 3)
 // Server renders with default filter for SEO, then client-side loads manifests
-import { Suspense } from 'react'
+
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
-import { PREGENERATED_FILTERS } from './filters'
+import { Suspense } from 'react'
 import { CivitAIFilterPage } from './CivitAIFilterPage'
+import { PREGENERATED_FILTERS } from './filters'
 
 export const metadata: Metadata = {
   title: 'Civitai Models | rbee Marketplace',

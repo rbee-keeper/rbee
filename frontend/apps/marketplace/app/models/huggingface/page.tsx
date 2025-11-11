@@ -1,9 +1,10 @@
 // TEAM-460: HuggingFace models marketplace page (migrated from /models)
 // TEAM-464: Hybrid SSG + client-side filtering (Phase 3)
 // Server renders with default filter for SEO, then client-side loads manifests
-import { Suspense } from 'react'
+
 import { listHuggingFaceModels } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { PREGENERATED_HF_FILTERS } from './filters'
 import { HFFilterPage } from './HFFilterPage'
 

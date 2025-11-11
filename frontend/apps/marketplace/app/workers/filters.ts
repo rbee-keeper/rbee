@@ -1,7 +1,7 @@
 // Worker filter definitions - SSG-compatible filtering system
 
-import type { WorkerCatalogEntry } from '../../../../../bin/80-global-worker-catalog/src/types'
 import type { FilterConfig, FilterGroup } from '@/lib/filters/types'
+import type { WorkerCatalogEntry } from '../../../../../bin/80-global-worker-catalog/src/types'
 
 // Worker filter state
 export interface WorkerFilters {

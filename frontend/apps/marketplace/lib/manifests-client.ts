@@ -17,16 +17,16 @@ interface ModelMetadata {
 
 // TEAM-467: Minified manifest formats (short keys to save space)
 interface FilterManifest {
-  f: string           // filter
-  s: string           // source ('hf' | 'ca')
-  mf: string          // modelsFile
-  ids: string[]       // modelIds
+  f: string // filter
+  s: string // source ('hf' | 'ca')
+  mf: string // modelsFile
+  ids: string[] // modelIds
 }
 
 interface ModelsDatabase {
-  t: number                              // totalModels
-  s: string                              // source ('hf' | 'ca')
-  m: Record<string, ModelMetadata>       // models
+  t: number // totalModels
+  s: string // source ('hf' | 'ca')
+  m: Record<string, ModelMetadata> // models
 }
 
 // TEAM-467: Cache per source (separate caches for HF and CivitAI)
@@ -64,7 +64,7 @@ async function loadModelsDatabase(modelsFile: string): Promise<ModelsDatabase | 
  */
 export async function loadFilterManifestClient(
   source: 'civitai' | 'huggingface',
-  filter: string
+  filter: string,
 ): Promise<{ models: ModelMetadata[] } | null> {
   // Load filter manifest (contains source + modelsFile info)
   const prefix = source === 'huggingface' ? 'hf' : source
@@ -79,17 +79,15 @@ export async function loadFilterManifestClient(
     }
 
     const filterManifest: FilterManifest = await response.json()
-    
+
     // Load the CORRECT models database based on source
     const db = await loadModelsDatabase(filterManifest.mf)
     if (!db) {
       return null
     }
-    
+
     // Resolve model IDs to full metadata
-    const models = filterManifest.ids
-      .map(id => db.m[id])
-      .filter(Boolean) // Remove any missing models
+    const models = filterManifest.ids.map((id) => db.m[id]).filter(Boolean) // Remove any missing models
 
     console.log(`[manifests-client] Loaded ${models.length} ${filterManifest.s} models for ${filter}`)
 

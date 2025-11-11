@@ -2,12 +2,12 @@
 // TEAM-463: Updated to use CivitAI-style layout
 // TEAM-464: Using manifest-based SSG (Phase 2)
 import { getCivitaiModel } from '@rbee/marketplace-node'
+import { CivitAIModelDetail } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { CivitAIModelDetail } from '@rbee/ui/marketplace'
-import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
 import { InstallCTA } from '@/components/InstallCTA'
 import { loadModelsBySource } from '@/lib/manifests'
+import { slugToModelId } from '@/lib/slugify'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -38,9 +38,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const modelId = slugToModelId(slug)
 
   // Extract Civitai ID from "civitai-{id}" format
-  const civitaiId = parseInt(modelId.replace('civitai-', ''))
+  const civitaiId = parseInt(modelId.replace('civitai-', ''), 10)
 
-  if (isNaN(civitaiId)) {
+  if (Number.isNaN(civitaiId)) {
     return { title: 'Model Not Found' }
   }
 
@@ -74,9 +74,9 @@ export default async function CivitaiModelPage({ params }: Props) {
   const modelId = slugToModelId(slug)
 
   // Extract Civitai ID from "civitai-{id}" format
-  const civitaiId = parseInt(modelId.replace('civitai-', ''))
+  const civitaiId = parseInt(modelId.replace('civitai-', ''), 10)
 
-  if (isNaN(civitaiId)) {
+  if (Number.isNaN(civitaiId)) {
     notFound()
   }
 
@@ -85,7 +85,7 @@ export default async function CivitaiModelPage({ params }: Props) {
 
     // TEAM-422: Handle optional fields safely
     const latestVersion = civitaiModel.modelVersions?.[0]
-    const totalBytes = latestVersion?.files?.reduce((sum, file) => sum + file.sizeKb * 1024, 0) || 0
+    const totalBytes = latestVersion?.files?.reduce((sum: number, file: any) => sum + (file.sizeKb || 0) * 1024, 0) || 0
     const formatBytes = (bytes: number): string => {
       if (bytes === 0) return '0 B'
       const k = 1024
@@ -120,7 +120,7 @@ export default async function CivitaiModelPage({ params }: Props) {
       <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
         {/* TEAM-463: Conversion CTA */}
         <InstallCTA artifactType="model" artifactName={model.name} />
-        
+
         {/* TEAM-463: CivitAI-style detail page */}
         <CivitAIModelDetail model={model} />
       </div>

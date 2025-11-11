@@ -1,12 +1,12 @@
 // TEAM-427: Pagination using rbee-ui atoms (proper atomic design)
 import {
-  Pagination as PaginationRoot,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-  PaginationEllipsis,
+  Pagination as PaginationRoot,
 } from '@rbee/ui/atoms'
 
 interface PaginationProps {

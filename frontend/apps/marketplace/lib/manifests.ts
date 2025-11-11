@@ -31,15 +31,15 @@ export async function loadAllModels(): Promise<CombinedManifest['models']> {
     console.log('[manifests] In dev, pages will be generated on-demand')
     return []
   }
-  
+
   try {
     const manifestData = await fs.promises.readFile(MANIFEST_PATH, 'utf-8')
     const manifest: CombinedManifest = JSON.parse(manifestData)
-    
+
     console.log(`[manifests] Loaded ${manifest.totalModels} unique models from manifest`)
     console.log(`  - CivitAI: ${manifest.civitai}`)
     console.log(`  - HuggingFace: ${manifest.huggingface}`)
-    
+
     return manifest.models
   } catch (error) {
     console.error('[manifests] Failed to load manifest:', error)
@@ -53,10 +53,10 @@ export async function loadAllModels(): Promise<CombinedManifest['models']> {
  */
 export async function loadModelsBySource(source: 'civitai' | 'huggingface'): Promise<CombinedManifest['models']> {
   const allModels = await loadAllModels()
-  const filtered = allModels.filter(model => model.source === source)
-  
+  const filtered = allModels.filter((model) => model.source === source)
+
   console.log(`[manifests] Filtered ${filtered.length} ${source} models`)
-  
+
   return filtered
 }
 

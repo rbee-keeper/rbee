@@ -5,8 +5,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { getCompatibleCivitaiModels, listHuggingFaceModels, type Model } from '@rbee/marketplace-node'
-import { getAllCivitAIFilters, getAllHFFilters } from '../config/filters'
 import { parseCivitAIFilter } from '../config/filter-parser'
+import { getAllCivitAIFilters, getAllHFFilters } from '../config/filters'
 
 const MANIFEST_DIR = path.join(process.cwd(), 'public', 'manifests')
 const IS_PROD = process.env.NODE_ENV === 'production'
@@ -32,9 +32,9 @@ interface ModelMetadata {
 
 interface FilterManifest {
   filter: string
-  source: 'huggingface' | 'civitai'  // TEAM-467: Which source this filter is for
-  modelsFile: string  // TEAM-467: Which models file to load
-  modelIds: string[]  // Just IDs, metadata is in the models file
+  source: 'huggingface' | 'civitai' // TEAM-467: Which source this filter is for
+  modelsFile: string // TEAM-467: Which models file to load
+  modelIds: string[] // Just IDs, metadata is in the models file
   timestamp: string
 }
 
@@ -54,22 +54,22 @@ async function fetchCivitAIModelsViaSDK(filter: string): Promise<Model[]> {
 
   try {
     const models = await getCompatibleCivitaiModels(filters)
-    
+
     // FAIL FAST: SDK logs errors but doesn't throw - check return value
     if (!models || !Array.isArray(models)) {
       console.error(`❌ FATAL: CivitAI SDK returned invalid data for ${filter}`)
       console.error(`💥 ABORTING: Check error logs above`)
       process.exit(1)
     }
-    
+
     console.log(`  Received ${models.length} CivitAI models`)
-    
+
     // Return ALL models, don't limit to 100 here
     return models
   } catch (error) {
     console.error('❌ FATAL: CivitAI SDK error:', error)
     console.error(`💥 ABORTING: Failed to fetch ${filter}`)
-    process.exit(1)  // FAIL FAST - Exit immediately
+    process.exit(1) // FAIL FAST - Exit immediately
   }
 }
 
@@ -118,8 +118,8 @@ async function fetchHFModelsViaSDK(filter: string): Promise<Model[]> {
   const filterParts = filter.replace('filter/', '').split('/')
 
   // Determine sort order
-  let sort: 'downloads' | 'likes' | 'recent' = 'downloads'
-  if (filterParts.includes('likes')) sort = 'likes'
+  let sort: 'popular' | 'trending' | 'recent' = 'popular'
+  if (filterParts.includes('likes')) sort = 'trending'
   else if (filterParts.includes('recent')) sort = 'recent'
 
   // Fetch using WASM SDK
@@ -221,8 +221,8 @@ async function generateManifests() {
         await fs.unlink(path.join(MANIFEST_DIR, file))
       }
     }
-    console.log(`  Deleted ${files.filter(f => f.endsWith('.json')).length} old manifest files`)
-  } catch (error) {
+    console.log(`  Deleted ${files.filter((f) => f.endsWith('.json')).length} old manifest files`)
+  } catch (_error) {
     // Directory might not exist yet, that's fine
     console.log('  No old manifests to clean up')
   }
@@ -232,7 +232,7 @@ async function generateManifests() {
 
   // Map of all unique models (by ID)
   const allModels = new Map<string, ModelMetadata>()
-  
+
   // Map of filter -> model IDs
   const filterMappings = new Map<string, string[]>()
 
@@ -246,7 +246,7 @@ async function generateManifests() {
       try {
         const models = await fetchCivitAIModelsViaSDK(filter)
         console.log(`✅ CivitAI ${filter}: ${models.length} models`)
-        
+
         // Add models to global map
         for (const model of models) {
           const id = model.id.replace('civitai-', '')
@@ -264,11 +264,11 @@ async function generateManifests() {
             })
           }
         }
-        
+
         // Store filter mapping
-        const modelIds = models.map(m => m.id.replace('civitai-', ''))
+        const modelIds = models.map((m) => m.id.replace('civitai-', ''))
         filterMappings.set(`civitai-${filter}`, modelIds)
-        
+
         return { filter, count: models.length }
       } catch (error) {
         // This should never happen now - fetchCivitAIModelsViaSDK exits on error
@@ -287,7 +287,7 @@ async function generateManifests() {
       try {
         const models = await fetchHFModelsViaSDK(filter)
         console.log(`✅ HuggingFace ${filter}: ${models.length} models`)
-        
+
         // Add models to global map
         for (const model of models) {
           if (!allModels.has(model.id)) {
@@ -304,16 +304,16 @@ async function generateManifests() {
             })
           }
         }
-        
+
         // Store filter mapping
-        const modelIds = models.map(m => m.id)
+        const modelIds = models.map((m) => m.id)
         filterMappings.set(`hf-${filter}`, modelIds)
-        
+
         return { filter, count: models.length }
       } catch (error) {
         console.error(`❌ FATAL: Failed to fetch HuggingFace ${filter}:`, error)
         console.error(`💥 ABORTING: Cannot continue with failed filter`)
-        process.exit(1)  // FAIL FAST - Exit immediately
+        process.exit(1) // FAIL FAST - Exit immediately
       }
     }),
   )
@@ -323,7 +323,7 @@ async function generateManifests() {
   // TEAM-467: Save SEPARATE models files per source (not one mixed file!)
   const hfModels = new Map<string, ModelMetadata>()
   const civitaiModels = new Map<string, ModelMetadata>()
-  
+
   // Split models by source
   for (const [id, model] of allModels.entries()) {
     if (model.source === 'huggingface') {
@@ -332,22 +332,22 @@ async function generateManifests() {
       civitaiModels.set(id, model)
     }
   }
-  
+
   // TEAM-467: Save HuggingFace models (MINIFIED for CF Pages)
   console.log(`\n💾 Saving huggingface-models.json with ${hfModels.size} models...`)
   const hfData = JSON.stringify({
-    t: hfModels.size,  // totalModels (shortened key)
-    s: 'hf',           // source (shortened)
-    m: Object.fromEntries(hfModels),  // models
+    t: hfModels.size, // totalModels (shortened key)
+    s: 'hf', // source (shortened)
+    m: Object.fromEntries(hfModels), // models
   })
   await fs.writeFile(path.join(MANIFEST_DIR, 'huggingface-models.json'), hfData)
   console.log(`  Size: ${(hfData.length / 1024).toFixed(1)} KB`)
-  
+
   // TEAM-467: Save CivitAI models (MINIFIED for CF Pages)
   console.log(`💾 Saving civitai-models.json with ${civitaiModels.size} models...`)
   const civitaiData = JSON.stringify({
     t: civitaiModels.size,
-    s: 'ca',  // civitai shortened
+    s: 'ca', // civitai shortened
     m: Object.fromEntries(civitaiModels),
   })
   await fs.writeFile(path.join(MANIFEST_DIR, 'civitai-models.json'), civitaiData)
@@ -360,15 +360,15 @@ async function generateManifests() {
     // Determine source from filter key prefix
     const source = filterKey.startsWith('hf-') ? 'hf' : 'ca'
     const modelsFile = source === 'hf' ? 'huggingface-models.json' : 'civitai-models.json'
-    
+
     // MINIFIED: Use short keys, no timestamp, no pretty print
     const manifestData = JSON.stringify({
-      f: filterKey,      // filter
-      s: source,         // source
-      mf: modelsFile,    // modelsFile
-      ids: modelIds,     // modelIds
+      f: filterKey, // filter
+      s: source, // source
+      mf: modelsFile, // modelsFile
+      ids: modelIds, // modelIds
     })
-    
+
     const filename = `${filterKey.replace(/\//g, '-')}.json`
     await fs.writeFile(path.join(MANIFEST_DIR, filename), manifestData)
     totalFilterSize += manifestData.length

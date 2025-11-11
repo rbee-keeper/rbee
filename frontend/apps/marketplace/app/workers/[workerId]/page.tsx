@@ -1,7 +1,6 @@
-// TEAM-413: Worker detail page with SSG
+// TEAM-453: Worker detail page with SSG
 // TEAM-421: Refactored to use shared WorkerDetailWithInstall component
 // TEAM-453: Now fetches workers from gwc.rbee.dev instead of hardcoded data
-import { listWorkers, type WorkerCatalogEntry } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { WorkerDetailWithInstall } from '@/components/WorkerDetailWithInstall'
@@ -18,31 +17,40 @@ interface Worker {
   features: string[]
 }
 
-// TEAM-453: Convert WorkerCatalogEntry to Worker interface
-function convertWorkerCatalogEntry(entry: WorkerCatalogEntry): Worker {
-  return {
-    id: entry.id,
-    name: entry.name,
-    description: entry.description,
-    type: entry.workerType as 'cpu' | 'cuda' | 'metal' | 'rocm',
-    platform: entry.platforms,
-    version: entry.version,
-    requirements: entry.depends,
-    features: entry.supportedFormats.map(format => `Supports ${format}`),
-  }
-}
+// Hardcoded worker data for now
+const WORKERS: Worker[] = [
+  {
+    id: 'rbee-cuda-v0.1.0',
+    name: 'rbee CUDA Worker',
+    description: 'GPU-accelerated worker for NVIDIA CUDA systems',
+    type: 'cuda',
+    platform: ['linux'],
+    version: '0.1.0',
+    requirements: ['CUDA 12.0+', 'Linux', '8GB+ RAM'],
+    features: ['GPU acceleration', 'Multi-model support', 'SSH deployment'],
+  },
+  {
+    id: 'rbee-cpu-v0.1.0',
+    name: 'rbee CPU Worker',
+    description: 'CPU-only worker for inference and small models',
+    type: 'cpu',
+    platform: ['linux', 'macos', 'windows'],
+    version: '0.1.0',
+    requirements: ['x86_64', '4GB+ RAM'],
+    features: ['CPU inference', 'Cross-platform', 'SSH deployment'],
+  },
+]
 
-// TEAM-453: Fetch workers from gwc.rbee.dev
+// TEAM-453: Get workers from hardcoded data
 async function getWorkers(): Promise<Record<string, Worker>> {
-  console.log('[SSG] Fetching workers from gwc.rbee.dev')
-  const catalogEntries = await listWorkers()
+  console.log('[SSG] Using hardcoded worker data')
   const workersMap: Record<string, Worker> = {}
-  
-  for (const entry of catalogEntries) {
-    workersMap[entry.id] = convertWorkerCatalogEntry(entry)
+
+  for (const worker of WORKERS) {
+    workersMap[worker.id] = worker
   }
-  
-  console.log(`[SSG] Converted ${Object.keys(workersMap).length} workers`)
+
+  console.log(`[SSG] Loaded ${Object.keys(workersMap).length} workers`)
   return workersMap
 }
 
@@ -54,7 +62,7 @@ export async function generateStaticParams() {
   console.log('[SSG] Fetching workers from gwc.rbee.dev')
   const workers = await getWorkers()
   console.log(`[SSG] Pre-building ${Object.keys(workers).length} worker pages`)
-  
+
   return Object.keys(workers).map((workerId) => ({
     workerId,
   }))

@@ -4,8 +4,8 @@
 // Refactored from ad-hoc implementation to use proper atomic design
 // TEAM-463: Fixed hydration mismatch by using hardcoded URLs (PORT_CONFIGURATION.md)
 
-import { getEnvironment } from '@rbee/ui/utils'
 import { Button, Card, CardContent } from '@rbee/ui/atoms'
+import { getEnvironment } from '@rbee/ui/utils'
 import { Download, ExternalLink, Sparkles } from 'lucide-react'
 
 // TEAM-463: Hardcoded URLs to prevent hydration mismatch
@@ -62,11 +62,7 @@ export function InstallCTA({ artifactType, artifactName }: InstallCTAProps) {
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-3">
               <Button size="lg" asChild>
-                <a
-                  href={`${URLS.docs}/docs/getting-started/installation`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={`${URLS.docs}/docs/getting-started/installation`} target="_blank" rel="noopener noreferrer">
                   <Download className="size-4" />
                   Download rbee
                 </a>

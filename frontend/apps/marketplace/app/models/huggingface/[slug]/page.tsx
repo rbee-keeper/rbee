@@ -6,12 +6,12 @@
 // TEAM-464: Updated to use getRawHuggingFaceModel for complete HF data
 // TEAM-464: Added README.md fetching at build time (passed as markdown to react-markdown)
 // TEAM-464: Using manifest-based SSG (Phase 2)
-import { getRawHuggingFaceModel, getHuggingFaceModelReadme } from '@rbee/marketplace-node'
+import { getHuggingFaceModel } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ModelDetailWithInstall } from '@/components/ModelDetailWithInstall'
-import { modelIdToSlug, slugToModelId } from '@/lib/slugify'
 import { loadModelsBySource, shouldSkipModel } from '@/lib/manifests'
+import { slugToModelId } from '@/lib/slugify'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -22,10 +22,10 @@ export async function generateStaticParams() {
 
   // TEAM-464: Read from manifest instead of API
   const models = await loadModelsBySource('huggingface')
-  
+
   // Filter out problematic models
-  const validModels = models.filter(model => !shouldSkipModel(model.id))
-  
+  const validModels = models.filter((model) => !shouldSkipModel(model.id))
+
   const skippedCount = models.length - validModels.length
   if (skippedCount > 0) {
     console.log(`[SSG] Skipping ${skippedCount} problematic models`)
@@ -43,14 +43,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const modelId = slugToModelId(slug)
 
   try {
-    // TEAM-464: Use raw HF model for metadata
-    const model = await getRawHuggingFaceModel(modelId)
-    const parts = model.id.split('/')
-    const name = parts.length >= 2 ? parts[1] : model.id
+    // TEAM-464: Use HF model for metadata
+    const hfModel = await getHuggingFaceModel(modelId)
+    const parts = hfModel.id.split('/')
+    const name = parts.length >= 2 ? parts[1] : hfModel.id
 
     return {
       title: `${name} | HuggingFace Model`,
-      description: model.cardData?.model_description || model.description || `${name} - ${model.downloads?.toLocaleString()} downloads`,
+      description:
+        hfModel.cardData?.model_description ||
+        hfModel.description ||
+        `${name} - ${hfModel.downloads?.toLocaleString()} downloads`,
     }
   } catch {
     return { title: 'Model Not Found' }
@@ -58,10 +61,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // TEAM-464: Helper to sanitize nested objects that might cause React rendering errors
-function sanitizeValue(value: unknown): unknown {
+function _sanitizeValue(value: unknown): unknown {
   if (value === null || value === undefined) return value
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-  if (Array.isArray(value)) return value.map(sanitizeValue)
+  if (Array.isArray(value)) return value.map(_sanitizeValue)
   if (typeof value === 'object') {
     // Convert objects to strings to prevent "Objects are not valid as React child" errors
     return JSON.stringify(value)
@@ -74,26 +77,18 @@ export default async function HuggingFaceModelPage({ params }: Props) {
   const modelId = slugToModelId(slug)
 
   try {
-    // TEAM-464: Use raw HF model for complete data
-    const hfModel = await getRawHuggingFaceModel(modelId)
-    
-    // TEAM-464: Fetch README.md at build time (SSG)
-    // Pass as raw markdown to MarkdownContent component (uses react-markdown)
-    let readmeMarkdown: string | undefined
-    try {
-      readmeMarkdown = await getHuggingFaceModelReadme(modelId) || undefined
-    } catch (readmeError) {
-      // README fetch failed - not critical, continue without it
-      console.warn(`[SSG] Failed to fetch README for ${modelId}:`, readmeError)
-    }
-    
+    // TEAM-464: Use HF model for complete data
+    const hfModel = await getHuggingFaceModel(modelId)
+
+    // TEAM-464: No README fetching - not available in current API
+
     // Convert to display format
     const parts = hfModel.id.split('/')
     const name = parts.length >= 2 ? parts[1] : hfModel.id
     const author = parts.length >= 2 ? parts[0] : hfModel.author
-    
+
     // Calculate total size
-    const totalBytes = hfModel.siblings?.reduce((sum, file) => sum + (file.size || 0), 0) || 0
+    const totalBytes = hfModel.siblings?.reduce((sum: number, file: { size?: number; rfilename: string }) => sum + (file.size || 0), 0) || 0
     const formatBytes = (bytes: number): string => {
       if (bytes === 0) return '0 B'
       const k = 1024
@@ -101,7 +96,7 @@ export default async function HuggingFaceModelPage({ params }: Props) {
       const i = Math.floor(Math.log(bytes) / Math.log(k))
       return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
     }
-    
+
     const model = {
       id: hfModel.id,
       name,
@@ -116,16 +111,27 @@ export default async function HuggingFaceModelPage({ params }: Props) {
       sha: hfModel.sha,
       mask_token: hfModel.mask_token,
       widgetData: hfModel.widgetData,
-      config: hfModel.config,
+      config: hfModel.config ? {
+        architectures: hfModel.config.architectures,
+        model_type: hfModel.config.model_type,
+        tokenizer_config: hfModel.config.tokenizer_config ? {
+          unk_token: typeof hfModel.config.tokenizer_config.unk_token === 'string' ? hfModel.config.tokenizer_config.unk_token : undefined,
+          sep_token: typeof hfModel.config.tokenizer_config.sep_token === 'string' ? hfModel.config.tokenizer_config.sep_token : undefined,
+          pad_token: typeof hfModel.config.tokenizer_config.pad_token === 'string' ? hfModel.config.tokenizer_config.pad_token : undefined,
+          cls_token: hfModel.config.tokenizer_config.cls_token,
+          mask_token: hfModel.config.tokenizer_config.mask_token,
+          bos_token: hfModel.config.tokenizer_config.bos_token,
+          eos_token: hfModel.config.tokenizer_config.eos_token,
+          chat_template: hfModel.config.tokenizer_config.chat_template,
+        } : undefined,
+      } : undefined,
       cardData: hfModel.cardData,
       transformersInfo: hfModel.transformersInfo,
       inference: hfModel.inference,
       safetensors: hfModel.safetensors,
-      spaces: hfModel.spaces,
-      siblings: hfModel.siblings?.map(s => ({ filename: s.rfilename, size: s.size || 0 })),
+      siblings: hfModel.siblings?.map((s: { size?: number; rfilename: string }) => ({ filename: s.rfilename, size: s.size || 0 })),
       createdAt: hfModel.createdAt,
       lastModified: hfModel.lastModified,
-      readmeMarkdown, // TEAM-464: Raw markdown for react-markdown
     }
 
     // TEAM-410: Get compatible workers (build time)

@@ -2,21 +2,14 @@
 // Starts with server-rendered models, then allows client-side filtering via manifests
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ModelCardVertical } from '@rbee/ui/marketplace'
-import { ModelsFilterBar } from '../ModelsFilterBar'
-import { modelIdToSlug } from '@/lib/slugify'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { loadFilterManifestClient } from '@/lib/manifests-client'
-import {
-  buildFilterParams,
-  CIVITAI_FILTER_GROUPS,
-  CIVITAI_SORT_GROUP,
-  getFilterFromPath,
-  PREGENERATED_FILTERS,
-  type CivitaiFilters,
-} from './filters'
+import { modelIdToSlug } from '@/lib/slugify'
+import { ModelsFilterBar } from '../ModelsFilterBar'
+import { CIVITAI_FILTER_GROUPS, CIVITAI_SORT_GROUP, type CivitaiFilters, PREGENERATED_FILTERS } from './filters'
 
 interface Model {
   id: string
@@ -40,7 +33,7 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
   const router = useRouter()
   const [models, setModels] = useState<Model[]>(initialModels)
   const [loading, setLoading] = useState(false)
-  
+
   // Build current filter from URL search params
   const currentFilter: CivitaiFilters = {
     timePeriod: (searchParams.get('period') as any) || initialFilter.timePeriod,
@@ -49,18 +42,18 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
     sort: (searchParams.get('sort') as any) || initialFilter.sort,
     nsfwLevel: (searchParams.get('nsfw') as any) || initialFilter.nsfwLevel,
   }
-  
+
   // Handle filter changes - update URL instead of state
   const handleFilterChange = (newFilters: Partial<Record<string, string>>) => {
     const params = new URLSearchParams(searchParams.toString())
-    
-    // Map filter keys to URL param names  
+
+    // Map filter keys to URL param names
     if (newFilters.timePeriod) params.set('period', newFilters.timePeriod)
     if (newFilters.modelType) params.set('type', newFilters.modelType)
     if (newFilters.baseModel) params.set('base', newFilters.baseModel)
     if (newFilters.sort) params.set('sort', newFilters.sort)
     if (newFilters.nsfwLevel) params.set('nsfw', newFilters.nsfwLevel)
-    
+
     // Update URL (this will trigger useEffect)
     router.push(`?${params.toString()}`)
   }
@@ -73,14 +66,14 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
       const type = searchParams.get('type') || initialFilter.modelType
       const base = searchParams.get('base') || initialFilter.baseModel
       const nsfw = searchParams.get('nsfw') || initialFilter.nsfwLevel
-      
+
       // Find the filter path for current filter config
       const filterConfig = PREGENERATED_FILTERS.find(
         (f) =>
           f.filters.timePeriod === period &&
           f.filters.modelType === type &&
           f.filters.baseModel === base &&
-          f.filters.nsfwLevel === nsfw
+          f.filters.nsfwLevel === nsfw,
       )
 
       if (!filterConfig || filterConfig.path === '') {
@@ -92,7 +85,7 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
       setLoading(true)
       try {
         const manifest = await loadFilterManifestClient('civitai', filterConfig.path)
-        
+
         if (manifest) {
           // Convert manifest models to full model objects
           const manifestModels = manifest.models.map((m) => ({

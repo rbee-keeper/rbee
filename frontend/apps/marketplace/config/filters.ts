@@ -1,47 +1,39 @@
 // TEAM-464: Shared filter configuration
 // Used by both manifest generation and filter pages
 // Single source of truth for all filter combinations
-
-import {
-  CIVITAI_URL_SLUGS,
-  HF_URL_SLUGS,
-} from '@rbee/marketplace-node'
+// TEAM-XXX RULE ZERO: Import constants from marketplace-node (source of truth)
+import { CIVITAI_URL_SLUGS, HF_URL_SLUGS } from '@rbee/marketplace-node'
 
 /**
  * CivitAI filter paths
  * TEAM-467: PROGRAMMATICALLY generate ALL combinations
- * Uses SHARED URL slug constants (NOT API enum values)
+ * Uses SHARED URL slug constants from marketplace-node (source of truth)
  */
 function generateAllCivitAIFilterCombinations(): string[] {
   const nsfw = CIVITAI_URL_SLUGS.NSFW_LEVELS
   const timePeriods = CIVITAI_URL_SLUGS.TIME_PERIODS
   const modelTypes = CIVITAI_URL_SLUGS.MODEL_TYPES
   const baseModels = CIVITAI_URL_SLUGS.BASE_MODELS
-  
+
   const filters = new Set<string>()
-  
+
   // Generate ALL combinations: nsfw × time × type × base
   for (const nsfwLevel of nsfw) {
     for (const period of timePeriods) {
       for (const type of modelTypes) {
         for (const base of baseModels) {
           // Skip the default combination (all/all/all/all)
-          if (
-            nsfwLevel === 'all' &&
-            period === 'all' &&
-            type === 'all' &&
-            base === 'all'
-          ) {
+          if (nsfwLevel === nsfw[0] && period === timePeriods[0] && type === modelTypes[0] && base === baseModels[0]) {
             continue
           }
-          
+
           // Build filter path - include ALL non-default values
           const parts: string[] = []
-          if (nsfwLevel !== 'all') parts.push(nsfwLevel)
-          if (period !== 'all') parts.push(period)
-          if (type !== 'all') parts.push(type)
-          if (base !== 'all') parts.push(base)
-          
+          if (nsfwLevel !== nsfw[0]) parts.push(nsfwLevel)
+          if (period !== timePeriods[0]) parts.push(period)
+          if (type !== modelTypes[0]) parts.push(type)
+          if (base !== baseModels[0]) parts.push(base)
+
           // Add if there's at least one filter
           if (parts.length > 0) {
             filters.add(`filter/${parts.join('/')}`)
@@ -50,7 +42,7 @@ function generateAllCivitAIFilterCombinations(): string[] {
       }
     }
   }
-  
+
   return Array.from(filters).sort()
 }
 
@@ -60,30 +52,30 @@ export const CIVITAI_FILTERS = generateAllCivitAIFilterCombinations() as readonl
 /**
  * HuggingFace filter paths
  * TEAM-467: PROGRAMMATICALLY generate ALL combinations
- * Uses SHARED URL slug constants (NOT API enum values)
+ * Uses SHARED URL slug constants from marketplace-node (source of truth)
  */
 function generateAllHFFilterCombinations(): string[] {
   const sorts = HF_URL_SLUGS.SORTS
   const sizes = HF_URL_SLUGS.SIZES
   const licenses = HF_URL_SLUGS.LICENSES
-  
+
   const filters = new Set<string>() // Use Set to avoid duplicates
-  
+
   // Generate ALL combinations: sort × size × license
   for (const sort of sorts) {
     for (const size of sizes) {
       for (const license of licenses) {
         // Skip the default combination (downloads/all/all)
-        if (sort === 'downloads' && size === 'all' && license === 'all') {
+        if (sort === sorts[0] && size === sizes[0] && license === licenses[0]) {
           continue
         }
-        
+
         // Build filter path - include ALL non-default values
         const parts: string[] = []
-        if (sort !== 'downloads') parts.push(sort)
-        if (size !== 'all') parts.push(size)
-        if (license !== 'all') parts.push(license)
-        
+        if (sort !== sorts[0]) parts.push(sort)
+        if (size !== sizes[0]) parts.push(size)
+        if (license !== licenses[0]) parts.push(license)
+
         // Add if there's at least one filter
         if (parts.length > 0) {
           filters.add(`filter/${parts.join('/')}`)
@@ -91,7 +83,7 @@ function generateAllHFFilterCombinations(): string[] {
       }
     }
   }
-  
+
   return Array.from(filters).sort()
 }
 
@@ -101,8 +93,8 @@ export const HF_FILTERS = generateAllHFFilterCombinations() as readonly string[]
 /**
  * Type-safe filter types
  */
-export type CivitAIFilter = typeof CIVITAI_FILTERS[number]
-export type HFFilter = typeof HF_FILTERS[number]
+export type CivitAIFilter = (typeof CIVITAI_FILTERS)[number]
+export type HFFilter = (typeof HF_FILTERS)[number]
 
 /**
  * Filter metadata for display
@@ -115,132 +107,96 @@ export interface FilterMetadata {
 
 /**
  * CivitAI filter metadata
+ * TEAM-XXX RULE ZERO: Use marketplace-node constants for metadata keys
  */
 export const CIVITAI_FILTER_METADATA: Record<string, FilterMetadata> = {
-  'AllTime/All/All/downloads/Soft': {
-    label: 'Most Downloaded (All Time)',
+  [CIVITAI_URL_SLUGS.NSFW_LEVELS[1]]: {
+    label: 'PG (Safe)',
+    category: 'nsfw',
+  },
+  [CIVITAI_URL_SLUGS.NSFW_LEVELS[2]]: {
+    label: 'PG-13',
+    category: 'nsfw',
+  },
+  [CIVITAI_URL_SLUGS.NSFW_LEVELS[3]]: {
+    label: 'R (Mature)',
+    category: 'nsfw',
+  },
+  [CIVITAI_URL_SLUGS.NSFW_LEVELS[4]]: {
+    label: 'X (Adult)',
+    category: 'nsfw',
+  },
+  [CIVITAI_URL_SLUGS.TIME_PERIODS[2]]: {
+    label: 'This Month',
     category: 'sort',
   },
-  'AllTime/All/All/likes/Soft': {
-    label: 'Most Liked (All Time)',
+  [CIVITAI_URL_SLUGS.TIME_PERIODS[3]]: {
+    label: 'This Week',
     category: 'sort',
   },
-  'AllTime/All/All/rating/Soft': {
-    label: 'Highest Rated (All Time)',
-    category: 'sort',
-  },
-  'Week/All/All/downloads/Soft': {
-    label: 'Most Downloaded (This Week)',
-    category: 'sort',
-  },
-  'Month/All/All/downloads/Soft': {
-    label: 'Most Downloaded (This Month)',
-    category: 'sort',
-  },
-  'filter/checkpoints': {
+  [CIVITAI_URL_SLUGS.MODEL_TYPES[1]]: {
     label: 'Checkpoints',
     description: 'Full model checkpoints',
     category: 'type',
   },
-  'filter/loras': {
+  [CIVITAI_URL_SLUGS.MODEL_TYPES[2]]: {
     label: 'LoRAs',
     description: 'Low-Rank Adaptations',
     category: 'type',
   },
-  'filter/sdxl': {
+  [CIVITAI_URL_SLUGS.BASE_MODELS[1]]: {
     label: 'SDXL',
     description: 'Stable Diffusion XL models',
     category: 'base-model',
   },
-  'filter/sd15': {
+  [CIVITAI_URL_SLUGS.BASE_MODELS[2]]: {
     label: 'SD 1.5',
     description: 'Stable Diffusion 1.5 models',
     category: 'base-model',
   },
-  'filter/flux': {
-    label: 'Flux',
-    description: 'Flux models',
+  [CIVITAI_URL_SLUGS.BASE_MODELS[3]]: {
+    label: 'SD 2.1',
+    description: 'Stable Diffusion 2.1 models',
     category: 'base-model',
-  },
-  'filter/pg': {
-    label: 'PG (Safe)',
-    category: 'nsfw',
-  },
-  'filter/pg13': {
-    label: 'PG-13',
-    category: 'nsfw',
-  },
-  'filter/r': {
-    label: 'R (Mature)',
-    category: 'nsfw',
-  },
-  'filter/x': {
-    label: 'X (Adult)',
-    category: 'nsfw',
   },
 }
 
 /**
  * HuggingFace filter metadata
+ * TEAM-XXX RULE ZERO: Use marketplace-node constants for metadata keys
  */
 export const HF_FILTER_METADATA: Record<string, FilterMetadata> = {
-  'likes': {
+  [HF_URL_SLUGS.SORTS[1]]: {
     label: 'Most Liked',
     category: 'sort',
   },
-  'recent': {
-    label: 'Recently Updated',
-    category: 'sort',
-  },
-  'trending': {
-    label: 'Trending',
-    category: 'sort',
-  },
-  'downloads': {
+  [HF_URL_SLUGS.SORTS[0]]: {
     label: 'Most Downloaded',
     category: 'sort',
   },
-  'text-generation': {
-    label: 'Text Generation',
-    description: 'Language models for text generation',
-    category: 'type',
-  },
-  'sentence-similarity': {
-    label: 'Sentence Similarity',
-    description: 'Models for comparing sentences',
-    category: 'type',
-  },
-  'small': {
-    label: 'Small (<1GB)',
+  [HF_URL_SLUGS.SIZES[1]]: {
+    label: 'Small (<7B)',
     category: 'size',
   },
-  'medium': {
-    label: 'Medium (1-10GB)',
+  [HF_URL_SLUGS.SIZES[2]]: {
+    label: 'Medium (7B-13B)',
     category: 'size',
   },
-  'large': {
-    label: 'Large (>10GB)',
+  [HF_URL_SLUGS.SIZES[3]]: {
+    label: 'Large (>13B)',
     category: 'size',
   },
-  'apache-2.0': {
+  [HF_URL_SLUGS.LICENSES[1]]: {
     label: 'Apache 2.0',
     category: 'license',
   },
-  'mit': {
+  [HF_URL_SLUGS.LICENSES[2]]: {
     label: 'MIT',
     category: 'license',
   },
-  'transformers': {
-    label: 'Transformers',
-    category: 'library',
-  },
-  'en': {
-    label: 'English',
-    category: 'language',
-  },
-  'multilingual': {
-    label: 'Multilingual',
-    category: 'language',
+  [HF_URL_SLUGS.LICENSES[3]]: {
+    label: 'Other',
+    category: 'license',
   },
 }
 

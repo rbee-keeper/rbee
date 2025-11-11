@@ -39,6 +39,7 @@
     "postcss-nesting": "^13.0.2",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
-    "wrangler": "^4.46.0"
+    "wrangler": "^4.46.0",
+    "@repo/typescript-config": "workspace:*"
   }
 }

@@ -4,8 +4,6 @@
   "compilerOptions": {
     "target": "es2022",
     "lib": ["es2022"],
-    "module": "preserve",
-    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowJs": true,
@@ -18,8 +16,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
-    "noUncheckedSideEffectImports": true,
-    "noEmit": true
+    "noUncheckedSideEffectImports": true
   },
   "exclude": ["node_modules", "dist", "build", ".next", "out"]
 }

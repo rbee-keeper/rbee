@@ -4,6 +4,8 @@
   "extends": "./library.json",
   "compilerOptions": {
     "lib": ["es2020", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "types": ["node"]
   }

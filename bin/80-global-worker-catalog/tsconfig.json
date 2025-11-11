@@ -1,11 +1,8 @@
 {
+  "extends": "../../frontend/packages/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "lib": ["ESNext"],
+    "target": "esnext",
+    "lib": ["esnext"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "types": ["./worker-configuration.d.ts"]

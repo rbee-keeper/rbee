@@ -1,26 +1,14 @@
 // TEAM-427: Legacy redirect route for /models/[slug]
 // Auto-detects provider (HuggingFace vs CivitAI) and redirects to correct path
-// TEAM-464: Using manifest-based SSG (Phase 2)
+// TEAM-475: SSR - no manifest generation, renders on-demand
 
 import { redirect } from 'next/navigation'
-import { loadAllModels } from '@/lib/manifests'
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateStaticParams() {
-  console.log('[SSG] Generating model redirect pages from manifest')
-
-  // TEAM-464: Read from manifest instead of API
-  const models = await loadAllModels()
-
-  console.log(`[SSG] Pre-building ${models.length} redirect pages`)
-
-  return models.map((model) => ({
-    slug: model.slug,
-  }))
-}
+// TEAM-475: No generateStaticParams - SSR renders on-demand
 
 export default async function LegacyModelRedirect({ params }: PageProps) {
   const { slug } = await params

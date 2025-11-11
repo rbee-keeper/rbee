@@ -68,41 +68,43 @@ pub(crate) struct CivitaiModelResponse {
 
 /// Civitai model version response from API (internal parsing type)
 /// TEAM-463: Keep this for API parsing. Has extra fields not in contract type.
+/// TEAM-XXX: Made fields optional to handle inconsistent API responses
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct CivitaiModelVersionResponse {
     /// Version ID
     pub id: i64,
-    /// Parent model ID
-    #[serde(rename = "modelId")]
-    pub model_id: i64,
+    /// Parent model ID (optional - not always included when nested in model response)
+    #[serde(rename = "modelId", default)]
+    pub model_id: Option<i64>,
     /// Version name
     pub name: String,
-    /// Creation timestamp
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    /// Last update timestamp
-    #[serde(rename = "updatedAt")]
-    pub updated_at: String,
+    /// Creation timestamp (optional - not always included)
+    #[serde(rename = "createdAt", default)]
+    pub created_at: Option<String>,
+    /// Last update timestamp (optional - not always included)
+    #[serde(rename = "updatedAt", default)]
+    pub updated_at: Option<String>,
     /// Trigger words for this model
     #[serde(rename = "trainedWords", default)]
     pub trained_words: Vec<String>,
-    /// Base model (e.g., SD 1.5, SDXL)
-    #[serde(rename = "baseModel")]
-    pub base_model: String,
+    /// Base model (e.g., SD 1.5, SDXL) (optional - not always included)
+    #[serde(rename = "baseModel", default)]
+    pub base_model: Option<String>,
     /// Version description
     #[serde(default)]
     pub description: Option<String>,
-    /// Version statistics
-    pub stats: CivitaiVersionStats,
+    /// Version statistics (optional - use defaults if missing)
+    #[serde(default)]
+    pub stats: Option<CivitaiVersionStats>,
     /// Available files for this version
     #[serde(default)]
     pub files: Vec<CivitaiFileResponse>,
     /// Example images
     #[serde(default)]
     pub images: Vec<CivitaiImageResponse>,
-    /// Direct download URL
-    #[serde(rename = "downloadUrl")]
-    pub download_url: String,
+    /// Direct download URL (optional - not always included)
+    #[serde(rename = "downloadUrl", default)]
+    pub download_url: Option<String>,
 }
 
 /// Civitai version statistics

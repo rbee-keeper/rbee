@@ -2,49 +2,37 @@
 // TEAM-415: SSG model detail page with slugified URLs
 // TEAM-410: Added compatibility integration
 // TEAM-413: Added InstallButton integration
-// TEAM-421: Pre-build top 100 popular models (WASM filtering doesn't work in SSG)
-// TEAM-464: Updated to use getRawHuggingFaceModel for complete HF data
-// TEAM-464: Added README.md fetching at build time (passed as markdown to react-markdown)
-// TEAM-464: Using manifest-based SSG (Phase 2)
-import { getHuggingFaceModel } from '@rbee/marketplace-node'
+// TEAM-475: SSR - fetches model data at request time, no manifest generation
+// TEAM-475: Added Next.js caching (revalidate every 1 hour)
+import { getRawHuggingFaceModel } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import { ModelDetailWithInstall } from '@/components/ModelDetailWithInstall'
-import { loadModelsBySource, shouldSkipModel } from '@/lib/manifests'
 import { slugToModelId } from '@/lib/slugify'
+
+// TEAM-475: Cache model data for 1 hour
+export const revalidate = 3600
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
-export async function generateStaticParams() {
-  console.log('[SSG] Generating HuggingFace model pages from manifest')
+// TEAM-475: No generateStaticParams - SSR renders on-demand
 
-  // TEAM-464: Read from manifest instead of API
-  const models = await loadModelsBySource('huggingface')
-
-  // Filter out problematic models
-  const validModels = models.filter((model) => !shouldSkipModel(model.id))
-
-  const skippedCount = models.length - validModels.length
-  if (skippedCount > 0) {
-    console.log(`[SSG] Skipping ${skippedCount} problematic models`)
-  }
-
-  console.log(`[SSG] Pre-building ${validModels.length} HuggingFace model pages`)
-
-  return validModels.map((model) => ({
-    slug: model.slug,
-  }))
-}
+// TEAM-475: Cached metadata fetching
+const getCachedHFModel = unstable_cache(
+  async (modelId: string) => getRawHuggingFaceModel(modelId),
+  ['hf-model'],
+  { revalidate: 3600, tags: ['huggingface-models'] }
+)
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const modelId = slugToModelId(slug)
 
   try {
-    // TEAM-464: Use HF model for metadata
-    const hfModel = await getHuggingFaceModel(modelId)
+    const hfModel = await getCachedHFModel(modelId)
     const parts = hfModel.id.split('/')
     const name = parts.length >= 2 ? parts[1] : hfModel.id
 
@@ -77,8 +65,8 @@ export default async function HuggingFaceModelPage({ params }: Props) {
   const modelId = slugToModelId(slug)
 
   try {
-    // TEAM-464: Use HF model for complete data
-    const hfModel = await getHuggingFaceModel(modelId)
+    // TEAM-475: Use raw HF model for complete data (cached)
+    const hfModel = await getCachedHFModel(modelId)
 
     // TEAM-464: No README fetching - not available in current API
 

@@ -9,6 +9,7 @@ import type { HFModel } from './huggingface/huggingface.js'
 
 export type ModelFile = WasmModelFile
 
+// TEAM-476: RULE ZERO - Added 'type' and 'nsfw' fields for CivitAI filtering
 export interface Model {
   id: string
   name: string
@@ -24,6 +25,8 @@ export interface Model {
   lastModified?: string
   config?: HFModel['config']
   siblings?: ModelFile[]
+  type?: string // Model type from CivitAI (Checkpoint, LORA, etc.) - optional for HuggingFace
+  nsfw?: boolean // NSFW flag from CivitAI - optional for HuggingFace
 }
 
 export interface SearchOptions {

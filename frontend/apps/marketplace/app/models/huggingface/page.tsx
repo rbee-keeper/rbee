@@ -1,31 +1,32 @@
 // TEAM-460: HuggingFace models marketplace page (migrated from /models)
-// TEAM-464: Hybrid SSG + client-side filtering (Phase 3)
-// Server renders with default filter for SEO, then client-side loads manifests
+// TEAM-475: SSR initial load, then client-side filtering (SPA experience)
+// TEAM-475: Fetches ALL compatible models once, client filters them
+// TEAM-475: Added compatibility filtering - only shows models that work with LLM_worker
 
-import { listHuggingFaceModels } from '@rbee/marketplace-node'
+import { getCompatibleHuggingFaceModels } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
-import { PREGENERATED_HF_FILTERS } from './filters'
 import { HFFilterPage } from './HFFilterPage'
 
 export const metadata: Metadata = {
   title: 'HuggingFace LLM Models | rbee Marketplace',
-  description: 'Browse compatible language models from HuggingFace. Pre-rendered for instant loading and maximum SEO.',
+  description: 'Browse compatible language models from HuggingFace. Real-time data, updated every 5 minutes.',
 }
 
-// TEAM-464: SSG with default filter data, then client-side filtering
+// TEAM-XXX: Force dynamic rendering to ensure client-side filtering works correctly
+// Without this, Next.js may treat this route as static and cause SSR on filter changes
+export const dynamic = 'force-dynamic'
+
+// TEAM-475: SSR - fetch ALL compatible models once on initial load
+// Client-side filtering handles filter changes (no re-fetch)
+// Only fetches models that work with LLM_worker (llama, mistral, phi, qwen, gemma)
 export default async function HuggingFaceModelsPage() {
-  // Default filter (downloads, all sizes, all licenses)
-  const currentFilter = PREGENERATED_HF_FILTERS[0].filters
+  const FETCH_LIMIT = 300
 
-  // Fetch top 100 models for SSG/SEO
-  const FETCH_LIMIT = 100
+  console.log(`[SSR] Fetching compatible HuggingFace models (filtered by LLM_worker compatibility)`)
 
-  console.log(`[SSG] Fetching top ${FETCH_LIMIT} HuggingFace models for initial render`)
+  const hfModels = await getCompatibleHuggingFaceModels({ limit: FETCH_LIMIT })
 
-  const hfModels = await listHuggingFaceModels({ limit: FETCH_LIMIT })
-
-  console.log(`[SSG] Pre-rendering ${hfModels.length} HuggingFace models`)
+  console.log(`[SSR] Rendering ${hfModels.length} HuggingFace models`)
 
   // Normalize models for client component
   const models = hfModels.map((model) => {
@@ -41,10 +42,7 @@ export default async function HuggingFaceModelsPage() {
     }
   })
 
-  // Pass SSG data to client component (wrapped in Suspense for useSearchParams)
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HFFilterPage initialModels={models} initialFilter={currentFilter} />
-    </Suspense>
-  )
+  // TEAM-475: Pass SSR data to client component
+  // Client component handles all filtering without re-fetching
+  return <HFFilterPage initialModels={models} />
 }

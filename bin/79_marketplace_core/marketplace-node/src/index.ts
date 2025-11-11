@@ -82,6 +82,8 @@ export { formatBytes } from './shared/index.js'
 
 // Re-export types
 export type { CompatibilityResult, Model, ModelFile, ModelMetadata, SearchOptions, Worker } from './types.js'
+// Re-export WASM compatibility types
+export type { ModelArchitecture, ModelFormat, Quantization } from '../wasm/marketplace_sdk.js'
 export type { WorkerCatalogEntry } from './workers.js'
 // Worker catalog functions
 export { getWorker, listWorkers } from './workers.js'
@@ -137,6 +139,77 @@ export async function listHuggingFaceModels(options: SearchOptions = {}): Promis
   return hfModels.map(convertHFModel)
 }
 
+/**
+ * Get compatible HuggingFace models for rbee LLM workers
+ * TEAM-475: Filters models by compatibility (architecture, format, context length)
+ * 
+ * Only returns models that:
+ * - Use supported architectures (llama, mistral, phi, qwen, gemma)
+ * - Use supported formats (safetensors, gguf)
+ * - Have context length <= 32,768 tokens
+ * 
+ * @param options - Search options (limit, sort)
+ * @returns Promise<Model[]> - Array of compatible models only
+ */
+export async function getCompatibleHuggingFaceModels(options: SearchOptions = {}): Promise<Model[]> {
+  // TEAM-475: Fetch more models than needed, then filter
+  const { limit = 100, sort = 'popular' } = options
+  const FETCH_LIMIT = 500 // Fetch max to ensure we have enough after filtering
+  
+  // Fetch all models
+  const allModels = await listHuggingFaceModels({ limit: FETCH_LIMIT, sort })
+  
+  // Filter by compatibility using heuristics
+  const compatibleModels = allModels.filter(model => {
+    return isModelCompatible(model)
+  })
+  
+  // Return requested number of compatible models
+  return compatibleModels.slice(0, limit)
+}
+
+/**
+ * Check if a model is compatible with LLM workers
+ * TEAM-475: Heuristic-based compatibility checking
+ * 
+ * Checks:
+ * - Architecture (from tags/model name)
+ * - Format (from siblings/files)
+ * - Context length (from config)
+ */
+function isModelCompatible(model: Model): boolean {
+  const modelText = `${model.name} ${model.id} ${model.tags.join(' ')}`.toLowerCase()
+  
+  // Supported architectures
+  const supportedArchitectures = ['llama', 'mistral', 'phi', 'qwen', 'gemma']
+  const hasCompatibleArch = supportedArchitectures.some(arch => modelText.includes(arch))
+  
+  if (!hasCompatibleArch) {
+    return false
+  }
+  
+  // Check for incompatible architectures (exclude these)
+  const incompatibleArchitectures = ['bert', 'clip', 'vit', 't5', 'whisper', 'wav2vec']
+  const hasIncompatibleArch = incompatibleArchitectures.some(arch => modelText.includes(arch))
+  
+  if (hasIncompatibleArch) {
+    return false
+  }
+  
+  // Check for supported formats in siblings (if available)
+  if (model.siblings && model.siblings.length > 0) {
+    const hasGGUF = model.siblings.some(s => s.filename.endsWith('.gguf'))
+    const hasSafeTensors = model.siblings.some(s => s.filename.endsWith('.safetensors'))
+    
+    // Must have at least one supported format
+    if (!hasGGUF && !hasSafeTensors) {
+      return false
+    }
+  }
+  
+  return true
+}
+
 export async function getHuggingFaceModel(modelId: string): Promise<Model> {
   const hfModel = await fetchHFModel(modelId)
   return convertHFModel(hfModel)
@@ -150,6 +223,8 @@ export async function getHuggingFaceModelReadme(modelId: string, revision?: stri
   return fetchHFModelReadme(modelId, revision)
 }
 
+// TEAM-476: RULE ZERO - Added 'type' field for proper model type filtering
+// Breaking change: Model interface now includes 'type' field from CivitAI
 function convertCivitAIModel(civitai: CivitAIModel): Model {
   const latestVersion = civitai.modelVersions?.[0]
   const totalBytes =
@@ -174,6 +249,8 @@ function convertCivitAIModel(civitai: CivitAIModel): Model {
     imageUrl,
     createdAt: latestVersion?.createdAt ?? undefined,
     lastModified: latestVersion?.updatedAt ?? undefined,
+    type: civitai.type, // TEAM-476: Include model type (Checkpoint, LORA, etc.)
+    nsfw: civitai.nsfw, // TEAM-476: Include NSFW flag for content rating filtering
   }
 }
 

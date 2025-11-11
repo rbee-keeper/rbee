@@ -1,30 +1,30 @@
 // TEAM-460: Civitai model detail page with slugified URLs
 // TEAM-463: Updated to use CivitAI-style layout
-// TEAM-464: Using manifest-based SSG (Phase 2)
+// TEAM-475: SSR - fetches model data at request time, no manifest generation
+// TEAM-475: Added Next.js caching (revalidate every 1 hour)
 import { getCivitaiModel } from '@rbee/marketplace-node'
 import { CivitAIModelDetail } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import { notFound, redirect } from 'next/navigation'
 import { InstallCTA } from '@/components/InstallCTA'
-import { loadModelsBySource } from '@/lib/manifests'
 import { slugToModelId } from '@/lib/slugify'
+
+// TEAM-475: Cache model data for 1 hour
+export const revalidate = 3600
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
-export async function generateStaticParams() {
-  console.log('[SSG] Generating CivitAI model pages from manifest')
+// TEAM-475: No generateStaticParams - SSR renders on-demand
 
-  // TEAM-464: Read from manifest instead of API
-  const models = await loadModelsBySource('civitai')
-
-  console.log(`[SSG] Pre-building ${models.length} CivitAI model pages`)
-
-  return models.map((model) => ({
-    slug: model.slug,
-  }))
-}
+// TEAM-475: Cached CivitAI model fetching
+const getCachedCivitaiModel = unstable_cache(
+  async (modelId: number) => getCivitaiModel(modelId),
+  ['civitai-model'],
+  { revalidate: 3600, tags: ['civitai-models'] }
+)
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   try {
-    const model = await getCivitaiModel(civitaiId)
+    const model = await getCachedCivitaiModel(civitaiId)
 
     // TEAM-422: Handle optional fields safely
     const downloads = model.stats?.downloadCount || 0
@@ -81,11 +81,11 @@ export default async function CivitaiModelPage({ params }: Props) {
   }
 
   try {
-    const civitaiModel = await getCivitaiModel(civitaiId)
+    const civitaiModel = await getCachedCivitaiModel(civitaiId)
 
     // TEAM-422: Handle optional fields safely
     const latestVersion = civitaiModel.modelVersions?.[0]
-    const totalBytes = latestVersion?.files?.reduce((sum: number, file: any) => sum + (file.sizeKb || 0) * 1024, 0) || 0
+    const totalBytes = latestVersion?.files?.reduce((sum: number, file: { sizeKb?: number }) => sum + (file.sizeKb || 0) * 1024, 0) || 0
     const formatBytes = (bytes: number): string => {
       if (bytes === 0) return '0 B'
       const k = 1024

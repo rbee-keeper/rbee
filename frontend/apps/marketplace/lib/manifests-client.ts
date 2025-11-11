@@ -1,6 +1,5 @@
 // TEAM-464: Client-side manifest loader for filter pages
-// Loads JSON manifests from /manifests/ directory (served by CDN in production)
-// Falls back to live API in dev mode
+// Loads JSON manifests from /manifests/ directory (served by CDN)
 
 'use client'
 
@@ -14,26 +13,17 @@ interface ModelManifest {
   timestamp: string
 }
 
-const IS_DEV = process.env.NODE_ENV === 'development'
-
 /**
  * Load a filter manifest on the client-side
- * Fetches from /manifests/ directory (served by CDN)
- * 
- * In dev mode: Returns null (caller should fetch from live API)
- * In production: Fetches from static manifest files
+ * Fetches from /manifests/ directory (served by CDN or dev server)
  */
 export async function loadFilterManifestClient(
   source: 'civitai' | 'huggingface',
   filter: string
 ): Promise<ModelManifest | null> {
-  // In dev mode, skip manifest loading (will use live API)
-  if (IS_DEV) {
-    console.log(`[manifests-client] Dev mode - skipping manifest for ${source}/${filter}`)
-    return null
-  }
-  
-  const filename = `${source}-${filter.replace(/\//g, '-')}.json`
+  // Map source to file prefix (manifests use short names)
+  const prefix = source === 'huggingface' ? 'hf' : source
+  const filename = `${prefix}-${filter.replace(/\//g, '-')}.json`
   const url = `/manifests/${filename}`
   
   try {

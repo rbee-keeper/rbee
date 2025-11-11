@@ -3,6 +3,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ModelCardVertical } from '@rbee/ui/marketplace'
 import { ModelsFilterBar } from '../ModelsFilterBar'
@@ -35,20 +36,51 @@ interface Props {
 }
 
 export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [models, setModels] = useState<Model[]>(initialModels)
-  const [currentFilter, setCurrentFilter] = useState<CivitaiFilters>(initialFilter)
   const [loading, setLoading] = useState(false)
+  
+  // Build current filter from URL search params
+  const currentFilter: CivitaiFilters = {
+    timePeriod: (searchParams.get('period') as any) || initialFilter.timePeriod,
+    modelType: (searchParams.get('type') as any) || initialFilter.modelType,
+    baseModel: (searchParams.get('base') as any) || initialFilter.baseModel,
+    sort: (searchParams.get('sort') as any) || initialFilter.sort,
+    nsfwLevel: (searchParams.get('nsfw') as any) || initialFilter.nsfwLevel,
+  }
+  
+  // Handle filter changes - update URL instead of state
+  const handleFilterChange = (newFilters: Partial<Record<string, string>>) => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    // Map filter keys to URL param names  
+    if (newFilters.timePeriod) params.set('period', newFilters.timePeriod)
+    if (newFilters.modelType) params.set('type', newFilters.modelType)
+    if (newFilters.baseModel) params.set('base', newFilters.baseModel)
+    if (newFilters.sort) params.set('sort', newFilters.sort)
+    if (newFilters.nsfwLevel) params.set('nsfw', newFilters.nsfwLevel)
+    
+    // Update URL (this will trigger useEffect)
+    router.push(`?${params.toString()}`)
+  }
 
-  // Load manifest when filter changes
+  // Load manifest when URL params change
   useEffect(() => {
     async function loadManifest() {
+      // Get current filter values from URL
+      const period = searchParams.get('period') || initialFilter.timePeriod
+      const type = searchParams.get('type') || initialFilter.modelType
+      const base = searchParams.get('base') || initialFilter.baseModel
+      const nsfw = searchParams.get('nsfw') || initialFilter.nsfwLevel
+      
       // Find the filter path for current filter config
       const filterConfig = PREGENERATED_FILTERS.find(
         (f) =>
-          f.filters.timePeriod === currentFilter.timePeriod &&
-          f.filters.modelType === currentFilter.modelType &&
-          f.filters.baseModel === currentFilter.baseModel &&
-          f.filters.nsfwLevel === currentFilter.nsfwLevel
+          f.filters.timePeriod === period &&
+          f.filters.modelType === type &&
+          f.filters.baseModel === base &&
+          f.filters.nsfwLevel === nsfw
       )
 
       if (!filterConfig || filterConfig.path === '') {
@@ -63,8 +95,6 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
         
         if (manifest) {
           // Convert manifest models to full model objects
-          // In a real implementation, you might want to fetch full details
-          // For now, we'll use the manifest data as-is
           const manifestModels = manifest.models.map((m) => ({
             id: m.id,
             name: m.name,
@@ -90,7 +120,7 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
     }
 
     loadManifest()
-  }, [currentFilter, initialModels])
+  }, [searchParams, initialModels, initialFilter])
 
   // Build filter description
   const filterParts: string[] = []
@@ -165,7 +195,7 @@ export function CivitAIFilterPage({ initialModels, initialFilter }: Props) {
         groups={CIVITAI_FILTER_GROUPS}
         sortGroup={CIVITAI_SORT_GROUP}
         currentFilters={currentFilter}
-        buildUrlFn="/models/civitai"
+        onChange={handleFilterChange}
       />
 
       {/* Vertical Card Grid */}

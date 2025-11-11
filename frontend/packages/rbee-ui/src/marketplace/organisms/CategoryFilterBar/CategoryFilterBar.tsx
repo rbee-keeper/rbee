@@ -3,11 +3,10 @@
 import { Button } from '@rbee/ui/atoms/Button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@rbee/ui/atoms/DropdownMenu'
 // TEAM-461: Dropdown-based filter bar with proper SSR support
-// TEAM-423: Made compatible with both Next.js and Tauri using environment detection
+// TEAM-464: Uses onChange callback for both Next.js and Tauri (no environment detection needed)
 // Reusable for workers, models, or any catalog with categorical filters
 // Marked as 'use client' due to dropdown interactions and onClick handlers
 import { cn } from '@rbee/ui/utils'
-import { isTauriEnvironment } from '@rbee/ui/utils/environment'
 import { Check, ChevronDown } from 'lucide-react'
 import type { FilterGroup, FilterOption } from '../../types/filters'
 
@@ -20,7 +19,6 @@ interface FilterGroupComponentProps {
 
 function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }: FilterGroupComponentProps) {
   const activeOption = group.options.find((opt) => opt.value === currentValue)
-  const isTauri = isTauriEnvironment()
 
   return (
     <DropdownMenu>
@@ -40,12 +38,12 @@ function FilterGroupComponent({ group, currentValue, buildUrl, onFilterChange }:
             <DropdownMenuItem
               key={option.value}
               onClick={() => {
-                // TEAM-423: Environment-aware navigation
-                if (isTauri && onFilterChange) {
-                  // Tauri: Use callback to update state
+                // TEAM-464: Fixed to use onFilterChange when provided (not just in Tauri)
+                if (onFilterChange) {
+                  // Use callback to update state (works for both Tauri and Next.js)
                   onFilterChange(option.value)
-                } else if (!isTauri && url !== '#') {
-                  // Next.js: Navigate to URL
+                } else if (url !== '#') {
+                  // Fallback: Navigate to URL (full page reload)
                   window.location.href = url
                 }
               }}
@@ -123,6 +121,9 @@ export function CategoryFilterBar<T = Record<string, string>>({
             group={sortGroup}
             currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value}
             buildUrl={(value) => buildUrl({ [sortGroup.id]: value } as Partial<T>)}
+            onFilterChange={
+              onFilterChange ? (value) => onFilterChange({ [sortGroup.id]: value } as Partial<T>) : undefined
+            }
           />
         </div>
       )}

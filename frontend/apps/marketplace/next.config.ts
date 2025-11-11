@@ -2,7 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   // TEAM-462: Static export for Cloudflare Pages
-  output: 'export',
+  // TEAM-464: Only use static export in production, allow dynamic in dev
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   
   // TEAM-463: Disable image optimization for static export
   images: {

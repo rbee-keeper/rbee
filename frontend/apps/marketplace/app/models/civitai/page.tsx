@@ -1,6 +1,7 @@
 // TEAM-460: Civitai models marketplace page
 // TEAM-464: Hybrid SSG + client-side filtering (Phase 3)
 // Server renders with default filter for SEO, then client-side loads manifests
+import { Suspense } from 'react'
 import { getCompatibleCivitaiModels } from '@rbee/marketplace-node'
 import type { Metadata } from 'next'
 import { PREGENERATED_FILTERS } from './filters'
@@ -39,6 +40,10 @@ export default async function CivitAIModelsPage() {
     imageUrl: model.imageUrl,
   }))
 
-  // Pass SSG data to client component
-  return <CivitAIFilterPage initialModels={models} initialFilter={currentFilter} />
+  // Pass SSG data to client component (wrapped in Suspense for useSearchParams)
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CivitAIFilterPage initialModels={models} initialFilter={currentFilter} />
+    </Suspense>
+  )
 }

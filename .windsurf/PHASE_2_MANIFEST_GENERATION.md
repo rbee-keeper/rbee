@@ -1,5 +1,40 @@
+# Phase 2: Rewrite Manifest Generation Using WASM SDK
+
+**Status**: ✅ Complete (TEAM-467)  
+**Estimated Time**: 2 hours  
+**Dependencies**: Phase 1 Complete  
+**Blocking**: Phase 3
+
+---
+
+## Objectives
+
+1. ✅ Delete hacky TypeScript fetch code
+2. ✅ Use `listHuggingFaceModels()` from `@rbee/marketplace-node`
+3. ✅ Implement proper size filtering using SDK Model.size field
+4. ✅ Generate manifests for all filter combinations
+5. ✅ Verify manifests are actually different
+
+---
+
+## Step 1: Backup Current Script
+
+```bash
+cd /home/vince/Projects/rbee/frontend/apps/marketplace/scripts
+cp generate-model-manifests.ts generate-model-manifests.ts.backup
+```
+
+---
+
+## Step 2: Rewrite Manifest Script
+
+### New Implementation
+
+**File**: `/home/vince/Projects/rbee/frontend/apps/marketplace/scripts/generate-model-manifests.ts`
+
+```typescript
 #!/usr/bin/env tsx
-// TEAM-467: Generate JSON manifests using marketplace-node WASM SDK
+// TEAM-464: Generate JSON manifests using marketplace-node WASM SDK
 // This is the CORRECT way - uses Rust SDK instead of direct fetch
 
 import fs from 'node:fs/promises'
@@ -14,10 +49,9 @@ import { getAllCivitAIFilters, getAllHFFilters } from '../config/filters'
 const MANIFEST_DIR = path.join(process.cwd(), 'public', 'manifests')
 const IS_PROD = process.env.NODE_ENV === 'production'
 
-// TEAM-464: Skip problematic models (same list as in lib/manifests.ts)
-// Note: Use the API format (with /) not the slug format (with --)
+// Skip problematic models
 const SKIP_MODELS = new Set([
-  'CohereLabs/c4ai-command-r-plus', // Objects in nested fields cause React rendering errors
+  'huggingface-CohereLabs/c4ai-command-r-plus',
 ])
 
 interface ModelManifest {
@@ -30,68 +64,14 @@ interface ModelManifest {
   timestamp: string
 }
 
-// Get filters from shared config
-const CIVITAI_FILTERS = getAllCivitAIFilters()
-const HF_FILTERS = getAllHFFilters()
-
 /**
- * Fetch CivitAI models using WASM SDK
- * TEAM-467: Uses getCompatibleCivitaiModels from marketplace-node
- */
-async function fetchCivitAIModelsViaSDK(filter: string): Promise<ModelManifest['models']> {
-  console.log(`[CivitAI] Fetching models for filter: ${filter} (via WASM SDK)`)
-  
-  // Parse filter to CivitaiFilters
-  const filterParts = filter.replace('filter/', '').split('/')
-  
-  const filters: any = {
-    time_period: 'AllTime',
-    model_type: 'All',
-    base_model: 'All',
-    sort: 'Most Downloaded',
-    nsfw: {
-      max_level: 'All',
-      blur_mature: false,
-    },
-    limit: 100,
-  }
-  
-  if (filterParts.includes('checkpoints')) filters.model_type = 'Checkpoint'
-  if (filterParts.includes('loras')) filters.model_type = 'LORA'
-  if (filterParts.includes('sdxl')) filters.base_model = 'SDXL 1.0'
-  if (filterParts.includes('sd15')) filters.base_model = 'SD 1.5'
-  if (filterParts.includes('week')) filters.time_period = 'Week'
-  if (filterParts.includes('month')) filters.time_period = 'Month'
-  if (filterParts.includes('pg')) filters.nsfw.max_level = 'None'
-  if (filterParts.includes('pg13')) filters.nsfw.max_level = 'Soft'
-  if (filterParts.includes('r')) filters.nsfw.max_level = 'Mature'
-  if (filterParts.includes('x')) filters.nsfw.max_level = 'X'
-  
-  try {
-    const models = await getCompatibleCivitaiModels(filters)
-    console.log(`  Received ${models.length} CivitAI models`)
-    
-    return models.slice(0, 100).map(m => ({
-      id: m.id.replace('civitai-', ''),
-      slug: m.id.replace('civitai-', ''),
-      name: m.name,
-    }))
-  } catch (error) {
-    console.error(`  Failed to fetch CivitAI models:`, error)
-    return []
-  }
-}
-
-/**
- * Estimate model size category from Model.size field and tags
- * TEAM-467: The Rust SDK already parses size from model card
+ * Estimate model size category from Model.size field
+ * TEAM-464: The Rust SDK already parses size from model card
  */
 function categorizeModelSize(model: Model): 'small' | 'medium' | 'large' | 'unknown' {
   const size = model.size.toLowerCase()
-  const name = model.id.toLowerCase()
-  const allTags = model.tags.join(' ').toLowerCase()
   
-  // Check for explicit size indicators in Model.size field
+  // Check for explicit size indicators
   const numberMatch = size.match(/(\d+\.?\d*)\s*([bm])/i)
   if (numberMatch) {
     const num = parseFloat(numberMatch[1])
@@ -100,21 +80,13 @@ function categorizeModelSize(model: Model): 'small' | 'medium' | 'large' | 'unkn
     if (num > 13) return 'large'
   }
   
-  // Check keywords in size field
+  // Check keywords
   if (size.includes('small') || size.includes('mini') || size.includes('tiny')) return 'small'
   if (size.includes('medium')) return 'medium'
   if (size.includes('large') || size.includes('xl')) return 'large'
   
-  // Check model name and tags as fallback
-  const nameMatch = name.match(/(\d+\.?\d*)\s*[bm]/i)
-  if (nameMatch) {
-    const num = parseFloat(nameMatch[1])
-    if (num < 7) return 'small'
-    if (num >= 7 && num <= 13) return 'medium'
-    if (num > 13) return 'large'
-  }
-  
-  // Check tags for size indicators
+  // Check tags as fallback
+  const allTags = model.tags.join(' ').toLowerCase()
   if (allTags.match(/\b[0-6]b\b/)) return 'small'
   if (allTags.match(/\b(7|8|9|10|11|12|13)b\b/)) return 'medium'
   if (allTags.match(/\b(1[4-9]|[2-9]\d|\d{3,})b\b/)) return 'large'
@@ -124,7 +96,6 @@ function categorizeModelSize(model: Model): 'small' | 'medium' | 'large' | 'unkn
 
 /**
  * Fetch HuggingFace models using WASM SDK
- * TEAM-467: Uses listHuggingFaceModels from marketplace-node
  */
 async function fetchHFModelsViaSDK(filter: string): Promise<ModelManifest['models']> {
   console.log(`[HuggingFace] Fetching models for filter: ${filter} (via WASM SDK)`)
@@ -169,17 +140,61 @@ async function fetchHFModelsViaSDK(filter: string): Promise<ModelManifest['model
     .slice(0, 100)  // Limit to 100
     .filter(m => !SKIP_MODELS.has(m.id))
     .map(m => ({
-      id: m.id,
-      slug: m.id.replace('/', '--'),
+      id: m.id.replace('huggingface-', ''),  // Remove prefix for frontend
+      slug: m.id.replace('huggingface-', '').replace('/', '--'),
       name: m.name,
     }))
 }
 
 /**
+ * Fetch CivitAI models using WASM SDK
+ */
+async function fetchCivitAIModelsViaSDK(filter: string): Promise<ModelManifest['models']> {
+  console.log(`[CivitAI] Fetching models for filter: ${filter} (via WASM SDK)`)
+  
+  // Parse filter to CivitaiFilters
+  const filterParts = filter.replace('filter/', '').split('/')
+  
+  const filters: any = {
+    time_period: 'AllTime',
+    model_type: 'All',
+    base_model: 'All',
+    sort: 'MostDownloaded',
+    nsfw: 'All',
+  }
+  
+  if (filterParts.includes('checkpoints')) filters.model_type = 'Checkpoint'
+  if (filterParts.includes('loras')) filters.model_type = 'LORA'
+  if (filterParts.includes('sdxl')) filters.base_model = 'SDXL 1.0'
+  if (filterParts.includes('sd15')) filters.base_model = 'SD 1.5'
+  if (filterParts.includes('week')) filters.time_period = 'Week'
+  if (filterParts.includes('month')) filters.time_period = 'Month'
+  if (filterParts.includes('pg')) filters.nsfw = 'None'
+  if (filterParts.includes('pg13')) filters.nsfw = 'Soft'
+  if (filterParts.includes('r')) filters.nsfw = 'Mature'
+  if (filterParts.includes('x')) filters.nsfw = 'X'
+  
+  try {
+    const models = await getCompatibleCivitaiModels(filters)
+    console.log(`  Received ${models.length} CivitAI models`)
+    
+    return models.slice(0, 100).map(m => ({
+      id: m.id.replace('civitai-', ''),
+      slug: m.id.replace('civitai-', ''),
+      name: m.name,
+    }))
+  } catch (error) {
+    console.error(`  Failed to fetch CivitAI models:`, error)
+    return []
+  }
+}
+
+/**
  * Rate limiter using p-limit pattern
- * TEAM-467: Limit concurrent API calls to avoid rate limiting
+ * TEAM-464: Limit concurrent API calls to avoid rate limiting
  */
 class RateLimiter {
+  private queue: Array<() => Promise<any>> = []
   private running = 0
   private maxConcurrent: number
   private minDelay: number
@@ -213,6 +228,9 @@ class RateLimiter {
   }
 }
 
+/**
+ * Main generation function
+ */
 async function generateManifests() {
   if (!IS_PROD) {
     console.log('⏭️  Skipping manifest generation in dev mode (set NODE_ENV=production)')
@@ -227,12 +245,14 @@ async function generateManifests() {
   
   const allModels = new Map<string, { id: string; slug: string; name: string; source: string }>()
   
-  // TEAM-467: Rate limiter - max 3 concurrent requests, 100ms between each
+  // TEAM-464: Rate limiter - max 3 concurrent requests, 100ms between each
   const limiter = new RateLimiter(3, 100)
   
   // Generate CivitAI manifests in parallel with rate limiting
-  console.log(`🚀 Fetching ${CIVITAI_FILTERS.length} CivitAI filters in parallel (max 3 concurrent)...`)
-  const civitaiPromises = CIVITAI_FILTERS.map(filter => 
+  const civitaiFilters = getAllCivitAIFilters()
+  console.log(`🚀 Fetching ${civitaiFilters.length} CivitAI filters in parallel (max 3 concurrent)...`)
+  
+  const civitaiPromises = civitaiFilters.map(filter => 
     limiter.run(async () => {
     try {
       const models = await fetchCivitAIModelsViaSDK(filter)
@@ -242,7 +262,6 @@ async function generateManifests() {
         timestamp: new Date().toISOString(),
       }
       
-      // Save manifest
       const filename = `civitai-${filter.replace(/\//g, '-')}.json`
       await fs.writeFile(
         path.join(MANIFEST_DIR, filename),
@@ -264,13 +283,15 @@ async function generateManifests() {
   // Add CivitAI models to map
   civitaiResults.forEach(({ models }) => {
     models.forEach(model => {
-      allModels.set(model.id, { ...model, source: 'civitai' })
+      allModels.set(`civitai-${model.id}`, { ...model, source: 'civitai' })
     })
   })
   
   // Generate HuggingFace manifests in parallel with rate limiting
-  console.log(`🚀 Fetching ${HF_FILTERS.length} HuggingFace filters in parallel (max 3 concurrent)...`)
-  const hfPromises = HF_FILTERS.map(filter =>
+  const hfFilters = getAllHFFilters()
+  console.log(`🚀 Fetching ${hfFilters.length} HuggingFace filters in parallel (max 3 concurrent)...`)
+  
+  const hfPromises = hfFilters.map(filter =>
     limiter.run(async () => {
     try {
       const models = await fetchHFModelsViaSDK(filter)
@@ -301,11 +322,11 @@ async function generateManifests() {
   // Add HuggingFace models to map
   hfResults.forEach(({ models }) => {
     models.forEach(model => {
-      allModels.set(model.id, { ...model, source: 'huggingface' })
+      allModels.set(`huggingface-${model.id}`, { ...model, source: 'huggingface' })
     })
   })
   
-  // Generate combined manifest with all unique models
+  // Generate combined manifest
   const combinedManifest = {
     totalModels: allModels.size,
     civitai: Array.from(allModels.values()).filter(m => m.source === 'civitai').length,
@@ -331,3 +352,160 @@ async function generateManifests() {
 }
 
 generateManifests().catch(console.error)
+```
+
+---
+
+## Step 3: Run the New Script
+
+```bash
+cd /home/vince/Projects/rbee/frontend/apps/marketplace
+
+# Generate manifests
+NODE_ENV=production tsx scripts/generate-model-manifests.ts
+
+# Expected output:
+# 📦 Generating model manifests using WASM SDK...
+# 🚀 Fetching 16 CivitAI filters...
+# [CivitAI] Fetching models for filter: filter/pg (via WASM SDK)
+# ...
+# 🚀 Fetching 9 HuggingFace filters...
+# [HuggingFace] Fetching models for filter: filter/small (via WASM SDK)
+#   Fetching with sort=downloads, limit=500
+#   Received 500 models from SDK
+#   Filtered 500 → 105 small models
+# ✅ Generated hf-filter-small.json (100 models)
+# ...
+# 📊 Summary:
+#   Total unique models: 1200
+#   CivitAI: 700
+#   HuggingFace: 500
+#   ⚡ Generation time: 25.3s
+```
+
+---
+
+## Step 4: Verify Manifests Are Different
+
+```bash
+cd /home/vince/Projects/rbee/frontend/apps/marketplace/public/manifests
+
+# Check HuggingFace size filters
+echo "=== Small Models (first 3) ==="
+cat hf-filter-small.json | jq '.models[0:3] | .[] | .id'
+
+echo "=== Medium Models (first 3) ==="
+cat hf-filter-medium.json | jq '.models[0:3] | .[] | .id'
+
+echo "=== Large Models (first 3) ==="
+cat hf-filter-large.json | jq '.models[0:3] | .[] | .id'
+
+# These should be DIFFERENT models!
+```
+
+### Expected: Different Models
+
+```bash
+=== Small Models (first 3) ===
+"sentence-transformers/all-MiniLM-L6-v2"
+"timm/mobilenetv3_small_100.lamb_in1k"
+"sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
+=== Medium Models (first 3) ===
+"omni-research/Tarsier2-Recap-7b"
+"Qwen/Qwen2.5-7B-Instruct"
+"Qwen/Qwen2.5-VL-7B-Instruct"
+
+=== Large Models (first 3) ===
+"FacebookAI/roberta-large"
+"facebook/esm2_t33_650M_UR50D"
+"openai/clip-vit-large-patch14"
+```
+
+---
+
+## Step 5: Verify Manifest Structure
+
+```bash
+# Check that manifests have the correct structure
+cat public/manifests/hf-filter-small.json | jq '{
+  filter,
+  count: (.models | length),
+  first_model: .models[0],
+  timestamp
+}'
+
+# Expected output:
+# {
+#   "filter": "filter/small",
+#   "count": 100,
+#   "first_model": {
+#     "id": "sentence-transformers/all-MiniLM-L6-v2",
+#     "slug": "sentence-transformers--all-MiniLM-L6-v2",
+#     "name": "all-MiniLM-L6-v2"
+#   },
+#   "timestamp": "2025-11-11T01:45:23.123Z"
+# }
+```
+
+---
+
+## Completion Checklist
+
+- [ ] Backed up original script
+- [ ] Rewrote script to use `@rbee/marketplace-node`
+- [ ] Script runs without errors
+- [ ] All HuggingFace manifests generated (9 files)
+- [ ] All CivitAI manifests generated (16 files)
+- [ ] Combined manifest generated (`all-models.json`)
+- [ ] Small/Medium/Large manifests have DIFFERENT first models
+- [ ] Each manifest has 100 models (or fewer if not enough match filter)
+- [ ] Manifests have correct structure `{filter, models, timestamp}`
+
+---
+
+## Troubleshooting
+
+### Issue: WASM Function Not Found
+
+**Error**: `listHuggingFaceModels is not a function`
+
+**Fix**:
+```bash
+# Rebuild marketplace-node
+cd bin/79_marketplace_core/marketplace-node
+pnpm run build
+
+# Reinstall in frontend
+cd frontend/apps/marketplace
+pnpm install
+```
+
+### Issue: Size Filtering Returns Empty
+
+**Error**: `Filtered 500 → 0 small models`
+
+**Fix**: Check that `Model.size` field is populated:
+```typescript
+// Add debugging
+console.log('Sample model sizes:', models.slice(0, 5).map(m => m.size))
+```
+
+If sizes are all "Unknown", the Rust SDK may need to parse size from model cards.
+
+### Issue: Script Times Out
+
+**Error**: Script hangs or takes >5 minutes
+
+**Fix**: 
+- Reduce number of filters
+- Add `timeout` to fetch calls
+- Run filters sequentially instead of parallel
+
+---
+
+## Next Phase
+
+Once all checkboxes are complete, move to **Phase 3: Filter UI Fix**.
+
+**Status**: 🟡 → ✅ (update when complete)

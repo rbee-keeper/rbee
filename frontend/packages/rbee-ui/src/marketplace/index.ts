@@ -8,11 +8,21 @@
 
 // Atoms (Pure presentation)
 export * from './atoms/CompatibilityBadge'
+// Constants (TEAM-467: Shared filter constants)
+export * from './constants'
 // Molecules (Pure presentation)
 export * from './molecules/DatasetsUsedCard' // TEAM-464: HuggingFace datasets display
+export type { FilterDropdownProps, FilterOption } from './molecules/FilterDropdown'
+export { FilterDropdown } from './molecules/FilterDropdown' // TEAM-476: Filter components
+export type { FilterMultiSelectProps, MultiSelectOption } from './molecules/FilterMultiSelect'
+export { FilterMultiSelect } from './molecules/FilterMultiSelect' // TEAM-476: Filter components
+export type { FilterSearchProps } from './molecules/FilterSearch'
+export { FilterSearch } from './molecules/FilterSearch' // TEAM-476: Filter components
 export * from './molecules/InferenceProvidersCard' // TEAM-464: HuggingFace inference info
 export * from './molecules/ModelFilesList'
 export * from './molecules/ModelMetadataCard'
+export type { SortDropdownProps, SortOption } from './molecules/SortDropdown'
+export { SortDropdown } from './molecules/SortDropdown' // TEAM-476: Sort component
 export * from './molecules/WidgetDataCard' // TEAM-464: HuggingFace widget examples
 // Organisms (Pure presentation)
 export * from './organisms/CategoryFilterBar'
@@ -21,6 +31,7 @@ export * from './organisms/CivitAIFileCard'
 export * from './organisms/CivitAIImageGallery'
 export * from './organisms/CivitAIStatsHeader'
 export * from './organisms/CivitAITrainedWords'
+export * from './organisms/FilterBar' // TEAM-476: Filter bar organism
 export * from './organisms/ModelCard'
 export * from './organisms/ModelCardVertical'
 export * from './organisms/ModelTable'
@@ -35,8 +46,6 @@ export * from './templates/WorkerListTemplate' // TEAM-463: Worker list (used in
 // Types
 export * from './types/compatibility'
 export * from './types/filters'
-// Constants (TEAM-467: Shared filter constants)
-export * from './constants'
 
 // ============================================================================
 // CLIENT-ONLY EXPORTS (Use hooks, require 'use client')

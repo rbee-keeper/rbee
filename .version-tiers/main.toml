@@ -2,7 +2,6 @@
 # Created by: TEAM-451
 # All components in this tier share the same version
 
-name = "main"
 description = "User-facing binaries (rbee-keeper, queen-rbee, rbee-hive)"
 
 [rust]

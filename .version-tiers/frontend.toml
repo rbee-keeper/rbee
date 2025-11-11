@@ -2,7 +2,6 @@
 # Created by: TEAM-451
 # Frontend apps can release independently from main binaries
 
-name = "frontend"
 description = "Frontend applications and Cloudflare Workers"
 
 [rust]

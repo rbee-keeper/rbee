@@ -3,15 +3,15 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelCardVertical grid
 
-// TEAM-467 RULE ZERO: Import shared constants and API types from @rbee/ui package
+// TEAM-XXX RULE ZERO: Import constants and utilities from @rbee/marketplace-node (source of truth)
+import { applyCivitAIFilters, FILTER_DEFAULTS } from '@rbee/marketplace-node'
+import type { BaseModel, CivitaiModelType, CivitaiSort, FilterableModel, TimePeriod } from '@rbee/marketplace-node'
 import {
   CIVITAI_FILTER_GROUPS,
   CIVITAI_SORT_GROUP,
-  FILTER_DEFAULTS,
   ModelCardVertical,
   UniversalFilterBar,
 } from '@rbee/ui/marketplace'
-import type { BaseModel, CivitaiModelType, CivitaiSort, TimePeriod } from '@rbee/ui/marketplace'
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useMemo, useState } from 'react'
@@ -65,36 +65,13 @@ export function MarketplaceCivitai() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // TEAM-423: Client-side filtering and sorting
+  // TEAM-XXX: Use shared filter utilities from marketplace-node
   const filteredModels = useMemo(() => {
-    let result = [...rawModels]
-
-    // Filter by model type (if available in tags)
-    if (filters.modelType !== FILTER_DEFAULTS.CIVITAI_MODEL_TYPE) {
-      result = result.filter((model) => {
-        const tags = model.tags.map((t) => t.toLowerCase())
-        return tags.includes(filters.modelType.toLowerCase())
-      })
-    }
-
-    // Filter by base model (if available in tags)
-    if (filters.baseModel !== FILTER_DEFAULTS.CIVITAI_BASE_MODEL) {
-      result = result.filter((model) => {
-        const tags = model.tags.map((t) => t.toLowerCase())
-        const baseModel = filters.baseModel.toLowerCase().replace(/\s/g, '')
-        return tags.some((tag) => tag.includes(baseModel))
-      })
-    }
-
-    // Sort (using API enum values)
-    result.sort((a, b) => {
-      if (filters.sort === FILTER_DEFAULTS.CIVITAI_SORT) return (b.downloads || 0) - (a.downloads || 0)
-      if (filters.sort === 'Highest Rated') return (b.likes || 0) - (a.likes || 0)
-      // newest - would need createdAt field
-      return 0
+    return applyCivitAIFilters(rawModels as FilterableModel[], {
+      modelType: filters.modelType,
+      baseModel: filters.baseModel,
+      sort: filters.sort,
     })
-
-    return result
   }, [rawModels, filters])
 
   // PRESENTATION LAYER: Full layout matching Next.js

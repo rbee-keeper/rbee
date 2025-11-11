@@ -3,11 +3,24 @@
 // Extracted from index.ts to fix missing module error
 
 /**
+ * HuggingFace AddedToken structure
+ * Based on tokenizers.AddedToken from the HuggingFace tokenizers library
+ */
+export interface HFAddedToken {
+  content: string
+  single_word?: boolean
+  lstrip?: boolean
+  rstrip?: boolean
+  normalized?: boolean
+  special?: boolean
+}
+
+/**
  * RAW HuggingFace API response
- * 
+ *
  * ⚠️ This represents the EXTERNAL API format from HuggingFace.
  * HuggingFace uses `rfilename` (relative filename) in their API.
- * 
+ *
  * We normalize this to our canonical `filename` format when converting to our Model type.
  * See: convertHFModel() in index.ts
  */
@@ -34,17 +47,27 @@ export interface HFModel {
   library_name?: string
   description?: string
   mask_token?: string
-  
+
   // TEAM-464: Widget data for inference examples
   widgetData?: Array<{
     source_sentence?: string
     sentences?: string[]
     text?: string
   }>
-  
+
   // TEAM-464: Model index for evaluation metrics
-  'model-index'?: any
-  
+  // Contains evaluation results, datasets, and metrics from model cards
+  'model-index'?: Array<{
+    name?: string
+    results?: Array<{
+      task?: { type?: string; name?: string }
+      dataset?: { type?: string; name?: string }
+      metrics?: Array<{ type?: string; value?: number; name?: string }>
+      [key: string]: unknown
+    }>
+    [key: string]: unknown
+  }>
+
   // TEAM-464: Card data with extended fields
   cardData?: {
     model_description?: string
@@ -56,34 +79,34 @@ export interface HFModel {
     pipeline_tag?: string
     base_model?: string
   }
-  
+
   // TEAM-464: Config with extended tokenizer info
   config?: {
     architectures?: string[]
     model_type?: string
     max_position_embeddings?: number
     tokenizer_config?: {
-      unk_token?: string
-      sep_token?: string
-      pad_token?: string
-      cls_token?: string
-      mask_token?: string
-      bos_token?: string | { content?: string; [key: string]: any }
-      eos_token?: string | { content?: string; [key: string]: any }
+      unk_token?: string | HFAddedToken
+      sep_token?: string | HFAddedToken
+      pad_token?: string | HFAddedToken
+      cls_token?: string | HFAddedToken
+      mask_token?: string | HFAddedToken
+      bos_token?: string | HFAddedToken
+      eos_token?: string | HFAddedToken
       chat_template?: string
     }
   }
-  
+
   // TEAM-464: Transformers info for inference
   transformersInfo?: {
     auto_model?: string
     pipeline_tag?: string
     processor?: string
   }
-  
+
   // TEAM-464: Spaces using this model
   spaces?: string[]
-  
+
   // TEAM-464: Safetensors parameters
   safetensors?: {
     parameters?: {
@@ -93,10 +116,10 @@ export interface HFModel {
     }
     total?: number
   }
-  
+
   // TEAM-464: Inference status
   inference?: 'warm' | 'cold' | string
-  
+
   // TEAM-464: Storage usage
   usedStorage?: number
 }
@@ -146,37 +169,31 @@ export async function fetchHFModel(modelId: string): Promise<HFModel> {
 
 /**
  * TEAM-464: Fetch README.md from HuggingFace model repository
- * 
+ *
  * Tries multiple README variations in order:
  * 1. README.md
  * 2. readme.md
  * 3. Readme.md
- * 
+ *
  * @param modelId - Model ID (e.g., "sentence-transformers/all-MiniLM-L6-v2")
  * @param revision - Git revision (default: "main")
  * @returns README content as markdown string, or null if not found
  */
-export async function fetchHFModelReadme(
-  modelId: string,
-  revision: string = 'main',
-): Promise<string | null> {
+export async function fetchHFModelReadme(modelId: string, revision: string = 'main'): Promise<string | null> {
   const readmeVariations = ['README.md', 'readme.md', 'Readme.md']
-  
+
   for (const filename of readmeVariations) {
     try {
       const url = `https://huggingface.co/${modelId}/raw/${revision}/${filename}`
       const response = await fetch(url)
-      
+
       if (response.ok) {
         const content = await response.text()
         return content
       }
-    } catch (error) {
-      // Continue to next variation
-      continue
-    }
+    } catch (_error) {}
   }
-  
+
   // No README found
   return null
 }

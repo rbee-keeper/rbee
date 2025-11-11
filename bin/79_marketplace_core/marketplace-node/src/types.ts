@@ -5,6 +5,8 @@
 // TEAM-463: Re-export ModelFile from WASM SDK instead of duplicating
 // Source of truth: bin/97_contracts/artifacts-contract/src/model/mod.rs
 import type { ModelFile as WasmModelFile } from '../wasm/marketplace_sdk'
+import type { HFModel } from './huggingface/huggingface.js'
+
 export type ModelFile = WasmModelFile
 
 export interface Model {
@@ -20,7 +22,7 @@ export interface Model {
   imageUrl?: string
   createdAt?: string
   lastModified?: string
-  config?: any
+  config?: HFModel['config']
   siblings?: ModelFile[]
 }
 

@@ -33,6 +33,9 @@ importers:
       '@rbee/iframe-bridge':
         specifier: workspace:*
         version: link:../../../frontend/packages/iframe-bridge
+      '@rbee/marketplace-node':
+        specifier: workspace:*
+        version: link:../../79_marketplace_core/marketplace-node
       '@rbee/narration-client':
         specifier: workspace:*
         version: link:../../../frontend/packages/narration-client

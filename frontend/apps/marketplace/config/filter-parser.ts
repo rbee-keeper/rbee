@@ -1,30 +1,19 @@
-// TEAM-467: SINGLE SOURCE OF TRUTH for filter parsing
+// TEAM-XXX: SINGLE SOURCE OF TRUTH for filter parsing
 // Converts filter paths (e.g., "filter/week/loras/sdxl") to API parameters
 // Used by manifest generation and potentially runtime filtering
 
 import type { CivitaiFilters, NsfwLevel } from '@rbee/marketplace-node'
+import { FILTER_DEFAULTS, SLUG_TO_API, URL_SLUGS } from '@rbee/marketplace-node'
 
 /**
  * NSFW level mapping: URL slug → CivitAI API enum value
- * 
- * TEAM-467: SINGLE SOURCE - Don't duplicate this mapping!
- * 
- * Source of truth: CivitAI API + WASM contract
- * - WASM contract: /bin/79_marketplace_core/marketplace-node/wasm/marketplace_sdk.d.ts
- *   export type NsfwLevel = "None" | "Soft" | "Mature" | "X" | "XXX"
- * 
- * - CivitAI API numeric values (from civitai.ts):
- *   'None': [1]           - PG only
- *   'Soft': [1, 2]        - PG + PG-13
- *   'Mature': [1, 2, 4]   - PG + PG-13 + R
- *   'X': [1, 2, 4, 8]     - PG + PG-13 + R + X
- *   'XXX': [1, 2, 4, 8, 16] - ALL levels (default)
+ * TEAM-XXX: Use SLUG_TO_API constant from marketplace-node
  */
 const NSFW_LEVEL_MAP: Record<string, NsfwLevel> = {
-  'pg': 'None',      // CivitAI API idiomatic: PG only
-  'pg13': 'Soft',    // CivitAI API idiomatic: PG + PG-13
-  'r': 'Mature',     // CivitAI API idiomatic: up to R-rated
-  'x': 'X',          // CivitAI API idiomatic: up to X-rated
+  [URL_SLUGS.PG]: SLUG_TO_API[URL_SLUGS.PG] as NsfwLevel,
+  [URL_SLUGS.PG13]: SLUG_TO_API[URL_SLUGS.PG13] as NsfwLevel,
+  [URL_SLUGS.R]: SLUG_TO_API[URL_SLUGS.R] as NsfwLevel,
+  [URL_SLUGS.X]: SLUG_TO_API[URL_SLUGS.X] as NsfwLevel,
   // No 'all' mapping - defaults to 'XXX' (all levels including explicit)
 }
 
@@ -43,44 +32,44 @@ const NSFW_LEVEL_MAP: Record<string, NsfwLevel> = {
 export function parseCivitAIFilter(filterPath: string): Partial<CivitaiFilters> {
   const filterParts = filterPath.replace('filter/', '').split('/')
   
-  // Start with defaults
+  // Start with defaults from FILTER_DEFAULTS
   const filters: Partial<CivitaiFilters> = {
-    time_period: 'AllTime',
-    model_type: 'All',
-    base_model: 'All',
-    sort: 'Most Downloaded',
+    time_period: FILTER_DEFAULTS.CIVITAI_TIME_PERIOD,
+    model_type: FILTER_DEFAULTS.CIVITAI_MODEL_TYPE,
+    base_model: FILTER_DEFAULTS.CIVITAI_BASE_MODEL,
+    sort: FILTER_DEFAULTS.CIVITAI_SORT,
     nsfw: {
-      max_level: 'XXX',  // Default: all NSFW levels
-      blur_mature: false,
+      max_level: FILTER_DEFAULTS.CIVITAI_NSFW_LEVEL,
+      blur_mature: FILTER_DEFAULTS.CIVITAI_BLUR_MATURE,
     },
-    limit: 100,
+    limit: FILTER_DEFAULTS.CIVITAI_LIMIT,
   }
   
-  // Parse each part
+  // Parse each part using SLUG_TO_API mappings
   for (const part of filterParts) {
     // Model types
-    if (part === 'checkpoints') {
-      filters.model_type = 'Checkpoint'
-    } else if (part === 'loras') {
-      filters.model_type = 'LORA'
+    if (part === URL_SLUGS.CHECKPOINTS) {
+      filters.model_type = SLUG_TO_API[URL_SLUGS.CHECKPOINTS] as any
+    } else if (part === URL_SLUGS.LORAS) {
+      filters.model_type = SLUG_TO_API[URL_SLUGS.LORAS] as any
     }
     // Base models
-    else if (part === 'sdxl') {
-      filters.base_model = 'SDXL 1.0'
-    } else if (part === 'sd15') {
-      filters.base_model = 'SD 1.5'
+    else if (part === URL_SLUGS.SDXL) {
+      filters.base_model = SLUG_TO_API[URL_SLUGS.SDXL] as any
+    } else if (part === URL_SLUGS.SD15) {
+      filters.base_model = SLUG_TO_API[URL_SLUGS.SD15] as any
     }
     // Time periods
-    else if (part === 'week') {
-      filters.time_period = 'Week'
-    } else if (part === 'month') {
-      filters.time_period = 'Month'
+    else if (part === URL_SLUGS.WEEK) {
+      filters.time_period = SLUG_TO_API[URL_SLUGS.WEEK] as any
+    } else if (part === URL_SLUGS.MONTH) {
+      filters.time_period = SLUG_TO_API[URL_SLUGS.MONTH] as any
     }
     // NSFW levels
     else if (part in NSFW_LEVEL_MAP) {
       filters.nsfw = {
         max_level: NSFW_LEVEL_MAP[part],
-        blur_mature: false,
+        blur_mature: FILTER_DEFAULTS.CIVITAI_BLUR_MATURE,
       }
     }
   }
@@ -99,13 +88,19 @@ export function isValidCivitAIFilter(filterPath: string): boolean {
   
   const validParts = new Set([
     // Model types
-    'checkpoints', 'loras',
+    URL_SLUGS.CHECKPOINTS,
+    URL_SLUGS.LORAS,
     // Base models
-    'sdxl', 'sd15',
+    URL_SLUGS.SDXL,
+    URL_SLUGS.SD15,
     // Time periods
-    'week', 'month',
+    URL_SLUGS.WEEK,
+    URL_SLUGS.MONTH,
     // NSFW levels
-    'pg', 'pg13', 'r', 'x',
+    URL_SLUGS.PG,
+    URL_SLUGS.PG13,
+    URL_SLUGS.R,
+    URL_SLUGS.X,
   ])
   
   return filterParts.every(part => validParts.has(part))

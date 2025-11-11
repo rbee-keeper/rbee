@@ -3,26 +3,21 @@
 // Single source of truth for all filter combinations
 
 import {
-  CIVITAI_BASE_MODELS,
-  CIVITAI_MODEL_TYPES,
-  CIVITAI_NSFW_LEVELS,
-  CIVITAI_TIME_PERIODS,
-  HF_LICENSES,
-  HF_SIZES,
-  HF_SORTS,
+  CIVITAI_URL_SLUGS,
+  HF_URL_SLUGS,
   URL_SLUGS,
-} from '@rbee/ui/marketplace'
+} from '@rbee/marketplace-node'
 
 /**
  * CivitAI filter paths
  * TEAM-467: PROGRAMMATICALLY generate ALL combinations
- * Uses SHARED constants from filter-constants.ts
+ * Uses SHARED URL slug constants (NOT API enum values)
  */
 function generateAllCivitAIFilterCombinations(): string[] {
-  const nsfw = CIVITAI_NSFW_LEVELS
-  const timePeriods = CIVITAI_TIME_PERIODS
-  const modelTypes = CIVITAI_MODEL_TYPES
-  const baseModels = CIVITAI_BASE_MODELS
+  const nsfw = CIVITAI_URL_SLUGS.NSFW_LEVELS
+  const timePeriods = CIVITAI_URL_SLUGS.TIME_PERIODS
+  const modelTypes = CIVITAI_URL_SLUGS.MODEL_TYPES
+  const baseModels = CIVITAI_URL_SLUGS.BASE_MODELS
   
   const filters = new Set<string>()
   
@@ -66,12 +61,12 @@ export const CIVITAI_FILTERS = generateAllCivitAIFilterCombinations() as readonl
 /**
  * HuggingFace filter paths
  * TEAM-467: PROGRAMMATICALLY generate ALL combinations
- * Uses SHARED constants from filter-constants.ts
+ * Uses SHARED URL slug constants (NOT API enum values)
  */
 function generateAllHFFilterCombinations(): string[] {
-  const sorts = HF_SORTS
-  const sizes = HF_SIZES
-  const licenses = HF_LICENSES
+  const sorts = HF_URL_SLUGS.SORTS
+  const sizes = HF_URL_SLUGS.SIZES
+  const licenses = HF_URL_SLUGS.LICENSES
   
   const filters = new Set<string>() // Use Set to avoid duplicates
   

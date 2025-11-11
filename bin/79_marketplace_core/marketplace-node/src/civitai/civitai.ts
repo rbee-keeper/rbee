@@ -20,7 +20,7 @@ import type {
   CivitaiSort,
   NsfwLevel,
   NsfwFilter,
-} from '../wasm/marketplace_sdk'
+} from '../../wasm/marketplace_sdk'
 
 // TEAM-429: Re-export filter types for convenience
 export type { TimePeriod, CivitaiModelType, BaseModel, CivitaiSort, NsfwLevel, NsfwFilter, CivitaiFilters }

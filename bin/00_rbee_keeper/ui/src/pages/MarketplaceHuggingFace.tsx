@@ -4,20 +4,21 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelTable + environment-aware actions
 
-// TEAM-467 RULE ZERO: Import shared constants and API types from @rbee/ui package
+// TEAM-XXX RULE ZERO: Import constants and utilities from @rbee/marketplace-node (source of truth)
 import {
-  DISPLAY_LABELS,
+  applyHuggingFaceFilters,
+  buildHuggingFaceFilterDescription,
   FILTER_DEFAULTS,
   HF_LICENSES,
   HF_SIZES,
+} from '@rbee/marketplace-node'
+import type { FilterableModel, HuggingFaceSort } from '@rbee/marketplace-node'
+import {
   HUGGINGFACE_FILTER_GROUPS,
   HUGGINGFACE_SORT_GROUP,
-  LICENSE_PATTERNS,
-  MODEL_SIZE_PATTERNS,
   ModelTable,
   UniversalFilterBar,
 } from '@rbee/ui/marketplace'
-import type { HuggingFaceSort } from '@rbee/ui/marketplace'
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useMemo, useState } from 'react'
@@ -31,31 +32,6 @@ interface HuggingFaceUIFilters {
   license: typeof HF_LICENSES[number]
 }
 
-// TEAM-467: Build filter description using API enum values
-function buildFilterDescription(filters: HuggingFaceUIFilters): string {
-  const parts: string[] = []
-
-  if (filters.sort === 'Likes') parts.push(DISPLAY_LABELS.MOST_LIKED)
-  else parts.push(DISPLAY_LABELS.MOST_DOWNLOADED)
-
-  if (filters.size !== FILTER_DEFAULTS.HF_SIZE) {
-    if (filters.size === 'Small') parts.push(DISPLAY_LABELS.SMALL_MODELS)
-    else if (filters.size === 'Medium') parts.push(DISPLAY_LABELS.MEDIUM_MODELS)
-    else parts.push(DISPLAY_LABELS.LARGE_MODELS)
-  }
-
-  if (filters.license !== FILTER_DEFAULTS.HF_LICENSE) {
-    parts.push(
-      filters.license === 'Apache'
-        ? DISPLAY_LABELS.APACHE_2_0
-        : filters.license === 'MIT'
-          ? DISPLAY_LABELS.MIT_LICENSE
-          : DISPLAY_LABELS.OTHER_LICENSE,
-    )
-  }
-
-  return parts.length > 0 ? parts.join(' · ') : DISPLAY_LABELS.ALL_MODELS
-}
 
 export function MarketplaceHuggingFace() {
   const navigate = useNavigate()
@@ -86,47 +62,20 @@ export function MarketplaceHuggingFace() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // TEAM-423: Client-side filtering and sorting
+  // TEAM-XXX: Use shared filter utilities from marketplace-node
   const filteredModels = useMemo(() => {
-    let result = [...rawModels]
-
-    // Filter by size (based on model name heuristics)
-    if (filters.size !== FILTER_DEFAULTS.HF_SIZE) {
-      result = result.filter((model) => {
-        const name = model.name.toLowerCase()
-        if (filters.size === 'Small') {
-          return MODEL_SIZE_PATTERNS.SMALL.some((pattern) => name.includes(pattern))
-        } else if (filters.size === 'Medium') {
-          return MODEL_SIZE_PATTERNS.MEDIUM.some((pattern) => name.includes(pattern))
-        } else {
-          // Large
-          return MODEL_SIZE_PATTERNS.LARGE.some((pattern) => name.includes(pattern))
-        }
-      })
-    }
-
-    // Filter by license (if available in model data)
-    if (filters.license !== FILTER_DEFAULTS.HF_LICENSE && 'license' in rawModels[0]) {
-      result = result.filter((model) => {
-        const license = (model as any).license?.toLowerCase() || ''
-        if (filters.license === 'Apache') return license.includes(LICENSE_PATTERNS.APACHE)
-        if (filters.license === 'MIT') return license.includes(LICENSE_PATTERNS.MIT)
-        return !license.includes(LICENSE_PATTERNS.APACHE) && !license.includes(LICENSE_PATTERNS.MIT)
-      })
-    }
-
-    // Sort (using API enum values)
-    result.sort((a, b) => {
-      if (filters.sort === FILTER_DEFAULTS.HF_SORT) return (b.downloads || 0) - (a.downloads || 0)
-      if (filters.sort === 'Likes') return (b.likes || 0) - (a.likes || 0)
-      // Recent - would need updatedAt field
-      return 0
+    return applyHuggingFaceFilters(rawModels as FilterableModel[], {
+      size: filters.size,
+      license: filters.license,
+      sort: filters.sort,
     })
-
-    return result
   }, [rawModels, filters])
 
-  const filterDescription = buildFilterDescription(filters)
+  const filterDescription = buildHuggingFaceFilterDescription({
+    size: filters.size,
+    license: filters.license,
+    sort: filters.sort,
+  })
 
   // PRESENTATION LAYER: Full layout matching Next.js
   return (

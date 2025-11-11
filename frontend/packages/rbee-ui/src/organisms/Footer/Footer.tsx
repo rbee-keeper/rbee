@@ -145,6 +145,7 @@ export function Footer() {
             links={[
               { href: '/about', text: 'About' },
               { href: '/contact', text: 'Contact' },
+              { href: '/commitments', text: 'Commitments' },
               { href: '/legal/privacy', text: 'Privacy' },
               { href: '/legal/terms', text: 'Terms' },
               {

@@ -3,9 +3,9 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelCardVertical grid
 
-import type { BaseModel, CivitaiModelType, CivitaiSort, FilterableModel, TimePeriod } from '@rbee/marketplace-node'
-// TEAM-XXX RULE ZERO: Import constants and utilities from @rbee/marketplace-node (source of truth)
-import { applyCivitAIFilters, CIVITAI_DEFAULTS } from '@rbee/marketplace-node'
+// TEAM-476: TODO - Replace with client-side fetcher
+import type { BaseModel, CivitaiModelType, CivitaiSort, FilterableModel, TimePeriod } from '@/lib/marketplace-stubs'
+import { applyCivitAIFilters, CIVITAI_DEFAULTS } from '@/lib/marketplace-stubs'
 import { CIVITAI_FILTER_GROUPS, CIVITAI_SORT_GROUP, ModelCardVertical, UniversalFilterBar } from '@rbee/ui/marketplace'
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'

@@ -1,0 +1,20 @@
+/**
+ * Marketplace App - Global Styles
+ *
+ * ALL CSS variables inherited from @rbee/ui/styles.css (imported in layout.tsx)
+ * ALL components imported from @rbee/ui/marketplace
+ *
+ * This file exists only because Next.js requires it for the app router.
+ */
+
+@import "tailwindcss";
+@import "@repo/tailwind-config/shared-styles.css";
+@import "tw-animate-css";
+
+/**
+ * Tailwind v4 JIT: Scan app files for arbitrary values
+ * This enables custom values in the marketplace app itself.
+ * The @rbee/ui package scans its own files separately.
+ */
+@source "../app/**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";

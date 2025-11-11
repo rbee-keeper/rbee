@@ -4,15 +4,15 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelTable + environment-aware actions
 
-// TEAM-XXX RULE ZERO: Import constants and utilities from @rbee/marketplace-node (source of truth)
+// TEAM-476: TODO - Replace with client-side fetcher
 import {
   applyHuggingFaceFilters,
   buildHuggingFaceFilterDescription,
   HF_DEFAULTS,
   HF_LICENSES,
   HF_SIZES,
-} from '@rbee/marketplace-node'
-import type { FilterableModel, HuggingFaceSort } from '@rbee/marketplace-node'
+} from '@/lib/marketplace-stubs'
+import type { FilterableModel, HuggingFaceSort } from '@/lib/marketplace-stubs'
 import {
   HUGGINGFACE_FILTER_GROUPS,
   HUGGINGFACE_SORT_GROUP,

@@ -5,7 +5,6 @@
 import {
   CIVITAI_URL_SLUGS,
   HF_URL_SLUGS,
-  URL_SLUGS,
 } from '@rbee/marketplace-node'
 
 /**
@@ -28,24 +27,24 @@ function generateAllCivitAIFilterCombinations(): string[] {
         for (const base of baseModels) {
           // Skip the default combination (all/all/all/all)
           if (
-            nsfwLevel === URL_SLUGS.ALL &&
-            period === URL_SLUGS.ALL &&
-            type === URL_SLUGS.ALL &&
-            base === URL_SLUGS.ALL
+            nsfwLevel === 'all' &&
+            period === 'all' &&
+            type === 'all' &&
+            base === 'all'
           ) {
             continue
           }
           
           // Build filter path - include ALL non-default values
           const parts: string[] = []
-          if (nsfwLevel !== URL_SLUGS.ALL) parts.push(nsfwLevel)
-          if (period !== URL_SLUGS.ALL) parts.push(period)
-          if (type !== URL_SLUGS.ALL) parts.push(type)
-          if (base !== URL_SLUGS.ALL) parts.push(base)
+          if (nsfwLevel !== 'all') parts.push(nsfwLevel)
+          if (period !== 'all') parts.push(period)
+          if (type !== 'all') parts.push(type)
+          if (base !== 'all') parts.push(base)
           
           // Add if there's at least one filter
           if (parts.length > 0) {
-            filters.add(`${URL_SLUGS.FILTER_PREFIX}/${parts.join('/')}`)
+            filters.add(`filter/${parts.join('/')}`)
           }
         }
       }
@@ -74,20 +73,20 @@ function generateAllHFFilterCombinations(): string[] {
   for (const sort of sorts) {
     for (const size of sizes) {
       for (const license of licenses) {
-        // Skip the default combination (downloads/all/all) - that's the base route
-        if (sort === URL_SLUGS.DOWNLOADS && size === URL_SLUGS.ALL && license === URL_SLUGS.ALL) {
+        // Skip the default combination (downloads/all/all)
+        if (sort === 'downloads' && size === 'all' && license === 'all') {
           continue
         }
         
         // Build filter path - include ALL non-default values
         const parts: string[] = []
-        if (sort !== URL_SLUGS.DOWNLOADS) parts.push(sort)
-        if (size !== URL_SLUGS.ALL) parts.push(size)
-        if (license !== URL_SLUGS.ALL) parts.push(license)
+        if (sort !== 'downloads') parts.push(sort)
+        if (size !== 'all') parts.push(size)
+        if (license !== 'all') parts.push(license)
         
         // Add if there's at least one filter
         if (parts.length > 0) {
-          filters.add(`${URL_SLUGS.FILTER_PREFIX}/${parts.join('/')}`)
+          filters.add(`filter/${parts.join('/')}`)
         }
       }
     }

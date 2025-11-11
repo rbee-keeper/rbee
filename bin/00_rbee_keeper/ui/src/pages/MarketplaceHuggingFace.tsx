@@ -8,7 +8,7 @@
 import {
   applyHuggingFaceFilters,
   buildHuggingFaceFilterDescription,
-  FILTER_DEFAULTS,
+  HF_DEFAULTS,
   HF_LICENSES,
   HF_SIZES,
 } from '@rbee/marketplace-node'
@@ -38,9 +38,9 @@ export function MarketplaceHuggingFace() {
 
   // TEAM-467: Filter state using API enum values
   const [filters, setFilters] = useState<HuggingFaceUIFilters>({
-    sort: FILTER_DEFAULTS.HF_SORT as HuggingFaceSort,
-    size: FILTER_DEFAULTS.HF_SIZE,
-    license: FILTER_DEFAULTS.HF_LICENSE,
+    sort: HF_DEFAULTS.SORT as HuggingFaceSort,
+    size: HF_DEFAULTS.SIZE,
+    license: HF_DEFAULTS.LICENSE,
   })
 
   // DATA LAYER: Fetch models from Tauri
@@ -53,9 +53,9 @@ export function MarketplaceHuggingFace() {
     queryFn: async () => {
       const result = await invoke<Model[]>('marketplace_list_models', {
         query: null,
-        sort: FILTER_DEFAULTS.HF_SORT,
+        sort: HF_DEFAULTS.SORT,
         filterTags: null,
-        limit: FILTER_DEFAULTS.HF_LIMIT,
+        limit: HF_DEFAULTS.LIMIT,
       })
       return result
     },
@@ -64,11 +64,13 @@ export function MarketplaceHuggingFace() {
 
   // TEAM-XXX: Use shared filter utilities from marketplace-node
   const filteredModels = useMemo(() => {
-    return applyHuggingFaceFilters(rawModels as FilterableModel[], {
+    const filtered = applyHuggingFaceFilters(rawModels as FilterableModel[], {
       size: filters.size,
       license: filters.license,
       sort: filters.sort,
     })
+    // Map back to Model type for ModelTable compatibility
+    return filtered as Model[]
   }, [rawModels, filters])
 
   const filterDescription = buildHuggingFaceFilterDescription({

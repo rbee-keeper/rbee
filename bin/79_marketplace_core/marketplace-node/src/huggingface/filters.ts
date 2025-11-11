@@ -1,21 +1,23 @@
 // TEAM-XXX: HuggingFace filter utilities
 // Business logic for filtering and sorting HuggingFace models
 
-import { DISPLAY_LABELS } from '../shared/constants'
-import { HF_DEFAULTS, LICENSE_PATTERNS, MODEL_SIZE_PATTERNS } from './constants'
+import type { FilterableModel } from '../shared/index.js'
+import { HF_DEFAULTS, HF_LICENSE, HF_SIZE, HF_SORT, LICENSE_PATTERNS, MODEL_SIZE_PATTERNS } from './constants'
 
-/**
- * Generic model interface for filtering
- */
-export interface FilterableModel {
-  id: string
-  name: string
-  downloads?: number | null
-  likes?: number | null
-  tags: string[]
-  license?: string | null
-  [key: string]: unknown // Allow additional fields
-}
+export type { FilterableModel }
+
+// TEAM-XXX: Display labels for filter descriptions
+const DISPLAY_LABELS = {
+  MOST_DOWNLOADED: 'Most Downloaded',
+  MOST_LIKED: 'Most Liked',
+  SMALL_MODELS: 'Small Models',
+  MEDIUM_MODELS: 'Medium Models',
+  LARGE_MODELS: 'Large Models',
+  APACHE_2_0: 'Apache 2.0',
+  MIT_LICENSE: 'MIT',
+  OTHER_LICENSE: 'Other License',
+  ALL_MODELS: 'All Models',
+} as const
 
 /**
  * HuggingFace filter options
@@ -35,13 +37,16 @@ export function filterHuggingFaceModels(
 ): FilterableModel[] {
   let result = [...models]
 
-  // Filter by size (based on model name heuristics)
+  // Filter by size
+  // NOTE: This is a FALLBACK heuristic based on model names (e.g., "7b", "13B").
+  // BEST PRACTICE: Use model.safetensors.parameters.total from HF API for accurate size detection.
+  // The frontend/API layer should fetch full model data and use MODEL_SIZE_THRESHOLDS instead.
   if (options.size && options.size !== HF_DEFAULTS.SIZE) {
     result = result.filter((model) => {
       const name = model.name.toLowerCase()
-      if (options.size === 'Small') {
+      if (options.size === HF_SIZE.SMALL) {
         return MODEL_SIZE_PATTERNS.SMALL.some((pattern) => name.includes(pattern))
-      } else if (options.size === 'Medium') {
+      } else if (options.size === HF_SIZE.MEDIUM) {
         return MODEL_SIZE_PATTERNS.MEDIUM.some((pattern) => name.includes(pattern))
       } else {
         // Large
@@ -50,12 +55,15 @@ export function filterHuggingFaceModels(
     })
   }
 
-  // Filter by license (if available in model data)
+  // Filter by license
+  // NOTE: This is a FALLBACK heuristic based on license string matching.
+  // BEST PRACTICE: Use model.cardData.license from HF API for accurate license detection.
+  // The frontend/API layer should fetch full model data with cardData included.
   if (options.license && options.license !== HF_DEFAULTS.LICENSE && result.length > 0) {
     result = result.filter((model) => {
       const license = model.license?.toLowerCase() ?? ''
-      if (options.license === 'Apache') return license.includes(LICENSE_PATTERNS.APACHE)
-      if (options.license === 'MIT') return license.includes(LICENSE_PATTERNS.MIT)
+      if (options.license === HF_LICENSE.APACHE) return license.includes(LICENSE_PATTERNS.APACHE)
+      if (options.license === HF_LICENSE.MIT) return license.includes(LICENSE_PATTERNS.MIT)
       return !license.includes(LICENSE_PATTERNS.APACHE) && !license.includes(LICENSE_PATTERNS.MIT)
     })
   }
@@ -70,10 +78,10 @@ export function sortHuggingFaceModels(models: FilterableModel[], sortBy: string)
   const result = [...models]
 
   result.sort((a, b) => {
-    if (sortBy === HF_DEFAULTS.SORT || sortBy === 'Downloads') {
+    if (sortBy === HF_SORT.DOWNLOADS) {
       return (b.downloads || 0) - (a.downloads || 0)
     }
-    if (sortBy === 'Likes') {
+    if (sortBy === HF_SORT.LIKES) {
       return (b.likes || 0) - (a.likes || 0)
     }
     // Recent - would need updatedAt field
@@ -89,20 +97,20 @@ export function sortHuggingFaceModels(models: FilterableModel[], sortBy: string)
 export function buildHuggingFaceFilterDescription(options: HuggingFaceFilterOptions): string {
   const parts: string[] = []
 
-  if (options.sort === 'Likes') parts.push(DISPLAY_LABELS.MOST_LIKED)
+  if (options.sort === HF_SORT.LIKES) parts.push(DISPLAY_LABELS.MOST_LIKED)
   else parts.push(DISPLAY_LABELS.MOST_DOWNLOADED)
 
   if (options.size && options.size !== HF_DEFAULTS.SIZE) {
-    if (options.size === 'Small') parts.push(DISPLAY_LABELS.SMALL_MODELS)
-    else if (options.size === 'Medium') parts.push(DISPLAY_LABELS.MEDIUM_MODELS)
+    if (options.size === HF_SIZE.SMALL) parts.push(DISPLAY_LABELS.SMALL_MODELS)
+    else if (options.size === HF_SIZE.MEDIUM) parts.push(DISPLAY_LABELS.MEDIUM_MODELS)
     else parts.push(DISPLAY_LABELS.LARGE_MODELS)
   }
 
   if (options.license && options.license !== HF_DEFAULTS.LICENSE) {
     parts.push(
-      options.license === 'Apache'
+      options.license === HF_LICENSE.APACHE
         ? DISPLAY_LABELS.APACHE_2_0
-        : options.license === 'MIT'
+        : options.license === HF_LICENSE.MIT
           ? DISPLAY_LABELS.MIT_LICENSE
           : DISPLAY_LABELS.OTHER_LICENSE,
     )

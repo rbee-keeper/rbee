@@ -7,20 +7,19 @@
 // These are generated from artifacts-contract via tsify
 // TEAM-429: Now includes filter types from WASM bindings
 import type {
-  CivitaiModel,
-  CivitaiModelVersion,
-  CivitaiStats,
-  CivitaiCreator,
-  CivitaiFile,
-  CivitaiImage,
-  CivitaiFilters,
-  TimePeriod,
-  CivitaiModelType,
   BaseModel,
+  CivitaiFilters,
+  CivitaiModel,
+  CivitaiModelType,
+  CivitaiModelVersion,
   CivitaiSort,
-  NsfwLevel,
   NsfwFilter,
+  NsfwLevel,
+  TimePeriod,
 } from '../../wasm/marketplace_sdk'
+
+// Import enumerated constants to avoid magic strings
+import { CIVITAI_BASE_MODEL, CIVITAI_MODEL_TYPE, CIVITAI_NSFW_LEVEL, CIVITAI_TIME_PERIOD } from './constants'
 
 // TEAM-429: Re-export filter types for convenience
 export type { TimePeriod, CivitaiModelType, BaseModel, CivitaiSort, NsfwLevel, NsfwFilter, CivitaiFilters }
@@ -48,9 +47,7 @@ export interface CivitAISearchResponse {
  * @param filters - Filter configuration
  * @returns Array of CivitAI models
  */
-export async function fetchCivitAIModels(
-  filters: CivitaiFilters,
-): Promise<CivitAIModel[]> {
+export async function fetchCivitAIModels(filters: CivitaiFilters): Promise<CivitAIModel[]> {
   // TEAM-429: Build query params from filters
   const params = new URLSearchParams({
     limit: String(filters.limit),
@@ -63,43 +60,43 @@ export async function fetchCivitAIModels(
   }
 
   // Model types
-  if (filters.model_type !== 'All') {
+  if (filters.model_type !== CIVITAI_MODEL_TYPE.ALL) {
     params.append('types', filters.model_type)
   } else {
     // Default: Checkpoint and LORA
-    params.append('types', 'Checkpoint')
-    params.append('types', 'LORA')
+    params.append('types', CIVITAI_MODEL_TYPE.CHECKPOINT)
+    params.append('types', CIVITAI_MODEL_TYPE.LORA)
   }
 
   // Time period
-  if (filters.time_period !== 'AllTime') {
+  if (filters.time_period !== CIVITAI_TIME_PERIOD.ALL_TIME) {
     params.append('period', filters.time_period)
   }
 
   // Base model
-  if (filters.base_model !== 'All') {
+  if (filters.base_model !== CIVITAI_BASE_MODEL.ALL) {
     params.append('baseModel', filters.base_model)
   }
 
   // NSFW filtering - convert level to numeric values
   // TEAM-467: FAIL FAST - Validate NSFW level is valid BEFORE lookup
   const nsfwLevelMap: Record<NsfwLevel, number[]> = {
-    'None': [1],
-    'Soft': [1, 2],
-    'Mature': [1, 2, 4],
-    'X': [1, 2, 4, 8],
-    'XXX': [1, 2, 4, 8, 16],
+    [CIVITAI_NSFW_LEVEL.NONE]: [1],
+    [CIVITAI_NSFW_LEVEL.SOFT]: [1, 2],
+    [CIVITAI_NSFW_LEVEL.MATURE]: [1, 2, 4],
+    [CIVITAI_NSFW_LEVEL.X]: [1, 2, 4, 8],
+    [CIVITAI_NSFW_LEVEL.XXX]: [1, 2, 4, 8, 16],
   }
-  
+
   const nsfwLevels = nsfwLevelMap[filters.nsfw.max_level]
   if (!nsfwLevels) {
     const validLevels = Object.keys(nsfwLevelMap).join(', ')
     throw new Error(
       `❌ FATAL: Invalid NSFW level "${filters.nsfw.max_level}". Valid values: ${validLevels}\n` +
-      `💡 Hint: Use 'XXX' for all NSFW levels, or 'None' for PG-only content.`
+        `💡 Hint: Use '${CIVITAI_NSFW_LEVEL.XXX}' for all NSFW levels, or '${CIVITAI_NSFW_LEVEL.NONE}' for PG-only content.`,
     )
   }
-  
+
   nsfwLevels.forEach((level: number) => {
     params.append('nsfwLevel', String(level))
   })

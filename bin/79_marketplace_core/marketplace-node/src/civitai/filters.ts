@@ -1,19 +1,10 @@
 // TEAM-XXX: CivitAI filter utilities
 // Business logic for filtering and sorting CivitAI models
 
-import { CIVITAI_DEFAULTS } from './constants'
+import type { FilterableModel } from '../shared/index.js'
+import { CIVITAI_DEFAULTS, CIVITAI_SORT } from './constants'
 
-/**
- * Generic model interface for filtering
- */
-export interface FilterableModel {
-  id: string
-  name: string
-  downloads?: number | null
-  likes?: number | null
-  tags: string[]
-  [key: string]: unknown // Allow additional fields
-}
+export type { FilterableModel }
 
 /**
  * CivitAI filter options
@@ -27,25 +18,23 @@ export interface CivitAIFilterOptions {
 /**
  * Filter CivitAI models by type and base model
  */
-export function filterCivitAIModels(
-  models: FilterableModel[],
-  options: CivitAIFilterOptions,
-): FilterableModel[] {
+export function filterCivitAIModels(models: FilterableModel[], options: CivitAIFilterOptions): FilterableModel[] {
   let result = [...models]
 
   // Filter by model type (if available in tags)
   if (options.modelType && options.modelType !== CIVITAI_DEFAULTS.MODEL_TYPE) {
+    const modelType = options.modelType.toLowerCase()
     result = result.filter((model) => {
       const tags = model.tags.map((t) => t.toLowerCase())
-      return tags.includes(options.modelType!.toLowerCase())
+      return tags.includes(modelType)
     })
   }
 
   // Filter by base model (if available in tags)
   if (options.baseModel && options.baseModel !== CIVITAI_DEFAULTS.BASE_MODEL) {
+    const baseModel = options.baseModel.toLowerCase().replace(/\s/g, '')
     result = result.filter((model) => {
       const tags = model.tags.map((t) => t.toLowerCase())
-      const baseModel = options.baseModel!.toLowerCase().replace(/\s/g, '')
       return tags.some((tag) => tag.includes(baseModel))
     })
   }
@@ -56,17 +45,14 @@ export function filterCivitAIModels(
 /**
  * Sort CivitAI models by downloads, likes, or other criteria
  */
-export function sortCivitAIModels(
-  models: FilterableModel[],
-  sortBy: string,
-): FilterableModel[] {
+export function sortCivitAIModels(models: FilterableModel[], sortBy: string): FilterableModel[] {
   const result = [...models]
 
   result.sort((a, b) => {
-    if (sortBy === CIVITAI_DEFAULTS.SORT || sortBy === 'Most Downloaded') {
+    if (sortBy === CIVITAI_SORT.MOST_DOWNLOADED) {
       return (b.downloads || 0) - (a.downloads || 0)
     }
-    if (sortBy === 'Highest Rated') {
+    if (sortBy === CIVITAI_SORT.HIGHEST_RATED) {
       return (b.likes || 0) - (a.likes || 0)
     }
     // Newest - would need createdAt field
@@ -79,10 +65,7 @@ export function sortCivitAIModels(
 /**
  * Apply all filters and sorting to CivitAI models
  */
-export function applyCivitAIFilters(
-  models: FilterableModel[],
-  options: CivitAIFilterOptions,
-): FilterableModel[] {
+export function applyCivitAIFilters(models: FilterableModel[], options: CivitAIFilterOptions): FilterableModel[] {
   let result = filterCivitAIModels(models, options)
   if (options.sort) {
     result = sortCivitAIModels(result, options.sort)

@@ -1136,6 +1136,9 @@ importers:
       '@rbee/env-config':
         specifier: workspace:*
         version: link:../env-config
+      '@rbee/marketplace-node':
+        specifier: workspace:*
+        version: link:../../../bin/79_marketplace_core/marketplace-node
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

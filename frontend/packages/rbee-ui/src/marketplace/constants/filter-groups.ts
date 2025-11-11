@@ -3,15 +3,6 @@
 // NO MAGIC STRINGS - uses constants from filter-constants.ts
 
 import type { FilterGroup } from '../types/filters'
-import {
-  CIVITAI_BASE_MODELS,
-  CIVITAI_MODEL_TYPES,
-  CIVITAI_SORTS,
-  CIVITAI_TIME_PERIODS,
-  HF_LICENSES,
-  HF_SIZES,
-  HF_SORTS,
-} from './filter-constants'
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HUGGINGFACE FILTER GROUPS (using API enum values)

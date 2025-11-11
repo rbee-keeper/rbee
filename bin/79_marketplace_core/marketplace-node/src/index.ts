@@ -72,10 +72,9 @@ export {
 // SHARED EXPORTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// Shared types (FilterableModel is exported from both providers, use either)
-export type { FilterableModel } from './civitai/index.js'
-// Shared constants
-export { DISPLAY_LABELS, FILTER_DEFAULTS, SLUG_TO_API, URL_SLUGS } from './shared/index.js'
+// Shared utilities and types used by both providers
+export type { FilterableModel } from './shared/index.js'
+export { formatBytes } from './shared/index.js'
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LEGACY EXPORTS (for backwards compatibility during migration)
@@ -95,6 +94,7 @@ import { type CivitAIModel, fetchCivitAIModels } from './civitai/civitai.js'
 import type { CivitaiFilters } from './civitai/constants.js'
 import { CIVITAI_DEFAULTS } from './civitai/index.js'
 import { fetchHFModel, fetchHFModelReadme, fetchHFModels, type HFModel } from './huggingface/huggingface.js'
+import { formatBytes } from './shared/index.js'
 import type { Model, SearchOptions } from './types.js'
 
 /**
@@ -122,14 +122,6 @@ function convertHFModel(hf: HFModel): Model {
     config: hf.config,
     siblings: hf.siblings?.map((s) => ({ filename: s.rfilename, size: s.size || 0 })) || [],
   }
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
 }
 
 export async function searchHuggingFaceModels(query: string, options: SearchOptions = {}): Promise<Model[]> {

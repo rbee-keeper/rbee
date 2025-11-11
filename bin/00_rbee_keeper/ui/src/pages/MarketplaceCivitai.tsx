@@ -3,15 +3,10 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelCardVertical grid
 
-// TEAM-XXX RULE ZERO: Import constants and utilities from @rbee/marketplace-node (source of truth)
-import { applyCivitAIFilters, FILTER_DEFAULTS } from '@rbee/marketplace-node'
 import type { BaseModel, CivitaiModelType, CivitaiSort, FilterableModel, TimePeriod } from '@rbee/marketplace-node'
-import {
-  CIVITAI_FILTER_GROUPS,
-  CIVITAI_SORT_GROUP,
-  ModelCardVertical,
-  UniversalFilterBar,
-} from '@rbee/ui/marketplace'
+// TEAM-XXX RULE ZERO: Import constants and utilities from @rbee/marketplace-node (source of truth)
+import { applyCivitAIFilters, CIVITAI_DEFAULTS } from '@rbee/marketplace-node'
+import { CIVITAI_FILTER_GROUPS, CIVITAI_SORT_GROUP, ModelCardVertical, UniversalFilterBar } from '@rbee/ui/marketplace'
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useMemo, useState } from 'react'
@@ -31,10 +26,10 @@ export function MarketplaceCivitai() {
 
   // TEAM-467: Filter state using API enum values
   const [filters, setFilters] = useState<CivitaiUIFilters>({
-    timePeriod: FILTER_DEFAULTS.CIVITAI_TIME_PERIOD as TimePeriod,
-    modelType: FILTER_DEFAULTS.CIVITAI_MODEL_TYPE as CivitaiModelType,
-    baseModel: FILTER_DEFAULTS.CIVITAI_BASE_MODEL as BaseModel,
-    sort: FILTER_DEFAULTS.CIVITAI_SORT as CivitaiSort,
+    timePeriod: CIVITAI_DEFAULTS.TIME_PERIOD as TimePeriod,
+    modelType: CIVITAI_DEFAULTS.MODEL_TYPE as CivitaiModelType,
+    baseModel: CIVITAI_DEFAULTS.BASE_MODEL as BaseModel,
+    sort: CIVITAI_DEFAULTS.SORT as CivitaiSort,
   })
 
   // DATA LAYER: Fetch models from Tauri
@@ -48,16 +43,16 @@ export function MarketplaceCivitai() {
     queryFn: async () => {
       const result = await invoke<Model[]>('marketplace_list_civitai_models', {
         filters: {
-          time_period: FILTER_DEFAULTS.CIVITAI_TIME_PERIOD,
-          model_type: FILTER_DEFAULTS.CIVITAI_MODEL_TYPE,
-          base_model: FILTER_DEFAULTS.CIVITAI_BASE_MODEL,
-          sort: FILTER_DEFAULTS.CIVITAI_SORT,
+          time_period: CIVITAI_DEFAULTS.TIME_PERIOD,
+          model_type: CIVITAI_DEFAULTS.MODEL_TYPE,
+          base_model: CIVITAI_DEFAULTS.BASE_MODEL,
+          sort: CIVITAI_DEFAULTS.SORT,
           nsfw: {
-            max_level: FILTER_DEFAULTS.CIVITAI_NSFW_LEVEL,
-            blur_mature: FILTER_DEFAULTS.CIVITAI_BLUR_MATURE,
+            max_level: CIVITAI_DEFAULTS.NSFW_LEVEL,
+            blur_mature: CIVITAI_DEFAULTS.BLUR_MATURE,
           },
           page: null,
-          limit: FILTER_DEFAULTS.CIVITAI_LIMIT,
+          limit: CIVITAI_DEFAULTS.LIMIT,
         },
       })
       return result
@@ -67,11 +62,13 @@ export function MarketplaceCivitai() {
 
   // TEAM-XXX: Use shared filter utilities from marketplace-node
   const filteredModels = useMemo(() => {
-    return applyCivitAIFilters(rawModels as FilterableModel[], {
+    const filtered = applyCivitAIFilters(rawModels as FilterableModel[], {
       modelType: filters.modelType,
       baseModel: filters.baseModel,
       sort: filters.sort,
     })
+    // Cast back to Model since the filter preserves all Model fields
+    return filtered as Model[]
   }, [rawModels, filters])
 
   // PRESENTATION LAYER: Full layout matching Next.js
@@ -128,9 +125,15 @@ export function MarketplaceCivitai() {
             >
               <ModelCardVertical
                 model={{
-                  ...model,
-                  author: model.author || undefined, // Normalize null to undefined
-                  imageUrl: model.imageUrl || undefined, // Normalize null to undefined
+                  id: model.id,
+                  name: model.name,
+                  description: model.description,
+                  author: model.author ?? undefined,
+                  imageUrl: model.imageUrl ?? undefined,
+                  tags: model.tags,
+                  downloads: model.downloads,
+                  likes: model.likes,
+                  size: model.size,
                 }}
               />
             </div>

@@ -132,7 +132,7 @@ export const WithIcons: Story = {
           { href: 'https://github.com/rbee', text: 'GitHub', external: true },
           { href: 'https://twitter.com/rbee', text: 'Twitter', external: true },
           { href: 'https://discord.gg/rbee', text: 'Discord', external: true },
-          { href: 'https://linkedin.com/company/rbee', text: 'LinkedIn', external: true },
+          { href: 'https://linkedin.com/company/rbee-keeper', text: 'LinkedIn', external: true },
         ]}
       />
       <FooterColumn

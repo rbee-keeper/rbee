@@ -4,84 +4,67 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelTable + environment-aware actions
 
-import type { FilterGroup } from '@rbee/ui/marketplace'
-import { ModelTable, UniversalFilterBar } from '@rbee/ui/marketplace'
+// TEAM-467 RULE ZERO: Import shared constants and API types from @rbee/ui package
+import {
+  DISPLAY_LABELS,
+  FILTER_DEFAULTS,
+  HF_LICENSES,
+  HF_SIZES,
+  HUGGINGFACE_FILTER_GROUPS,
+  HUGGINGFACE_SORT_GROUP,
+  LICENSE_PATTERNS,
+  MODEL_SIZE_PATTERNS,
+  ModelTable,
+  UniversalFilterBar,
+} from '@rbee/ui/marketplace'
+import type { HuggingFaceSort } from '@rbee/ui/marketplace'
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Model } from '@/generated/bindings'
 
-// TEAM-423: Filter state matching Next.js
-interface HuggingFaceFilters {
-  sort: 'downloads' | 'likes' | 'recent'
-  size: 'all' | 'small' | 'medium' | 'large'
-  license: 'all' | 'apache' | 'mit' | 'other'
+// TEAM-467: UI filter state (subset of HuggingFaceFilters API type)
+interface HuggingFaceUIFilters {
+  sort: HuggingFaceSort
+  size: typeof HF_SIZES[number]
+  license: typeof HF_LICENSES[number]
 }
 
-// TEAM-423: Filter groups matching Next.js exactly
-const HUGGINGFACE_FILTER_GROUPS: FilterGroup[] = [
-  {
-    id: 'size',
-    label: 'Model Size',
-    options: [
-      { label: 'All Sizes', value: 'all' },
-      { label: 'Small (<7B)', value: 'small' },
-      { label: 'Medium (7B-13B)', value: 'medium' },
-      { label: 'Large (>13B)', value: 'large' },
-    ],
-  },
-  {
-    id: 'license',
-    label: 'License',
-    options: [
-      { label: 'All Licenses', value: 'all' },
-      { label: 'Apache 2.0', value: 'apache' },
-      { label: 'MIT', value: 'mit' },
-      { label: 'Other', value: 'other' },
-    ],
-  },
-]
-
-const HUGGINGFACE_SORT_GROUP: FilterGroup = {
-  id: 'sort',
-  label: 'Sort By',
-  options: [
-    { label: 'Most Downloads', value: 'downloads' },
-    { label: 'Most Likes', value: 'likes' },
-    { label: 'Recently Updated', value: 'recent' },
-  ],
-}
-
-// TEAM-423: Build filter description matching Next.js
-function buildFilterDescription(filters: HuggingFaceFilters): string {
+// TEAM-467: Build filter description using API enum values
+function buildFilterDescription(filters: HuggingFaceUIFilters): string {
   const parts: string[] = []
 
-  if (filters.sort === 'likes') parts.push('Most Liked')
-  else if (filters.sort === 'recent') parts.push('Recently Updated')
-  else parts.push('Most Downloaded')
+  if (filters.sort === 'Likes') parts.push(DISPLAY_LABELS.MOST_LIKED)
+  else parts.push(DISPLAY_LABELS.MOST_DOWNLOADED)
 
-  if (filters.size !== 'all') {
-    if (filters.size === 'small') parts.push('Small Models')
-    else if (filters.size === 'medium') parts.push('Medium Models')
-    else parts.push('Large Models')
+  if (filters.size !== FILTER_DEFAULTS.HF_SIZE) {
+    if (filters.size === 'Small') parts.push(DISPLAY_LABELS.SMALL_MODELS)
+    else if (filters.size === 'Medium') parts.push(DISPLAY_LABELS.MEDIUM_MODELS)
+    else parts.push(DISPLAY_LABELS.LARGE_MODELS)
   }
 
-  if (filters.license !== 'all') {
-    parts.push(filters.license === 'apache' ? 'Apache 2.0' : filters.license === 'mit' ? 'MIT' : 'Other License')
+  if (filters.license !== FILTER_DEFAULTS.HF_LICENSE) {
+    parts.push(
+      filters.license === 'Apache'
+        ? DISPLAY_LABELS.APACHE_2_0
+        : filters.license === 'MIT'
+          ? DISPLAY_LABELS.MIT_LICENSE
+          : DISPLAY_LABELS.OTHER_LICENSE,
+    )
   }
 
-  return parts.length > 0 ? parts.join(' · ') : 'All Models'
+  return parts.length > 0 ? parts.join(' · ') : DISPLAY_LABELS.ALL_MODELS
 }
 
 export function MarketplaceHuggingFace() {
   const navigate = useNavigate()
 
-  // TEAM-423: Filter state
-  const [filters, setFilters] = useState<HuggingFaceFilters>({
-    sort: 'downloads',
-    size: 'all',
-    license: 'all',
+  // TEAM-467: Filter state using API enum values
+  const [filters, setFilters] = useState<HuggingFaceUIFilters>({
+    sort: FILTER_DEFAULTS.HF_SORT as HuggingFaceSort,
+    size: FILTER_DEFAULTS.HF_SIZE,
+    license: FILTER_DEFAULTS.HF_LICENSE,
   })
 
   // DATA LAYER: Fetch models from Tauri
@@ -94,9 +77,9 @@ export function MarketplaceHuggingFace() {
     queryFn: async () => {
       const result = await invoke<Model[]>('marketplace_list_models', {
         query: null,
-        sort: 'downloads',
+        sort: FILTER_DEFAULTS.HF_SORT,
         filterTags: null,
-        limit: 100,
+        limit: FILTER_DEFAULTS.HF_LIMIT,
       })
       return result
     },
@@ -108,35 +91,35 @@ export function MarketplaceHuggingFace() {
     let result = [...rawModels]
 
     // Filter by size (based on model name heuristics)
-    if (filters.size !== 'all') {
+    if (filters.size !== FILTER_DEFAULTS.HF_SIZE) {
       result = result.filter((model) => {
         const name = model.name.toLowerCase()
-        if (filters.size === 'small') {
-          return name.includes('7b') || name.includes('3b') || name.includes('1b')
-        } else if (filters.size === 'medium') {
-          return name.includes('13b') || name.includes('8b')
+        if (filters.size === 'Small') {
+          return MODEL_SIZE_PATTERNS.SMALL.some((pattern) => name.includes(pattern))
+        } else if (filters.size === 'Medium') {
+          return MODEL_SIZE_PATTERNS.MEDIUM.some((pattern) => name.includes(pattern))
         } else {
-          // large
-          return name.includes('70b') || name.includes('34b') || name.includes('30b')
+          // Large
+          return MODEL_SIZE_PATTERNS.LARGE.some((pattern) => name.includes(pattern))
         }
       })
     }
 
     // Filter by license (if available in model data)
-    if (filters.license !== 'all' && 'license' in rawModels[0]) {
+    if (filters.license !== FILTER_DEFAULTS.HF_LICENSE && 'license' in rawModels[0]) {
       result = result.filter((model) => {
         const license = (model as any).license?.toLowerCase() || ''
-        if (filters.license === 'apache') return license.includes('apache')
-        if (filters.license === 'mit') return license.includes('mit')
-        return !license.includes('apache') && !license.includes('mit')
+        if (filters.license === 'Apache') return license.includes(LICENSE_PATTERNS.APACHE)
+        if (filters.license === 'MIT') return license.includes(LICENSE_PATTERNS.MIT)
+        return !license.includes(LICENSE_PATTERNS.APACHE) && !license.includes(LICENSE_PATTERNS.MIT)
       })
     }
 
-    // Sort
+    // Sort (using API enum values)
     result.sort((a, b) => {
-      if (filters.sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0)
-      if (filters.sort === 'likes') return (b.likes || 0) - (a.likes || 0)
-      // recent - would need updatedAt field
+      if (filters.sort === FILTER_DEFAULTS.HF_SORT) return (b.downloads || 0) - (a.downloads || 0)
+      if (filters.sort === 'Likes') return (b.likes || 0) - (a.likes || 0)
+      // Recent - would need updatedAt field
       return 0
     })
 

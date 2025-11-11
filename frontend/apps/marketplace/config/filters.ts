@@ -2,67 +2,107 @@
 // Used by both manifest generation and filter pages
 // Single source of truth for all filter combinations
 
+import {
+  CIVITAI_BASE_MODELS,
+  CIVITAI_MODEL_TYPES,
+  CIVITAI_NSFW_LEVELS,
+  CIVITAI_TIME_PERIODS,
+  HF_LICENSES,
+  HF_SIZES,
+  HF_SORTS,
+  URL_SLUGS,
+} from '@rbee/ui/marketplace'
+
 /**
  * CivitAI filter paths
- * These correspond to routes like /models/civitai/[...filter]
- * SOURCED FROM: app/models/civitai/filters.ts PREGENERATED_FILTERS
+ * TEAM-467: PROGRAMMATICALLY generate ALL combinations
+ * Uses SHARED constants from filter-constants.ts
  */
-export const CIVITAI_FILTERS = [
-  // NSFW filter levels (most important)
-  'filter/pg',      // PG (Safe for work)
-  'filter/pg13',    // PG-13 (Suggestive)
-  'filter/r',       // R (Mature)
-  'filter/x',       // X (Explicit)
-  'filter/xxx',     // XXX (Pornographic)
+function generateAllCivitAIFilterCombinations(): string[] {
+  const nsfw = CIVITAI_NSFW_LEVELS
+  const timePeriods = CIVITAI_TIME_PERIODS
+  const modelTypes = CIVITAI_MODEL_TYPES
+  const baseModels = CIVITAI_BASE_MODELS
   
-  // Popular time periods (PG only)
-  'filter/month',
-  'filter/week',
+  const filters = new Set<string>()
   
-  // Model type filters (PG only)
-  'filter/checkpoints',
-  'filter/loras',
+  // Generate ALL combinations: nsfw × time × type × base
+  for (const nsfwLevel of nsfw) {
+    for (const period of timePeriods) {
+      for (const type of modelTypes) {
+        for (const base of baseModels) {
+          // Skip the default combination (all/all/all/all)
+          if (
+            nsfwLevel === URL_SLUGS.ALL &&
+            period === URL_SLUGS.ALL &&
+            type === URL_SLUGS.ALL &&
+            base === URL_SLUGS.ALL
+          ) {
+            continue
+          }
+          
+          // Build filter path - include ALL non-default values
+          const parts: string[] = []
+          if (nsfwLevel !== URL_SLUGS.ALL) parts.push(nsfwLevel)
+          if (period !== URL_SLUGS.ALL) parts.push(period)
+          if (type !== URL_SLUGS.ALL) parts.push(type)
+          if (base !== URL_SLUGS.ALL) parts.push(base)
+          
+          // Add if there's at least one filter
+          if (parts.length > 0) {
+            filters.add(`${URL_SLUGS.FILTER_PREFIX}/${parts.join('/')}`)
+          }
+        }
+      }
+    }
+  }
   
-  // Base model filters (PG only)
-  'filter/sdxl',
-  'filter/sd15',
-  
-  // Popular combinations (PG only)
-  'filter/month/checkpoints/sdxl',
-  'filter/month/loras/sdxl',
-  'filter/week/checkpoints/sdxl',
-  
-  // NSFW + Model Type combinations
-  'filter/r/checkpoints',
-  'filter/r/loras',
-] as const
+  return Array.from(filters).sort()
+}
+
+// Generate all combinations at module load time
+export const CIVITAI_FILTERS = generateAllCivitAIFilterCombinations() as readonly string[]
 
 /**
  * HuggingFace filter paths
- * These correspond to routes like /models/huggingface/[...filter]
- * SOURCED FROM: app/models/huggingface/filters.ts PREGENERATED_HF_FILTERS
- * 
- * NOTE: HuggingFace API only supports `limit` parameter
- * All filtering/sorting done CLIENT-SIDE after fetch
+ * TEAM-467: PROGRAMMATICALLY generate ALL combinations
+ * Uses SHARED constants from filter-constants.ts
  */
-export const HF_FILTERS = [
-  // Sorting
-  'filter/likes',
-  'filter/recent',
+function generateAllHFFilterCombinations(): string[] {
+  const sorts = HF_SORTS
+  const sizes = HF_SIZES
+  const licenses = HF_LICENSES
   
-  // Size filters (client-side)
-  'filter/small',
-  'filter/medium',
-  'filter/large',
+  const filters = new Set<string>() // Use Set to avoid duplicates
   
-  // License filters (client-side)
-  'filter/apache',
-  'filter/mit',
+  // Generate ALL combinations: sort × size × license
+  for (const sort of sorts) {
+    for (const size of sizes) {
+      for (const license of licenses) {
+        // Skip the default combination (downloads/all/all) - that's the base route
+        if (sort === URL_SLUGS.DOWNLOADS && size === URL_SLUGS.ALL && license === URL_SLUGS.ALL) {
+          continue
+        }
+        
+        // Build filter path - include ALL non-default values
+        const parts: string[] = []
+        if (sort !== URL_SLUGS.DOWNLOADS) parts.push(sort)
+        if (size !== URL_SLUGS.ALL) parts.push(size)
+        if (license !== URL_SLUGS.ALL) parts.push(license)
+        
+        // Add if there's at least one filter
+        if (parts.length > 0) {
+          filters.add(`${URL_SLUGS.FILTER_PREFIX}/${parts.join('/')}`)
+        }
+      }
+    }
+  }
   
-  // Combined filters (client-side)
-  'filter/small/apache',
-  'filter/likes/small',
-] as const
+  return Array.from(filters).sort()
+}
+
+// Generate all combinations at module load time
+export const HF_FILTERS = generateAllHFFilterCombinations() as readonly string[]
 
 /**
  * Type-safe filter types

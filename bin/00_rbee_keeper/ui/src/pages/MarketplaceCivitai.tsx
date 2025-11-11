@@ -3,74 +3,38 @@
 // DATA LAYER: Tauri commands + React Query
 // PRESENTATION: UniversalFilterBar + ModelCardVertical grid
 
-import type { FilterGroup } from '@rbee/ui/marketplace'
-import { ModelCardVertical, UniversalFilterBar } from '@rbee/ui/marketplace'
+// TEAM-467 RULE ZERO: Import shared constants and API types from @rbee/ui package
+import {
+  CIVITAI_FILTER_GROUPS,
+  CIVITAI_SORT_GROUP,
+  FILTER_DEFAULTS,
+  ModelCardVertical,
+  UniversalFilterBar,
+} from '@rbee/ui/marketplace'
+import type { BaseModel, CivitaiModelType, CivitaiSort, TimePeriod } from '@rbee/ui/marketplace'
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Model } from '@/generated/bindings'
 
-// TEAM-423: Filter state matching Next.js
-interface CivitaiFilters {
-  timePeriod: 'AllTime' | 'Month' | 'Week' | 'Day'
-  modelType: 'All' | 'Checkpoint' | 'LORA'
-  baseModel: 'All' | 'SDXL 1.0' | 'SD 1.5' | 'SD 2.1'
-  sort: 'downloads' | 'likes' | 'newest'
-}
-
-// TEAM-423: Filter groups matching Next.js exactly
-const CIVITAI_FILTER_GROUPS: FilterGroup[] = [
-  {
-    id: 'timePeriod',
-    label: 'Time Period',
-    options: [
-      { label: 'All Time', value: 'AllTime' },
-      { label: 'Month', value: 'Month' },
-      { label: 'Week', value: 'Week' },
-      { label: 'Day', value: 'Day' },
-    ],
-  },
-  {
-    id: 'modelType',
-    label: 'Model Type',
-    options: [
-      { label: 'All Types', value: 'All' },
-      { label: 'Checkpoint', value: 'Checkpoint' },
-      { label: 'LORA', value: 'LORA' },
-    ],
-  },
-  {
-    id: 'baseModel',
-    label: 'Base Model',
-    options: [
-      { label: 'All Models', value: 'All' },
-      { label: 'SDXL 1.0', value: 'SDXL 1.0' },
-      { label: 'SD 1.5', value: 'SD 1.5' },
-      { label: 'SD 2.1', value: 'SD 2.1' },
-    ],
-  },
-]
-
-const CIVITAI_SORT_GROUP: FilterGroup = {
-  id: 'sort',
-  label: 'Sort By',
-  options: [
-    { label: 'Most Downloads', value: 'downloads' },
-    { label: 'Most Likes', value: 'likes' },
-    { label: 'Newest', value: 'newest' },
-  ],
+// TEAM-467: UI filter state (subset of CivitaiFilters API type)
+interface CivitaiUIFilters {
+  timePeriod: TimePeriod
+  modelType: CivitaiModelType
+  baseModel: BaseModel
+  sort: CivitaiSort
 }
 
 export function MarketplaceCivitai() {
   const navigate = useNavigate()
 
-  // TEAM-423: Filter state
-  const [filters, setFilters] = useState<CivitaiFilters>({
-    timePeriod: 'AllTime',
-    modelType: 'All',
-    baseModel: 'All',
-    sort: 'downloads',
+  // TEAM-467: Filter state using API enum values
+  const [filters, setFilters] = useState<CivitaiUIFilters>({
+    timePeriod: FILTER_DEFAULTS.CIVITAI_TIME_PERIOD as TimePeriod,
+    modelType: FILTER_DEFAULTS.CIVITAI_MODEL_TYPE as CivitaiModelType,
+    baseModel: FILTER_DEFAULTS.CIVITAI_BASE_MODEL as BaseModel,
+    sort: FILTER_DEFAULTS.CIVITAI_SORT as CivitaiSort,
   })
 
   // DATA LAYER: Fetch models from Tauri
@@ -84,16 +48,16 @@ export function MarketplaceCivitai() {
     queryFn: async () => {
       const result = await invoke<Model[]>('marketplace_list_civitai_models', {
         filters: {
-          time_period: 'AllTime',
-          model_type: 'All',
-          base_model: 'All',
-          sort: 'Most Downloaded',
+          time_period: FILTER_DEFAULTS.CIVITAI_TIME_PERIOD,
+          model_type: FILTER_DEFAULTS.CIVITAI_MODEL_TYPE,
+          base_model: FILTER_DEFAULTS.CIVITAI_BASE_MODEL,
+          sort: FILTER_DEFAULTS.CIVITAI_SORT,
           nsfw: {
-            max_level: 'None',
-            blur_mature: true,
+            max_level: FILTER_DEFAULTS.CIVITAI_NSFW_LEVEL,
+            blur_mature: FILTER_DEFAULTS.CIVITAI_BLUR_MATURE,
           },
           page: null,
-          limit: 100,
+          limit: FILTER_DEFAULTS.CIVITAI_LIMIT,
         },
       })
       return result
@@ -106,7 +70,7 @@ export function MarketplaceCivitai() {
     let result = [...rawModels]
 
     // Filter by model type (if available in tags)
-    if (filters.modelType !== 'All') {
+    if (filters.modelType !== FILTER_DEFAULTS.CIVITAI_MODEL_TYPE) {
       result = result.filter((model) => {
         const tags = model.tags.map((t) => t.toLowerCase())
         return tags.includes(filters.modelType.toLowerCase())
@@ -114,7 +78,7 @@ export function MarketplaceCivitai() {
     }
 
     // Filter by base model (if available in tags)
-    if (filters.baseModel !== 'All') {
+    if (filters.baseModel !== FILTER_DEFAULTS.CIVITAI_BASE_MODEL) {
       result = result.filter((model) => {
         const tags = model.tags.map((t) => t.toLowerCase())
         const baseModel = filters.baseModel.toLowerCase().replace(/\s/g, '')
@@ -122,10 +86,10 @@ export function MarketplaceCivitai() {
       })
     }
 
-    // Sort
+    // Sort (using API enum values)
     result.sort((a, b) => {
-      if (filters.sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0)
-      if (filters.sort === 'likes') return (b.likes || 0) - (a.likes || 0)
+      if (filters.sort === FILTER_DEFAULTS.CIVITAI_SORT) return (b.downloads || 0) - (a.downloads || 0)
+      if (filters.sort === 'Highest Rated') return (b.likes || 0) - (a.likes || 0)
       // newest - would need createdAt field
       return 0
     })

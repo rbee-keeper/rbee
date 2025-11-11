@@ -82,6 +82,7 @@ export async function fetchCivitAIModels(
   }
 
   // NSFW filtering - convert level to numeric values
+  // TEAM-467: FAIL FAST - Validate NSFW level is valid BEFORE lookup
   const nsfwLevelMap: Record<NsfwLevel, number[]> = {
     'None': [1],
     'Soft': [1, 2],
@@ -89,7 +90,16 @@ export async function fetchCivitAIModels(
     'X': [1, 2, 4, 8],
     'XXX': [1, 2, 4, 8, 16],
   }
+  
   const nsfwLevels = nsfwLevelMap[filters.nsfw.max_level]
+  if (!nsfwLevels) {
+    const validLevels = Object.keys(nsfwLevelMap).join(', ')
+    throw new Error(
+      `❌ FATAL: Invalid NSFW level "${filters.nsfw.max_level}". Valid values: ${validLevels}\n` +
+      `💡 Hint: Use 'XXX' for all NSFW levels, or 'None' for PG-only content.`
+    )
+  }
+  
   nsfwLevels.forEach((level: number) => {
     params.append('nsfwLevel', String(level))
   })

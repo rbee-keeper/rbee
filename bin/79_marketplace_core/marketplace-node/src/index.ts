@@ -453,13 +453,10 @@ export async function getCompatibleCivitaiModels(
     ...filters,
   }
 
-  try {
-    const civitaiModels = await fetchCivitAIModels(mergedFilters)
-    return civitaiModels.map(convertCivitAIModel)
-  } catch (error) {
-    console.error('[marketplace-node] Failed to fetch CivitAI models:', error)
-    return []
-  }
+  // TEAM-467: FAIL FAST - Don't swallow errors, let them propagate
+  // Catching and returning [] hides critical failures from the caller
+  const civitaiModels = await fetchCivitAIModels(mergedFilters)
+  return civitaiModels.map(convertCivitAIModel)
 }
 
 /**

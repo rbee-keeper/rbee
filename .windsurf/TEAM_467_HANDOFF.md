@@ -131,6 +131,12 @@ Follow `PHASE_5_TAURI_INTEGRATION.md`:
 **Workaround**: Not critical - HuggingFace manifests work perfectly  
 **Fix**: Needs investigation in `marketplace-node/src/civitai.ts`
 
+### ✅ FIXED: Missing Metadata in Filtered Views
+**Problem**: When filtering by size (medium/large), models showed 0 downloads/likes  
+**Root Cause**: Manifests only had `{id, slug, name}`, missing metadata  
+**Fix**: Updated `ModelManifest` interface and generation to include full metadata  
+**Status**: ✅ Fixed - manifests now include author, description, downloads, likes, tags
+
 ---
 
 ## 🎓 Architecture Learned

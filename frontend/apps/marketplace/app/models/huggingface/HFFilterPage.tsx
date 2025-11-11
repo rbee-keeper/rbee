@@ -7,6 +7,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { ModelTableWithRouting } from '@/components/ModelTableWithRouting'
 import { ModelsFilterBar } from '../ModelsFilterBar'
 import { loadFilterManifestClient } from '@/lib/manifests-client'
+import { HF_SORTS, HF_SIZES, HF_LICENSES } from '@/config/filter-constants'
 import {
   buildHFFilterDescription,
   HUGGINGFACE_FILTER_GROUPS,
@@ -37,12 +38,29 @@ export function HFFilterPage({ initialModels, initialFilter }: Props) {
   const [models, setModels] = useState<Model[]>(initialModels)
   const [loading, setLoading] = useState(false)
   
+  // TEAM-467: Validate URL params - FAIL FAST on invalid values
+  // Uses SHARED constants from filter-constants.ts
+  const validSorts = HF_SORTS
+  const validSizes = HF_SIZES
+  const validLicenses = HF_LICENSES
+  
+  const sortParam = searchParams.get('sort')
+  const sizeParam = searchParams.get('size')
+  const licenseParam = searchParams.get('license')
+  
   // Build current filter from URL search params
   const currentFilter: HuggingFaceFilters = {
-    sort: (searchParams.get('sort') as any) || initialFilter.sort,
-    size: (searchParams.get('size') as any) || initialFilter.size,
-    license: (searchParams.get('license') as any) || initialFilter.license,
+    sort: (sortParam && validSorts.includes(sortParam as any)) ? sortParam as any : initialFilter.sort,
+    size: (sizeParam && validSizes.includes(sizeParam as any)) ? sizeParam as any : initialFilter.size,
+    license: (licenseParam && validLicenses.includes(licenseParam as any)) ? licenseParam as any : initialFilter.license,
   }
+  
+  // TEAM-467: Track if we have invalid params
+  const hasInvalidParams = (
+    (sortParam && !validSorts.includes(sortParam as any)) ||
+    (sizeParam && !validSizes.includes(sizeParam as any)) ||
+    (licenseParam && !validLicenses.includes(licenseParam as any))
+  )
 
   // TEAM-464: Handle filter changes - following Next.js official pattern
   // Using useCallback with searchParams dependency for stable reference
@@ -113,7 +131,15 @@ export function HFFilterPage({ initialModels, initialFilter }: Props) {
           f.filters.license === license
       )
 
-      if (!filterConfig || filterConfig.path === '') {
+      // TEAM-467: FAIL FAST - Don't silently fallback
+      if (!filterConfig) {
+        console.error('[HFFilterPage] No filter config found for:', { sort, size, license })
+        setModels([])
+        setLoading(false)
+        return
+      }
+      
+      if (filterConfig.path === '') {
         // Default filter, use initial models
         setModels(defaultModels)
         return
@@ -124,36 +150,25 @@ export function HFFilterPage({ initialModels, initialFilter }: Props) {
         const manifest = await loadFilterManifestClient('huggingface', filterConfig.path)
         
         if (manifest) {
-          // TEAM-464: Try to enrich manifest data with SSG data
-          // Manifests only have {id, slug, name}, but SSG has full metadata
-          const manifestModels = manifest.models.map((m) => {
-            // Find matching model in initial SSG data
-            const ssgModel = defaultModels.find(model => model.id === m.id)
-            
-            if (ssgModel) {
-              // Use full SSG data if available
-              return ssgModel
-            } else {
-              // Fallback to minimal manifest data
-              return {
-                id: m.id,
-                name: m.name,
-                description: '',
-                author: undefined,
-                downloads: 0,
-                likes: 0,
-                tags: [],
-              }
-            }
-          })
-          setModels(manifestModels)
+          // TEAM-467: Map ModelMetadata to Model (ensure required fields)
+          const mappedModels = manifest.models.map(m => ({
+            id: m.id,
+            name: m.name,
+            description: m.description || '',
+            author: m.author,
+            downloads: m.downloads || 0,
+            likes: m.likes || 0,
+            tags: m.tags || [],
+          }))
+          setModels(mappedModels)
         } else {
-          // Fallback to initial models if manifest not found
-          setModels(defaultModels)
+          // TEAM-467: FAIL FAST - Show error instead of fallback
+          console.error('[HFFilterPage] Manifest not found for filter:', filterConfig.path)
+          setModels([])
         }
       } catch (error) {
-        console.error('Failed to load manifest:', error)
-        setModels(defaultModels)
+        console.error('[HFFilterPage] Failed to load manifest:', error)
+        setModels([])
       } finally {
         setLoading(false)
       }
@@ -167,6 +182,24 @@ export function HFFilterPage({ initialModels, initialFilter }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
+      {/* TEAM-467: Show error for invalid filter params */}
+      {hasInvalidParams && (
+        <div className="mb-6 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+          <h3 className="font-semibold text-destructive mb-2">❌ Invalid Filter Parameters</h3>
+          <p className="text-sm text-destructive/90">
+            One or more filter parameters are invalid. Valid values:
+          </p>
+          <ul className="text-sm text-destructive/90 mt-2 ml-4 list-disc">
+            <li>sort: downloads, likes</li>
+            <li>size: all, small, medium, large</li>
+            <li>license: all, apache, mit, other</li>
+          </ul>
+          <p className="text-sm text-destructive/90 mt-2">
+            Current URL: <code className="bg-destructive/20 px-1 rounded">{window.location.search}</code>
+          </p>
+        </div>
+      )}
+      
       {/* Header Section */}
       <div className="mb-8 space-y-4">
         <div className="space-y-2">

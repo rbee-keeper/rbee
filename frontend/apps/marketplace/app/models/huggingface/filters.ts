@@ -2,7 +2,7 @@
 import type { FilterConfig, FilterGroup } from '@/lib/filters/types'
 
 export interface HuggingFaceFilters {
-  sort: 'downloads' | 'likes' | 'recent'
+  sort: 'downloads' | 'likes'  // TEAM-467: Removed 'recent' - API doesn't support it
   size: 'all' | 'small' | 'medium' | 'large'
   license: 'all' | 'apache' | 'mit' | 'other'
 }
@@ -32,44 +32,64 @@ export const HUGGINGFACE_FILTER_GROUPS: FilterGroup[] = [
 ]
 
 // Sort group definition (right side - sorting only)
+// TEAM-467: Removed 'recent' - HuggingFace API doesn't support it
 export const HUGGINGFACE_SORT_GROUP: FilterGroup = {
   id: 'sort',
   label: 'Sort By',
   options: [
     { label: 'Most Downloads', value: 'downloads' },
     { label: 'Most Likes', value: 'likes' },
-    { label: 'Recently Updated', value: 'recent' },
+    // 'Recently Updated' removed - HuggingFace API returns "Bad Request"
   ],
 }
 
-// TEAM-462: Pre-generated filter combinations for SSG
-// HuggingFace API only supports `limit` parameter - all other params cause "Bad Request"
-// Solution: Fetch models once, filter/sort CLIENT-SIDE for all filter pages
-export const PREGENERATED_HF_FILTERS: FilterConfig<HuggingFaceFilters>[] = [
-  // All fetch the same data from API, filtering happens client-side
-  { filters: { sort: 'downloads', size: 'all', license: 'all' }, path: '' },
-  { filters: { sort: 'likes', size: 'all', license: 'all' }, path: 'filter/likes' },
-  { filters: { sort: 'recent', size: 'all', license: 'all' }, path: 'filter/recent' },
+import { HF_SORTS, HF_SIZES, HF_LICENSES } from '@/config/filter-constants'
+
+// TEAM-467: PROGRAMMATICALLY generate ALL filter combinations
+// Uses SHARED constants from filter-constants.ts
+function generateAllHFFilterConfigs(): FilterConfig<HuggingFaceFilters>[] {
+  const sorts = HF_SORTS
+  const sizes = HF_SIZES
+  const licenses = HF_LICENSES
   
-  // Size filters - client-side filtering
-  { filters: { sort: 'downloads', size: 'small', license: 'all' }, path: 'filter/small' },
-  { filters: { sort: 'downloads', size: 'medium', license: 'all' }, path: 'filter/medium' },
-  { filters: { sort: 'downloads', size: 'large', license: 'all' }, path: 'filter/large' },
+  const configs: FilterConfig<HuggingFaceFilters>[] = []
   
-  // License filters - client-side filtering
-  { filters: { sort: 'downloads', size: 'all', license: 'apache' }, path: 'filter/apache' },
-  { filters: { sort: 'downloads', size: 'all', license: 'mit' }, path: 'filter/mit' },
+  // Generate all combinations: sort × size × license
+  for (const sort of sorts) {
+    for (const size of sizes) {
+      for (const license of licenses) {
+        // Skip the default combination (downloads/all/all) - that's the base route
+        if (sort === 'downloads' && size === 'all' && license === 'all') {
+          configs.push({
+            filters: { sort, size, license },
+            path: ''  // Default route
+          })
+          continue
+        }
+        
+        // Build filter path - include ALL non-default values
+        const parts: string[] = []
+        if (sort !== 'downloads') parts.push(sort)
+        if (size !== 'all') parts.push(size)
+        if (license !== 'all') parts.push(license)
+        
+        // Add if there's at least one filter
+        if (parts.length > 0) {
+          configs.push({
+            filters: { sort, size, license },
+            path: `filter/${parts.join('/')}`
+          })
+        }
+      }
+    }
+  }
   
-  // Combined filters - client-side filtering
-  { filters: { sort: 'downloads', size: 'small', license: 'apache' }, path: 'filter/small/apache' },
-  { filters: { sort: 'likes', size: 'small', license: 'all' }, path: 'filter/likes/small' },
-  
-  // TEAM-462: HuggingFace API limitations
-  // API only accepts `limit` parameter
-  // All filtering/sorting done CLIENT-SIDE after fetch
-  // Each page fetches same data, applies different filters in browser
-  // NEVER add force-dynamic - pre-render all pages at build time
-]
+  return configs
+}
+
+// TEAM-467: Generate all filter combinations at module load time
+// This MUST match the manifest generation in config/filters.ts
+export const PREGENERATED_HF_FILTERS: FilterConfig<HuggingFaceFilters>[] = generateAllHFFilterConfigs()
 
 /**
  * Build URL from HuggingFace filter configuration
@@ -99,9 +119,9 @@ export function getHFFilterFromPath(path: string): HuggingFaceFilters {
 export function buildHFFilterDescription(filters: HuggingFaceFilters): string {
   const parts: string[] = []
 
-  if (filters.sort === 'likes') parts.push('Most Liked')
-  else if (filters.sort === 'recent') parts.push('Recently Updated')
-  else parts.push('Most Downloaded')
+  if (filters.sort !== 'downloads') {
+    parts.push(filters.sort === 'likes' ? 'Most Liked' : 'Most Downloaded')
+  }
 
   if (filters.size !== 'all') {
     if (filters.size === 'small') parts.push('Small Models')
@@ -118,11 +138,12 @@ export function buildHFFilterDescription(filters: HuggingFaceFilters): string {
 
 /**
  * Build API parameters from filter config
+ * TEAM-467: Removed 'recent' - API doesn't support it
  */
 export function buildHFFilterParams(filters: HuggingFaceFilters) {
   const params: {
     limit?: number
-    sort?: 'popular' | 'recent' | 'trending'
+    sort?: 'popular' | 'trending'  // Removed 'recent'
     // Add more API params as needed
   } = {
     limit: 100,
@@ -131,8 +152,6 @@ export function buildHFFilterParams(filters: HuggingFaceFilters) {
   // Sort parameter - map to API values
   if (filters.sort === 'likes') {
     params.sort = 'trending'
-  } else if (filters.sort === 'recent') {
-    params.sort = 'recent'
   } else {
     params.sort = 'popular'
   }

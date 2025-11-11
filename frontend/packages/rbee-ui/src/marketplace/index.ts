@@ -35,6 +35,8 @@ export * from './templates/WorkerListTemplate' // TEAM-463: Worker list (used in
 // Types
 export * from './types/compatibility'
 export * from './types/filters'
+// Constants (TEAM-467: Shared filter constants)
+export * from './constants'
 
 // ============================================================================
 // CLIENT-ONLY EXPORTS (Use hooks, require 'use client')

@@ -187,7 +187,7 @@ const formatDate = (dateString: string): string => {
  * />
  * ```
  */
-export function HFModeldetail({
+export function HFModelDetail({
   model,
   onDownload,
   huggingFaceUrl,

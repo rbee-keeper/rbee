@@ -1,95 +1,53 @@
-// TEAM-401: Filter controls for marketplace
+// TEAM-476: Comprehensive FilterBar - LEFT filters, RIGHT sort
 import { Button } from '@rbee/ui/atoms/Button'
-import { Input } from '@rbee/ui/atoms/Input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@rbee/ui/atoms/Select'
-import { FilterButton } from '@rbee/ui/molecules/FilterButton'
-import { Search, X } from 'lucide-react'
-import * as React from 'react'
-
-export interface FilterChip {
-  id: string
-  label: string
-  active: boolean
-}
+import { SortDropdown } from '@rbee/ui/marketplace/molecules/SortDropdown'
+import { X } from 'lucide-react'
+import type * as React from 'react'
 
 export interface FilterBarProps {
-  search: string
-  onSearchChange: (value: string) => void
+  /** Filter components (LEFT side) */
+  filters?: React.ReactNode
+
+  /** Sort value */
   sort: string
+
+  /** Sort change handler */
   onSortChange: (value: string) => void
+
+  /** Sort options */
   sortOptions: Array<{ value: string; label: string }>
-  onClearFilters: () => void
-  filterChips?: FilterChip[]
-  onFilterChipToggle?: (chipId: string) => void
+
+  /** Clear all filters handler */
+  onClearFilters?: () => void
+
+  /** Whether filters are active */
+  hasActiveFilters?: boolean
 }
 
 export function FilterBar({
-  search,
-  onSearchChange,
+  filters,
   sort,
   onSortChange,
   sortOptions,
   onClearFilters,
-  filterChips = [],
-  onFilterChipToggle,
+  hasActiveFilters = false,
 }: FilterBarProps) {
-  const [localSearch, setLocalSearch] = React.useState(search)
-  const debounceTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  // Debounce search input (300ms)
-  React.useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      onSearchChange(localSearch)
-    }, 300)
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-  }, [localSearch, onSearchChange])
-
-  // Sync external search changes
-  React.useEffect(() => {
-    setLocalSearch(search)
-  }, [search])
-
-  const hasActiveFilters = search !== '' || sort !== sortOptions[0]?.value || filterChips.some((chip) => chip.active)
-
   return (
-    <div className="space-y-3">
-      {/* Search and Sort Row */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="relative flex-1 w-full sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+    <div className="space-y-4">
+      {/* Main row: Filters LEFT, Sort RIGHT */}
+      <div className="flex flex-col lg:flex-row gap-4 items-start justify-between">
+        {/* LEFT: Filter components */}
+        {filters && (
+          <div className="flex-1 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">{filters}</div>
+          </div>
+        )}
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Select value={sort} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* RIGHT: Sort dropdown + Clear button */}
+        <div className="flex items-center gap-2 w-full lg:w-auto shrink-0">
+          <SortDropdown value={sort} onChange={onSortChange} options={sortOptions} />
 
-          {hasActiveFilters && (
+          {hasActiveFilters && onClearFilters && (
             <Button variant="ghost" size="sm" onClick={onClearFilters}>
               <X className="size-4" />
               Clear
@@ -97,20 +55,6 @@ export function FilterBar({
           )}
         </div>
       </div>
-
-      {/* Filter Chips Row */}
-      {filterChips.length > 0 && onFilterChipToggle && (
-        <div className="flex flex-wrap gap-2">
-          {filterChips.map((chip) => (
-            <FilterButton
-              key={chip.id}
-              label={chip.label}
-              active={chip.active}
-              onClick={() => onFilterChipToggle(chip.id)}
-            />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

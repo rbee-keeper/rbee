@@ -17,6 +17,7 @@
     "@opennextjs/cloudflare": "^1.11.1",
     "@rbee/env-config": "workspace:*",
     "@rbee/ui": "workspace:*",
+    "@rbee/marketplace-core": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.553.0",

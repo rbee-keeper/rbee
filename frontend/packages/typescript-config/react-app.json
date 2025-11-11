@@ -3,10 +3,9 @@
   "display": "React Application",
   "extends": "./base.json",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["es2022", "dom", "dom.iterable"],
     "jsx": "react-jsx",
     "types": ["vite/client"],
-    "noEmit": true,
     "useDefineForClassFields": true
   }
 }

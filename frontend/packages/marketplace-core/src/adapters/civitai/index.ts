@@ -1,11 +1,8 @@
 // TEAM-476: CivitAI adapter - Fetch from CivitAI API and normalize to MarketplaceModel
 
-import type {
-  CivitAIListModelsParams,
-  CivitAIModel,
-  MarketplaceModel,
-  PaginatedResponse,
-} from '../..'
+import type { MarketplaceAdapter, MarketplaceFilterParams } from '../adapter'
+import type { MarketplaceModel, PaginatedResponse } from '../common'
+import type { CivitAIListModelsParams, CivitAIModel } from './types'
 
 /**
  * CivitAI API base URL
@@ -228,4 +225,21 @@ export function convertCivitAIModel(model: CivitAIModel): MarketplaceModel {
         : undefined,
     },
   }
+}
+
+/**
+ * CivitAI Adapter - implements MarketplaceAdapter with CivitAI-specific filters
+ */
+export const civitaiAdapter: MarketplaceAdapter<CivitAIListModelsParams> = {
+  name: 'civitai',
+
+  async fetchModels(params: CivitAIListModelsParams = {}): Promise<PaginatedResponse<MarketplaceModel>> {
+    // Pass params directly - no mapping needed!
+    return fetchCivitAIModels(params)
+  },
+
+  async fetchModel(id: string | number): Promise<MarketplaceModel> {
+    const modelId = typeof id === 'string' ? Number.parseInt(id, 10) : id
+    return fetchCivitAIModel(modelId)
+  },
 }

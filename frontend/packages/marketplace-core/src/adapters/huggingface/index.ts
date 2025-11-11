@@ -1,11 +1,8 @@
 // TEAM-476: HuggingFace adapter - Fetch from HuggingFace Hub API and normalize to MarketplaceModel
 
-import type {
-  HuggingFaceListModelsParams,
-  HuggingFaceModel,
-  MarketplaceModel,
-  PaginatedResponse,
-} from '../..'
+import type { MarketplaceAdapter, MarketplaceFilterParams } from '../adapter'
+import type { MarketplaceModel, PaginatedResponse } from '../common'
+import type { HuggingFaceListModelsParams, HuggingFaceModel } from './types'
 
 /**
  * HuggingFace Hub API base URL
@@ -148,6 +145,23 @@ export function convertHFModel(model: HuggingFaceModel): MarketplaceModel {
       transformersInfo: model.transformersInfo,
     },
   }
+}
+
+/**
+ * HuggingFace Adapter - implements MarketplaceAdapter with HuggingFace-specific filters
+ */
+export const huggingfaceAdapter: MarketplaceAdapter<HuggingFaceListModelsParams> = {
+  name: 'huggingface',
+
+  async fetchModels(params: HuggingFaceListModelsParams = {}): Promise<PaginatedResponse<MarketplaceModel>> {
+    // Pass params directly - no mapping needed!
+    return fetchHuggingFaceModels(params)
+  },
+
+  async fetchModel(id: string | number): Promise<MarketplaceModel> {
+    const modelId = String(id)
+    return fetchHuggingFaceModel(modelId)
+  },
 }
 
 /**

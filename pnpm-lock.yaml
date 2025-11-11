@@ -829,6 +829,9 @@ importers:
       '@rbee/env-config':
         specifier: workspace:*
         version: link:../../packages/env-config
+      '@rbee/marketplace-core':
+        specifier: workspace:*
+        version: link:../../packages/marketplace-core
       '@rbee/ui':
         specifier: workspace:*
         version: link:../../packages/rbee-ui
@@ -1000,6 +1003,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.24
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

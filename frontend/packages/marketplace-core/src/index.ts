@@ -1,4 +1,17 @@
-// TEAM-476: Marketplace Contracts - Types that Next.js marketplace app expects
+// TEAM-476: Marketplace Core - Unified adapter interface + vendor-specific types
+
+// Unified Adapter Interface (USE THIS!)
+export type { MarketplaceAdapter, BaseFilterParams } from './adapters/adapter'
+export type { VendorName } from './adapters/registry'
+export { getAdapter, adapters } from './adapters/registry'
+
+// Common types (what Next.js needs from adapters)
+export type {
+  MarketplaceError,
+  MarketplaceModel,
+  PaginatedResponse,
+  PaginationMeta,
+} from './adapters/common'
 
 // CivitAI types (for civitai-adapter)
 export type {
@@ -21,13 +34,6 @@ export type {
   CivitAISort,
   CivitAITimePeriod,
 } from './adapters/civitai/types'
-// Common types (what Next.js needs from adapters)
-export type {
-  MarketplaceError,
-  MarketplaceModel,
-  PaginatedResponse,
-  PaginationMeta,
-} from './adapters/common'
 
 // HuggingFace types (for huggingface-adapter)
 export type {

@@ -26,11 +26,14 @@ export function receiveFromParent(
   onMessage: (message: IframeMessage) => void,
   options?: { allowedOrigins?: string[]; debug?: boolean },
 ): () => void {
-  return createMessageReceiver({
+  const config: Parameters<typeof createMessageReceiver>[0] = {
     allowedOrigins: options?.allowedOrigins || ['*'],
-    debug: options?.debug,
     onMessage,
-  })
+  }
+  if (options?.debug !== undefined) {
+    config.debug = options.debug
+  }
+  return createMessageReceiver(config)
 }
 
 // ============================================================================

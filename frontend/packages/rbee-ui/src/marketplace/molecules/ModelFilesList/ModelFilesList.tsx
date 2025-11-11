@@ -46,7 +46,8 @@ const getFileIcon = (filename: string) => {
 
 const getFileExtension = (filename: string) => {
   const parts = filename.split('.')
-  return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : 'FILE'
+  const ext = parts[parts.length - 1]
+  return parts.length > 1 && ext ? ext.toUpperCase() : 'FILE'
 }
 
 /**

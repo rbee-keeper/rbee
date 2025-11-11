@@ -110,7 +110,7 @@ export function MatrixTable({ columns, rows, groups, caption, className }: Matri
       </TableHead>
       {columns.map((col) => (
         <TableCell key={col.key} className={cn('p-3 text-center', col.accent && 'bg-primary/5')}>
-          {renderCell(row.values[col.key], col.key)}
+          {renderCell(row.values[col.key] ?? false, col.key)}
         </TableCell>
       ))}
     </TableRow>

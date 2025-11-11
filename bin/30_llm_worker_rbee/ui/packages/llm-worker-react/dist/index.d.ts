@@ -10,3 +10,4 @@ export declare function useInference(): {
     error: Error | null;
     runInference: import("@tanstack/react-query").UseMutateFunction<any, Error, InferenceRequest, unknown>;
 };
+//# sourceMappingURL=index.d.ts.map

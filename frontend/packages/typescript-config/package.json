@@ -1,13 +1,17 @@
 {
   "name": "@repo/typescript-config",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "description": "Battle-tested TypeScript configurations for rbee projects",
   "files": [
     "base.json",
+    "library.json",
+    "library-react.json",
     "react-app.json",
     "vite.json",
     "nextjs.json",
-    "library.json",
-    "library-react.json"
+    "cloudflare-worker.json",
+    "cloudflare-pages.json",
+    "PROPER_TYPESCRIPT_CONFIGS.md"
   ]
 }

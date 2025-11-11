@@ -38,81 +38,81 @@ export interface HFModelDetailData {
   id: string
   name: string
   description: string
-  author?: string
+  author?: string | undefined
   downloads: number
   likes: number
   size: string
   tags: string[]
 
   // HuggingFace specific (optional)
-  pipeline_tag?: string
-  library_name?: string
-  sha?: string
-  mask_token?: string
+  pipeline_tag?: string | undefined
+  library_name?: string | undefined
+  sha?: string | undefined
+  mask_token?: string | undefined
 
   // TEAM-464: Widget data for inference examples
   widgetData?: Array<{
-    source_sentence?: string
-    sentences?: string[]
-    text?: string
-  }>
+    source_sentence?: string | undefined
+    sentences?: string[] | undefined
+    text?: string | undefined
+  }> | undefined
 
   config?: {
-    architectures?: string[]
-    model_type?: string
+    architectures?: string[] | undefined
+    model_type?: string | undefined
     tokenizer_config?: {
-      unk_token?: string
-      sep_token?: string
-      pad_token?: string
-      cls_token?: string
-      mask_token?: string
-      bos_token?: string | { content?: string; [key: string]: any }
-      eos_token?: string | { content?: string; [key: string]: any }
-      chat_template?: string
-    }
-  }
+      unk_token?: string | undefined
+      sep_token?: string | undefined
+      pad_token?: string | undefined
+      cls_token?: string | undefined
+      mask_token?: string | undefined
+      bos_token?: string | { content?: string | undefined; [key: string]: unknown } | undefined
+      eos_token?: string | { content?: string | undefined; [key: string]: unknown } | undefined
+      chat_template?: string | undefined
+    } | undefined
+  } | undefined
 
   // TEAM-464: Extended card data
   cardData?: {
-    base_model?: string
-    license?: string
-    language?: string | string[]
-    datasets?: string[]
-    pipeline_tag?: string
-  }
+    base_model?: string | undefined
+    license?: string | undefined
+    language?: string | string[] | undefined
+    datasets?: string[] | undefined
+    pipeline_tag?: string | undefined
+  } | undefined
 
   // TEAM-464: Transformers info for inference
   transformersInfo?: {
-    auto_model?: string
-    pipeline_tag?: string
-    processor?: string
-  }
+    auto_model?: string | undefined
+    pipeline_tag?: string | undefined
+    processor?: string | undefined
+  } | undefined
 
   // TEAM-464: Inference status
-  inference?: 'warm' | 'cold' | string
+  inference?: 'warm' | 'cold' | string | undefined
 
   // TEAM-464: Safetensors parameters
   safetensors?: {
     parameters?: {
-      I64?: number
-      F32?: number
+      I64?: number | undefined
+      F32?: number | undefined
       [key: string]: number | undefined
-    }
-    total?: number
-  }
+    } | undefined
+    total?: number | undefined
+  } | undefined
 
   // TEAM-464: Spaces using this model
-  spaces?: string[]
+  spaces?: string[] | undefined
 
   // TEAM-463: ⚠️ TYPE CONTRACT - must match artifacts-contract::ModelFile
-  siblings?: Array<{ filename: string; size?: number | null }>
-  createdAt?: string
-  lastModified?: string
+  siblings?: Array<{ filename: string; size?: number | null | undefined }> | undefined
+  createdAt?: string | undefined
+  lastModified?: string | undefined
 
   // TEAM-427: CivitAI specific (optional)
-  images?: Array<{ url: string; nsfw?: boolean }>
-  externalUrl?: string // CivitAI or HuggingFace URL
-  externalLabel?: string // "View on CivitAI" or "View on HuggingFace"
+  images?: Array<{ url: string; nsfw?: boolean | undefined }> | undefined
+  externalUrl?: string | undefined // CivitAI or HuggingFace URL
+  externalLabel?: string | undefined // "View on CivitAI" or "View on HuggingFace"
 
   // TEAM-464: README content (raw markdown for react-markdown)
   readmeMarkdown?: string

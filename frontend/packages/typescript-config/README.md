@@ -1,27 +1,74 @@
-# @repo/typescript-config
+# @repo/typescript-config v2.0.0
 
-Modern TypeScript configurations for all project types, based on TypeScript 5.9+ best practices.
+**Battle-tested TypeScript configurations for rbee projects**
+
+Incorporates lessons learned from fixing 100+ TypeScript errors with proper solutions (no shortcuts).
+
+## 🚀 Quick Start
+
+Choose the config that matches your project type:
+
+| Project Type | Config | Example |
+|--------------|--------|---------|
+| TypeScript Library | `library.json` | `@rbee/marketplace-core` |
+| React Library | `library-react.json` | `@rbee/rbee-ui` |
+| React App (Vite) | `react-app.json` | Keeper UI |
+| Next.js App | `nextjs.json` | - |
+| **Cloudflare Worker** | `cloudflare-worker.json` | `apps/marketplace` |
+| **Cloudflare Pages** | `cloudflare-pages.json` | `apps/commercial` |
 
 ## 📦 Available Configs
 
 ### `base.json` - Universal Base Config
-**Use for:** All TypeScript projects (extended by other configs)
+**Use for:** Foundation for all configs (don't use directly)
 
 **Features:**
-- ✅ **Modern Standards**: ES2022 target, `module: preserve` for bundlers
-- ✅ **Maximum Strictness**: `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`
-- ✅ **Type Safety**: `verbatimModuleSyntax`, `isolatedModules`, `moduleDetection: force`
-- ✅ **TS 5.9+**: `noUncheckedSideEffectImports` for safer imports
-- ✅ **Performance**: `skipLibCheck` enabled
+- ✅ **Maximum Strictness**: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`
+- ✅ **Type Safety**: `verbatimModuleSyntax`, `isolatedModules`, `noImplicitOverride`
+- ✅ **Modern TS**: `noUncheckedSideEffectImports` for safer imports
+- ✅ **ES2022**: Modern JavaScript features
 
-**Based on:**
-- [Total TypeScript TSConfig Cheat Sheet](https://www.totaltypescript.com/tsconfig-cheat-sheet)
-- [TypeScript 5.9 Official Recommendations](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html)
+---
+
+### `cloudflare-worker.json` - Cloudflare Workers ⭐ NEW
+**Use for:** CF Workers (marketplace, global-worker-catalog, admin)
+
+```json
+{
+  "extends": "@repo/typescript-config/cloudflare-worker.json"
+}
+```
+
+**Features:**
+- ✅ Cloudflare Workers types (`@cloudflare/workers-types`)
+- ✅ No Node.js types (Workers runtime is different)
+- ✅ React JSX support for components
+- ✅ ES2022 target
+
+**Used by:** `apps/marketplace`, `bin/80-global-worker-catalog`, `bin/90-admin`
+
+---
+
+### `cloudflare-pages.json` - Cloudflare Pages (Next.js) ⭐ NEW
+**Use for:** Next.js apps deployed to CF Pages
+
+```json
+{
+  "extends": "@repo/typescript-config/cloudflare-pages.json"
+}
+```
+
+**Features:**
+- ✅ Extends `nextjs.json`
+- ✅ Both Node.js types (build) and CF types (runtime)
+- ✅ CF Pages environment support
+
+**Used by:** `apps/commercial`, `apps/user-docs`
 
 ---
 
 ### `nextjs.json` - Next.js Applications
-**Use for:** Next.js apps (commercial, admin, marketplace, user-docs)
+**Use for:** Next.js apps
 
 ```json
 {

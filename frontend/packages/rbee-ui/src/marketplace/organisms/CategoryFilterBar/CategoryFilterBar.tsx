@@ -119,7 +119,7 @@ export function CategoryFilterBar<T = Record<string, string>>({
           <FilterGroupComponent
             key={sortGroup.id}
             group={sortGroup}
-            currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value}
+            currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value || ''}
             buildUrl={(value) => buildUrl({ [sortGroup.id]: value } as Partial<T>)}
             onFilterChange={
               onFilterChange ? (value) => onFilterChange({ [sortGroup.id]: value } as Partial<T>) : undefined

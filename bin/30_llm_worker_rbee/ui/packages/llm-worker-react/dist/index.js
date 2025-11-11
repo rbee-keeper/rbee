@@ -45,3 +45,4 @@ export function useInference() {
         runInference: mutation.mutate,
     };
 }
+//# sourceMappingURL=index.js.map

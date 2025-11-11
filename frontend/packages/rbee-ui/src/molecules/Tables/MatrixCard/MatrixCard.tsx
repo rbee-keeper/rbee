@@ -57,7 +57,7 @@ export function MatrixCard({ provider, rows, className }: MatrixCardProps) {
         {rows.map((row, i) => (
           <li key={i} className="flex items-center justify-between py-3">
             <span className="text-sm text-muted-foreground">{row.feature}</span>
-            <div className="ml-4">{renderStatus(row.values[provider.key])}</div>
+            <div className="ml-4">{renderStatus(row.values[provider.key] ?? false)}</div>
           </li>
         ))}
       </ul>

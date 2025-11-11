@@ -92,9 +92,14 @@ export function useInstalledWorkers() {
           throw new Error('Could not parse JSON response - line does not contain valid JSON')
         }
 
-        console.log('[useInstalledWorkers] 🔍 Extracted JSON:', jsonMatch[1])
+        const jsonStr = jsonMatch[1]
+        if (!jsonStr) {
+          console.error('[useInstalledWorkers] ❌ JSON match group is undefined')
+          throw new Error('Could not extract JSON string from match')
+        }
+        console.log('[useInstalledWorkers] 🔍 Extracted JSON:', jsonStr)
 
-        const response = JSON.parse(jsonMatch[1])
+        const response = JSON.parse(jsonStr)
         console.log('[useInstalledWorkers] 📦 Parsed response:', response)
 
         const workers = response.workers || []

@@ -1,9 +1,9 @@
 // TEAM-476: HuggingFace models page - TABLE presentation
 
 import type { HuggingFaceListModelsParams } from '@rbee/marketplace-core'
-import { FilterBar, FilterDropdown, FilterSearch } from '@rbee/ui/marketplace'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@rbee/ui/atoms'
-import { ModelPageContainer } from '@/components/ModelPageContainer'
+import { FilterBar, FilterDropdown, FilterSearch } from '@rbee/ui/marketplace'
+import { ModelPageContainer } from '../../../components/ModelPageContainer'
 
 export default async function HuggingFaceModelsPage({
   searchParams,
@@ -13,8 +13,8 @@ export default async function HuggingFaceModelsPage({
   // Build vendor-specific filters from URL params
   const filters: HuggingFaceListModelsParams = {
     ...(searchParams.search && { search: searchParams.search }),
-    ...(searchParams.sort && { sort: searchParams.sort as any }),
-    ...(searchParams.library && { library: searchParams.library as any }),
+    ...(searchParams.sort && { sort: searchParams.sort as HuggingFaceListModelsParams['sort'] }),
+    ...(searchParams.library && { library: searchParams.library as HuggingFaceListModelsParams['library'] }),
     limit: 50,
   }
 

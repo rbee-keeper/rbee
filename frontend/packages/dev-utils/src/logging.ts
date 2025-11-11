@@ -39,7 +39,10 @@ export interface StartupLogOptions extends LogOptions {
  */
 function formatTimestamp(): string {
   const now = new Date()
-  return now.toISOString().split('T')[1].split('.')[0] // HH:MM:SS
+  const timePart = now.toISOString().split('T')[1]
+  if (!timePart) return '00:00:00'
+  const timeWithoutMs = timePart.split('.')[0]
+  return timeWithoutMs || '00:00:00' // HH:MM:SS
 }
 
 /**

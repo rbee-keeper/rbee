@@ -139,12 +139,12 @@ export async function loadSDKOnce<T>(options: LoadOptions): Promise<SDKLoadResul
   slot.promise = loadSDK<T>(options)
     .then((result) => {
       slot.value = result
-      slot.promise = undefined
+      delete slot.promise
       return result
     })
     .catch((err) => {
       slot.error = err
-      slot.promise = undefined
+      delete slot.promise
       throw err
     })
 

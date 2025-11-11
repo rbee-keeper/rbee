@@ -34,7 +34,7 @@ export function SecurityCard({ icon, title, subtitle, intro, bullets, docsHref, 
       className={cn('w-full rounded bg-card/60 p-6 transition-shadow hover:shadow-lg sm:p-8', className)}
       aria-labelledby={titleId}
     >
-      <IconCardHeader icon={icon} title={title} subtitle={subtitle} titleId={titleId} />
+      <IconCardHeader icon={icon} title={title} {...(subtitle ? { subtitle } : {})} titleId={titleId} />
 
       <CardContent className="p-0">
         {/* Intro */}

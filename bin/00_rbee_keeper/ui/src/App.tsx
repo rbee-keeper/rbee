@@ -8,6 +8,7 @@
 // TEAM-423: Renamed to HuggingFace and Civitai for clarity
 // TEAM-413: Added protocol listener for rbee:// URL handling
 // TEAM-463: Separated model detail pages by source (HuggingFace, CivitAI)
+// TEAM-477: Migrated to marketplace-core adapters and reusable templates
 
 import { broadcastThemeChanges } from '@rbee/iframe-bridge'
 import { SidebarProvider } from '@rbee/ui/atoms'
@@ -17,16 +18,18 @@ import { Shell } from './components/Shell'
 import { useProtocol } from './hooks/useProtocol'
 import HelpPage from './pages/HelpPage'
 import HivePage from './pages/HivePage'
-import { MarketplaceCivitai } from './pages/MarketplaceCivitai'
-import { MarketplaceHuggingFace } from './pages/MarketplaceHuggingFace'
 import { MarketplaceRbeeWorkers } from './pages/MarketplaceRbeeWorkers'
-import { ModelDetailsCivitAIPage } from './pages/ModelDetailsCivitAIPage'
-import { ModelDetailsHuggingFacePage } from './pages/ModelDetailsHuggingFacePage'
 import QueenPage from './pages/QueenPage'
 import KeeperPage from './pages/ServicesPage'
 import SettingsPage from './pages/SettingsPage'
 import { WorkerDetailsPage } from './pages/WorkerDetailsPage'
 import { setupNarrationListener } from './utils/narrationListener'
+
+// TEAM-477: New marketplace pages using marketplace-core adapters
+import { CAIDetailsPage } from './pages/civitai/CAIDetailsPage'
+import { CAIListPage } from './pages/civitai/CAIListPage'
+import { HFDetailsPage } from './pages/huggingface/HFDetailsPage'
+import { HFListPage } from './pages/huggingface/HFListPage'
 
 // TEAM-350: Log build mode on startup
 const isDev = import.meta.env.DEV
@@ -63,10 +66,11 @@ function AppRoutes() {
           <Route path="/" element={<KeeperPage />} />
           <Route path="/queen" element={<QueenPage />} />
           <Route path="/hive/:hiveId" element={<HivePage />} />
-          <Route path="/marketplace/huggingface" element={<MarketplaceHuggingFace />} />
-          <Route path="/marketplace/huggingface/:modelId" element={<ModelDetailsHuggingFacePage />} />
-          <Route path="/marketplace/civitai" element={<MarketplaceCivitai />} />
-          <Route path="/marketplace/civitai/:modelId" element={<ModelDetailsCivitAIPage />} />
+          {/* TEAM-477: New marketplace pages using marketplace-core adapters */}
+          <Route path="/marketplace/huggingface" element={<HFListPage />} />
+          <Route path="/marketplace/huggingface/:modelId" element={<HFDetailsPage />} />
+          <Route path="/marketplace/civitai" element={<CAIListPage />} />
+          <Route path="/marketplace/civitai/:modelId" element={<CAIDetailsPage />} />
           <Route path="/marketplace/rbee-workers" element={<MarketplaceRbeeWorkers />} />
           <Route path="/marketplace/rbee-workers/:workerId" element={<WorkerDetailsPage />} />
           <Route path="/settings" element={<SettingsPage />} />

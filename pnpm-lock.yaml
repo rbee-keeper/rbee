@@ -18,6 +18,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.3.4
         version: 2.3.4
+      '@types/node':
+        specifier: ^24.10.0
+        version: 24.10.0
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
@@ -33,6 +36,9 @@ importers:
       '@rbee/iframe-bridge':
         specifier: workspace:*
         version: link:../../../frontend/packages/iframe-bridge
+      '@rbee/marketplace-core':
+        specifier: workspace:*
+        version: link:../../../frontend/packages/marketplace-core
       '@rbee/narration-client':
         specifier: workspace:*
         version: link:../../../frontend/packages/narration-client

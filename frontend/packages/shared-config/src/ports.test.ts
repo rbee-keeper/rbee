@@ -704,8 +704,10 @@ describe('@rbee/shared-config', () => {
       ]
 
       prodPorts.forEach((port) => {
-        const origin = getParentOrigin(port)
-        expect(origin).toBe('*')
+        if (port !== null) {
+          const origin = getParentOrigin(port)
+          expect(origin).toBe('*')
+        }
       })
     })
 
@@ -736,7 +738,9 @@ describe('@rbee/shared-config', () => {
 
     it('should work together: getIframeUrl + getParentOrigin', () => {
       const queenIframeUrl = getIframeUrl('queen', true)
-      const port = parseInt(queenIframeUrl.split(':')[2])
+      const portStr = queenIframeUrl.split(':')[2]
+      if (!portStr) throw new Error('Port not found in URL')
+      const port = parseInt(portStr)
       const parentOrigin = getParentOrigin(port)
 
       expect(parentOrigin).toBe(`http://localhost:${PORTS.keeper.dev}`)

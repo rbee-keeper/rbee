@@ -2,7 +2,7 @@
 
 import type { CivitAIListModelsParams } from '@rbee/marketplace-core'
 import { FilterBar, FilterMultiSelect, FilterSearch, ModelCardVertical } from '@rbee/ui/marketplace'
-import { ModelPageContainer } from '@/components/ModelPageContainer'
+import { ModelPageContainer } from '../../../components/ModelPageContainer'
 
 export default async function CivitAIModelsPage({
   searchParams,
@@ -12,9 +12,9 @@ export default async function CivitAIModelsPage({
   // Build vendor-specific filters from URL params
   const filters: CivitAIListModelsParams = {
     ...(searchParams.query && { query: searchParams.query }),
-    ...(searchParams.sort && { sort: searchParams.sort as any }),
-    ...(searchParams.types && { types: searchParams.types.split(',') as any }),
-    ...(searchParams.baseModels && { baseModels: searchParams.baseModels.split(',') as any }),
+    ...(searchParams.sort && { sort: searchParams.sort as CivitAIListModelsParams['sort'] }),
+    ...(searchParams.types && { types: searchParams.types.split(',') as CivitAIListModelsParams['types'] }),
+    ...(searchParams.baseModels && { baseModels: searchParams.baseModels.split(',') as CivitAIListModelsParams['baseModels'] }),
     limit: 50,
   }
 
@@ -83,9 +83,7 @@ export default async function CivitAIModelsPage({
                   tags: model.tags.slice(0, 3), // Show top 3 tags
                   downloads: model.downloads,
                   likes: model.likes,
-                  size: model.sizeBytes
-                    ? `${(model.sizeBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
-                    : model.type,
+                  size: model.sizeBytes ? `${(model.sizeBytes / (1024 * 1024 * 1024)).toFixed(2)} GB` : model.type,
                 }}
               />
             ))}

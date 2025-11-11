@@ -39,7 +39,7 @@ export function ProvidersCaseCard({
       <IconCardHeader
         icon={icon}
         title={title}
-        subtitle={subtitle}
+        {...(subtitle ? { subtitle } : {})}
         iconSize="lg"
         iconTone="primary"
         titleClassName="text-lg font-semibold"

@@ -190,7 +190,9 @@ describe('@rbee/iframe-bridge - receiver', () => {
       )
 
       expect(onError).toHaveBeenCalledTimes(1)
-      expect(onError.mock.calls[0][0]).toBeInstanceOf(Error)
+      const firstCall = onError.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      expect(firstCall?.[0]).toBeInstanceOf(Error)
     })
 
     it('should cleanup event listener', () => {

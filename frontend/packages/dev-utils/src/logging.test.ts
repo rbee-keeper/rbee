@@ -43,46 +43,46 @@ describe('@rbee/dev-utils - logging', () => {
     it('should log info message', () => {
       log('info', 'Test message')
       expect(mockConsole.log).toHaveBeenCalledTimes(1)
-      expect(mockConsole.log.mock.calls[0][0]).toContain('Test message')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('Test message')
     })
 
     it('should log debug message', () => {
       log('debug', 'Debug message')
       expect(mockConsole.debug).toHaveBeenCalledTimes(1)
-      expect(mockConsole.debug.mock.calls[0][0]).toContain('Debug message')
+      expect(mockConsole.debug.mock.calls[0]?.[0]).toContain('Debug message')
     })
 
     it('should log warn message', () => {
       log('warn', 'Warning message')
       expect(mockConsole.warn).toHaveBeenCalledTimes(1)
-      expect(mockConsole.warn.mock.calls[0][0]).toContain('Warning message')
+      expect(mockConsole.warn.mock.calls[0]?.[0]).toContain('Warning message')
     })
 
     it('should log error message', () => {
       log('error', 'Error message')
       expect(mockConsole.error).toHaveBeenCalledTimes(1)
-      expect(mockConsole.error.mock.calls[0][0]).toContain('Error message')
+      expect(mockConsole.error.mock.calls[0]?.[0]).toContain('Error message')
     })
 
     it('should include emoji when color=true', () => {
       log('info', 'Test', { color: true })
-      expect(mockConsole.log.mock.calls[0][0]).toContain('ℹ️')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('ℹ️')
     })
 
     it('should not include emoji when color=false', () => {
       log('info', 'Test', { color: false })
-      expect(mockConsole.log.mock.calls[0][0]).not.toContain('ℹ️')
+      expect(mockConsole.log.mock.calls[0]?.[0]).not.toContain('ℹ️')
     })
 
     it('should include timestamp when requested', () => {
       log('info', 'Test', { timestamp: true })
-      const output = mockConsole.log.mock.calls[0][0]
+      const output = mockConsole.log.mock.calls[0]?.[0]
       expect(output).toMatch(/\[\d{2}:\d{2}:\d{2}\]/)
     })
 
     it('should include prefix when provided', () => {
       log('info', 'Test', { prefix: 'MyApp' })
-      expect(mockConsole.log.mock.calls[0][0]).toContain('[MyApp]')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('[MyApp]')
     })
   })
 
@@ -94,7 +94,7 @@ describe('@rbee/dev-utils - logging', () => {
 
       logStartupMode('TEST UI', true, 3000)
       expect(mockConsole.log).toHaveBeenCalled()
-      const output = mockConsole.log.mock.calls[0][0]
+      const output = mockConsole.log.mock.calls[0]?.[0]
       expect(output).toContain('TEST UI')
       expect(output).toContain('DEVELOPMENT')
       expect(output).toContain('🔧')
@@ -103,7 +103,7 @@ describe('@rbee/dev-utils - logging', () => {
     it('should log production mode', () => {
       logStartupMode('TEST UI', false)
       expect(mockConsole.log).toHaveBeenCalled()
-      const output = mockConsole.log.mock.calls[0][0]
+      const output = mockConsole.log.mock.calls[0]?.[0]
       expect(output).toContain('TEST UI')
       expect(output).toContain('PRODUCTION')
       expect(output).toContain('🚀')
@@ -141,7 +141,7 @@ describe('@rbee/dev-utils - logging', () => {
     it('should handle invalid port', () => {
       logStartupMode('TEST UI', true, 99999)
       expect(mockConsole.warn).toHaveBeenCalled()
-      const warnCall = mockConsole.warn.mock.calls[0][0]
+      const warnCall = mockConsole.warn.mock.calls[0]?.[0]
       expect(warnCall).toContain('must be between 1 and 65535')
     })
   })
@@ -209,36 +209,36 @@ describe('@rbee/dev-utils - logging', () => {
 
       logger.info('Test message')
       expect(mockConsole.log).toHaveBeenCalled()
-      expect(mockConsole.log.mock.calls[0][0]).toContain('[MyApp]')
-      expect(mockConsole.log.mock.calls[0][0]).toContain('Test message')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('[MyApp]')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('Test message')
     })
 
     it('should have debug method', () => {
       const logger = createLogger('MyApp')
       logger.debug('Debug message')
       expect(mockConsole.debug).toHaveBeenCalled()
-      expect(mockConsole.debug.mock.calls[0][0]).toContain('[MyApp]')
+      expect(mockConsole.debug.mock.calls[0]?.[0]).toContain('[MyApp]')
     })
 
     it('should have info method', () => {
       const logger = createLogger('MyApp')
       logger.info('Info message')
       expect(mockConsole.log).toHaveBeenCalled()
-      expect(mockConsole.log.mock.calls[0][0]).toContain('[MyApp]')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('[MyApp]')
     })
 
     it('should have warn method', () => {
       const logger = createLogger('MyApp')
       logger.warn('Warning message')
       expect(mockConsole.warn).toHaveBeenCalled()
-      expect(mockConsole.warn.mock.calls[0][0]).toContain('[MyApp]')
+      expect(mockConsole.warn.mock.calls[0]?.[0]).toContain('[MyApp]')
     })
 
     it('should have error method', () => {
       const logger = createLogger('MyApp')
       logger.error('Error message')
       expect(mockConsole.error).toHaveBeenCalled()
-      expect(mockConsole.error.mock.calls[0][0]).toContain('[MyApp]')
+      expect(mockConsole.error.mock.calls[0]?.[0]).toContain('[MyApp]')
     })
   })
 
@@ -247,19 +247,19 @@ describe('@rbee/dev-utils - logging', () => {
       const longMessage = 'a'.repeat(10000)
       log('info', longMessage)
       expect(mockConsole.log).toHaveBeenCalled()
-      expect(mockConsole.log.mock.calls[0][0]).toContain(longMessage)
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain(longMessage)
     })
 
     it('should handle special characters', () => {
       log('info', 'Test\n\t"quote"')
       expect(mockConsole.log).toHaveBeenCalled()
-      expect(mockConsole.log.mock.calls[0][0]).toContain('Test\n\t"quote"')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('Test\n\t"quote"')
     })
 
     it('should handle unicode', () => {
       log('info', 'Test 🎉 emoji')
       expect(mockConsole.log).toHaveBeenCalled()
-      expect(mockConsole.log.mock.calls[0][0]).toContain('Test 🎉 emoji')
+      expect(mockConsole.log.mock.calls[0]?.[0]).toContain('Test 🎉 emoji')
     })
   })
 })

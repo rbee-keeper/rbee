@@ -62,14 +62,14 @@ export function LabeledSlider({
   helperText,
   className,
 }: LabeledSliderProps) {
-  const currentValue = value[0]
+  const currentValue = value[0] ?? 0
   const resolvedHelperText = typeof helperText === 'function' ? helperText(currentValue) : helperText
 
   return (
     <div className={cn('font-sans', className)}>
       <div className="mb-3 flex items-center justify-between">
         <label className="text-sm font-medium text-muted-foreground">{label}</label>
-        <span className="tabular-nums text-lg font-bold text-primary font-serif">{formatValue(currentValue)}</span>
+        <span className="tabular-nums text-lg font-bold text-primary font-serif">{formatValue(currentValue ?? 0)}</span>
       </div>
       <Slider
         value={value}

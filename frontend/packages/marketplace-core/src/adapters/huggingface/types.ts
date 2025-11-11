@@ -262,43 +262,43 @@ export type HuggingFaceListModelsResponse = HuggingFaceModel[]
  */
 export interface HuggingFaceListModelsParams {
   /** Filter based on substrings for repos and usernames */
-  search?: string
+  search?: string | undefined
 
   /** Filter models by author or organization */
-  author?: string
+  author?: string | undefined
 
   /** Filter based on tags (e.g., "text-classification" or "spacy") */
-  filter?: string | string[]
+  filter?: string | string[] | undefined
 
   /** Property to use when sorting */
-  sort?: HuggingFaceSort
+  sort?: HuggingFaceSort | undefined
 
   /** Direction in which to sort (-1 for descending) */
-  direction?: -1 | 1
+  direction?: -1 | 1 | undefined
 
   /** Limit the number of models fetched */
-  limit?: number
+  limit?: number | undefined
 
   /** Whether to fetch most model data */
-  full?: boolean
+  full?: boolean | undefined
 
   /** Whether to also fetch the repo config */
-  config?: boolean
+  config?: boolean | undefined
 
   /** Fetch models with specific pipeline tag */
-  pipeline_tag?: HuggingFaceTask
+  pipeline_tag?: HuggingFaceTask | undefined
 
   /** Fetch models with specific library */
-  library?: HuggingFaceLibrary
+  library?: HuggingFaceLibrary | undefined
 
   /** Fetch models with specific language */
-  language?: string
+  language?: string | undefined
 
   /** Fetch models trained on specific dataset */
-  dataset?: string
+  dataset?: string | undefined
 
   /** Fetch models with specific license */
-  license?: HuggingFaceLicense | string
+  license?: HuggingFaceLicense | string | undefined
 }
 
 /**

@@ -2,6 +2,9 @@ import type { IframeMessage } from './types'
 import { isValidIframeMessage, validateMessage } from './types'
 import { createOriginValidator, type OriginConfig } from './validator'
 
+// Re-export IframeMessage for test files
+export type { IframeMessage }
+
 /**
  * TEAM-351: Message receiver for parent ← iframe communication
  * TEAM-351: Bug fixes - Validation, error handling, monitoring, memory leak prevention

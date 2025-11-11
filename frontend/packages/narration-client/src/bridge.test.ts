@@ -48,10 +48,12 @@ describe('@rbee/narration-client - bridge', () => {
 
       expect(result).toBe(true)
       expect(mockPostMessage).toHaveBeenCalledTimes(1)
-      const [message, origin] = mockPostMessage.mock.calls[0]
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [message, origin] = firstCall ?? []
 
-      expect(message.type).toBe('NARRATION_EVENT')
-      expect(message.payload).toEqual(event)
+      expect(message?.type).toBe('NARRATION_EVENT')
+      expect(message?.payload).toEqual(event)
     })
 
     it('should include timestamp', () => {
@@ -65,9 +67,11 @@ describe('@rbee/narration-client - bridge', () => {
       sendToParent(event, SERVICES.queen)
       const after = Date.now()
 
-      const [message] = mockPostMessage.mock.calls[0]
-      expect(message.timestamp).toBeGreaterThanOrEqual(before)
-      expect(message.timestamp).toBeLessThanOrEqual(after)
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [message] = firstCall ?? []
+      expect(message?.timestamp).toBeGreaterThanOrEqual(before)
+      expect(message?.timestamp).toBeLessThanOrEqual(after)
     })
 
     it('should include protocol version', () => {
@@ -79,8 +83,10 @@ describe('@rbee/narration-client - bridge', () => {
 
       sendToParent(event, SERVICES.queen)
 
-      const [message] = mockPostMessage.mock.calls[0]
-      expect(message.version).toBe('1.0.0')
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [message] = firstCall ?? []
+      expect(message?.version).toBe('1.0.0')
     })
   })
 
@@ -90,7 +96,9 @@ describe('@rbee/narration-client - bridge', () => {
 
       sendToParent({ actor: 'test', action: 'test', human: 'Test' }, SERVICES.queen)
 
-      const [, origin] = mockPostMessage.mock.calls[0]
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [, origin] = firstCall ?? []
       expect(origin).toBe('http://localhost:5173')
     })
 
@@ -99,7 +107,9 @@ describe('@rbee/narration-client - bridge', () => {
 
       sendToParent({ actor: 'test', action: 'test', human: 'Test' }, SERVICES.queen)
 
-      const [, origin] = mockPostMessage.mock.calls[0]
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [, origin] = firstCall ?? []
       expect(origin).toBe('*')
     })
 
@@ -108,7 +118,9 @@ describe('@rbee/narration-client - bridge', () => {
 
       sendToParent({ actor: 'test', action: 'test', human: 'Test' }, SERVICES.hive)
 
-      const [, origin] = mockPostMessage.mock.calls[0]
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [, origin] = firstCall ?? []
       expect(origin).toBe('http://localhost:5173')
     })
 
@@ -117,7 +129,9 @@ describe('@rbee/narration-client - bridge', () => {
 
       sendToParent({ actor: 'test', action: 'test', human: 'Test' }, SERVICES.worker)
 
-      const [, origin] = mockPostMessage.mock.calls[0]
+      const firstCall = mockPostMessage.mock.calls[0]
+      expect(firstCall).toBeDefined()
+      const [, origin] = firstCall ?? []
       expect(origin).toBe('http://localhost:5173')
     })
   })

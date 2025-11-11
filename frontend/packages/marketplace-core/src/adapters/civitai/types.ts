@@ -218,65 +218,65 @@ export interface CivitAIListModelsResponse {
  */
 export interface CivitAIListModelsParams {
   /** Limit the number of results */
-  limit?: number
+  limit?: number | undefined
 
   /** Page number */
-  page?: number
+  page?: number | undefined
 
   /** Search query */
-  query?: string
+  query?: string | undefined
 
   /** Filter by tag */
-  tag?: string
+  tag?: string | undefined
 
   /** Filter by username */
-  username?: string
+  username?: string | undefined
 
   /** Filter by model types */
-  types?: CivitAIModelType[]
+  types?: CivitAIModelType[] | undefined
 
   /** Sort order */
-  sort?: CivitAISort
+  sort?: CivitAISort | undefined
 
   /** Time period */
-  period?: CivitAITimePeriod
+  period?: CivitAITimePeriod | undefined
 
   /** Rating filter (1-5) */
-  rating?: number
+  rating?: number | undefined
 
   /** Favorites filter */
-  favorites?: boolean
+  favorites?: boolean | undefined
 
   /** Hidden filter */
-  hidden?: boolean
+  hidden?: boolean | undefined
 
   /** Primary file only */
-  primaryFileOnly?: boolean
+  primaryFileOnly?: boolean | undefined
 
   /** Allow commercial use */
-  allowCommercialUse?: CivitAICommercialUse[]
+  allowCommercialUse?: CivitAICommercialUse[] | undefined
 
   /** Allow derivatives */
-  allowDerivatives?: boolean
+  allowDerivatives?: boolean | undefined
 
   /** Allow different license */
-  allowDifferentLicense?: boolean
+  allowDifferentLicense?: boolean | undefined
 
   /** Allow no credit */
-  allowNoCredit?: boolean
+  allowNoCredit?: boolean | undefined
 
   /** Browse level (NSFW filter) */
-  browsingLevel?: number
+  browsingLevel?: number | undefined
 
   /** NSFW levels (bit flags: 1,2,4,8,16) */
-  nsfwLevel?: CivitAINSFWLevel[]
+  nsfwLevel?: CivitAINSFWLevel[] | undefined
 
   /** Supercedes NSFW */
-  supercedes_nsfw?: boolean
+  supercedes_nsfw?: boolean | undefined
 
   /** Base models */
-  baseModels?: CivitAIBaseModel[]
+  baseModels?: CivitAIBaseModel[] | undefined
 
   /** Cursor for pagination */
-  cursor?: string
+  cursor?: string | undefined
 }

@@ -104,7 +104,7 @@ export function Navigation({ config }: NavigationProps) {
                             key={`direct-${index}`}
                             label={section.label}
                             href={section.href}
-                            icon={section.icon}
+                            {...(section.icon ? { icon: section.icon } : {})}
                           />
                         )
                       }
@@ -115,7 +115,11 @@ export function Navigation({ config }: NavigationProps) {
               </div>
 
               {/* Zone C: Actions (Desktop) */}
-              <NavigationActions docs={config.actions.docs} github={config.actions.github} cta={config.actions.cta} />
+              <NavigationActions
+                {...(config.actions.docs ? { docs: config.actions.docs } : {})}
+                {...(config.actions.github ? { github: config.actions.github } : {})}
+                {...(config.actions.cta ? { cta: config.actions.cta } : {})}
+              />
 
               {/* Mobile Menu Toggle */}
               <div className="md:hidden justify-self-end">

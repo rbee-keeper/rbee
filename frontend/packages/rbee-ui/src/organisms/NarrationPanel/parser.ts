@@ -68,6 +68,19 @@ export function parseNarrationLine(line: string): NarrationEvent {
   }
 
   const [header, ...messageLines] = lines
+  if (!header) {
+    return {
+      level: 'info',
+      message: line,
+      timestamp: new Date().toISOString(),
+      actor: null,
+      action: null,
+      context: null,
+      human: line,
+      fn_name: null,
+      target: null,
+    }
+  }
   const parts = header.split(' ')
   const fn_name = parts[0] || null
   const action = parts[1] || null
@@ -166,5 +179,5 @@ export function extractFnNameFromFormatted(formatted?: string): string | null {
 
   // Match text between ESC[1m (bold) and ESC[0m (reset)
   const match = formatted.match(/\x1b\[1m([^\x1b]+)\x1b\[0m/)
-  return match ? match[1] : null
+  return match ? (match[1] ?? null) : null
 }

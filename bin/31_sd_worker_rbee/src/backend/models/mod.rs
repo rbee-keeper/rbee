@@ -2,11 +2,13 @@
 //
 // Defines supported SD models and their configurations.
 
-use crate::error::Result;
-use candle_core::Device;
+use candle_core::DType;
 
 pub mod sd_config;
 pub mod flux_loader; // TEAM-483: FLUX model loading
+
+// TEAM-488: New self-contained model implementations
+pub mod stable_diffusion;
 
 /// Supported Stable Diffusion model versions
 /// TEAM-483: Added FLUX support
@@ -227,7 +229,7 @@ impl SDVersion {
     }
 
     /// Parse from string (e.g., "v1-5", "xl", "turbo", "flux-dev", "flux-schnell")
-    pub fn from_str(s: &str) -> Result<Self> {
+    pub fn from_str(s: &str) -> crate::error::Result<Self> {
         match s.to_lowercase().as_str() {
             "v1-5" | "v1.5" | "1.5" => Ok(Self::V1_5),
             "v1-5-inpaint" | "v1.5-inpaint" => Ok(Self::V1_5Inpaint),
@@ -310,22 +312,8 @@ impl ModelFile {
     }
 }
 
-/// Model components loaded into memory
-/// TEAM-397: RULE ZERO - Direct Candle types, NO wrappers
-pub struct ModelComponents {
-    pub version: SDVersion,
-    pub device: Device,
-    pub dtype: candle_core::DType,
-    
-    // ✅ Direct Candle types (no wrappers)
-    pub tokenizer: tokenizers::Tokenizer,
-    pub clip_config: candle_transformers::models::stable_diffusion::clip::Config,
-    pub clip_weights: std::path::PathBuf,
-    pub unet: candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModel,
-    pub vae: candle_transformers::models::stable_diffusion::vae::AutoEncoderKL,
-    pub scheduler: Box<dyn crate::backend::scheduler::Scheduler>,  // TEAM-404: Use trait object for flexibility
-    pub vae_scale: f64,
-}
+// TEAM-488: ModelComponents moved to stable_diffusion::ModelComponents
+// Use stable_diffusion module instead
 
 #[cfg(test)]
 mod tests {

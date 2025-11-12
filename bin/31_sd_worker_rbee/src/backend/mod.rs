@@ -2,25 +2,28 @@
 //
 // Backend modules for SD inference using Candle.
 
-// TEAM-397: Core generation modules (Candle-idiomatic, no wrappers)
-pub mod generation;
-pub mod flux_generation; // TEAM-483: FLUX generation
-pub mod image_utils;
-pub mod lora; // TEAM-487: LoRA support
-pub mod model_loader;
+// TEAM-488: Trait-based architecture for clean model abstraction
+pub mod traits;
+
+// TEAM-488: Model implementations (self-contained)
 pub mod models;
+
+// TEAM-488: OLD FILES DELETED - generation.rs, flux_generation.rs, generation_engine.rs, model_loader.rs
+// Generation logic will be in models/stable_diffusion/generator.rs and models/flux/generator.rs
+// Loading logic will be in models/stable_diffusion/loader.rs and models/flux/loader.rs
+
+pub mod lora; // TEAM-487: LoRA support
 
 // TEAM-392: Inference pipeline modules
 pub mod sampling;
 pub mod scheduler;
 
-// TEAM-393: Generation engine modules
-pub mod generation_engine;
+// TEAM-488: Keep these for now (used by jobs and other modules)
 pub mod request_queue;
+pub mod image_utils;
 
-// TEAM-396/397: Public exports
-pub use generation_engine::GenerationEngine;
-pub use request_queue::{GenerationRequest, GenerationResponse, RequestQueue};
+// TEAM-488: Trait exports
+pub use traits::{ImageModel, ModelCapabilities};
 
 // TEAM-397: RULE ZERO APPLIED
 // Removed: clip.rs, vae.rs, inference.rs (custom wrappers - not Candle idiomatic)

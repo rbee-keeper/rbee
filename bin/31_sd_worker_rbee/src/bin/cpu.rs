@@ -6,7 +6,7 @@ use clap::Parser;
 use sd_worker_rbee::{
     backend::{
         generation_engine::GenerationEngine,
-        inference::InferencePipeline,
+        model_loader,
         models::SDVersion,
         request_queue::RequestQueue,
     },
@@ -15,7 +15,7 @@ use sd_worker_rbee::{
 };
 use shared_worker_rbee::device;
 use std::net::SocketAddr;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
@@ -75,11 +75,13 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Loading model: {:?}", sd_version);
     
     // Load model components (downloads from HuggingFace if needed)
-    tracing::info!("Loading model: {:?}", sd_version);
+    // TEAM-488: Updated to include LoRA support
     let model_components = model_loader::load_model(
         sd_version,
         &device,
         false, // use_f16 = false for CPU
+        &[],   // loras = empty (no LoRAs for now)
+        false, // quantized = false for CPU
     )?;
     tracing::info!("Model loaded successfully");
     

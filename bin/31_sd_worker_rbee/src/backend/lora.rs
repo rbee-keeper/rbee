@@ -244,9 +244,9 @@ impl SimpleBackend for LoRABackend {
         &self,
         s: Shape,
         name: &str,
-        h: Init,
-        dtype: DType,
-        dev: &Device,
+        _h: Init,
+        _dtype: DType,
+        _dev: &Device,
     ) -> candle_core::Result<Tensor> {
         // Get base tensor
         let base_tensor = self.base.get(s, name)?;
@@ -256,7 +256,7 @@ impl SimpleBackend for LoRABackend {
             .map_err(|e| candle_core::Error::Msg(e.to_string()))
     }
 
-    fn get_unchecked(&self, name: &str, dtype: DType, dev: &Device) -> candle_core::Result<Tensor> {
+    fn get_unchecked(&self, name: &str, _dtype: DType, _dev: &Device) -> candle_core::Result<Tensor> {
         // Get base tensor
         let base_tensor = self.base.get_unchecked(name)?;
 

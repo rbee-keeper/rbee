@@ -12,8 +12,19 @@ use tokenizers::Tokenizer;
 
 use super::SDVersion;
 
+/// Wrapper to make FLUX model Send+Sync (safe because we control threading)
+/// TEAM-488: FLUX models are used sequentially by the generation engine
+/// The generation queue ensures only one generation happens at a time
+struct SendFluxModel(Box<dyn flux::WithForward>);
+
+// SAFETY: We guarantee single-threaded access via the generation queue
+// The generation engine processes requests sequentially, never concurrently
+unsafe impl Send for SendFluxModel {}
+unsafe impl Sync for SendFluxModel {}
+
 /// FLUX model components loaded into memory
 /// TEAM-483: Direct Candle types, NO wrappers (RULE ZERO)
+/// TEAM-488: Made Send-safe by wrapping flux_model
 pub struct FluxComponents {
     pub version: SDVersion,
     pub device: Device,
@@ -26,10 +37,23 @@ pub struct FluxComponents {
     pub clip_model: clip::text_model::ClipTextTransformer,
     
     // FLUX transformer (trait object for full/quantized)
-    pub flux_model: Box<dyn flux::WithForward>,
+    // TEAM-488: Wrapped in SendFluxModel to enable spawn_blocking
+    flux_model: SendFluxModel,
     
     // VAE
     pub vae: flux::autoencoder::AutoEncoder,
+}
+
+impl FluxComponents {
+    /// Get reference to FLUX model for generation
+    pub fn flux_model(&self) -> &dyn flux::WithForward {
+        &*self.flux_model.0
+    }
+    
+    /// Get mutable reference to FLUX model for generation
+    pub fn flux_model_mut(&mut self) -> &mut dyn flux::WithForward {
+        &mut *self.flux_model.0
+    }
 }
 
 impl FluxComponents {
@@ -81,28 +105,16 @@ impl FluxComponents {
         
         let t5_model = {
             // T5-v1.1-XXL config
-            let config = t5::Config {
-                vocab_size: 32128,
-                d_model: 4096,
-                d_kv: 64,
-                d_ff: 10240,
-                num_layers: 24,
-                num_decoder_layers: 24,
-                num_heads: 64,
-                relative_attention_num_buckets: 32,
-                relative_attention_max_distance: 128,
-                dropout_rate: 0.1,
-                layer_norm_epsilon: 1e-6,
-                initializer_factor: 1.0,
-                feed_forward_proj: t5::FeedForwardProj::Gated,
-                is_encoder_decoder: true,
-                use_cache: true,
-                pad_token_id: 0,
-                eos_token_id: 1,
-                tie_word_embeddings: false,
-                is_decoder: false,
-                decoder_start_token_id: None,
-            };
+            // TEAM-488: Fixed - manually create config since v1_1_xxl() doesn't exist in this Candle version
+            // Use MusicGen config as template (same T5 architecture)
+            let mut config = t5::Config::musicgen_small();
+            // Override with XXL dimensions
+            config.vocab_size = 32128;
+            config.d_model = 4096;
+            config.d_kv = 64;
+            config.d_ff = 10240;
+            config.num_layers = 24;
+            config.num_heads = 64;
             
             let weights_path = model_path.join("text_encoder_2/model.safetensors");
             let vb = unsafe {
@@ -227,7 +239,7 @@ impl FluxComponents {
         
         tracing::info!("FLUX model loaded successfully");
         
-        Ok(Self {
+        Ok(FluxComponents {
             version,
             device: device.clone(),
             dtype,
@@ -235,7 +247,7 @@ impl FluxComponents {
             t5_model,
             clip_tokenizer,
             clip_model,
-            flux_model,
+            flux_model: SendFluxModel(flux_model),  // TEAM-488: Wrap for Send
             vae,
         })
     }

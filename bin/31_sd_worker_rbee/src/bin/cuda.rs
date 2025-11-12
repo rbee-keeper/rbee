@@ -5,7 +5,9 @@
 use clap::Parser;
 use sd_worker_rbee::{
     backend::{
-        generation_engine::GenerationEngine, inference::InferencePipeline, models::SDVersion,
+        generation_engine::GenerationEngine,
+        model_loader,
+        models::SDVersion,
         request_queue::RequestQueue,
     },
     http::{backend::AppState, routes::create_router},
@@ -13,7 +15,7 @@ use sd_worker_rbee::{
 };
 use shared_worker_rbee::device;
 use std::net::SocketAddr;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
@@ -92,14 +94,6 @@ async fn main() -> anyhow::Result<()> {
         args.use_flash_attn
     );
 
-    // Load model components with FP16 support
-    let model_components = sd_worker_rbee::backend::model_loader::load_model(
-        sd_version,
-        &device,
-        args.use_f16, // Use FP16 for CUDA
-    )?;
-
-    tracing::warn!("Using placeholder pipeline - full model loading not yet implemented");
     if args.use_flash_attn {
         tracing::info!("Flash attention enabled (requires Ampere/Ada/Hopper GPU)");
     }
@@ -107,10 +101,25 @@ async fn main() -> anyhow::Result<()> {
     // 1. Create request queue
     let (request_queue, request_rx) = RequestQueue::new();
 
-    // 2-4. Pipeline and engine creation (commented out until full implementation)
-    // let pipeline = Arc::new(Mutex::new(InferencePipeline::new(...)?));
-    // let engine = GenerationEngine::new(Arc::clone(&pipeline), request_rx);
-    // engine.start();
+    // Load model components
+    // TEAM-488: Updated to include LoRA support
+    let model_components = model_loader::load_model(
+        sd_version,
+        &device,
+        true,  // use_f16 = true for CUDA
+        &[],   // loras = empty (no LoRAs for now)
+        false, // quantized = false
+    )?;
+    tracing::info!("Model loaded successfully");
+    
+    // 2. Create generation engine with loaded models
+    let engine = GenerationEngine::new(
+        Arc::new(model_components),
+        request_rx,
+    );
+    
+    // 3. Start engine (consumes self, spawns blocking task)
+    engine.start();
 
     // 5. Create HTTP state
     let app_state = AppState::new(request_queue);

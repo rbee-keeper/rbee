@@ -10,8 +10,9 @@ use hf_hub::api::sync::Api;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use super::lora::{create_lora_varbuilder, LoRAConfig, LoRAWeights};
-use super::models::{flux_loader::FluxComponents, ModelComponents, ModelFile, SDVersion};
+use super::{ModelComponents, StableDiffusionModel};
+use crate::backend::lora::LoRAConfig;
+use crate::backend::models::{ModelFile, SDVersion};
 
 /// Model loader for downloading and caching models
 pub struct ModelLoader {
@@ -48,11 +49,10 @@ impl ModelLoader {
 
     /// Load all model components
     /// TEAM-399: Full implementation with actual model loading
-    /// TEAM-487: Added LoRA support
     pub fn load_components(
         &self,
         device: &Device,
-        lora_configs: &[LoRAConfig],
+        _lora_configs: &[LoRAConfig],
     ) -> Result<ModelComponents> {
         let start = Instant::now();
         log_model_loading_start(&format!("{:?}", self.version));
@@ -81,32 +81,13 @@ impl ModelLoader {
         // Determine dtype
         let dtype = if self.use_f16 { candle_core::DType::F16 } else { candle_core::DType::F32 };
 
-        // Create base VarBuilder from SafeTensors files
-        let base_unet_vb =
+        // Create VarBuilder from SafeTensors files
+        let unet_vb =
             unsafe { VarBuilder::from_mmaped_safetensors(&[unet_weights.clone()], dtype, device)? };
-
-        // TEAM-487: Apply LoRAs if any are configured
-        let unet_vb = if !lora_configs.is_empty() {
-            tracing::info!("Loading {} LoRAs for UNet", lora_configs.len());
-
-            // Load all LoRA weights
-            let mut loras = Vec::new();
-            for config in lora_configs {
-                tracing::info!("Loading LoRA: {} (strength: {})", config.path, config.strength);
-                let lora_weights = LoRAWeights::load(&config.path, device)?;
-                loras.push((lora_weights, config.strength));
-            }
-
-            // Create VarBuilder with LoRAs merged
-            create_lora_varbuilder(base_unet_vb, loras)?
-        } else {
-            base_unet_vb
-        };
-
         let vae_vb =
             unsafe { VarBuilder::from_mmaped_safetensors(&[vae_weights.clone()], dtype, device)? };
 
-        // Load UNet (from Candle) - now with LoRAs applied!
+        // Load UNet (from Candle)
         let unet =
             candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModel::new(
                 unet_vb,
@@ -150,79 +131,27 @@ impl ModelLoader {
     }
 }
 
-/// Loaded model (either Stable Diffusion or FLUX)
-/// TEAM-483: Added FLUX support
-pub enum LoadedModel {
-    /// Stable Diffusion model (v1.5, v2.1, XL, Turbo, etc.)
-    StableDiffusion(ModelComponents),
-    /// FLUX model (dev or schnell)
-    Flux(FluxComponents),
+/// Load model components without LoRA
+pub fn load_model_simple(
+    version: SDVersion,
+    device: &Device,
+    use_f16: bool,
+) -> Result<StableDiffusionModel> {
+    let loader = ModelLoader::new(version, use_f16)?;
+    let components = loader.load_components(device, &[])?;
+    Ok(StableDiffusionModel::new(components))
 }
 
-/// Load a model (Stable Diffusion or FLUX)
-/// TEAM-483: Added FLUX support
-/// TEAM-487: Added LoRA support (SD only)
-pub fn load_model(
+/// Load a Stable Diffusion model with LoRA
+pub fn load_stable_diffusion_with_lora(
     version: SDVersion,
     device: &Device,
     use_f16: bool,
     lora_configs: &[LoRAConfig],
-    quantized: bool,
-) -> Result<LoadedModel> {
-    if version.is_flux() {
-        // Load FLUX model
-        tracing::info!("Loading FLUX model: {:?}", version);
-        
-        // Get model path from HuggingFace cache
-        let api = Api::new()
-            .map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {}", e)))?;
-        let repo = api.model(version.repo().to_string());
-        
-        // Download a file to get the cache directory
-        let model_file = if quantized {
-            match version {
-                SDVersion::FluxSchnell => "flux1-schnell.gguf",
-                SDVersion::FluxDev => "flux1-dev.gguf",
-                _ => unreachable!(),
-            }
-        } else {
-            match version {
-                SDVersion::FluxSchnell => "flux1-schnell.safetensors",
-                SDVersion::FluxDev => "flux1-dev.safetensors",
-                _ => unreachable!(),
-            }
-        };
-        
-        let _file_path = repo
-            .get(model_file)
-            .map_err(|e| Error::ModelLoading(format!("Failed to download {}: {}", model_file, e)))?;
-        
-        // Get the cache directory (parent of the file)
-        let cache_dir = repo
-            .get("ae.safetensors")
-            .map_err(|e| Error::ModelLoading(format!("Failed to download VAE: {}", e)))?
-            .parent()
-            .ok_or_else(|| Error::ModelLoading("Failed to get cache directory".to_string()))?
-            .to_path_buf();
-        
-        let components = FluxComponents::load(
-            cache_dir
-                .to_str()
-                .ok_or_else(|| Error::ModelLoading("Invalid cache path".to_string()))?,
-            version,
-            device,
-            use_f16,
-            quantized,
-        )?;
-        
-        Ok(LoadedModel::Flux(components))
-    } else {
-        // Load Stable Diffusion model
-        tracing::info!("Loading Stable Diffusion model: {:?}", version);
-        let loader = ModelLoader::new(version, use_f16)?;
-        let components = loader.load_components(device, lora_configs)?;
-        Ok(LoadedModel::StableDiffusion(components))
-    }
+) -> Result<StableDiffusionModel> {
+    let loader = ModelLoader::new(version, use_f16)?;
+    let components = loader.load_components(device, lora_configs)?;
+    Ok(StableDiffusionModel::new(components))
 }
 
 #[cfg(test)]

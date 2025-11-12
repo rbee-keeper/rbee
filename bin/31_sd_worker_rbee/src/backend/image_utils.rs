@@ -3,7 +3,7 @@
 
 use crate::error::Result;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use image::{DynamicImage, GenericImageView, ImageFormat};  // TEAM-394: Added GenericImageView trait
+use image::{DynamicImage, GenericImageView, ImageFormat}; // TEAM-394: Added GenericImageView trait
 use std::io::Cursor;
 
 /// Convert image to base64-encoded PNG
@@ -24,11 +24,7 @@ pub fn base64_to_image(base64: &str) -> Result<DynamicImage> {
 }
 
 /// Resize image to target dimensions
-pub fn resize_image(
-    image: &DynamicImage,
-    width: u32,
-    height: u32,
-) -> DynamicImage {
+pub fn resize_image(image: &DynamicImage, width: u32, height: u32) -> DynamicImage {
     image.resize_exact(width, height, image::imageops::FilterType::Lanczos3)
 }
 
@@ -37,7 +33,7 @@ pub fn ensure_multiple_of_8(image: &DynamicImage) -> DynamicImage {
     let (width, height) = image.dimensions();
     let new_width = (width / 8) * 8;
     let new_height = (height / 8) * 8;
-    
+
     if new_width != width || new_height != height {
         resize_image(image, new_width, new_height)
     } else {
@@ -67,20 +63,20 @@ pub fn process_mask(
 ) -> Result<DynamicImage> {
     // 1. Convert to grayscale
     let gray = mask.to_luma8();
-    
+
     // 2. Resize to target dimensions
     let resized = image::DynamicImage::ImageLuma8(gray).resize_exact(
         target_width,
         target_height,
         image::imageops::FilterType::Lanczos3,
     );
-    
+
     // 3. Threshold to binary (0 or 255)
     let mut binary = resized.to_luma8();
     for pixel in binary.pixels_mut() {
         pixel[0] = if pixel[0] > 127 { 255 } else { 0 };
     }
-    
+
     Ok(image::DynamicImage::ImageLuma8(binary))
 }
 
@@ -100,8 +96,8 @@ pub fn mask_to_latent_tensor(
     device: &candle_core::Device,
     dtype: candle_core::DType,
 ) -> Result<candle_core::Tensor> {
-    use candle_core::{Module, Tensor};
-    
+    use candle_core::Tensor;
+
     // 1. Resize mask to latent dimensions (1/8 of original)
     let (width, height) = mask.dimensions();
     let latent_mask = mask.resize_exact(
@@ -109,20 +105,20 @@ pub fn mask_to_latent_tensor(
         height / 8,
         image::imageops::FilterType::Nearest, // Use nearest for binary mask
     );
-    
+
     // 2. Convert to grayscale and get pixel data
     let gray = latent_mask.to_luma8();
     let data = gray.into_raw();
-    
+
     // 3. Convert to f32 and normalize [0.0, 1.0]
     let data: Vec<f32> = data.iter().map(|&x| x as f32 / 255.0).collect();
-    
+
     // 4. Reshape to (1, 1, height, width)
     let h = (height / 8) as usize;
     let w = (width / 8) as usize;
     let tensor = Tensor::from_vec(data, (h, w), device)?;
     let tensor = tensor.unsqueeze(0)?.unsqueeze(0)?; // Add batch and channel dims
-    
+
     Ok(tensor.to_dtype(dtype)?)
 }
 

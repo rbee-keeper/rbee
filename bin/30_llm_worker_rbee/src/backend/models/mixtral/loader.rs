@@ -6,7 +6,6 @@
 
 use super::components::MixtralModel;
 use crate::backend::models::helpers::{create_varbuilder, find_safetensors_files, load_config};
-use crate::backend::models::ModelCapabilities;
 use anyhow::{Context, Result};
 use candle_core::Device;
 use candle_transformers::models::mixtral::{Config, Model as MixtralCandle};

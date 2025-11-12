@@ -47,7 +47,28 @@ impl LlamaModel {
         let max_position_embeddings =
             config_json["max_position_embeddings"].as_u64().unwrap_or(2048);
         let bos_token_id = config_json["bos_token_id"].as_u64().unwrap_or(1);
-        let eos_token_id = config_json["eos_token_id"].as_u64().unwrap_or(2);
+        
+        // TEAM-486: Parse EOS token(s) - supports both single value and array (Llama 3)
+        let eos_token_id = if let Some(eos_array) = config_json["eos_token_id"].as_array() {
+            // Llama 3 has multiple EOS tokens: [128001, 128009]
+            let eos_ids: Vec<u32> = eos_array
+                .iter()
+                .filter_map(|v| v.as_u64().map(|id| id as u32))
+                .collect();
+            if eos_ids.is_empty() {
+                LlamaEosToks::Single(2) // Fallback
+            } else if eos_ids.len() == 1 {
+                LlamaEosToks::Single(eos_ids[0])
+            } else {
+                tracing::info!(eos_tokens = ?eos_ids, "Llama model has multiple EOS tokens");
+                LlamaEosToks::Multiple(eos_ids)
+            }
+        } else {
+            // Single EOS token (Llama 1/2)
+            let eos_id = config_json["eos_token_id"].as_u64().unwrap_or(2) as u32;
+            LlamaEosToks::Single(eos_id)
+        };
+        
         let tie_word_embeddings = config_json["tie_word_embeddings"].as_bool().unwrap_or(false);
 
         let config = Config {
@@ -61,7 +82,7 @@ impl LlamaModel {
             rope_theta: rope_theta as f32,
             max_position_embeddings: max_position_embeddings as usize,
             bos_token_id: Some(bos_token_id as u32),
-            eos_token_id: Some(LlamaEosToks::Single(eos_token_id as u32)),
+            eos_token_id: Some(eos_token_id),
             rope_scaling: None,
             tie_word_embeddings,
             use_flash_attn: false,

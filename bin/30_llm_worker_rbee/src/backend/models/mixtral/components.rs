@@ -23,6 +23,8 @@ pub struct MixtralModel {
     pub(super) vocab_size: usize,
     pub(super) num_experts: usize,
     pub(super) experts_per_tok: usize,
+    // TEAM-486: Device stored for future cache reset implementation (see llama/mod.rs reset_cache)
+    #[allow(dead_code)]
     pub(super) device: Device,
     pub(super) capabilities: crate::backend::models::ModelCapabilities,
 }

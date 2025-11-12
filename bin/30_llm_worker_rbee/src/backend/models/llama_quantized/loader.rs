@@ -20,7 +20,18 @@ impl QuantizedLlamaModel {
     /// TEAM-036: Loads GGUF files using candle's quantized model support
     /// TEAM-088: Added comprehensive narration for debugging
     /// TEAM-482: Refactored to use helper functions
+    /// TEAM-486: dtype parameter is ignored - GGUF files have fixed quantization format
+    ///
+    /// # Arguments
+    /// * `dtype` - Ignored for GGUF files (quantization format is in file metadata)
     pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
+        // TEAM-486: Validate dtype parameter - warn if user tries to override GGUF format
+        if let Some(requested_dtype) = dtype {
+            tracing::warn!(
+                requested_dtype = ?requested_dtype,
+                "dtype parameter ignored for GGUF files - quantization format is fixed in file metadata"
+            );
+        }
         tracing::info!(path = ?path, "Loading GGUF model");
 
         // TEAM-088: Narrate GGUF loading start
@@ -78,10 +89,12 @@ impl QuantizedLlamaModel {
 
         // TEAM-482: Quantized model capabilities
         // TEAM-485: Quantized models use native dtype from GGUF
+        // TEAM-486: We report F32 as the "dtype" but actual storage is quantized (Q4_K_M, Q8_0, etc.)
+        // The quantization format is determined by the GGUF file, not this parameter
         let capabilities = crate::backend::models::ModelCapabilities::quantized(
             crate::backend::models::arch::LLAMA,
             2048, // Default GGUF context
-            candle_core::DType::F32
+            candle_core::DType::F32 // Computation dtype (dequantized tensors)
         );
 
         Ok(Self::new(model, eos_token_id, vocab_size, capabilities))

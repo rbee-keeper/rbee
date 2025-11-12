@@ -9,9 +9,8 @@
 //! Modified by: TEAM-090 (added quantized versions for all architectures)
 //! Refactored by: TEAM-482 (trait-based abstraction to make adding models trivial)
 
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use candle_core::{Device, Tensor};
-use serde_json::Value;
 use std::path::Path;
 
 // TEAM-482: Restructured into directories for better organization
@@ -293,7 +292,8 @@ mod tests {
     #[test]
     fn test_model_capabilities_clone() {
         // Verify ModelCapabilities is Clone (needed for flexibility)
-        let caps = ModelCapabilities::standard(arch::LLAMA, 4096, dtype);
+        // TEAM-486: Fixed missing dtype parameter
+        let caps = ModelCapabilities::standard(arch::LLAMA, 4096, candle_core::DType::F32);
         let _cloned = caps.clone();
     }
 }

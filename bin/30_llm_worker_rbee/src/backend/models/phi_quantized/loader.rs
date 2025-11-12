@@ -18,7 +18,18 @@ impl QuantizedPhiModel {
     ///
     /// TEAM-090: Loads GGUF files using candle's quantized model support
     /// TEAM-482: Refactored to use helper functions
+    /// TEAM-486: dtype parameter is ignored - GGUF files have fixed quantization format
+    ///
+    /// # Arguments
+    /// * `dtype` - Ignored for GGUF files (quantization format is in file metadata)
     pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
+        // TEAM-486: Validate dtype parameter - warn if user tries to override GGUF format
+        if let Some(requested_dtype) = dtype {
+            tracing::warn!(
+                requested_dtype = ?requested_dtype,
+                "dtype parameter ignored for GGUF files - quantization format is fixed in file metadata"
+            );
+        }
         tracing::info!(path = ?path, "Loading GGUF Phi model");
 
         n!("gguf_load_start", "Loading GGUF Phi model from {}", path.display());

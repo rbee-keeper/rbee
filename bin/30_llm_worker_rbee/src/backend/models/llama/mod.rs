@@ -84,8 +84,12 @@ impl crate::backend::models::ModelTrait for LlamaModel {
     }
 
     fn eos_tokens(&self) -> crate::backend::traits::EosTokens {
-        // TEAM-485: Llama models use single EOS token
-        crate::backend::traits::EosTokens::single(self.eos_token_id())
+        // TEAM-486: Llama models support multiple EOS tokens (Llama 3)
+        match &self.config.eos_token_id {
+            Some(LlamaEosToks::Single(id)) => crate::backend::traits::EosTokens::single(*id),
+            Some(LlamaEosToks::Multiple(ids)) => crate::backend::traits::EosTokens::multiple(ids.clone()),
+            None => crate::backend::traits::EosTokens::single(2), // Fallback
+        }
     }
 
     fn architecture(&self) -> &'static str {

@@ -165,8 +165,8 @@ impl HeartbeatMonitor {
 
         let health_url = format!("{}/health", self.base_url);
         
-        let mut opts = RequestInit::new();
-        opts.method("GET");
+        let opts = RequestInit::new();
+        opts.set_method("GET");
         
         let request = Request::new_with_str_and_init(&health_url, &opts)
             .map_err(|e| JsValue::from_str(&format!("Failed to create request: {:?}", e)))?;

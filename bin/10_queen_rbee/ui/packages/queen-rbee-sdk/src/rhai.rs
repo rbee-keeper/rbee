@@ -5,10 +5,11 @@
 
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
-use job_client::JobClient;
 use operations_contract::Operation;
-use crate::conversions::error_to_js;
 
+/// RHAI Script representation
+/// 
+/// Represents a RHAI script with metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct RhaiScript {
@@ -21,6 +22,11 @@ pub struct RhaiScript {
 
 #[wasm_bindgen]
 impl RhaiScript {
+    /// Create a new RHAI script
+    /// 
+    /// # Arguments
+    /// * `name` - Script name
+    /// * `content` - Script content
     #[wasm_bindgen(constructor)]
     pub fn new(name: String, content: String) -> Self {
         Self {
@@ -32,32 +38,40 @@ impl RhaiScript {
         }
     }
 
+    /// Get the script ID
     #[wasm_bindgen(getter)]
     pub fn id(&self) -> Option<String> {
         self.id.clone()
     }
 
+    /// Get the script name
     #[wasm_bindgen(getter)]
     pub fn name(&self) -> String {
         self.name.clone()
     }
 
+    /// Get the script content
     #[wasm_bindgen(getter)]
     pub fn content(&self) -> String {
         self.content.clone()
     }
 
+    /// Get the creation timestamp
     #[wasm_bindgen(getter)]
     pub fn created_at(&self) -> Option<String> {
         self.created_at.clone()
     }
 
+    /// Get the last update timestamp
     #[wasm_bindgen(getter)]
     pub fn updated_at(&self) -> Option<String> {
         self.updated_at.clone()
     }
 }
 
+/// RHAI Script test result
+/// 
+/// Contains the result of testing a RHAI script
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct TestResult {
@@ -68,16 +82,19 @@ pub struct TestResult {
 
 #[wasm_bindgen]
 impl TestResult {
+    /// Check if the test was successful
     #[wasm_bindgen(getter)]
     pub fn success(&self) -> bool {
         self.success
     }
 
+    /// Get the test output
     #[wasm_bindgen(getter)]
     pub fn output(&self) -> Option<String> {
         self.output.clone()
     }
 
+    /// Get the test error message if any
     #[wasm_bindgen(getter)]
     pub fn error(&self) -> Option<String> {
         self.error.clone()
@@ -113,6 +130,10 @@ impl RhaiClient {
 
 #[wasm_bindgen]
 impl RhaiClient {
+    /// Create a new RHAI client
+    /// 
+    /// # Arguments
+    /// * `base_url` - Base URL of the Queen API
     #[wasm_bindgen(constructor)]
     pub fn new(base_url: String) -> Self {
         Self { base_url }

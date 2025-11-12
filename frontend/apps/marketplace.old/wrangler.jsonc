@@ -1,7 +1,0 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "rbee-marketplace",
-  "compatibility_date": "2025-03-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": "out"
-}

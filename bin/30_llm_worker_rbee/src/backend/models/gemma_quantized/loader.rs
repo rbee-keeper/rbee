@@ -2,7 +2,7 @@
 //! Quantized Gemma model loader
 //!
 //! Created by: TEAM-409
-//! Refactored by: TEAM-482 (split into components/loader)
+//! Refactored by: TEAM-482 (split into components/loader, now uses helper functions)
 
 use anyhow::{Context, Result};
 use candle_core::Device;
@@ -11,74 +11,39 @@ use observability_narration_core::n;
 use std::path::Path;
 
 use super::QuantizedGemmaModel;
+use crate::backend::models::helpers::{
+    extract_eos_token_id, extract_vocab_size, load_gguf_content,
+};
 
 impl QuantizedGemmaModel {
     /// Load quantized Gemma model from GGUF file
     ///
     /// TEAM-409: Loads GGUF files using candle's quantized model support
-    /// TEAM-482: Moved to separate loader module
+    /// TEAM-482: Refactored to use helper functions
     pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        tracing::info!(path = ?path, "Loading Gemma GGUF model");
+        tracing::info!(path = ?path, "Loading GGUF Gemma model");
 
-        // TEAM-409: Narrate GGUF loading start
-        n!("gguf_gemma_load_start", "Loading Gemma GGUF model from {}", path.display());
+        n!("gguf_load_start", "Loading GGUF Gemma model from {}", path.display());
 
-        // Open GGUF file
-        let mut file = std::fs::File::open(path).with_context(|| {
-            n!("gguf_gemma_open_failed", "Failed to open Gemma GGUF file: {}", path.display());
-            format!("Failed to open Gemma GGUF file at {path:?}")
-        })?;
+        // TEAM-482: Use helper functions
+        let (mut file, content) = load_gguf_content(path)?;
 
-        n!("gguf_gemma_file_opened", "Gemma GGUF file opened, reading content");
-
-        // Read GGUF content
-        let content =
-            candle_core::quantized::gguf_file::Content::read(&mut file).with_context(|| {
-                n!(
-                    "gguf_gemma_parse_failed",
-                    "Failed to parse Gemma GGUF content from {}",
-                    path.display()
-                );
-                format!("Failed to read Gemma GGUF content from {path:?}")
-            })?;
-
+        // TEAM-409: Narrate metadata inspection
         n!(
-            "gguf_gemma_inspect_metadata",
-            "Inspecting Gemma GGUF metadata ({} keys found)",
+            "gguf_inspect_metadata",
+            "Inspecting GGUF metadata ({} keys found)",
             content.metadata.len()
         );
 
-        // Extract metadata
-        let vocab_size = content
-            .metadata
-            .get("gemma.vocab_size")
-            .or_else(|| content.metadata.get("llama.vocab_size")) // Fallback for compatibility
-            .and_then(|v| v.to_u32().ok())
-            .or_else(|| {
-                // Fallback: count tokens in tokenizer array
-                content.metadata
-                    .get("tokenizer.ggml.tokens")
-                    .and_then(|v| match v {
-                        candle_core::quantized::gguf_file::Value::Array(arr) => Some(arr.len() as u32),
-                        _ => None,
-                    })
-            })
-            .with_context(|| {
-                let available_keys: Vec<String> = content.metadata.keys().map(std::string::ToString::to_string).collect();
-                n!("gguf_gemma_metadata_missing", "Cannot determine vocab_size from Gemma GGUF metadata");
+        // List available keys for debugging
+        let available_keys: Vec<String> =
+            content.metadata.keys().map(std::string::ToString::to_string).collect();
+        tracing::debug!(keys = ?available_keys, "Available GGUF metadata keys");
 
-                format!(
-                    "Cannot determine vocab_size: missing gemma.vocab_size, llama.vocab_size, and tokenizer.ggml.tokens. \
-                     Available keys: [{}]. This GGUF file may be incomplete or corrupted.",
-                    available_keys.join(", ")
-                )
-            })?;
-
-        let eos_token_id = content
-            .metadata
-            .get("tokenizer.ggml.eos_token_id")
-            .and_then(|v| v.to_u32().ok())
-            .unwrap_or(1); // Default EOS token for Gemma (different from Llama!)
+        // TEAM-482: Use helper functions to extract metadata
+        let vocab_size = extract_vocab_size(&content, "gemma")?;
+        // TEAM-409: Gemma uses EOS token ID 1 by default (different from Llama's 2)
+        let eos_token_id = extract_eos_token_id(&content, 1); // Default EOS token for Gemma (different from Llama!)
 
         n!(
             "gguf_gemma_metadata_loaded",

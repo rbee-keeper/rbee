@@ -15,12 +15,14 @@ use serde_json::Value;
 use std::path::Path;
 
 // TEAM-482: Restructured into directories for better organization
+pub mod deepseek; // TEAM-482: DeepSeek-R1 / DeepSeek-V2
 pub mod llama;
 pub mod mistral;
 pub mod phi;
 pub mod qwen;
 
 // TEAM-482: Quantized models at same level as regular models
+pub mod deepseek_quantized; // TEAM-482: DeepSeek GGUF
 pub mod gemma_quantized;
 pub mod llama_quantized;
 pub mod phi_quantized;
@@ -61,6 +63,8 @@ macro_rules! delegate_to_model {
             Model::Qwen(m) => ModelTrait::$method(m, $($arg),*),
             Model::QuantizedQwen(m) => ModelTrait::$method(m, $($arg),*),
             Model::QuantizedGemma(m) => ModelTrait::$method(m, $($arg),*),
+            Model::DeepSeek(m) => ModelTrait::$method(m, $($arg),*), // TEAM-482
+            Model::QuantizedDeepSeek(m) => ModelTrait::$method(m, $($arg),*), // TEAM-482
         }
     };
 }
@@ -71,8 +75,9 @@ macro_rules! delegate_to_model {
 /// TEAM-036: Added `QuantizedLlama` for GGUF support
 /// TEAM-090: Added quantized versions for Phi and Qwen
 /// TEAM-409: Added Gemma GGUF support (Mistral GGUF uses QuantizedLlama)
-/// TEAM-482: Reorganized quantized models to same level as regular models
+/// TEAM-482: Reorganized quantized models to same level as regular models + added DeepSeek
 pub enum Model {
+    DeepSeek(deepseek::DeepSeekModel), // TEAM-482: DeepSeek-R1 / DeepSeek-V2
     Llama(llama::LlamaModel),
     QuantizedLlama(llama_quantized::QuantizedLlamaModel), // Also handles Mistral GGUF
     Mistral(mistral::MistralModel),
@@ -80,6 +85,7 @@ pub enum Model {
     QuantizedPhi(phi_quantized::QuantizedPhiModel),
     Qwen(qwen::QwenModel),
     QuantizedQwen(qwen_quantized::QuantizedQwenModel),
+    QuantizedDeepSeek(deepseek_quantized::QuantizedDeepSeekModel), // TEAM-482: DeepSeek GGUF
     QuantizedGemma(gemma_quantized::QuantizedGemmaModel),
 }
 
@@ -152,8 +158,13 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
 
         // Load appropriate quantized model based on architecture
         // TEAM-409: Added Mistral and Gemma GGUF support
-        // TEAM-482: Updated to use new module structure
+        // TEAM-482: Updated to use new module structure + added DeepSeek
         match architecture.as_str() {
+            "deepseek" => {
+                // TEAM-482: DeepSeek GGUF
+                let model = deepseek_quantized::QuantizedDeepSeekModel::load(path, device)?;
+                Ok(Model::QuantizedDeepSeek(model))
+            }
             "llama" => {
                 let model = llama_quantized::QuantizedLlamaModel::load(path, device)?;
                 Ok(Model::QuantizedLlama(model))
@@ -177,7 +188,7 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
                 Ok(Model::QuantizedGemma(model))
             }
             _ => bail!(
-                "Unsupported quantized architecture: {} (supported: llama, mistral, phi, qwen, gemma)",
+                "Unsupported quantized architecture: {} (supported: deepseek, llama, mistral, phi, qwen, gemma)",
                 architecture
             ),
         }
@@ -193,6 +204,11 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
         );
 
         match architecture.as_str() {
+            "deepseek" => {
+                // TEAM-482: DeepSeek-R1 / DeepSeek-V2
+                let model = deepseek::DeepSeekModel::load(path, device)?;
+                Ok(Model::DeepSeek(model))
+            }
             "llama" => {
                 let model = llama::LlamaModel::load(path, device)?;
                 Ok(Model::Llama(model))

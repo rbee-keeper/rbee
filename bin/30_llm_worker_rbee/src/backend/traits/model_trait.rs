@@ -14,7 +14,9 @@ mod sealed {
     pub trait Sealed {}
     
     // Only internal model types can implement Sealed
-    // TEAM-482: Updated to use new quantized module structure
+    // TEAM-482: Updated to use new quantized module structure + added DeepSeek
+    impl Sealed for crate::backend::models::deepseek::DeepSeekModel {}
+    impl Sealed for crate::backend::models::deepseek_quantized::QuantizedDeepSeekModel {}
     impl Sealed for crate::backend::models::llama::LlamaModel {}
     impl Sealed for crate::backend::models::llama_quantized::QuantizedLlamaModel {}
     impl Sealed for crate::backend::models::mistral::MistralModel {}
@@ -145,4 +147,6 @@ pub mod arch {
     pub const QWEN: &str = "qwen";
     pub const QWEN_QUANTIZED: &str = "qwen-quantized";
     pub const GEMMA_QUANTIZED: &str = "gemma-quantized";
+    pub const DEEPSEEK: &str = "deepseek"; // TEAM-482: DeepSeek-R1 / DeepSeek-V2
+    pub const DEEPSEEK_QUANTIZED: &str = "deepseek-quantized"; // TEAM-482: DeepSeek GGUF
 }

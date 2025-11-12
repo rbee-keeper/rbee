@@ -4,6 +4,8 @@
 // Contains utilities for working with safetensors files.
 
 use anyhow::{bail, Context, Result};
+use candle_core::{DType, Device};
+use candle_nn::VarBuilder;
 use std::path::{Path, PathBuf};
 
 /// Scan for safetensors files
@@ -72,4 +74,35 @@ pub fn calculate_model_size(model_path: &str) -> Result<u64> {
         safetensor_files.iter().filter_map(|p| std::fs::metadata(p).ok()).map(|m| m.len()).sum();
 
     Ok(model_size_bytes)
+}
+
+/// Load and parse config.json for a model
+///
+/// TEAM-482: Extracted common pattern from all safetensors loaders
+/// Generic function that works with any serde-deserializable config type
+pub fn load_config<T: serde::de::DeserializeOwned>(
+    model_path: &Path,
+    model_name: &str,
+) -> Result<T> {
+    let config_path = model_path.join("config.json");
+    serde_json::from_reader(
+        std::fs::File::open(&config_path)
+            .with_context(|| format!("Failed to open config.json at {config_path:?}"))?,
+    )
+    .with_context(|| format!("Failed to parse {} config.json", model_name))
+}
+
+/// Create VarBuilder from safetensors files
+///
+/// TEAM-482: Extracted common pattern from all safetensors loaders
+/// TEAM-019: Always uses F32 dtype (Metal F16 causes forward pass failures)
+pub fn create_varbuilder<'a>(
+    safetensor_files: &[PathBuf],
+    device: &'a Device,
+) -> Result<VarBuilder<'a>> {
+    let dtype = DType::F32; // TEAM-019: F32 for all backends
+    tracing::debug!(dtype = ?dtype, device = ?device, "Creating VarBuilder");
+
+    unsafe { VarBuilder::from_mmaped_safetensors(safetensor_files, dtype, device) }
+        .context("Failed to create VarBuilder from safetensors")
 }

@@ -97,7 +97,7 @@ export function MarkdownContent({
           <div className="my-6">
             <CodeBlock
               code={codeString}
-              language={match[1]}
+              {...(match[1] ? { language: match[1] } : {})}
               copyable={true}
             />
           </div>

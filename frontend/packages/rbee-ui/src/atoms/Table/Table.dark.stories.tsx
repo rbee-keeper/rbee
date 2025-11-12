@@ -41,7 +41,13 @@ const mockData = [
   { model: 'Mixtral 8x7B', provider: 'Lambda Labs', vram: '48 GB', price: '$0.89/hr', tps: '76' },
   { model: 'GPT-J 6B', provider: 'Paperspace', vram: '16 GB', price: '$0.21/hr', tps: '156' },
   { model: 'Falcon 40B', provider: 'Jarvis Labs', vram: '80 GB', price: '$1.45/hr', tps: '54' },
-]
+] as const
+
+// TEAM-472: Guard checks for noUncheckedIndexedAccess
+const row0 = mockData[0]
+const row1 = mockData[1]
+const row2 = mockData[2]
+if (!row0 || !row1 || !row2) throw new Error('Mock data incomplete')
 
 export const NeutralHoverStates: Story = {
   render: () => (
@@ -59,15 +65,27 @@ export const NeutralHoverStates: Story = {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockData.map((row, i) => (
-              <TableRow key={i}>
-                <TableCell className="font-medium">{row.model}</TableCell>
-                <TableCell>{row.provider}</TableCell>
-                <TableCell>{row.vram}</TableCell>
-                <TableCell className="text-right">{row.price}</TableCell>
-                <TableCell className="text-right">{row.tps}</TableCell>
-              </TableRow>
-            ))}
+            <TableRow>
+              <TableCell className="font-medium">{row0.model}</TableCell>
+              <TableCell>{row0.provider}</TableCell>
+              <TableCell>{row0.vram}</TableCell>
+              <TableCell className="text-right">{row0.price}</TableCell>
+              <TableCell className="text-right">{row0.tps}</TableCell>
+            </TableRow>
+            <TableRow data-state="selected" tabIndex={0}>
+              <TableCell className="font-medium">{row1.model}</TableCell>
+              <TableCell>{row1.provider}</TableCell>
+              <TableCell>{row1.vram}</TableCell>
+              <TableCell className="text-right">{row1.price}</TableCell>
+              <TableCell className="text-right">{row1.tps}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">{row2.model}</TableCell>
+              <TableCell>{row2.provider}</TableCell>
+              <TableCell>{row2.vram}</TableCell>
+              <TableCell className="text-right">{row2.price}</TableCell>
+              <TableCell className="text-right">{row2.tps}</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>
@@ -100,25 +118,25 @@ export const SelectedRowWithFocus: Story = {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="font-medium">{mockData[0].model}</TableCell>
-              <TableCell>{mockData[0].provider}</TableCell>
-              <TableCell>{mockData[0].vram}</TableCell>
-              <TableCell className="text-right">{mockData[0].price}</TableCell>
-              <TableCell className="text-right">{mockData[0].tps}</TableCell>
+              <TableCell className="font-medium">{row0.model}</TableCell>
+              <TableCell>{row0.provider}</TableCell>
+              <TableCell>{row0.vram}</TableCell>
+              <TableCell className="text-right">{row0.price}</TableCell>
+              <TableCell className="text-right">{row0.tps}</TableCell>
             </TableRow>
             <TableRow data-state="selected" tabIndex={0}>
-              <TableCell className="font-medium">{mockData[1].model}</TableCell>
-              <TableCell>{mockData[1].provider}</TableCell>
-              <TableCell>{mockData[1].vram}</TableCell>
-              <TableCell className="text-right">{mockData[1].price}</TableCell>
-              <TableCell className="text-right">{mockData[1].tps}</TableCell>
+              <TableCell className="font-medium">{row1.model}</TableCell>
+              <TableCell>{row1.provider}</TableCell>
+              <TableCell>{row1.vram}</TableCell>
+              <TableCell className="text-right">{row1.price}</TableCell>
+              <TableCell className="text-right">{row1.tps}</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium">{mockData[2].model}</TableCell>
-              <TableCell>{mockData[2].provider}</TableCell>
-              <TableCell>{mockData[2].vram}</TableCell>
-              <TableCell className="text-right">{mockData[2].price}</TableCell>
-              <TableCell className="text-right">{mockData[2].tps}</TableCell>
+              <TableCell className="font-medium">{row2.model}</TableCell>
+              <TableCell>{row2.provider}</TableCell>
+              <TableCell>{row2.vram}</TableCell>
+              <TableCell className="text-right">{row2.price}</TableCell>
+              <TableCell className="text-right">{row2.tps}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -149,8 +167,8 @@ export const HeaderAndFooter: Story = {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockData.slice(0, 3).map((row, i) => (
-              <TableRow key={i}>
+            {mockData.slice(0, 3).map((row) => (
+              <TableRow key={row.model}>
                 <TableCell className="font-medium">{row.model}</TableCell>
                 <TableCell>{row.provider}</TableCell>
                 <TableCell className="text-right">{row.price}</TableCell>

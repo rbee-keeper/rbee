@@ -23,7 +23,7 @@ export interface SshHive {
 function convertToSshHive(target: SshTarget): SshHive {
   return {
     host: target.host,
-    host_subtitle: target.host_subtitle ?? undefined,
+    ...(target.host_subtitle ? { host_subtitle: target.host_subtitle } : {}),
     hostname: target.hostname,
     user: target.user,
     port: target.port,
@@ -70,7 +70,7 @@ async function fetchHiveStatus(hiveId: string, sshHives?: SshHive[]): Promise<Ss
       status: status as 'online' | 'offline',
       isInstalled: is_installed,
       buildMode: build_mode,
-      host_subtitle: sshConfig?.host_subtitle,
+      ...(sshConfig?.host_subtitle ? { host_subtitle: sshConfig.host_subtitle } : {}),
     }
   }
   throw new Error(result.error || `Failed to fetch status for hive ${hiveId}`)

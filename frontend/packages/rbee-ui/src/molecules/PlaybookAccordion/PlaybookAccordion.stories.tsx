@@ -551,7 +551,7 @@ export const FullPlaybook: Story = {
     const visibleCategories =
       selectedCategories.length === 0
         ? categories
-        : categories.filter((cat) => selectedCategories.includes(cat.title.split(' ')[0]))
+        : categories.filter((cat) => selectedCategories.includes(cat.title.split(' ')[0] ?? ''))
 
     return (
       <div className="w-full max-w-5xl">

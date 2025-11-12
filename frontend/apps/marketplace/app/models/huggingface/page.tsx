@@ -2,8 +2,8 @@
 
 import type { HuggingFaceListModelsParams } from '@rbee/marketplace-core'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@rbee/ui/atoms'
-import { FilterBar, FilterDropdown, FilterSearch } from '@rbee/ui/marketplace'
 import { ModelPageContainer } from '../../../components/ModelPageContainer'
+import { HuggingFaceFilterBar } from '../../../components/HuggingFaceFilterBar'
 
 export default async function HuggingFaceModelsPage({
   searchParams,
@@ -25,35 +25,10 @@ export default async function HuggingFaceModelsPage({
       subtitle="Browse language models from HuggingFace Hub"
       filters={filters}
       filterBar={
-        <FilterBar
-          filters={
-            <>
-              <FilterSearch
-                label="Search"
-                value={searchParams.search || ''}
-                onChange={() => {}} // TODO: Client-side filtering
-                placeholder="Search models..."
-              />
-              <FilterDropdown
-                label="Library"
-                value={searchParams.library}
-                onChange={() => {}} // TODO: Client-side filtering
-                options={[
-                  { value: 'transformers', label: 'Transformers' },
-                  { value: 'diffusers', label: 'Diffusers' },
-                  { value: 'pytorch', label: 'PyTorch' },
-                ]}
-              />
-            </>
-          }
-          sort={searchParams.sort || 'downloads'}
-          onSortChange={() => {}} // TODO: Client-side sorting
-          sortOptions={[
-            { value: 'downloads', label: 'Most Downloaded' },
-            { value: 'likes', label: 'Most Liked' },
-            { value: 'trending', label: 'Trending' },
-            { value: 'updated', label: 'Recently Updated' },
-          ]}
+        <HuggingFaceFilterBar
+          searchValue={searchParams.search || ''}
+          libraryValue={searchParams.library}
+          sortValue={searchParams.sort || 'downloads'}
         />
       }
     >

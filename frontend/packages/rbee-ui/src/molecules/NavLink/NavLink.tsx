@@ -33,7 +33,13 @@ export function NavLink({ href, children, variant = 'default', onClick, classNam
   }
 
   return (
-    <Link href={href} onClick={onClick} className={cn(variantClasses[variant], className)} target={target} rel={rel}>
+    <Link
+      href={href}
+      {...(onClick ? { onClick } : {})}
+      className={cn(variantClasses[variant], className)}
+      {...(target ? { target } : {})}
+      {...(rel ? { rel } : {})}
+    >
       {children}
     </Link>
   )

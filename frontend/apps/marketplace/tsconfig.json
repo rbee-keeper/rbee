@@ -1,8 +1,12 @@
 {
-  "extends": "@repo/typescript-config/nextjs.json",
+  "extends": "@repo/typescript-config/cloudflare-pages.json",
   "compilerOptions": {
-    "types": ["node"]
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "typeRoots": ["../../node_modules/@types", "../../packages/typescript-config"],
+    "types": []
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.stories.tsx", "**/*.stories.ts"]
 }

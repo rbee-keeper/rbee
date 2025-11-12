@@ -147,17 +147,17 @@ export function DownloadPanel({ downloads, onCancel, onRetry, onClear }: Downloa
       <div className="space-y-2">
         {/* Active Downloads */}
         {activeDownloads.map((download) => (
-          <DownloadItem key={download.id} download={download} onCancel={onCancel} />
+          <DownloadItem key={download.id} download={download} {...(onCancel ? { onCancel } : {})} />
         ))}
 
         {/* Failed Downloads */}
         {failedDownloads.map((download) => (
-          <DownloadItem key={download.id} download={download} onRetry={onRetry} onClear={onClear} />
+          <DownloadItem key={download.id} download={download} {...(onRetry ? { onRetry } : {})} {...(onClear ? { onClear } : {})} />
         ))}
 
         {/* Completed Downloads (show last 3) */}
         {completedDownloads.slice(0, 3).map((download) => (
-          <DownloadItem key={download.id} download={download} onClear={onClear} />
+          <DownloadItem key={download.id} download={download} {...(onClear ? { onClear } : {})} />
         ))}
       </div>
     </div>

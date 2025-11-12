@@ -1,7 +1,6 @@
 {
-  "extends": "@repo/typescript-config/library.json",
+  "extends": "@repo/typescript-config/library-react.json",
   "compilerOptions": {
-    "lib": ["ES2020", "DOM"],
     "rootDir": "./src",
     "outDir": "./dist"
   },

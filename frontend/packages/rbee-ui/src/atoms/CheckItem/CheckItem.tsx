@@ -23,5 +23,12 @@ export function CheckItem({ children, className }: CheckItemProps) {
   // Convert children to string for BulletListItem title prop
   const title = typeof children === 'string' ? children : String(children)
 
-  return <BulletListItem variant="check" showPlate={false} title={title} className={className} />
+  return (
+    <BulletListItem
+      variant="check"
+      showPlate={false}
+      title={title}
+      {...(className ? { className } : {})}
+    />
+  )
 }

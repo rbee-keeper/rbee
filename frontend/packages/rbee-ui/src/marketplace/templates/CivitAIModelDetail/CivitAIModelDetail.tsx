@@ -124,7 +124,7 @@ export function CivitAIModelDetail({ model }: CivitAIModelDetailProps) {
           />
 
           {/* Trained Words */}
-          <CivitAITrainedWords trainedWords={model.trainedWords} />
+          <CivitAITrainedWords {...(model.trainedWords ? { trainedWords: model.trainedWords } : {})} />
 
           {/* Files */}
           <CivitAIFileCard files={model.files} />

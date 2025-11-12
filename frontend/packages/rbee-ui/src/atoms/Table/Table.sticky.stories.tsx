@@ -37,11 +37,18 @@ type Story = StoryObj<typeof Table>
 const mockData = Array.from({ length: 20 }, (_, i) => ({
   id: i + 1,
   model: `Model ${i + 1}`,
-  provider: ['RunPod', 'Vast.ai', 'Lambda Labs', 'Paperspace'][i % 4],
-  vram: ['24 GB', '48 GB', '80 GB'][i % 3],
+  provider: ['RunPod', 'Vast.ai', 'Lambda Labs', 'Paperspace'][i % 4] ?? 'Unknown',
+  vram: ['24 GB', '48 GB', '80 GB'][i % 3] ?? '24 GB',
   price: `$${(Math.random() * 2 + 0.2).toFixed(2)}/hr`,
   tps: Math.floor(Math.random() * 100 + 30),
 }))
+
+// TEAM-472: Guard checks for noUncheckedIndexedAccess
+const row0 = mockData[0]
+const row1 = mockData[1]
+const row2 = mockData[2]
+const row3 = mockData[3]
+if (!row0 || !row1 || !row2 || !row3) throw new Error('Mock data incomplete')
 
 export const StickyHeader: Story = {
   render: () => (
@@ -182,21 +189,21 @@ export const SelectedAndFocused: Story = {
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">Default</TableCell>
-              <TableCell>{mockData[0].model}</TableCell>
-              <TableCell>{mockData[0].provider}</TableCell>
-              <TableCell className="text-right">{mockData[0].price}</TableCell>
+              <TableCell>{row0.model}</TableCell>
+              <TableCell>{row0.provider}</TableCell>
+              <TableCell className="text-right">{row0.price}</TableCell>
             </TableRow>
             <TableRow className="hover:bg-[rgba(255,255,255,0.025)]">
               <TableCell className="font-medium">Hover</TableCell>
-              <TableCell>{mockData[1].model}</TableCell>
-              <TableCell>{mockData[1].provider}</TableCell>
-              <TableCell className="text-right">{mockData[1].price}</TableCell>
+              <TableCell>{row1.model}</TableCell>
+              <TableCell>{row1.provider}</TableCell>
+              <TableCell className="text-right">{row1.price}</TableCell>
             </TableRow>
             <TableRow data-state="selected">
               <TableCell className="font-medium">Selected</TableCell>
-              <TableCell>{mockData[2].model}</TableCell>
-              <TableCell>{mockData[2].provider}</TableCell>
-              <TableCell className="text-right">{mockData[2].price}</TableCell>
+              <TableCell>{row2.model}</TableCell>
+              <TableCell>{row2.provider}</TableCell>
+              <TableCell className="text-right">{row2.price}</TableCell>
             </TableRow>
             <TableRow
               data-state="selected"
@@ -204,9 +211,9 @@ export const SelectedAndFocused: Story = {
               className="ring-2 ring-[var(--ring)] ring-offset-2 ring-offset-[var(--background)]"
             >
               <TableCell className="font-medium">Selected + Focused</TableCell>
-              <TableCell>{mockData[3].model}</TableCell>
-              <TableCell>{mockData[3].provider}</TableCell>
-              <TableCell className="text-right">{mockData[3].price}</TableCell>
+              <TableCell>{row3.model}</TableCell>
+              <TableCell>{row3.provider}</TableCell>
+              <TableCell className="text-right">{row3.price}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

@@ -143,7 +143,7 @@ export function PlaybookItem({
         }}
       >
         <span className="flex items-center gap-3">
-          <IconPlate icon={icon} tone={color} size="sm" shape="rounded" />
+          <IconPlate icon={icon} {...(color ? { tone: color } : {})} size="sm" shape="rounded" />
           <span className="font-semibold text-base md:text-lg text-foreground">{title}</span>
           <span className="text-xs text-muted-foreground">•</span>
           <span className="text-xs text-muted-foreground">{checkCount} checks</span>

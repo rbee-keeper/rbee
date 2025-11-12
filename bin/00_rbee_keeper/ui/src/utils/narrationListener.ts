@@ -36,7 +36,7 @@ export function setupNarrationListener(): () => void {
 
           // Match text between ESC[1m (bold) and ESC[0m (reset)
           const match = formatted.match(/\x1b\[1m([^\x1b]+)\x1b\[0m/)
-          return match ? match[1] : null
+          return match?.[1] ? match[1] : null
         }
 
         // TEAM-352: Map shared narration format to Keeper's format

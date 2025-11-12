@@ -1,8 +1,9 @@
 // TEAM-476: CivitAI models page - IMAGE CARD presentation
 
 import type { CivitAIListModelsParams } from '@rbee/marketplace-core'
-import { FilterBar, FilterMultiSelect, FilterSearch, ModelCardVertical } from '@rbee/ui/marketplace'
+import { ModelCardVertical } from '@rbee/ui/marketplace'
 import { ModelPageContainer } from '../../../components/ModelPageContainer'
+import { CivitAIFilterBar } from '../../../components/CivitAIFilterBar'
 
 export default async function CivitAIModelsPage({
   searchParams,
@@ -25,45 +26,10 @@ export default async function CivitAIModelsPage({
       subtitle="Browse image generation models from CivitAI"
       filters={filters}
       filterBar={
-        <FilterBar
-          filters={
-            <>
-              <FilterSearch
-                label="Search"
-                value={searchParams.query || ''}
-                onChange={() => {}} // TODO: Client-side filtering
-                placeholder="Search models..."
-              />
-              <FilterMultiSelect
-                label="Model Types"
-                values={searchParams.types?.split(',') || []}
-                onChange={() => {}} // TODO: Client-side filtering
-                options={[
-                  { value: 'Checkpoint', label: 'Checkpoint' },
-                  { value: 'LORA', label: 'LORA' },
-                  { value: 'ControlNet', label: 'ControlNet' },
-                  { value: 'TextualInversion', label: 'Textual Inversion' },
-                ]}
-              />
-              <FilterMultiSelect
-                label="Base Models"
-                values={searchParams.baseModels?.split(',') || []}
-                onChange={() => {}} // TODO: Client-side filtering
-                options={[
-                  { value: 'SD 1.5', label: 'SD 1.5' },
-                  { value: 'SDXL 1.0', label: 'SDXL 1.0' },
-                  { value: 'Flux.1 D', label: 'Flux.1 D' },
-                ]}
-              />
-            </>
-          }
-          sort={searchParams.sort || 'Most Downloaded'}
-          onSortChange={() => {}} // TODO: Client-side sorting
-          sortOptions={[
-            { value: 'Most Downloaded', label: 'Most Downloaded' },
-            { value: 'Highest Rated', label: 'Highest Rated' },
-            { value: 'Newest', label: 'Newest' },
-          ]}
+        <CivitAIFilterBar
+          searchValue={searchParams.query || ''}
+          typeValue={searchParams.types}
+          sortValue={searchParams.sort || 'Most Downloaded'}
         />
       }
     >
@@ -78,8 +44,8 @@ export default async function CivitAIModelsPage({
                   id: model.id,
                   name: model.name,
                   description: model.description || '',
-                  author: model.author,
-                  imageUrl: model.imageUrl,
+                  ...(model.author ? { author: model.author } : {}),
+                  ...(model.imageUrl ? { imageUrl: model.imageUrl } : {}),
                   tags: model.tags.slice(0, 3), // Show top 3 tags
                   downloads: model.downloads,
                   likes: model.likes,

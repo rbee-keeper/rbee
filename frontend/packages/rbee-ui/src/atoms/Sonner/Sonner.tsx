@@ -3,14 +3,15 @@
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
 import { useTheme } from '../../providers/ThemeProvider/ThemeProvider'
 
-const Toaster = ({ ...props }: ToasterProps) => {
+// TEAM-472: Handle theme properly with exactOptionalPropertyTypes
+const Toaster = ({ theme: _theme, className, ...restProps }: ToasterProps) => {
   const { theme = 'system', resolvedTheme } = useTheme()
-  const effectiveTheme = theme === 'system' ? resolvedTheme : theme
+  const effectiveTheme = (theme === 'system' ? resolvedTheme : theme) ?? 'system'
 
   return (
     <Sonner
       theme={effectiveTheme as ToasterProps['theme']}
-      className="toaster group"
+      className={className || 'toaster group'}
       style={
         {
           '--normal-bg': 'var(--popover)',
@@ -18,7 +19,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           '--normal-border': 'var(--border)',
         } as React.CSSProperties
       }
-      {...props}
+      {...(restProps as any)}
     />
   )
 }

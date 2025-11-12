@@ -69,7 +69,10 @@ function InstallHiveContent({
   // TEAM-370: CRITICAL BUG FIX - Set default selection in useEffect, not during render!
   useEffect(() => {
     if (selectedTarget === '' && availableHives.length > 0) {
-      setSelectedTarget(availableHives[0].host)
+      const firstHive = availableHives[0]
+      if (firstHive) {
+        setSelectedTarget(firstHive.host)
+      }
     }
   }, [selectedTarget, availableHives])
 

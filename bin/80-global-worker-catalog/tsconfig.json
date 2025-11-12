@@ -1,10 +1,7 @@
 {
-  "extends": "../../frontend/packages/typescript-config/base.json",
+  "extends": "../../frontend/packages/typescript-config/cloudflare-worker.json",
   "compilerOptions": {
-    "target": "esnext",
-    "lib": ["esnext"],
-    "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "types": ["./worker-configuration.d.ts"]
+    "types": ["@cloudflare/workers-types", "./worker-configuration.d.ts"]
   }
 }

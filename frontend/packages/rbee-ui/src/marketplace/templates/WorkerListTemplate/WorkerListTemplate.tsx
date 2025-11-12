@@ -41,8 +41,6 @@ export function WorkerListTemplate({
       {/* Filters */}
       {onFilterChange && (
         <FilterBar
-          search={filters.search}
-          onSearchChange={handleSearchChange}
           sort={filters.sort}
           onSortChange={handleSortChange}
           sortOptions={sortOptions}
@@ -63,7 +61,12 @@ export function WorkerListTemplate({
       ) : (
         <MarketplaceGrid>
           {workers.map((worker) => (
-            <WorkerCard key={worker.id} worker={worker} onAction={onWorkerAction} onClick={onWorkerClick} />
+            <WorkerCard
+              key={worker.id}
+              worker={worker}
+              {...(onWorkerAction ? { onAction: onWorkerAction } : {})}
+              {...(onWorkerClick ? { onClick: onWorkerClick } : {})}
+            />
           ))}
         </MarketplaceGrid>
       )}

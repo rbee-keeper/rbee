@@ -37,7 +37,7 @@ export function ProvidersSecurityCard({
       <IconCardHeader
         icon={icon}
         title={title}
-        subtitle={subtitle}
+        {...(subtitle ? { subtitle } : {})}
         iconSize="lg"
         iconTone="success"
         titleClassName="text-lg font-semibold"

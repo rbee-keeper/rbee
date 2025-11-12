@@ -108,7 +108,7 @@ export function CategoryFilterBar<T = Record<string, string>>({
             group={group}
             currentValue={(currentFilters as Record<string, string>)[group.id] || 'all'}
             buildUrl={(value) => buildUrl({ [group.id]: value } as Partial<T>)}
-            onFilterChange={onFilterChange ? (value) => onFilterChange({ [group.id]: value } as Partial<T>) : undefined}
+            {...(onFilterChange ? { onFilterChange: (value) => onFilterChange({ [group.id]: value } as Partial<T>) } : {})}
           />
         ))}
       </div>
@@ -121,9 +121,7 @@ export function CategoryFilterBar<T = Record<string, string>>({
             group={sortGroup}
             currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value || ''}
             buildUrl={(value) => buildUrl({ [sortGroup.id]: value } as Partial<T>)}
-            onFilterChange={
-              onFilterChange ? (value) => onFilterChange({ [sortGroup.id]: value } as Partial<T>) : undefined
-            }
+            {...(onFilterChange ? { onFilterChange: (value) => onFilterChange({ [sortGroup.id]: value } as Partial<T>) } : {})}
           />
         </div>
       )}

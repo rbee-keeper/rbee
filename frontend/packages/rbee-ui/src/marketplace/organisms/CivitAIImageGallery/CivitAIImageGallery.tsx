@@ -33,6 +33,15 @@ export function CivitAIImageGallery({ images, modelName }: CivitAIImageGalleryPr
   }
 
   const selectedImage = images[selectedIndex]
+  
+  // TEAM-472: Guard check for noUncheckedIndexedAccess
+  if (!selectedImage) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted p-12">
+        <p className="text-muted-foreground">No preview images available</p>
+      </div>
+    )
+  }
 
   const handlePrevious = () => {
     setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))

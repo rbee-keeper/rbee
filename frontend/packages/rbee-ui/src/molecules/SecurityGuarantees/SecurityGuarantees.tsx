@@ -33,7 +33,7 @@ export function SecurityGuarantees({ heading, stats, footnote, className }: Secu
           stats={stats.map((stat) => ({
             value: stat.value,
             label: stat.label,
-            helpText: stat.ariaLabel,
+            ...(stat.ariaLabel ? { helpText: stat.ariaLabel } : {}),
             valueTone: 'primary' as const,
           }))}
           variant="cards"

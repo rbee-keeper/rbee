@@ -59,8 +59,8 @@ export function Navigation({ config }: NavigationProps) {
                               key={`dropdown-${index}`}
                               title={section.title}
                               links={section.links}
-                              cta={section.cta}
-                              width={section.width}
+                              {...(section.cta ? { cta: section.cta } : {})}
+                              {...(section.width ? { width: section.width } : {})}
                             />
                           )
                         }
@@ -71,7 +71,7 @@ export function Navigation({ config }: NavigationProps) {
                               title={section.title}
                               leftColumn={section.leftColumn}
                               rightColumn={section.rightColumn}
-                              cta={section.cta}
+                              {...(section.cta ? { cta: section.cta } : {})}
                             />
                           )
                         }
@@ -81,7 +81,7 @@ export function Navigation({ config }: NavigationProps) {
                               key={`direct-${index}`}
                               label={section.label}
                               href={section.href}
-                              icon={section.icon}
+                              {...(section.icon ? { icon: section.icon } : {})}
                             />
                           )
                         }

@@ -94,7 +94,12 @@ export const InEarningsCalculator: Story = {
     const [hoursPerDay, setHoursPerDay] = useState([12])
     const [pricePerHour, setPricePerHour] = useState([2.5])
 
-    const dailyEarnings = gpuCount[0] * hoursPerDay[0] * pricePerHour[0]
+    // TEAM-472: Guard checks for noUncheckedIndexedAccess
+    const gpu = gpuCount[0] ?? 4
+    const hours = hoursPerDay[0] ?? 12
+    const price = pricePerHour[0] ?? 2.5
+
+    const dailyEarnings = gpu * hours * price
     const monthlyEarnings = dailyEarnings * 30
 
     return (
@@ -105,7 +110,7 @@ export const InEarningsCalculator: Story = {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium">Number of GPUs</label>
-              <span className="text-sm font-semibold">{gpuCount[0]}</span>
+              <span className="text-sm font-semibold">{gpu}</span>
             </div>
             <Slider value={gpuCount} onValueChange={setGpuCount} min={1} max={20} step={1} />
           </div>
@@ -113,7 +118,7 @@ export const InEarningsCalculator: Story = {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium">Hours per Day</label>
-              <span className="text-sm font-semibold">{hoursPerDay[0]}h</span>
+              <span className="text-sm font-semibold">{hours}h</span>
             </div>
             <Slider value={hoursPerDay} onValueChange={setHoursPerDay} min={1} max={24} step={1} />
           </div>
@@ -121,7 +126,7 @@ export const InEarningsCalculator: Story = {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium">Price per Hour</label>
-              <span className="text-sm font-semibold">€{pricePerHour[0].toFixed(2)}</span>
+              <span className="text-sm font-semibold">€{price.toFixed(2)}</span>
             </div>
             <Slider value={pricePerHour} onValueChange={setPricePerHour} min={0.5} max={10} step={0.5} />
           </div>

@@ -1,2 +1,3 @@
 // TEAM-401: FilterBar exports
-export { FilterBar, type FilterBarProps, type FilterChip } from './FilterBar'
+// TEAM-472: Removed FilterChip export (not defined in FilterBar.tsx)
+export { FilterBar, type FilterBarProps } from './FilterBar'

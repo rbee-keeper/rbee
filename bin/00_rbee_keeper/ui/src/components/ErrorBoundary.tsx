@@ -31,12 +31,12 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Caught error:', error, errorInfo)
     this.setState({ error, errorInfo })
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <Alert variant="destructive" className="m-4">

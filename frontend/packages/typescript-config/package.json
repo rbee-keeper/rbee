@@ -12,6 +12,6 @@
     "nextjs.json",
     "cloudflare-worker.json",
     "cloudflare-pages.json",
-    "PROPER_TYPESCRIPT_CONFIGS.md"
+    "README.md"
   ]
 }

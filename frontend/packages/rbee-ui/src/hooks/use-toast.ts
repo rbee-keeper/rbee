@@ -181,7 +181,8 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
+    // TEAM-472: Conditional spread for exactOptionalPropertyTypes
+    dismiss: (toastId?: string) => dispatch(toastId ? { type: 'DISMISS_TOAST', toastId } : { type: 'DISMISS_TOAST' }),
   }
 }
 

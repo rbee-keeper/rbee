@@ -96,13 +96,13 @@ export function CAIListPage() {
                 model={{
                   id: model.id,
                   name: model.name,
-                  description: model.description,
-                  author: model.author,
-                  imageUrl: model.imageUrl,
+                  description: model.description ?? '',
+                  ...(model.author ? { author: model.author } : {}),
+                  ...(model.imageUrl ? { imageUrl: model.imageUrl } : {}),
                   tags: model.tags,
                   downloads: model.downloads,
                   likes: model.likes,
-                  size: model.sizeBytes,
+                  size: model.sizeBytes ? String(model.sizeBytes) : '0',
                 }}
               />
             </div>

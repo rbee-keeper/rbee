@@ -32,11 +32,11 @@ function parseDownloadProgress(message: string): Partial<Download> | null {
   if (progressMatch || sizeMatch) {
     const update: Partial<Download> = {}
 
-    if (progressMatch) {
+    if (progressMatch && progressMatch[1]) {
       update.percentage = parseFloat(progressMatch[1])
     }
 
-    if (sizeMatch) {
+    if (sizeMatch && sizeMatch[1] && sizeMatch[2] && sizeMatch[3] && sizeMatch[4]) {
       const downloaded = parseFloat(sizeMatch[1])
       const downloadedUnit = sizeMatch[2].toUpperCase()
       const total = parseFloat(sizeMatch[3])
@@ -108,7 +108,7 @@ export const useDownloadStore = create<DownloadStore>()(
         set((state) => ({
           downloads: state.downloads.map((d) =>
             d.id === id
-              ? { ...d, status: 'downloading' as const, bytesDownloaded: 0, percentage: null, error: undefined }
+              ? { ...d, status: 'downloading' as const, bytesDownloaded: 0, percentage: null }
               : d,
           ),
         })),

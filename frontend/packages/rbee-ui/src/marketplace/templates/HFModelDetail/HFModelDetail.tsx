@@ -256,14 +256,21 @@ export function HFModelDetail({
           )}
 
           {/* TEAM-464: Inference Providers */}
-          <InferenceProvidersCard
-            inferenceStatus={model.inference}
-            libraryName={model.library_name}
-            transformersInfo={model.transformersInfo}
-          />
+          {(model.inference || model.library_name || model.transformersInfo) && (
+            <InferenceProvidersCard
+              {...(model.inference ? { inferenceStatus: model.inference } : {})}
+              {...(model.library_name ? { libraryName: model.library_name } : {})}
+              transformersInfo={model.transformersInfo as any}
+            />
+          )}
 
           {/* TEAM-464: Widget Data / Usage Examples */}
-          <WidgetDataCard widgetData={model.widgetData} pipelineTag={model.pipeline_tag} />
+          {(model.widgetData || model.pipeline_tag) && (
+            <WidgetDataCard
+              widgetData={model.widgetData as any}
+              {...(model.pipeline_tag ? { pipelineTag: model.pipeline_tag } : {})}
+            />
+          )}
 
           {/* Basic Info */}
           <ModelMetadataCard
@@ -496,7 +503,13 @@ export function HFModelDetail({
           </Card>
 
           {/* TEAM-464: Model Card - Structured metadata from YAML frontmatter */}
-          <HFModelCard cardData={model.cardData} pipelineTag={model.pipeline_tag} libraryName={model.library_name} />
+          {(model.cardData || model.pipeline_tag || model.library_name) && (
+            <HFModelCard
+              cardData={model.cardData as any}
+              {...(model.pipeline_tag ? { pipelineTag: model.pipeline_tag } : {})}
+              {...(model.library_name ? { libraryName: model.library_name } : {})}
+            />
+          )}
 
           {/* Files Card - matching CivitAI position */}
           {model.siblings && model.siblings.length > 0 && (
@@ -509,7 +522,7 @@ export function HFModelDetail({
                   </h3>
                 </div>
               </div>
-              <ModelFilesList files={model.siblings} />
+              <ModelFilesList files={model.siblings as any} />
             </Card>
           )}
 

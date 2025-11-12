@@ -123,7 +123,7 @@ export function UniversalFilterBar<T = Record<string, string>>({
           <FilterGroupComponent
             key={sortGroup.id}
             group={sortGroup}
-            currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value}
+            currentValue={(currentFilters as Record<string, string>)[sortGroup.id] || sortGroup.options[0]?.value || ''}
             onChange={(value) => handleFilterChange(sortGroup.id, value)}
           />
         </div>

@@ -86,12 +86,12 @@ export function HFListPage() {
             models={models.map((m) => ({
               id: m.id,
               name: m.name,
-              description: m.description,
+              description: m.description ?? '',
               author: m.author,
               downloads: m.downloads,
               likes: m.likes,
               tags: m.tags,
-              size: m.sizeBytes,
+              size: m.sizeBytes ?? 0,
               imageUrl: m.imageUrl,
             }))}
             onModelClick={(modelId: string) => navigate(`/marketplace/huggingface/${encodeURIComponent(modelId)}`)}

@@ -39,7 +39,7 @@ export function EarningsCard({ title = 'Compliance Metrics', rows, disclaimer, c
             name={row.model}
             subtitle={row.meta}
             value={row.value}
-            label={row.note}
+            {...(row.note ? { label: row.note } : {})}
             className="border-0 bg-transparent p-0"
           />
         ))}

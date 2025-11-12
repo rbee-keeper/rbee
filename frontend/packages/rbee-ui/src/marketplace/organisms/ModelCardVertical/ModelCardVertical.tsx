@@ -38,7 +38,7 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
               src={model.imageUrl}
               alt={model.name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              fallbackImages={model.fallbackImages}
+              {...(model.fallbackImages ? { fallbackImages: model.fallbackImages } : {})}
             />
             {/* Gradient overlay for better text readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />

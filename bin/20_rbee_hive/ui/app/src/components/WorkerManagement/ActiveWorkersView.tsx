@@ -57,7 +57,7 @@ export function ActiveWorkersView({ workers, loading, error, onTerminate, isTerm
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {workers.map((worker) => (
-        <WorkerCard key={worker.pid} worker={worker} onTerminate={onTerminate} isTerminating={isTerminating} />
+        <WorkerCard key={worker.pid} worker={worker} {...(onTerminate ? { onTerminate } : {})} {...(isTerminating ? { isTerminating } : {})} />
       ))}
     </div>
   )

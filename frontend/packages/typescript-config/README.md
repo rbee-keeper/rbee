@@ -1,10 +1,8 @@
-# @repo/typescript-config v2.0.0
+# @repo/typescript-config
 
 **Battle-tested TypeScript configurations for rbee projects**
 
-Incorporates lessons learned from fixing 100+ TypeScript errors with proper solutions (no shortcuts).
-
-## 🚀 Quick Start
+## Quick Start
 
 Choose the config that matches your project type:
 
@@ -14,60 +12,56 @@ Choose the config that matches your project type:
 | React Library | `library-react.json` | `@rbee/rbee-ui` |
 | React App (Vite) | `react-app.json` | Keeper UI |
 | Next.js App | `nextjs.json` | - |
-| **Cloudflare Worker** | `cloudflare-worker.json` | `apps/marketplace` |
-| **Cloudflare Pages** | `cloudflare-pages.json` | `apps/commercial` |
+| Cloudflare Worker | `cloudflare-worker.json` | `apps/marketplace` |
+| Cloudflare Pages | `cloudflare-pages.json` | `apps/commercial` |
 
-## 📦 Available Configs
+## Available Configs
 
-### `base.json` - Universal Base Config
-**Use for:** Foundation for all configs (don't use directly)
+### `base.json` - Foundation
+
+**Don't use directly** - Extended by all other configs
 
 **Features:**
-- ✅ **Maximum Strictness**: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`
-- ✅ **Type Safety**: `verbatimModuleSyntax`, `isolatedModules`, `noImplicitOverride`
-- ✅ **Modern TS**: `noUncheckedSideEffectImports` for safer imports
-- ✅ **ES2022**: Modern JavaScript features
+- ✅ `strict: true` - Full strict mode
+- ✅ `noUncheckedIndexedAccess: true` - Array access returns `T | undefined`
+- ✅ `exactOptionalPropertyTypes: true` - No `undefined` assignment to optional props
+- ✅ `noImplicitOverride: true` - Explicit override keyword required
+- ✅ `noUncheckedSideEffectImports: true` - Catch side-effect import issues
 
----
+### `library.json` - TypeScript Libraries
 
-### `cloudflare-worker.json` - Cloudflare Workers ⭐ NEW
-**Use for:** CF Workers (marketplace, global-worker-catalog, admin)
+**Use for:** Shared packages, utility libraries, non-React code
 
 ```json
 {
-  "extends": "@repo/typescript-config/cloudflare-worker.json"
+  "extends": "@repo/typescript-config/library.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  }
 }
 ```
 
-**Features:**
-- ✅ Cloudflare Workers types (`@cloudflare/workers-types`)
-- ✅ No Node.js types (Workers runtime is different)
-- ✅ React JSX support for components
-- ✅ ES2022 target
+**Examples:** `@rbee/dev-utils`, `@rbee/shared-config`
 
-**Used by:** `apps/marketplace`, `bin/80-global-worker-catalog`, `bin/90-admin`
+### `library-react.json` - React Libraries
 
----
-
-### `cloudflare-pages.json` - Cloudflare Pages (Next.js) ⭐ NEW
-**Use for:** Next.js apps deployed to CF Pages
+**Use for:** React component libraries, React hooks packages
 
 ```json
 {
-  "extends": "@repo/typescript-config/cloudflare-pages.json"
+  "extends": "@repo/typescript-config/library-react.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  }
 }
 ```
 
-**Features:**
-- ✅ Extends `nextjs.json`
-- ✅ Both Node.js types (build) and CF types (runtime)
-- ✅ CF Pages environment support
-
-**Used by:** `apps/commercial`, `apps/user-docs`
-
----
+**Examples:** `@rbee/rbee-ui`, `@rbee/react-hooks`, `@rbee/iframe-bridge`
 
 ### `nextjs.json` - Next.js Applications
+
 **Use for:** Next.js apps
 
 ```json
@@ -76,16 +70,48 @@ Choose the config that matches your project type:
 }
 ```
 
-**Includes:**
-- DOM types for browser APIs
-- Next.js plugin support
+**Features:**
+- Next.js plugin integration
 - Path aliases (`@/*`)
 - Incremental compilation
+- No emit (Next.js handles compilation)
 
----
+### `cloudflare-worker.json` - Cloudflare Workers
+
+**Use for:** Cloudflare Workers (marketplace, global-worker-catalog, admin)
+
+```json
+{
+  "extends": "@repo/typescript-config/cloudflare-worker.json"
+}
+```
+
+**Features:**
+- Cloudflare Workers types (`@cloudflare/workers-types`)
+- No Node.js types (Workers runtime is different)
+- ES2022 target
+- React JSX support
+
+**IMPORTANT:** Cloudflare Workers do NOT have Node.js APIs. Only use `@cloudflare/workers-types`.
+
+### `cloudflare-pages.json` - Cloudflare Pages (Next.js)
+
+**Use for:** Next.js apps deployed to Cloudflare Pages
+
+```json
+{
+  "extends": "@repo/typescript-config/cloudflare-pages.json"
+}
+```
+
+**Features:**
+- Extends `nextjs.json`
+- Both Node.js types (for build) and Cloudflare types (for runtime)
+- CF Pages environment support
 
 ### `react-app.json` - React Applications (Vite)
-**Use for:** React apps built with Vite
+
+**Use for:** Standalone React apps built with Vite
 
 ```json
 {
@@ -93,53 +119,13 @@ Choose the config that matches your project type:
 }
 ```
 
-**Includes:**
+**Features:**
+- Vite-specific settings
+- React JSX support
 - DOM types
-- React JSX transform
-- Vite client types
-- `useDefineForClassFields` for modern class fields
-
----
-
-### `library.json` - TypeScript Libraries
-**Use for:** Pure TypeScript libraries (no React, no DOM)
-
-```json
-{
-  "extends": "@repo/typescript-config/library.json"
-}
-```
-
-**Includes:**
-- Declaration file generation (`.d.ts`)
-- Source maps
-- Output to `dist/`
-- ES2020 target for broad compatibility
-
-**Examples:** `env-config`, `shared-config`, `sdk-loader`
-
----
-
-### `library-react.json` - React Libraries
-**Use for:** React component libraries
-
-```json
-{
-  "extends": "@repo/typescript-config/library-react.json"
-}
-```
-
-**Includes:**
-- Everything from `library.json`
-- DOM types
-- React JSX transform
-- Node types
-
-**Examples:** `rbee-ui`, `react-hooks`, `marketplace-core`
-
----
 
 ### `vite.json` - Vite Config Files
+
 **Use for:** `vite.config.ts` files
 
 ```json
@@ -148,202 +134,131 @@ Choose the config that matches your project type:
 }
 ```
 
-**Includes:**
-- Composite project support
-- Node types
-- Build info caching
+## Key TypeScript Settings Explained
 
----
+### `noUncheckedIndexedAccess: true`
 
-## 🎯 Migration Guide
+Array access returns `T | undefined`:
 
-### From Old Configs
+```typescript
+// ❌ WRONG
+const item = array[0]
+doSomething(item)  // Error: item might be undefined
 
-**Before (inconsistent):**
-```json
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "module": "ES2020",
-    "moduleResolution": "node"
-  }
+// ✅ RIGHT
+const item = array[0]
+if (!item) throw new Error('Item not found')
+doSomething(item)  // TypeScript knows it's defined
+```
+
+### `exactOptionalPropertyTypes: true`
+
+Cannot assign `undefined` to optional properties:
+
+```typescript
+// ❌ WRONG
+interface Config {
+  debug?: boolean
+}
+const config: Config = {
+  debug: options?.debug  // Error if options?.debug is undefined
+}
+
+// ✅ RIGHT - Conditional spread
+const config: Config = {
+  ...(options?.debug !== undefined ? { debug: options.debug } : {})
 }
 ```
 
-**After (modern):**
-```json
-{
-  "extends": "@repo/typescript-config/nextjs.json"
-}
-```
+### `verbatimModuleSyntax: true`
 
-### Next.js Apps
-
-Replace your `tsconfig.json` with:
-
-```json
-{
-  "extends": "@repo/typescript-config/nextjs.json",
-  "compilerOptions": {
-    "types": ["./cloudflare-env.d.ts", "node"]
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-```
-
-### TypeScript Libraries
-
-Replace your `tsconfig.json` with:
-
-```json
-{
-  "extends": "@repo/typescript-config/library.json"
-}
-```
-
-### React Libraries
-
-Replace your `tsconfig.json` with:
-
-```json
-{
-  "extends": "@repo/typescript-config/library-react.json",
-  "compilerOptions": {
-    "types": ["node", "vite/client"]
-  }
-}
-```
-
----
-
-## 🔥 Key Features
-
-### 1. Maximum Type Safety
+Explicit type imports required:
 
 ```typescript
-// ✅ Catches array access errors
-const arr = [1, 2, 3];
-const item = arr[10]; // Type: number | undefined (not just number!)
+// ✅ Explicit type imports
+import type { User } from './types'  // Type import
+import { getUser } from './api'      // Value import
+```
 
-// ✅ Requires override keyword
-class Base {
-  method() {}
-}
-class Child extends Base {
-  override method() {} // Required!
+## Common Patterns
+
+### Pattern 1: Array Access
+
+```typescript
+// ❌ WRONG
+const parts = str.split('.')
+const ext = parts[parts.length - 1].toUpperCase()  // Error: might be undefined
+
+// ✅ RIGHT
+const parts = str.split('.')
+const ext = parts[parts.length - 1]
+return ext ? ext.toUpperCase() : 'DEFAULT'
+```
+
+### Pattern 2: Optional Props in Components
+
+```typescript
+// ❌ WRONG
+<Component
+  optionalProp={value}  // Error if value is undefined
+/>
+
+// ✅ RIGHT
+<Component
+  {...(value ? { optionalProp: value } : {})}
+/>
+```
+
+### Pattern 3: Test Files
+
+Create `src/test-setup.d.ts` for test global types:
+
+```typescript
+/**
+ * Test environment type declarations
+ */
+declare global {
+  var global: typeof globalThis
 }
 
-// ✅ Exact optional properties
-type Config = {
-  port?: number;
-};
-const config: Config = { port: undefined }; // Error! Must omit or provide number
+export {}
 ```
 
-### 2. Modern Module System
+## Migration from Old Configs
 
-```typescript
-// ✅ Forces explicit type imports
-import type { User } from './types'; // Required for type-only imports
-import { getUser } from './api';     // Value import
+1. **Identify your project type** (see table above)
+2. **Update tsconfig.json:**
+   ```json
+   {
+     "extends": "@repo/typescript-config/[config-name].json",
+     "compilerOptions": {
+       "rootDir": "./src",
+       "outDir": "./dist"
+     }
+   }
+   ```
+3. **Remove shortcuts:**
+   - Remove `types: []`
+   - Remove `exactOptionalPropertyTypes: false`
+   - Remove `skipLibCheck: true`
+   - Remove test file exclusions
+4. **Fix errors properly** using patterns above
 
-// ✅ Works with all bundlers
-// module: preserve + moduleResolution: bundler
-```
+## Benefits
 
-### 3. Side Effect Import Safety
+✅ **Type Safety** - Catches bugs at compile time  
+✅ **Consistency** - Same patterns across all projects  
+✅ **Maintainability** - Clear, documented patterns  
+✅ **Future-Proof** - Works with stricter TypeScript versions  
+✅ **No Shortcuts** - Proper fixes, not hacks
 
-```typescript
-// ✅ Catches unintended side effects (TS 5.9+)
-import './polyfill'; // Warning if polyfill doesn't export anything
-```
+## Resources
 
----
-
-## 📊 Comparison with Old Config
-
-| Feature | Old `base.json` | New `base.json` |
-|---------|----------------|-----------------|
-| Target | ES2022 | es2022 (stable) |
-| Module | ESNext | preserve (bundler-friendly) |
-| Strictness | `strict` only | + `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes` |
-| Side Effects | ❌ | ✅ `noUncheckedSideEffectImports` |
-| Noisy Rules | ✅ (noUnusedLocals, etc.) | ❌ (opt-in only) |
-
----
-
-## 🚀 Why These Settings?
-
-### `noUncheckedIndexedAccess`
-**Problem:** Array/object access can return `undefined` at runtime
-```typescript
-const users = ['Alice', 'Bob'];
-const user = users[5]; // Runtime: undefined, Type: string ❌
-```
-
-**Solution:** Forces you to check
-```typescript
-const user = users[5]; // Type: string | undefined ✅
-if (user) {
-  console.log(user.toUpperCase());
-}
-```
-
-### `exactOptionalPropertyTypes`
-**Problem:** `undefined` vs missing property confusion
-```typescript
-type Config = { port?: number };
-const config: Config = { port: undefined }; // Should this be allowed?
-```
-
-**Solution:** Enforces semantic correctness
-```typescript
-const config1: Config = {}; // ✅ Property omitted
-const config2: Config = { port: 3000 }; // ✅ Property provided
-const config3: Config = { port: undefined }; // ❌ Error!
-```
-
-### `verbatimModuleSyntax`
-**Problem:** Ambiguous imports can cause issues
-```typescript
-import { User } from './types'; // Is this a type or value?
-```
-
-**Solution:** Explicit type imports
-```typescript
-import type { User } from './types'; // Clearly a type
-import { getUser } from './api';     // Clearly a value
-```
-
----
-
-## 📚 Resources
-
+- [TypeScript TSConfig Reference](https://www.typescriptlang.org/tsconfig/)
 - [Total TypeScript TSConfig Cheat Sheet](https://www.totaltypescript.com/tsconfig-cheat-sheet)
 - [TypeScript 5.9 Release Notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html)
-- [TSConfig Reference](https://www.typescriptlang.org/tsconfig/)
-- [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
-
----
-
-## 🔄 Version History
-
-### v1.0.0 (2025-11-11)
-- ✅ Complete rewrite based on TS 5.9+ best practices
-- ✅ Added `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`
-- ✅ Added `noUncheckedSideEffectImports` (TS 5.9+)
-- ✅ Changed `module: preserve` for better bundler compatibility
-- ✅ Removed noisy rules (`noUnusedLocals`, `noUnusedParameters`, etc.)
-- ✅ Added `nextjs.json`, `library.json`, `library-react.json` configs
-- ✅ Comprehensive documentation
-
-### v0.0.0 (Previous)
-- Basic configs with ES2022 target
-- Included noisy strictness rules
-- Less comprehensive
 
 ---
 
 **Created by:** TEAM-471  
-**Last Updated:** 2025-11-11
+**Last Updated:** 2025-11-12

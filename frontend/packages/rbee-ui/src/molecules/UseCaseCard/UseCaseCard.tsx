@@ -49,7 +49,7 @@ export function UseCaseCard({
           iconSize={iconSize}
           iconTone={resolvedIconTone}
           titleClassName="text-base font-semibold tracking-tight text-card-foreground"
-          titleId={anchor ? `${anchor}-title` : undefined}
+          {...(anchor ? { titleId: `${anchor}-title` } : {})}
           className="flex-1 min-w-0"
         />
         {badge && (

@@ -231,13 +231,13 @@ export function TemplateContainer({
   return (
     <TemplateBackground
       variant={resolvedBackground.variant}
-      decoration={resolvedBackground.decoration}
-      overlayOpacity={resolvedBackground.overlayOpacity}
-      overlayColor={resolvedBackground.overlayColor}
-      blur={resolvedBackground.blur}
-      patternSize={resolvedBackground.patternSize}
-      patternOpacity={resolvedBackground.patternOpacity}
-      className={className}
+      {...(resolvedBackground.decoration ? { decoration: resolvedBackground.decoration } : {})}
+      {...(resolvedBackground.overlayOpacity !== undefined ? { overlayOpacity: resolvedBackground.overlayOpacity } : {})}
+      {...(resolvedBackground.overlayColor ? { overlayColor: resolvedBackground.overlayColor } : {})}
+      {...(resolvedBackground.blur !== undefined ? { blur: resolvedBackground.blur } : {})}
+      {...(resolvedBackground.patternSize !== undefined ? { patternSize: resolvedBackground.patternSize } : {})}
+      {...(resolvedBackground.patternOpacity !== undefined ? { patternOpacity: resolvedBackground.patternOpacity } : {})}
+      {...(className ? { className } : {})}
     >
       <section
         className={cn('relative', padY[paddingY], bleed && 'px-0')}
@@ -273,7 +273,7 @@ export function TemplateContainer({
 
                 <HTag
                   as={headlineLevel}
-                  id={generatedId}
+                  {...(generatedId ? { id: generatedId } : {})}
                   className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-2 text-balance leading-tight animate-fade-in-up"
                 >
                   {title}
@@ -340,7 +340,10 @@ export function TemplateContainer({
                 'mx-auto',
               )}
             >
-              <FooterCTA message={footerCTA.message} ctas={footerCTA.ctas} />
+              <FooterCTA
+                {...(footerCTA.message ? { message: footerCTA.message } : {})}
+                {...(footerCTA.ctas ? { ctas: footerCTA.ctas } : {})}
+              />
             </div>
           )}
 
@@ -355,10 +358,10 @@ export function TemplateContainer({
             >
               <CTARail
                 heading={ctaRail.heading}
-                description={ctaRail.description}
+                {...(ctaRail.description ? { description: ctaRail.description } : {})}
                 buttons={ctaRail.buttons}
-                links={ctaRail.links}
-                footnote={ctaRail.footnote}
+                {...(ctaRail.links ? { links: ctaRail.links } : {})}
+                {...(ctaRail.footnote ? { footnote: ctaRail.footnote } : {})}
               />
             </div>
           )}
@@ -400,7 +403,10 @@ export function TemplateContainer({
           {/* Disclaimer */}
           {disclaimer && (
             <div className={cn('mt-12', maxWidthClasses[maxWidth], 'mx-auto')}>
-              <Disclaimer variant={disclaimer.variant ?? 'muted'} showIcon={disclaimer.showIcon}>
+              <Disclaimer
+                variant={disclaimer.variant ?? 'muted'}
+                {...(disclaimer.showIcon !== undefined ? { showIcon: disclaimer.showIcon } : {})}
+              >
                 {disclaimer.text}
               </Disclaimer>
             </div>

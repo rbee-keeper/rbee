@@ -28,7 +28,9 @@ const formatHourly = (rate: number) => `€${rate.toFixed(2)}/hr`
 export const Default: Story = {
   args: {} as any,
   render: () => {
-    const [selected, setSelected] = useState(sampleGPUs[0])
+    const firstGPU = sampleGPUs[0]
+    if (!firstGPU) throw new Error('No GPUs available')
+    const [selected, setSelected] = useState(firstGPU)
     return (
       <div className="max-w-md">
         <GPUSelector
@@ -46,7 +48,9 @@ export const Default: Story = {
 export const FewOptions: Story = {
   args: {} as any,
   render: () => {
-    const [selected, setSelected] = useState(sampleGPUs[0])
+    const firstGPU = sampleGPUs[0]
+    if (!firstGPU) throw new Error('No GPUs available')
+    const [selected, setSelected] = useState(firstGPU)
     return (
       <div className="max-w-md">
         <GPUSelector
@@ -71,7 +75,9 @@ export const ManyOptions: Story = {
       { name: 'AMD RX 7900 XTX', baseRate: 0.6, vram: 24 },
       { name: 'AMD RX 6900 XT', baseRate: 0.4, vram: 16 },
     ]
-    const [selected, setSelected] = useState(manyGPUs[0])
+    const firstGPU = manyGPUs[0]
+    if (!firstGPU) throw new Error('No GPUs available')
+    const [selected, setSelected] = useState(firstGPU)
     return (
       <div className="max-w-md">
         <GPUSelector

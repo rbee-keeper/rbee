@@ -28,7 +28,10 @@ test.describe('TemplateBackground - All Variants', () => {
     test(`should render ${variant} variant correctly`, async ({ page }) => {
       // Navigate to the specific story
       const _storyName =
-        variant.charAt(0).toUpperCase() + variant.slice(1).replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+        variant.charAt(0).toUpperCase() + variant.slice(1).replace(/-([a-z])/g, (g) => {
+          const char = g[1]
+          return char ? char.toUpperCase() : ''
+        })
       await page.goto(`${STORYBOOK_URL}/?path=/story/organisms-templatebackground--${variant}`)
 
       // Wait for story to load

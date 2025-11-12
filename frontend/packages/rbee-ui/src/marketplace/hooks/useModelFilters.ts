@@ -3,7 +3,12 @@
 //! Manages filter state and logic, independent of data source
 
 import { useMemo, useState } from 'react'
-import type { FilterChip } from '../organisms/FilterBar'
+
+// TEAM-472: FilterChip type definition (removed from FilterBar export)
+interface FilterChip {
+  id: string
+  label: string
+}
 
 export interface ModelFilters {
   search: string

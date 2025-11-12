@@ -6,8 +6,10 @@ use crate::error::Result;
 use candle_core::Device;
 
 pub mod sd_config;
+pub mod flux_loader; // TEAM-483: FLUX model loading
 
 /// Supported Stable Diffusion model versions
+/// TEAM-483: Added FLUX support
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SDVersion {
     /// Stable Diffusion 1.5 (512x512)
@@ -24,6 +26,12 @@ pub enum SDVersion {
     XLInpaint,
     /// Stable Diffusion XL Turbo (4-step)
     Turbo,
+    
+    // TEAM-483: FLUX models
+    /// FLUX.1-dev (50 steps, guidance-distilled, best quality)
+    FluxDev,
+    /// FLUX.1-schnell (4 steps, fast, good quality)
+    FluxSchnell,
 }
 
 impl SDVersion {
@@ -37,6 +45,8 @@ impl SDVersion {
             Self::XL => "stabilityai/stable-diffusion-xl-base-1.0",
             Self::XLInpaint => "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
             Self::Turbo => "stabilityai/sdxl-turbo",
+            Self::FluxDev => "black-forest-labs/FLUX.1-dev",
+            Self::FluxSchnell => "black-forest-labs/FLUX.1-schnell",
         }
     }
 
@@ -46,6 +56,7 @@ impl SDVersion {
             Self::V1_5 | Self::V1_5Inpaint => (512, 512),
             Self::V2_1 | Self::V2Inpaint => (768, 768),
             Self::XL | Self::XLInpaint | Self::Turbo => (1024, 1024),
+            Self::FluxDev | Self::FluxSchnell => (1024, 1024),
         }
     }
 
@@ -53,6 +64,8 @@ impl SDVersion {
     pub fn default_steps(&self) -> usize {
         match self {
             Self::Turbo => 4, // Turbo is optimized for 4 steps
+            Self::FluxSchnell => 4, // Schnell is fast (4 steps)
+            Self::FluxDev => 50, // Dev needs more steps for quality
             _ => 20,
         }
     }
@@ -61,6 +74,8 @@ impl SDVersion {
     pub fn default_guidance_scale(&self) -> f64 {
         match self {
             Self::Turbo => 0.0, // Turbo doesn't use guidance
+            Self::FluxSchnell => 0.0, // Schnell doesn't use guidance
+            Self::FluxDev => 3.5, // FLUX uses lower guidance than SD
             _ => 7.5,
         }
     }
@@ -75,6 +90,11 @@ impl SDVersion {
         matches!(self, Self::XL | Self::XLInpaint | Self::Turbo)
     }
 
+    /// Check if this is a FLUX model
+    pub fn is_flux(&self) -> bool {
+        matches!(self, Self::FluxDev | Self::FluxSchnell)
+    }
+
     // TEAM-399: Config methods for model initialization
     // Based on reference/candle/candle-transformers/src/models/stable_diffusion/mod.rs
     
@@ -85,6 +105,7 @@ impl SDVersion {
             Self::V1_5 | Self::V1_5Inpaint => Config::v1_5(),
             Self::V2_1 | Self::V2Inpaint => Config::v2_1(),
             Self::XL | Self::XLInpaint | Self::Turbo => Config::sdxl(),
+            Self::FluxDev | Self::FluxSchnell => panic!("FLUX models don't use SD CLIP config"),
         }
     }
 
@@ -165,6 +186,9 @@ impl SDVersion {
                     use_linear_projection: true,
                 }
             }
+            Self::FluxDev | Self::FluxSchnell => {
+                panic!("FLUX models don't use UNet config")
+            }
         }
     }
 
@@ -196,10 +220,13 @@ impl SDVersion {
                     use_post_quant_conv: true,
                 }
             }
+            Self::FluxDev | Self::FluxSchnell => {
+                panic!("FLUX models don't use SD VAE config")
+            }
         }
     }
 
-    /// Parse from string (e.g., "v1-5", "xl", "turbo")
+    /// Parse from string (e.g., "v1-5", "xl", "turbo", "flux-dev", "flux-schnell")
     pub fn from_str(s: &str) -> Result<Self> {
         match s.to_lowercase().as_str() {
             "v1-5" | "v1.5" | "1.5" => Ok(Self::V1_5),
@@ -209,8 +236,10 @@ impl SDVersion {
             "xl" => Ok(Self::XL),
             "xl-inpaint" => Ok(Self::XLInpaint),
             "turbo" => Ok(Self::Turbo),
+            "flux-dev" | "flux.1-dev" | "flux1-dev" => Ok(Self::FluxDev),
+            "flux-schnell" | "flux.1-schnell" | "flux1-schnell" => Ok(Self::FluxSchnell),
             _ => Err(crate::error::Error::InvalidInput(format!(
-                "Unknown SD version: {}. Supported: v1-5, v2-1, xl, turbo",
+                "Unknown SD version: {}. Supported: v1-5, v2-1, xl, turbo, flux-dev, flux-schnell",
                 s
             ))),
         }
@@ -273,6 +302,9 @@ impl ModelFile {
             }
             SDVersion::XL | SDVersion::XLInpaint | SDVersion::Turbo => {
                 "openai/clip-vit-large-patch14"
+            }
+            SDVersion::FluxDev | SDVersion::FluxSchnell => {
+                panic!("FLUX models use different tokenizers")
             }
         }
     }

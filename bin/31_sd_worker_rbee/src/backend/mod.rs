@@ -4,6 +4,7 @@
 
 // TEAM-397: Core generation modules (Candle-idiomatic, no wrappers)
 pub mod generation;
+pub mod flux_generation; // TEAM-483: FLUX generation
 pub mod image_utils;
 pub mod lora; // TEAM-487: LoRA support
 pub mod model_loader;

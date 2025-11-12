@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use super::lora::{create_lora_varbuilder, LoRAConfig, LoRAWeights};
-use super::models::{ModelComponents, ModelFile, SDVersion};
+use super::models::{flux_loader::FluxComponents, ModelComponents, ModelFile, SDVersion};
 
 /// Model loader for downloading and caching models
 pub struct ModelLoader {
@@ -150,16 +150,79 @@ impl ModelLoader {
     }
 }
 
-/// Load a Stable Diffusion model
-/// TEAM-487: Added LoRA support
+/// Loaded model (either Stable Diffusion or FLUX)
+/// TEAM-483: Added FLUX support
+pub enum LoadedModel {
+    /// Stable Diffusion model (v1.5, v2.1, XL, Turbo, etc.)
+    StableDiffusion(ModelComponents),
+    /// FLUX model (dev or schnell)
+    Flux(FluxComponents),
+}
+
+/// Load a model (Stable Diffusion or FLUX)
+/// TEAM-483: Added FLUX support
+/// TEAM-487: Added LoRA support (SD only)
 pub fn load_model(
     version: SDVersion,
     device: &Device,
     use_f16: bool,
     lora_configs: &[LoRAConfig],
-) -> Result<ModelComponents> {
-    let loader = ModelLoader::new(version, use_f16)?;
-    loader.load_components(device, lora_configs)
+    quantized: bool,
+) -> Result<LoadedModel> {
+    if version.is_flux() {
+        // Load FLUX model
+        tracing::info!("Loading FLUX model: {:?}", version);
+        
+        // Get model path from HuggingFace cache
+        let api = Api::new()
+            .map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {}", e)))?;
+        let repo = api.model(version.repo().to_string());
+        
+        // Download a file to get the cache directory
+        let model_file = if quantized {
+            match version {
+                SDVersion::FluxSchnell => "flux1-schnell.gguf",
+                SDVersion::FluxDev => "flux1-dev.gguf",
+                _ => unreachable!(),
+            }
+        } else {
+            match version {
+                SDVersion::FluxSchnell => "flux1-schnell.safetensors",
+                SDVersion::FluxDev => "flux1-dev.safetensors",
+                _ => unreachable!(),
+            }
+        };
+        
+        let _file_path = repo
+            .get(model_file)
+            .map_err(|e| Error::ModelLoading(format!("Failed to download {}: {}", model_file, e)))?;
+        
+        // Get the cache directory (parent of the file)
+        let cache_dir = repo
+            .get("ae.safetensors")
+            .map_err(|e| Error::ModelLoading(format!("Failed to download VAE: {}", e)))?
+            .parent()
+            .ok_or_else(|| Error::ModelLoading("Failed to get cache directory".to_string()))?
+            .to_path_buf();
+        
+        let components = FluxComponents::load(
+            cache_dir
+                .to_str()
+                .ok_or_else(|| Error::ModelLoading("Invalid cache path".to_string()))?,
+            version,
+            device,
+            use_f16,
+            quantized,
+        )?;
+        
+        Ok(LoadedModel::Flux(components))
+    } else {
+        // Load Stable Diffusion model
+        tracing::info!("Loading Stable Diffusion model: {:?}", version);
+        let loader = ModelLoader::new(version, use_f16)?;
+        let components = loader.load_components(device, lora_configs)?;
+        Ok(LoadedModel::StableDiffusion(components))
+    }
 }
 
 #[cfg(test)]

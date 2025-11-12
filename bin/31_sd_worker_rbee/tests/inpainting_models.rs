@@ -51,11 +51,8 @@ fn test_inpainting_models_load() {
     println!("\n🖌️  Testing Inpainting Model Loading");
     println!("====================================\n");
 
-    let inpainting_models = vec![
-        SDVersion::V1_5Inpaint,
-        SDVersion::V2Inpaint,
-        SDVersion::XLInpaint,
-    ];
+    let inpainting_models =
+        vec![SDVersion::V1_5Inpaint, SDVersion::V2Inpaint, SDVersion::XLInpaint];
 
     let mut loaded_count = 0;
 
@@ -76,7 +73,8 @@ fn test_inpainting_models_load() {
             version,
             &device,
             false,
-            &[], // TEAM-487: No LoRAs for inpainting test
+            &[],   // TEAM-487: No LoRAs
+            false, // TEAM-483: Not quantized
         )
         .unwrap();
 
@@ -101,11 +99,11 @@ fn test_inpainting_models_load() {
 /// TEAM-487: Verify error handling for wrong model type
 #[test]
 fn test_non_inpainting_model_rejects_inpaint() {
+    use image::{DynamicImage, RgbImage};
     use sd_worker_rbee::backend::generation::inpaint;
     use sd_worker_rbee::backend::model_loader::load_model;
     use sd_worker_rbee::backend::sampling::SamplingConfig;
     use shared_worker_rbee::device::init_cpu_device;
-    use image::{DynamicImage, RgbImage};
 
     println!("\n🚫 Testing Non-Inpainting Model Rejection");
     println!("==========================================\n");
@@ -120,7 +118,7 @@ fn test_non_inpainting_model_rejects_inpaint() {
     };
 
     let device = init_cpu_device().unwrap();
-    let models = load_model(SDVersion::V1_5, &device, false, &[]).unwrap(); // TEAM-487: No LoRAs
+    let models = load_model(SDVersion::V1_5, &device, false, &[], false).unwrap(); // TEAM-487: No LoRAs, TEAM-483: Not quantized
 
     // Create dummy image and mask
     let input_image = DynamicImage::ImageRgb8(RgbImage::new(512, 512));
@@ -134,7 +132,7 @@ fn test_non_inpainting_model_rejects_inpaint() {
         seed: Some(42),
         width: 512,
         height: 512,
-            loras: vec![],
+        loras: vec![],
     };
 
     // Try to inpaint with non-inpainting model

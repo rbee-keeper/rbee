@@ -44,6 +44,7 @@ fn test_all_models_generate() {
             &device,
             false,
             &[], // TEAM-487: No LoRAs for basic test
+            false, // TEAM-483: Not quantized
         )
         .expect("Failed to load model");
 
@@ -123,7 +124,7 @@ fn test_turbo_fast_generation() {
     };
 
     let device = init_cpu_device().unwrap();
-    let models = load_model(SDVersion::Turbo, &device, false, &[]).unwrap(); // TEAM-487: No LoRAs
+    let models = load_model(SDVersion::Turbo, &device, false, &[], false).unwrap(); // TEAM-487: No LoRAs, TEAM-483: Not quantized
 
     let config = SamplingConfig {
         prompt: "a beautiful landscape".to_string(),
@@ -178,7 +179,7 @@ fn test_custom_sizes() {
     };
 
     let device = init_cpu_device().unwrap();
-    let models = load_model(SDVersion::V1_5, &device, false, &[]).unwrap(); // TEAM-487: No LoRAs
+    let models = load_model(SDVersion::V1_5, &device, false, &[], false).unwrap(); // TEAM-487: No LoRAs, TEAM-483: Not quantized
 
     let config = SamplingConfig {
         prompt: "a test image".to_string(),

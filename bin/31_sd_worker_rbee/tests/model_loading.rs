@@ -45,6 +45,8 @@ fn test_all_models_load() {
             fixture.version,
             &device,
             false, // use_f16
+            &[], // TEAM-487: No LoRAs
+            true, // TEAM-483: Quantized
         );
 
         match result {

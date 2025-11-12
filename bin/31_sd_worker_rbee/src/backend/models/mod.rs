@@ -1,10 +1,43 @@
 // TEAM-390: Stable Diffusion model definitions and version selection
+// TEAM-482: Added architecture constants for type-safe model identifiers
 //
 // Defines supported SD models and their configurations.
 
 // TEAM-488: Self-contained model implementations
-pub mod stable_diffusion;
 pub mod flux;
+pub mod stable_diffusion;
+
+/// TEAM-482: Architecture constants - single source of truth for model identifiers
+///
+/// Adopted from LLM Worker for type safety and maintainability.
+/// Benefits:
+/// - Compile-time typo detection
+/// - Single source of truth
+/// - Easy refactoring (change in one place)
+/// - IDE autocomplete support
+pub mod arch {
+    /// Stable Diffusion architecture identifier
+    pub const STABLE_DIFFUSION: &str = "stable-diffusion";
+
+    /// FLUX architecture identifier
+    pub const FLUX: &str = "flux";
+
+    /// Model variant constants
+    pub mod variants {
+        // Stable Diffusion variants
+        pub const SD_1_5: &str = "sd1.5";
+        pub const SD_1_5_INPAINT: &str = "sd1.5-inpaint";
+        pub const SD_2_1: &str = "sd2.1";
+        pub const SD_2_INPAINT: &str = "sd2-inpaint";
+        pub const SD_XL: &str = "sdxl";
+        pub const SD_XL_INPAINT: &str = "sdxl-inpaint";
+        pub const SD_TURBO: &str = "sdxl-turbo";
+
+        // FLUX variants
+        pub const FLUX_DEV: &str = "flux-dev";
+        pub const FLUX_SCHNELL: &str = "flux-schnell";
+    }
+}
 
 /// Supported Stable Diffusion model versions
 /// TEAM-483: Added FLUX support
@@ -24,7 +57,7 @@ pub enum SDVersion {
     XLInpaint,
     /// Stable Diffusion XL Turbo (4-step)
     Turbo,
-    
+
     // TEAM-483: FLUX models
     /// FLUX.1-dev (50 steps, guidance-distilled, best quality)
     FluxDev,
@@ -61,9 +94,9 @@ impl SDVersion {
     /// Get default number of inference steps
     pub fn default_steps(&self) -> usize {
         match self {
-            Self::Turbo => 4, // Turbo is optimized for 4 steps
+            Self::Turbo => 4,       // Turbo is optimized for 4 steps
             Self::FluxSchnell => 4, // Schnell is fast (4 steps)
-            Self::FluxDev => 50, // Dev needs more steps for quality
+            Self::FluxDev => 50,    // Dev needs more steps for quality
             _ => 20,
         }
     }
@@ -71,9 +104,9 @@ impl SDVersion {
     /// Get default guidance scale
     pub fn default_guidance_scale(&self) -> f64 {
         match self {
-            Self::Turbo => 0.0, // Turbo doesn't use guidance
+            Self::Turbo => 0.0,       // Turbo doesn't use guidance
             Self::FluxSchnell => 0.0, // Schnell doesn't use guidance
-            Self::FluxDev => 3.5, // FLUX uses lower guidance than SD
+            Self::FluxDev => 3.5,     // FLUX uses lower guidance than SD
             _ => 7.5,
         }
     }
@@ -95,7 +128,7 @@ impl SDVersion {
 
     // TEAM-399: Config methods for model initialization
     // Based on reference/candle/candle-transformers/src/models/stable_diffusion/mod.rs
-    
+
     /// Get CLIP config for this model version
     pub fn clip_config(&self) -> candle_transformers::models::stable_diffusion::clip::Config {
         use candle_transformers::models::stable_diffusion::clip::Config;
@@ -109,15 +142,19 @@ impl SDVersion {
 
     /// Get UNet config for this model version
     /// Manually constructed like in StableDiffusionConfig::v1_5()
-    pub fn unet_config(&self) -> candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModelConfig {
-        use candle_transformers::models::stable_diffusion::unet_2d::{BlockConfig, UNet2DConditionModelConfig};
-        
+    pub fn unet_config(
+        &self,
+    ) -> candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModelConfig {
+        use candle_transformers::models::stable_diffusion::unet_2d::{
+            BlockConfig, UNet2DConditionModelConfig,
+        };
+
         let bc = |out_channels, use_cross_attn, attention_head_dim| BlockConfig {
             out_channels,
             use_cross_attn,
             attention_head_dim,
         };
-        
+
         match self {
             Self::V1_5 | Self::V1_5Inpaint => {
                 // https://huggingface.co/runwayml/stable-diffusion-v1-5/blob/main/unet/config.json
@@ -166,11 +203,7 @@ impl SDVersion {
             Self::XL | Self::XLInpaint | Self::Turbo => {
                 // https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/unet/config.json
                 UNet2DConditionModelConfig {
-                    blocks: vec![
-                        bc(320, Some(2), 8),
-                        bc(640, Some(2), 8),
-                        bc(1280, Some(10), 8),
-                    ],
+                    blocks: vec![bc(320, Some(2), 8), bc(640, Some(2), 8), bc(1280, Some(10), 8)],
                     center_input_sample: false,
                     cross_attention_dim: 2048,
                     downsample_padding: 1,
@@ -192,9 +225,11 @@ impl SDVersion {
 
     /// Get VAE config for this model version
     /// Manually constructed like in StableDiffusionConfig::v1_5()
-    pub fn vae_config(&self) -> candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig {
+    pub fn vae_config(
+        &self,
+    ) -> candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig {
         use candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig;
-        
+
         match self {
             Self::V1_5 | Self::V1_5Inpaint | Self::V2_1 | Self::V2Inpaint => {
                 // https://huggingface.co/runwayml/stable-diffusion-v1-5/blob/main/vae/config.json

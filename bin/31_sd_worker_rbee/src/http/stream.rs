@@ -20,15 +20,9 @@ pub async fn handle_stream_job(
     State(state): State<JobState>,
 ) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, (StatusCode, String)> {
     // Take receiver from registry
-    let mut response_rx = state
-        .registry
-        .take_token_receiver(&job_id)
-        .ok_or_else(|| {
-            (
-                StatusCode::NOT_FOUND,
-                format!("Job {} not found or already streaming", job_id),
-            )
-        })?;
+    let mut response_rx = state.registry.take_token_receiver(&job_id).ok_or_else(|| {
+        (StatusCode::NOT_FOUND, format!("Job {} not found or already streaming", job_id))
+    })?;
 
     // Stream events
     let stream = async_stream::stream! {
@@ -54,7 +48,7 @@ pub async fn handle_stream_job(
                             continue; // Skip this preview, don't break the stream
                         }
                     };
-                    
+
                     let json = serde_json::json!({
                         "type": "preview",
                         "step": step,
@@ -82,7 +76,7 @@ pub async fn handle_stream_job(
                             break;
                         }
                     };
-                    
+
                     let json = serde_json::json!({
                         "type": "complete",
                         "image": base64,

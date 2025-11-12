@@ -17,17 +17,17 @@ impl RequestId {
     pub fn new() -> Self {
         Self(uuid::Uuid::new_v4().to_string())
     }
-    
+
     /// Create from an existing string
     pub fn from_string(s: String) -> Self {
         Self(s)
     }
-    
+
     /// Get the ID as a string slice
     pub fn as_str(&self) -> &str {
         &self.0
     }
-    
+
     /// Convert to owned String
     pub fn into_string(self) -> String {
         self.0
@@ -69,17 +69,17 @@ impl JobId {
     pub fn new() -> Self {
         Self(uuid::Uuid::new_v4().to_string())
     }
-    
+
     /// Create from an existing string
     pub fn from_string(s: String) -> Self {
         Self(s)
     }
-    
+
     /// Get the ID as a string slice
     pub fn as_str(&self) -> &str {
         &self.0
     }
-    
+
     /// Convert to owned String
     pub fn into_string(self) -> String {
         self.0
@@ -113,41 +113,41 @@ impl From<JobId> for String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_request_id_creation() {
         let id1 = RequestId::new();
         let id2 = RequestId::new();
         assert_ne!(id1, id2); // Should be unique
     }
-    
+
     #[test]
     fn test_job_id_creation() {
         let id1 = JobId::new();
         let id2 = JobId::new();
         assert_ne!(id1, id2); // Should be unique
     }
-    
+
     #[test]
     fn test_request_id_display() {
         let id = RequestId::from_string("test-123".to_string());
         assert_eq!(id.to_string(), "test-123");
         assert_eq!(id.as_str(), "test-123");
     }
-    
+
     #[test]
     fn test_job_id_display() {
         let id = JobId::from_string("job-456".to_string());
         assert_eq!(id.to_string(), "job-456");
         assert_eq!(id.as_str(), "job-456");
     }
-    
+
     #[test]
     fn test_ids_are_different_types() {
         // This test verifies compile-time type safety
         let request_id = RequestId::new();
         let job_id = JobId::new();
-        
+
         // These are different types - can't mix them up!
         assert_ne!(request_id.as_str(), job_id.as_str()); // Different UUIDs
     }

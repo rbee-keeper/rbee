@@ -109,8 +109,8 @@ impl ModelLoader {
         // TEAM-481: Updated to use new schedulers module
         // TEAM-482: Now uses sampler + schedule architecture
         let scheduler = crate::backend::schedulers::build_scheduler(
-            crate::backend::schedulers::SamplerType::Euler,  // TEAM-482: Use Euler (fast and stable)
-            crate::backend::schedulers::NoiseSchedule::Simple,  // TEAM-482: Use Simple schedule
+            crate::backend::schedulers::SamplerType::Euler, // TEAM-482: Use Euler (fast and stable)
+            crate::backend::schedulers::NoiseSchedule::Simple, // TEAM-482: Use Simple schedule
             self.version.default_steps(),
         )?;
 

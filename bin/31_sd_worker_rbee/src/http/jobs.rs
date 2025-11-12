@@ -13,13 +13,10 @@ pub async fn handle_create_job(
     State(state): State<JobState>,
     Json(payload): Json<serde_json::Value>,
 ) -> Result<Json<JobResponse>, (StatusCode, String)> {
-    create_job(state, payload)
-        .await
-        .map(Json)
-        .map_err(|e| {
-            tracing::error!(error = %e, "Job creation failed");
-            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-        })
+    create_job(state, payload).await.map(Json).map_err(|e| {
+        tracing::error!(error = %e, "Job creation failed");
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })
 }
 
 #[cfg(test)]

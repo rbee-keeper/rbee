@@ -25,7 +25,8 @@ fn test_all_models_load() {
             Some(path) => path,
             None => {
                 eprintln!("⚠️  Model {:?} not found, skipping", fixture.version);
-                eprintln!("    Set SD_MODEL_{:?} or download to ~/.cache/rbee/models/{}", 
+                eprintln!(
+                    "    Set SD_MODEL_{:?} or download to ~/.cache/rbee/models/{}",
                     format!("{:?}", fixture.version).to_uppercase(),
                     fixture.repo
                 );
@@ -45,8 +46,8 @@ fn test_all_models_load() {
             fixture.version,
             &device,
             false, // use_f16
-            &[], // TEAM-487: No LoRAs
-            true, // TEAM-483: Quantized
+            &[],   // TEAM-487: No LoRAs
+            true,  // TEAM-483: Quantized
         );
 
         match result {
@@ -54,20 +55,17 @@ fn test_all_models_load() {
                 println!("   ✅ Loaded successfully");
 
                 // Verify model properties
-                assert_eq!(
-                    components.version, fixture.version,
-                    "Model version mismatch"
-                );
+                assert_eq!(components.version, fixture.version, "Model version mismatch");
                 assert_eq!(
                     components.version.default_size(),
                     fixture.expected_size,
                     "Model {:?} has wrong default size",
                     fixture.version
                 );
-                
-                println!("   ✓ Default size: {}x{}", 
-                    fixture.expected_size.0, 
-                    fixture.expected_size.1
+
+                println!(
+                    "   ✓ Default size: {}x{}",
+                    fixture.expected_size.0, fixture.expected_size.1
                 );
                 println!("   ✓ Is inpainting: {}", components.version.is_inpainting());
                 println!();

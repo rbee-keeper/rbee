@@ -5,9 +5,7 @@
 use clap::Parser;
 use sd_worker_rbee::{
     backend::{
-        generation_engine::GenerationEngine,
-        model_loader,
-        models::SDVersion,
+        generation_engine::GenerationEngine, model_loader, models::SDVersion,
         request_queue::RequestQueue,
     },
     http::{backend::AppState, routes::create_router},
@@ -112,14 +110,11 @@ async fn main() -> anyhow::Result<()> {
         false, // quantized = false
     )?;
     tracing::info!("Model loaded successfully");
-    
+
     // 2. Create generation engine with loaded models
     // TEAM-481: model_components is now Box<dyn ImageModel>, wrap in Arc<Mutex<>>
-    let engine = GenerationEngine::new(
-        Arc::new(Mutex::new(model_components)),
-        request_rx,
-    );
-    
+    let engine = GenerationEngine::new(Arc::new(Mutex::new(model_components)), request_rx);
+
     // 3. Start engine (consumes self, spawns blocking task)
     engine.start();
 

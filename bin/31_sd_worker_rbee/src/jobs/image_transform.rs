@@ -21,10 +21,10 @@ use crate::jobs::JobResponse;
 pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobResponse> {
     // 1. Decode base64 input image
     // TEAM-481: Using .context() preserves full error chain
-    let input_image_bytes = STANDARD.decode(&req.input_image)
-        .context("Failed to decode base64 input image")?;
-    let input_image = image::load_from_memory(&input_image_bytes)
-        .context("Failed to load image from memory")?;
+    let input_image_bytes =
+        STANDARD.decode(&req.input_image).context("Failed to decode base64 input image")?;
+    let input_image =
+        image::load_from_memory(&input_image_bytes).context("Failed to load image from memory")?;
 
     // 2. Get image dimensions for config
     let (img_width, img_height) = input_image.dimensions();
@@ -38,12 +38,16 @@ pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobRespons
         seed: req.seed,
         width: img_width as usize,
         height: img_height as usize,
-        sampler: crate::backend::schedulers::SamplerType::default(),     // TEAM-482: Use default sampler (Euler)
-        schedule: crate::backend::schedulers::NoiseSchedule::default(),  // TEAM-482: Use default schedule (Simple)
-        loras: req.loras.iter().map(|l| crate::backend::lora::LoRAConfig {
-            path: l.path.clone(),
-            strength: l.strength as f64,
-        }).collect(),  // TEAM-488: LoRA support wired up!
+        sampler: crate::backend::schedulers::SamplerType::default(), // TEAM-482: Use default sampler (Euler)
+        schedule: crate::backend::schedulers::NoiseSchedule::default(), // TEAM-482: Use default schedule (Simple)
+        loras: req
+            .loras
+            .iter()
+            .map(|l| crate::backend::lora::LoRAConfig {
+                path: l.path.clone(),
+                strength: l.strength as f64,
+            })
+            .collect(), // TEAM-488: LoRA support wired up!
     };
 
     // 4. Create job and SSE sink
@@ -57,9 +61,9 @@ pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobRespons
     let request = GenerationRequest {
         request_id: job_id.clone(),
         config,
-        input_image: Some(input_image),  // TEAM-487: Enable img2img
-        mask: None,                      // TEAM-487: No mask for img2img
-        strength: req.strength,          // TEAM-487: From request (has default)
+        input_image: Some(input_image), // TEAM-487: Enable img2img
+        mask: None,                     // TEAM-487: No mask for img2img
+        strength: req.strength,         // TEAM-487: From request (has default)
         response_tx: tx,
     };
 

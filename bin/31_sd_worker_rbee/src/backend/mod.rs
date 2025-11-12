@@ -24,8 +24,8 @@ pub mod schedulers;
 pub mod ids;
 
 // TEAM-488: Keep these for now (used by jobs and other modules)
-pub mod request_queue;
 pub mod image_utils;
+pub mod request_queue;
 
 // TEAM-488: Trait exports
 pub use traits::{ImageModel, ModelCapabilities};

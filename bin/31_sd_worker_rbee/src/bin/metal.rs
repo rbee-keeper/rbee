@@ -5,9 +5,7 @@
 use clap::Parser;
 use sd_worker_rbee::{
     backend::{
-        generation_engine::GenerationEngine,
-        model_loader,
-        models::SDVersion,
+        generation_engine::GenerationEngine, model_loader, models::SDVersion,
         request_queue::RequestQueue,
     },
     http::{backend::AppState, routes::create_router},
@@ -75,19 +73,19 @@ async fn main() -> anyhow::Result<()> {
     );
 
     // TEAM-397: Complete implementation with Metal-specific features
-    
+
     // Initialize Metal device
     log_device_init(&format!("Metal:{}", args.metal_device));
     let device = device::init_metal_device(args.metal_device)?;
     device::verify_device(&device)?;
-    
+
     // Parse SD version
     let sd_version = SDVersion::from_str(&args.sd_version)?;
     tracing::info!("Loading model: {:?} with FP16={}", sd_version, args.use_f16);
-    
+
     // 1. Create request queue
     let (request_queue, request_rx) = RequestQueue::new();
-    
+
     // Load model components
     // TEAM-488: Updated to include LoRA support
     let model_components = model_loader::load_model(
@@ -98,31 +96,28 @@ async fn main() -> anyhow::Result<()> {
         false, // quantized = false
     )?;
     tracing::info!("Model loaded successfully");
-    
+
     // 2. Create generation engine with loaded models
     // TEAM-481: model_components is now Box<dyn ImageModel>, wrap in Arc<Mutex<>>
-    let engine = GenerationEngine::new(
-        Arc::new(Mutex::new(model_components)),
-        request_rx,
-    );
-    
+    let engine = GenerationEngine::new(Arc::new(Mutex::new(model_components)), request_rx);
+
     // 3. Start engine (consumes self, spawns blocking task)
     engine.start();
-    
+
     // 5. Create HTTP state
     let app_state = AppState::new(request_queue);
-    
+
     // 6. Start HTTP server
     let router = create_router(app_state);
     let addr = SocketAddr::from(([0, 0, 0, 0], args.port));
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    
+
     tracing::info!("✅ SD Worker (Metal) ready on port {}", args.port);
     tracing::info!("✅ Device: Metal:{}, FP16: {}", args.metal_device, args.use_f16);
     tracing::info!("✅ Operations-contract integration complete (TEAM-397)");
     tracing::warn!("⚠️  Full model loading not yet implemented - using placeholder");
-    
+
     axum::serve(listener, router).await?;
-    
+
     Ok(())
 }

@@ -83,9 +83,7 @@ pub fn get_model_path(version: SDVersion) -> Option<PathBuf> {
 
     // Try default cache location
     let home = std::env::var("HOME").ok()?;
-    let cache_path = PathBuf::from(home)
-        .join(".cache/rbee/models")
-        .join(version.repo());
+    let cache_path = PathBuf::from(home).join(".cache/rbee/models").join(version.repo());
 
     if cache_path.exists() {
         Some(cache_path)

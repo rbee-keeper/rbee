@@ -42,30 +42,27 @@ impl GenerationEngine {
     pub fn start(mut self) {
         tokio::spawn(async move {
             tracing::info!("🚀 Generation engine started");
-            
+
             while let Some(request) = self.request_rx.recv().await {
                 let model = Arc::clone(&self.model);
-                
+
                 // Spawn blocking task for CPU/GPU intensive work
                 tokio::task::spawn_blocking(move || {
                     Self::process_request(model, request);
                 });
             }
-            
+
             tracing::warn!("⚠️  Generation engine stopped (queue closed)");
         });
     }
 
     /// Process a single generation request
-    fn process_request(
-        model: Arc<Mutex<Box<dyn ImageModel>>>,
-        request: GenerationRequest,
-    ) {
+    fn process_request(model: Arc<Mutex<Box<dyn ImageModel>>>, request: GenerationRequest) {
         let request_id = request.request_id.clone();
         let response_tx = request.response_tx.clone();
-        
+
         tracing::info!("Processing request: {}", request_id);
-        
+
         // Convert to trait request
         let trait_request = crate::backend::traits::GenerationRequest {
             request_id: request_id.clone(),
@@ -80,27 +77,26 @@ impl GenerationEngine {
             mask: request.mask.clone(),
             strength: request.strength,
         };
-        
+
         // Progress callback - TEAM-481: Box the closure for object safety
         let progress_tx = response_tx.clone();
-        let progress_callback: Box<dyn FnMut(usize, usize, Option<image::DynamicImage>) + Send> = Box::new(
-            move |step: usize, total: usize, preview: Option<image::DynamicImage>| {
+        let progress_callback: Box<dyn FnMut(usize, usize, Option<image::DynamicImage>) + Send> =
+            Box::new(move |step: usize, total: usize, preview: Option<image::DynamicImage>| {
                 let response = if let Some(img) = preview {
                     GenerationResponse::Preview { step, total, image: img }
                 } else {
                     GenerationResponse::Progress { step, total }
                 };
-                
+
                 let _ = progress_tx.send(response);
-            }
-        );
-        
+            });
+
         // Generate image
         let result = {
             let mut model_guard = model.blocking_lock();
             model_guard.generate(&trait_request, progress_callback)
         };
-        
+
         // Send final response
         match result {
             Ok(image) => {
@@ -109,9 +105,7 @@ impl GenerationEngine {
             }
             Err(e) => {
                 tracing::error!("❌ Generation failed: {} - {}", request_id, e);
-                let _ = response_tx.send(GenerationResponse::Error {
-                    message: e.to_string(),
-                });
+                let _ = response_tx.send(GenerationResponse::Error { message: e.to_string() });
             }
         }
     }

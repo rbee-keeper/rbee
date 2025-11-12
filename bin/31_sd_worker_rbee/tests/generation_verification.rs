@@ -43,7 +43,7 @@ fn test_all_models_generate() {
             fixture.version,
             &device,
             false,
-            &[], // TEAM-487: No LoRAs for basic test
+            &[],   // TEAM-487: No LoRAs for basic test
             false, // TEAM-483: Not quantized
         )
         .expect("Failed to load model");
@@ -64,14 +64,24 @@ fn test_all_models_generate() {
         let start = std::time::Instant::now();
         let result = generate_image(&config, &models, |step, total, _preview| {
             if step % 5 == 0 || step == total {
-                println!("   Progress: {}/{} ({:.1}%)", step, total, (step as f32 / total as f32) * 100.0);
+                println!(
+                    "   Progress: {}/{} ({:.1}%)",
+                    step,
+                    total,
+                    (step as f32 / total as f32) * 100.0
+                );
             }
         });
         let duration = start.elapsed();
 
         match result {
             Ok(image) => {
-                println!("   ✅ Generated {}x{} image in {:?}", image.width(), image.height(), duration);
+                println!(
+                    "   ✅ Generated {}x{} image in {:?}",
+                    image.width(),
+                    image.height(),
+                    duration
+                );
 
                 // Verify image dimensions
                 assert_eq!(
@@ -129,12 +139,12 @@ fn test_turbo_fast_generation() {
     let config = SamplingConfig {
         prompt: "a beautiful landscape".to_string(),
         negative_prompt: None,
-        steps: 4, // Turbo only needs 4 steps
+        steps: 4,            // Turbo only needs 4 steps
         guidance_scale: 0.0, // Turbo doesn't use guidance
         seed: Some(42),
         width: 1024,
         height: 1024,
-            loras: vec![],
+        loras: vec![],
     };
 
     println!("🎨 Generating with Turbo (4 steps, no guidance)...");
@@ -149,11 +159,7 @@ fn test_turbo_fast_generation() {
     println!("   Speed: {:.2} seconds per step", duration.as_secs_f32() / 4.0);
 
     // Turbo should be reasonably fast even on CPU
-    assert!(
-        duration.as_secs() < 60,
-        "Turbo should generate in < 60s on CPU, took {:?}",
-        duration
-    );
+    assert!(duration.as_secs() < 60, "Turbo should generate in < 60s on CPU, took {:?}", duration);
 
     image.save("test_output_turbo_fast.png").unwrap();
     println!("💾 Saved to test_output_turbo_fast.png");
@@ -187,9 +193,9 @@ fn test_custom_sizes() {
         steps: 10, // Fewer steps for speed
         guidance_scale: 7.5,
         seed: Some(42),
-        width: 768,  // Non-default size
+        width: 768, // Non-default size
         height: 768,
-            loras: vec![],
+        loras: vec![],
     };
 
     println!("🎨 Generating 768x768 with V1.5 (default is 512x512)...");

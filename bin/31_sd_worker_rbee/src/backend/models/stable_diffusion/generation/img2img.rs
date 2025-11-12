@@ -3,7 +3,9 @@
 // Transforms existing images using text prompts
 
 use super::super::ModelComponents;
-use super::helpers::{text_embeddings, tensor_to_image, add_noise_for_img2img, encode_image_to_latents};
+use super::helpers::{
+    add_noise_for_img2img, encode_image_to_latents, tensor_to_image, text_embeddings,
+};
 use crate::backend::traits::GenerationRequest;
 use crate::error::{Error, Result};
 use candle_core::Tensor;
@@ -46,7 +48,14 @@ where
     )?;
 
     // 2. Encode input image to latents
-    let init_latents = encode_image_to_latents(input_image, &components.vae, request.width, request.height, &components.device, components.dtype)?;
+    let init_latents = encode_image_to_latents(
+        input_image,
+        &components.vae,
+        request.width,
+        request.height,
+        &components.device,
+        components.dtype,
+    )?;
 
     // 3. Add noise based on request.strength
     let (mut latents, start_step) =
@@ -102,4 +111,3 @@ where
 
     Ok(image)
 }
-

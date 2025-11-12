@@ -171,7 +171,7 @@ impl LoRAConfig {
     }
 
     /// Validate LoRA configuration
-    /// 
+    ///
     /// TEAM-481: #[must_use] ensures validation result is checked
     #[must_use = "LoRA validation result must be checked"]
     pub fn validate(&self) -> Result<()> {

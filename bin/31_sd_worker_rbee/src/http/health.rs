@@ -12,7 +12,7 @@ use crate::http::backend::AppState;
 pub struct HealthResponse {
     /// Health status
     pub status: String,
-    
+
     /// Timestamp of health check
     pub timestamp: String,
 }
@@ -57,7 +57,7 @@ pub async fn health_check(State(_state): State<AppState>) -> impl IntoResponse {
     // - Generation engine responsiveness
     // - VRAM availability
     // - Model integrity
-    
+
     (
         StatusCode::OK,
         Json(json!({
@@ -76,14 +76,14 @@ mod tests {
     async fn test_health_check_response() {
         // We can't create a real AppState without a pipeline,
         // but we can verify the response structure
-        
+
         // This would be tested in integration tests with a real pipeline
         // For now, verify the JSON structure is correct
         let response = json!({
             "status": "healthy",
             "timestamp": chrono::Utc::now().to_rfc3339(),
         });
-        
+
         assert_eq!(response["status"], "healthy");
         assert!(response["timestamp"].is_string());
     }

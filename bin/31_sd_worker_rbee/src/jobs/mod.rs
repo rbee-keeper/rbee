@@ -4,8 +4,8 @@
 mod types;
 
 pub mod image_generation;
-pub mod image_transform;
 pub mod image_inpaint;
+pub mod image_transform;
 
 // Re-export shared types
 pub use types::JobResponse;

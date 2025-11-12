@@ -52,22 +52,38 @@ impl StableDiffusionModel {
     }
 }
 
+/// TEAM-482: Implement ImageModel for StableDiffusionModel
+///
+/// Provides text-to-image, image-to-image, and inpainting capabilities
+/// using the Stable Diffusion architecture (v1.5, v2.1, XL, Turbo).
+///
+/// Adopted patterns from LLM Worker:
+/// - Sealed trait (API stability)
+/// - Static lifetimes (zero-cost)
+/// - Inline hints (performance)
+/// - Architecture constants (type safety)
 impl ImageModel for StableDiffusionModel {
-    fn model_type(&self) -> &str {
-        "stable-diffusion"
+    #[inline]
+    fn model_type(&self) -> &'static str {
+        super::arch::STABLE_DIFFUSION
     }
 
-    fn model_variant(&self) -> &str {
+    #[inline]
+    fn model_variant(&self) -> &'static str {
         use crate::backend::models::SDVersion;
         match self.components.version {
-            SDVersion::V1_5 | SDVersion::V1_5Inpaint => "v1-5",
-            SDVersion::V2_1 | SDVersion::V2Inpaint => "v2-1",
-            SDVersion::XL | SDVersion::XLInpaint => "xl",
-            SDVersion::Turbo => "turbo",
-            _ => "unknown",
+            SDVersion::V1_5 => super::arch::variants::SD_1_5,
+            SDVersion::V1_5Inpaint => super::arch::variants::SD_1_5_INPAINT,
+            SDVersion::V2_1 => super::arch::variants::SD_2_1,
+            SDVersion::V2Inpaint => super::arch::variants::SD_2_INPAINT,
+            SDVersion::XL => super::arch::variants::SD_XL,
+            SDVersion::XLInpaint => super::arch::variants::SD_XL_INPAINT,
+            SDVersion::Turbo => super::arch::variants::SD_TURBO,
+            _ => "unknown", // FLUX models shouldn't reach here
         }
     }
 
+    #[inline]
     fn capabilities(&self) -> &ModelCapabilities {
         &self.capabilities
     }

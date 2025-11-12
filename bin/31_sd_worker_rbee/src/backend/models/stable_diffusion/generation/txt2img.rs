@@ -1,9 +1,9 @@
 // TEAM-488: Text-to-image generation
-// 
+//
 // Generates images from text prompts using Stable Diffusion
 
 use super::super::ModelComponents;
-use super::helpers::{text_embeddings, tensor_to_image};
+use super::helpers::{tensor_to_image, text_embeddings};
 use crate::backend::traits::GenerationRequest;
 use crate::error::Result;
 use candle_core::Tensor;

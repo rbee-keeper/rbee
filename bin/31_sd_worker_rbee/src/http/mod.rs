@@ -7,11 +7,11 @@
 
 pub mod backend;
 pub mod health;
-pub mod jobs;    // TEAM-396: Job submission (operations-contract)
+pub mod jobs; // TEAM-396: Job submission (operations-contract)
 pub mod ready;
 pub mod routes;
 pub mod server;
-pub mod stream;  // TEAM-396: SSE streaming
+pub mod stream; // TEAM-396: SSE streaming
 
 // Re-export commonly used types
 pub use backend::AppState;

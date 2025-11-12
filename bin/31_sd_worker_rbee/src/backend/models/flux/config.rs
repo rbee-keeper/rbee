@@ -22,7 +22,7 @@ impl FluxConfig {
             use_time_shift: true,
         }
     }
-    
+
     /// Get configuration for FLUX.1-schnell
     pub fn schnell() -> Self {
         Self {

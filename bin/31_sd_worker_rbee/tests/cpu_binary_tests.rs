@@ -133,7 +133,7 @@ fn test_sd_cpu_full_startup_sequence() -> Result<()> {
     //   3. Request queue created
     //   4. Generation engine started
     //   5. HTTP server ready
-    
+
     Ok(())
 }
 
@@ -143,6 +143,6 @@ fn test_sd_cpu_accepts_generation_request() -> Result<()> {
     // GIVEN: Running SD CPU worker
     // WHEN: Send image generation request
     // THEN: Request queued and processed
-    
+
     Ok(())
 }

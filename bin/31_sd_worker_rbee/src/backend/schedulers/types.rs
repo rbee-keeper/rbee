@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 /// How beta ranges from minimum to maximum during training
-/// 
+///
 /// TEAM-481: Different beta schedules affect the noise schedule
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum BetaSchedule {
@@ -19,7 +19,7 @@ pub enum BetaSchedule {
 }
 
 /// Prediction type for the scheduler
-/// 
+///
 /// TEAM-481: Determines what the model is predicting
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum PredictionType {
@@ -32,7 +32,7 @@ pub enum PredictionType {
 }
 
 /// Time step spacing for the diffusion process
-/// 
+///
 /// TEAM-481: Controls how timesteps are distributed
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub enum TimestepSpacing {
@@ -46,7 +46,7 @@ pub enum TimestepSpacing {
 }
 
 /// Sampler type enum - the sampling algorithm
-/// 
+///
 /// TEAM-482: Separated from noise schedules for proper architecture.
 /// Samplers define HOW we sample, schedules define the noise curve.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -67,7 +67,7 @@ pub enum SamplerType {
 
 impl Default for SamplerType {
     fn default() -> Self {
-        Self::Euler  // TEAM-482: Euler is fast and stable
+        Self::Euler // TEAM-482: Euler is fast and stable
     }
 }
 
@@ -85,7 +85,7 @@ impl std::fmt::Display for SamplerType {
 
 impl std::str::FromStr for SamplerType {
     type Err = String;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "ddim" => Ok(Self::Ddim),
@@ -99,7 +99,7 @@ impl std::str::FromStr for SamplerType {
 }
 
 /// Noise schedule type - defines the noise curve
-/// 
+///
 /// TEAM-482: Noise schedules control HOW noise is distributed across timesteps.
 /// Different schedules can dramatically affect image quality.
 /// Karras is very popular for high-quality results!
@@ -120,7 +120,7 @@ pub enum NoiseSchedule {
 
 impl Default for NoiseSchedule {
     fn default() -> Self {
-        Self::Simple  // TEAM-482: Simple is most compatible
+        Self::Simple // TEAM-482: Simple is most compatible
     }
 }
 
@@ -138,7 +138,7 @@ impl std::fmt::Display for NoiseSchedule {
 
 impl std::str::FromStr for NoiseSchedule {
     type Err = String;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "simple" => Ok(Self::Simple),

@@ -1,7 +1,7 @@
 // TEAM-488: FLUX model components
 // Direct Candle types - RULE ZERO compliant
 
-use candle_core::{Device, DType};
+use candle_core::{DType, Device};
 use candle_transformers::models::{clip, flux, t5};
 use tokenizers::Tokenizer;
 
@@ -23,17 +23,17 @@ pub struct ModelComponents {
     pub version: SDVersion,
     pub device: Device,
     pub dtype: DType,
-    
+
     // Text encoders
     pub t5_tokenizer: Tokenizer,
     pub t5_model: t5::T5EncoderModel,
     pub clip_tokenizer: Tokenizer,
     pub clip_model: clip::text_model::ClipTextTransformer,
-    
+
     // FLUX transformer (trait object for full/quantized)
     // TEAM-488: Wrapped in SendFluxModel to enable spawn_blocking
     pub(super) flux_model: SendFluxModel,
-    
+
     // VAE
     pub vae: flux::autoencoder::AutoEncoder,
 }
@@ -43,7 +43,7 @@ impl ModelComponents {
     pub fn flux_model(&self) -> &dyn flux::WithForward {
         &*self.flux_model.0
     }
-    
+
     /// Get mutable reference to FLUX model for generation
     pub fn flux_model_mut(&mut self) -> &mut dyn flux::WithForward {
         &mut *self.flux_model.0

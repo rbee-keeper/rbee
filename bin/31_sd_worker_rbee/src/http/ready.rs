@@ -12,10 +12,10 @@ use crate::http::backend::AppState;
 pub struct ReadyResponse {
     /// Readiness status
     pub ready: bool,
-    
+
     /// Reason if not ready (optional)
     pub reason: Option<String>,
-    
+
     /// Timestamp of readiness check
     pub timestamp: String,
 }
@@ -99,28 +99,28 @@ mod tests {
             "ready": true,
             "timestamp": chrono::Utc::now().to_rfc3339(),
         });
-        
+
         assert_eq!(ready_response["ready"], true);
         assert!(ready_response["timestamp"].is_string());
-        
+
         // Test not ready response
         let not_ready_response = json!({
             "ready": false,
             "reason": "model loading",
             "timestamp": chrono::Utc::now().to_rfc3339(),
         });
-        
+
         assert_eq!(not_ready_response["ready"], false);
         assert_eq!(not_ready_response["reason"], "model loading");
         assert!(not_ready_response["timestamp"].is_string());
     }
-    
+
     #[test]
     fn test_atomic_bool_pattern() {
         // Verify the AtomicBool pattern used in AppState works correctly
         let flag = Arc::new(AtomicBool::new(false));
         assert!(!flag.load(Ordering::Relaxed));
-        
+
         flag.store(true, Ordering::Relaxed);
         assert!(flag.load(Ordering::Relaxed));
     }

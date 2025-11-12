@@ -3,7 +3,7 @@
 // Fills masked regions of images using text prompts
 
 use super::super::ModelComponents;
-use super::helpers::{text_embeddings, tensor_to_image, prepare_inpainting_latents};
+use super::helpers::{prepare_inpainting_latents, tensor_to_image, text_embeddings};
 use crate::backend::traits::GenerationRequest;
 use crate::error::{Error, Result};
 use candle_core::Tensor;
@@ -71,7 +71,15 @@ where
     )?;
 
     // 3. Prepare inpainting latents
-    let (image_latents, mask_latents, masked_image_latents) = prepare_inpainting_latents(input_image, &processed_mask, &components.vae, request.width, request.height, &components.device, components.dtype)?;
+    let (image_latents, mask_latents, masked_image_latents) = prepare_inpainting_latents(
+        input_image,
+        &processed_mask,
+        &components.vae,
+        request.width,
+        request.height,
+        &components.device,
+        components.dtype,
+    )?;
 
     // 4. Initialize noise latents
     let latent_height = request.height / 8;

@@ -23,7 +23,7 @@ pub struct AppState {
     /// Request queue for submitting generation requests
     /// TEAM-396: Changed from `Arc<GenerationEngine>` to RequestQueue
     request_queue: RequestQueue,
-    
+
     /// Model loading status (true = ready for inference)
     model_loaded: Arc<AtomicBool>,
 }
@@ -45,28 +45,25 @@ impl AppState {
     /// # fn example() -> anyhow::Result<()> {
     /// // 1. Create queue and get receiver
     /// let (request_queue, request_rx) = RequestQueue::new();
-    /// 
+    ///
     /// // 2. Load model and create pipeline
     /// // let pipeline = Arc::new(Mutex::new(InferencePipeline::new(...)?));
-    /// 
+    ///
     /// // 3. Create engine with dependency injection
     /// // let engine = GenerationEngine::new(pipeline, request_rx);
-    /// 
+    ///
     /// // 4. Start engine (consumes self)
     /// // engine.start();
-    /// 
+    ///
     /// // 5. Create AppState with queue
     /// let state = AppState::new(request_queue);
     /// # Ok(())
     /// # }
     /// ```
     pub fn new(request_queue: RequestQueue) -> Self {
-        Self {
-            request_queue,
-            model_loaded: Arc::new(AtomicBool::new(true)),
-        }
+        Self { request_queue, model_loaded: Arc::new(AtomicBool::new(true)) }
     }
-    
+
     /// Check if worker is ready for inference
     ///
     /// Returns true if model is loaded and ready to accept generation requests.
@@ -74,7 +71,7 @@ impl AppState {
     pub fn is_ready(&self) -> bool {
         self.model_loaded.load(Ordering::Relaxed)
     }
-    
+
     /// Get reference to request queue
     ///
     /// TEAM-396: Changed from generation_engine() to request_queue()
@@ -82,7 +79,7 @@ impl AppState {
     pub fn request_queue(&self) -> &RequestQueue {
         &self.request_queue
     }
-    
+
     /// Set model loading status
     ///
     /// Called during startup to indicate when model is fully loaded.
@@ -95,14 +92,14 @@ impl AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_model_loaded_flag() {
         // Test that we can set and read the model_loaded flag
         // This is important for the /ready endpoint
         let flag = Arc::new(AtomicBool::new(false));
         assert!(!flag.load(Ordering::Relaxed));
-        
+
         flag.store(true, Ordering::Relaxed);
         assert!(flag.load(Ordering::Relaxed));
     }

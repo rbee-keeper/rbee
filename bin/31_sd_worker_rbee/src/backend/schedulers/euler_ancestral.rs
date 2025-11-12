@@ -41,7 +41,7 @@ impl Default for NoiseStrategy {
 }
 
 /// Configuration for Euler Ancestral Discrete scheduler
-/// 
+///
 /// TEAM-481: Full-featured configuration with all ancestral sampling options
 #[derive(Debug, Clone, Copy)]
 pub struct EulerAncestralSchedulerConfig {
@@ -83,15 +83,12 @@ impl Default for EulerAncestralSchedulerConfig {
 
 impl SchedulerConfig for EulerAncestralSchedulerConfig {
     fn build(&self, inference_steps: usize) -> Result<Box<dyn Scheduler>> {
-        Ok(Box::new(EulerAncestralScheduler::new(
-            inference_steps,
-            *self,
-        )?))
+        Ok(Box::new(EulerAncestralScheduler::new(inference_steps, *self)?))
     }
 }
 
 /// Euler Ancestral Discrete Scheduler
-/// 
+///
 /// TEAM-481: Better quality than regular Euler due to stochastic noise
 pub struct EulerAncestralScheduler {
     timesteps: Vec<usize>,
@@ -102,35 +99,27 @@ pub struct EulerAncestralScheduler {
 
 impl EulerAncestralScheduler {
     /// Create a new Euler Ancestral scheduler
-    /// 
+    ///
     /// # Arguments
     /// * `inference_steps` - Number of inference steps (e.g., 20, 50)
     /// * `config` - Scheduler configuration
-    pub fn new(
-        inference_steps: usize,
-        config: EulerAncestralSchedulerConfig,
-    ) -> Result<Self> {
+    pub fn new(inference_steps: usize, config: EulerAncestralSchedulerConfig) -> Result<Self> {
         let step_ratio = config.train_timesteps / inference_steps;
-        
+
         // Create timesteps based on spacing strategy
         let timesteps: Vec<usize> = match config.timestep_spacing {
             TimestepSpacing::Leading => {
-                (0..inference_steps)
-                    .map(|s| s * step_ratio + config.steps_offset)
-                    .rev()
-                    .collect()
+                (0..inference_steps).map(|s| s * step_ratio + config.steps_offset).rev().collect()
             }
-            TimestepSpacing::Trailing => {
-                std::iter::successors(Some(config.train_timesteps), |n| {
-                    if *n > step_ratio {
-                        Some(n - step_ratio)
-                    } else {
-                        None
-                    }
-                })
-                .map(|n| n - 1)
-                .collect()
-            }
+            TimestepSpacing::Trailing => std::iter::successors(Some(config.train_timesteps), |n| {
+                if *n > step_ratio {
+                    Some(n - step_ratio)
+                } else {
+                    None
+                }
+            })
+            .map(|n| n - 1)
+            .collect(),
             TimestepSpacing::Linspace => {
                 // Simplified linspace for timesteps
                 (0..inference_steps)
@@ -144,29 +133,27 @@ impl EulerAncestralScheduler {
 
         // Create beta schedule
         let betas: Vec<f64> = match config.beta_schedule {
-            BetaSchedule::Linear => {
-                (0..config.train_timesteps)
-                    .map(|i| {
-                        let t = (i as f64) / (config.train_timesteps as f64 - 1.0);
-                        config.beta_start + t * (config.beta_end - config.beta_start)
-                    })
-                    .collect()
-            }
-            BetaSchedule::ScaledLinear => {
-                (0..config.train_timesteps)
-                    .map(|i| {
-                        let t = (i as f64) / (config.train_timesteps as f64 - 1.0);
-                        let beta_sqrt = config.beta_start.sqrt() + t * (config.beta_end.sqrt() - config.beta_start.sqrt());
-                        beta_sqrt * beta_sqrt
-                    })
-                    .collect()
-            }
+            BetaSchedule::Linear => (0..config.train_timesteps)
+                .map(|i| {
+                    let t = (i as f64) / (config.train_timesteps as f64 - 1.0);
+                    config.beta_start + t * (config.beta_end - config.beta_start)
+                })
+                .collect(),
+            BetaSchedule::ScaledLinear => (0..config.train_timesteps)
+                .map(|i| {
+                    let t = (i as f64) / (config.train_timesteps as f64 - 1.0);
+                    let beta_sqrt = config.beta_start.sqrt()
+                        + t * (config.beta_end.sqrt() - config.beta_start.sqrt());
+                    beta_sqrt * beta_sqrt
+                })
+                .collect(),
             BetaSchedule::SquaredcosCapV2 => {
                 // Simplified cosine schedule
                 (0..config.train_timesteps)
                     .map(|i| {
                         let t = (i as f64) / config.train_timesteps as f64;
-                        let alpha_bar = f64::cos((t + 0.008) / 1.008 * std::f64::consts::FRAC_PI_2).powi(2);
+                        let alpha_bar =
+                            f64::cos((t + 0.008) / 1.008 * std::f64::consts::FRAC_PI_2).powi(2);
                         (1.0 - alpha_bar).min(0.999)
                     })
                     .collect()
@@ -182,29 +169,20 @@ impl EulerAncestralScheduler {
         }
 
         // Calculate sigmas from alphas
-        let sigmas: Vec<f64> = alphas_cumprod
-            .iter()
-            .map(|&alpha| ((1.0 - alpha) / alpha).sqrt())
-            .collect();
+        let sigmas: Vec<f64> =
+            alphas_cumprod.iter().map(|&alpha| ((1.0 - alpha) / alpha).sqrt()).collect();
 
         // Interpolate sigmas for inference timesteps
         let sigmas_xa: Vec<f64> = (0..sigmas.len()).map(|i| i as f64).collect();
         let timesteps_f64: Vec<f64> = timesteps.iter().map(|&t| t as f64).collect();
-        
+
         let mut sigmas_int = interp(&timesteps_f64, &sigmas_xa, &sigmas);
         sigmas_int.push(0.0); // Add final sigma
 
         // Calculate initial noise sigma (max of all sigmas)
-        let init_noise_sigma = sigmas_int
-            .iter()
-            .fold(0.0_f64, |a, &b| if a > b { a } else { b });
+        let init_noise_sigma = sigmas_int.iter().fold(0.0_f64, |a, &b| if a > b { a } else { b });
 
-        Ok(Self {
-            timesteps,
-            sigmas: sigmas_int,
-            init_noise_sigma,
-            config,
-        })
+        Ok(Self { timesteps, sigmas: sigmas_int, init_noise_sigma, config })
     }
 }
 
@@ -220,7 +198,9 @@ impl Scheduler for EulerAncestralScheduler {
             .position(|&t| t == timestep)
             .ok_or_else(|| candle_core::Error::Msg("timestep out of bounds".to_string()))?;
 
-        let sigma = self.sigmas.get(step_index)
+        let sigma = self
+            .sigmas
+            .get(step_index)
             .ok_or_else(|| candle_core::Error::Msg("step_index out of sigma bounds".to_string()))?;
 
         Ok((original + (noise * *sigma)?)?)
@@ -240,7 +220,9 @@ impl Scheduler for EulerAncestralScheduler {
             .position(|&t| t == timestep)
             .ok_or_else(|| candle_core::Error::Msg("timestep out of bounds".to_string()))?;
 
-        let sigma = self.sigmas.get(step_index)
+        let sigma = self
+            .sigmas
+            .get(step_index)
             .ok_or_else(|| candle_core::Error::Msg("step_index out of sigma bounds".to_string()))?;
 
         // Scale by (sigma^2 + 1)^0.5 to match K-LMS algorithm
@@ -259,22 +241,25 @@ impl Scheduler for EulerAncestralScheduler {
 
         // 1. Compute predicted original sample (x_0) from sigma-scaled predicted noise
         let pred_original_sample = match self.config.prediction_type {
-            PredictionType::Epsilon => {
-                (sample - (model_output * sigma_from)?)?
-            }
+            PredictionType::Epsilon => (sample - (model_output * sigma_from)?)?,
             PredictionType::VPrediction => {
                 let scale1 = -sigma_from / (sigma_from.powi(2) + 1.0).sqrt();
                 let scale2 = 1.0 / (sigma_from.powi(2) + 1.0);
                 ((model_output * scale1)? + (sample * scale2)?)?
             }
             PredictionType::Sample => {
-                return Err(candle_core::Error::Msg("Sample prediction type not implemented".to_string()).into());
+                return Err(candle_core::Error::Msg(
+                    "Sample prediction type not implemented".to_string(),
+                )
+                .into());
             }
         };
 
         // Calculate sigma_up and sigma_down for ancestral sampling
         // eta controls the amount of stochastic noise (0.0 = deterministic, 1.0 = full ancestral)
-        let sigma_up = self.config.eta * (sigma_to.powi(2) * (sigma_from.powi(2) - sigma_to.powi(2)) / sigma_from.powi(2)).sqrt();
+        let sigma_up = self.config.eta
+            * (sigma_to.powi(2) * (sigma_from.powi(2) - sigma_to.powi(2)) / sigma_from.powi(2))
+                .sqrt();
         let sigma_down = (sigma_to.powi(2) - sigma_up.powi(2)).sqrt();
 
         // 2. Convert to ODE derivative
@@ -304,7 +289,7 @@ impl Scheduler for EulerAncestralScheduler {
 }
 
 /// Linear interpolation helper
-/// 
+///
 /// TEAM-481: Interpolates y values at x positions given xp and fp arrays
 fn interp(x: &[f64], xp: &[f64], fp: &[f64]) -> Vec<f64> {
     let mut interpolator = LinearInterpolator { xp, fp, cache: 0 };
@@ -337,7 +322,7 @@ impl LinearInterpolator<'_, '_> {
         }
 
         let idx = self.accel_find(x);
-        
+
         if idx + 1 >= self.xp.len() {
             return self.fp[idx];
         }
@@ -347,7 +332,7 @@ impl LinearInterpolator<'_, '_> {
         let y_l = self.fp[idx];
         let y_h = self.fp[idx + 1];
         let dx = x_h - x_l;
-        
+
         if dx > 0.0 {
             y_l + (x - x_l) / dx * (y_h - y_l)
         } else {

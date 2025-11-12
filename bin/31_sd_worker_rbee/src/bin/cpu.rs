@@ -5,9 +5,7 @@
 use clap::Parser;
 use sd_worker_rbee::{
     backend::{
-        generation_engine::GenerationEngine,
-        model_loader,
-        models::SDVersion,
+        generation_engine::GenerationEngine, model_loader, models::SDVersion,
         request_queue::RequestQueue,
     },
     http::{backend::AppState, routes::create_router},
@@ -65,16 +63,16 @@ async fn main() -> anyhow::Result<()> {
     );
 
     // TEAM-397: Complete implementation following TEAM-396's correct architecture
-    
+
     // Initialize CPU device
     log_device_init("CPU");
     let device = device::init_cpu_device()?;
     device::verify_device(&device)?;
-    
+
     // Parse SD version
     let sd_version = SDVersion::from_str(&args.sd_version)?;
     tracing::info!("Loading model: {:?}", sd_version);
-    
+
     // Load model components (downloads from HuggingFace if needed)
     // TEAM-488: Updated to include LoRA support
     let model_components = model_loader::load_model(
@@ -85,35 +83,32 @@ async fn main() -> anyhow::Result<()> {
         false, // quantized = false for CPU
     )?;
     tracing::info!("Model loaded successfully");
-    
+
     // 1. Create request queue (returns queue and receiver)
     let (request_queue, request_rx) = RequestQueue::new();
-    
+
     // 2. Create generation engine with loaded models
     // TEAM-481: model_components is now Box<dyn ImageModel>, wrap in Arc<Mutex<>>
-    let engine = GenerationEngine::new(
-        Arc::new(Mutex::new(model_components)),
-        request_rx,
-    );
-    
+    let engine = GenerationEngine::new(Arc::new(Mutex::new(model_components)), request_rx);
+
     // 3. Start engine (consumes self, spawns blocking task)
     engine.start();
-    
+
     // 5. Create HTTP state with request_queue
     let app_state = AppState::new(request_queue);
-    
+
     // 6. Start HTTP server
     let router = create_router(app_state);
     let addr = SocketAddr::from(([0, 0, 0, 0], args.port));
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    
+
     tracing::info!("✅ SD Worker (CPU) ready on port {}", args.port);
     tracing::info!("✅ Model: {:?}", sd_version);
     tracing::info!("✅ Architecture: RequestQueue/GenerationEngine pattern");
     tracing::info!("✅ Generation engine started and ready for requests");
-    
+
     // Run HTTP server
     axum::serve(listener, router).await?;
-    
+
     Ok(())
 }

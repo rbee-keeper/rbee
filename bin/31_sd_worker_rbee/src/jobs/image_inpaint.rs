@@ -39,8 +39,8 @@ pub fn execute(state: JobState, req: ImageInpaintRequest) -> Result<JobResponse>
         seed: req.seed,
         width: img_width as usize,
         height: img_height as usize,
-        sampler: crate::backend::schedulers::SamplerType::default(),     // TEAM-482: Use default sampler (Euler)
-        schedule: crate::backend::schedulers::NoiseSchedule::default(),  // TEAM-482: Use default schedule (Simple)
+        sampler: crate::backend::schedulers::SamplerType::default(), // TEAM-482: Use default sampler (Euler)
+        schedule: crate::backend::schedulers::NoiseSchedule::default(), // TEAM-482: Use default schedule (Simple)
         loras: req
             .loras
             .iter()

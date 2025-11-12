@@ -12,10 +12,7 @@ use tracing::{error, info, warn};
 pub enum ServerError {
     /// Failed to bind to the specified address
     #[error("Failed to bind to {addr}: {source}")]
-    BindFailed {
-        addr: SocketAddr,
-        source: std::io::Error,
-    },
+    BindFailed { addr: SocketAddr, source: std::io::Error },
 
     /// Server runtime error
     #[error("Server runtime error: {0}")]
@@ -96,10 +93,7 @@ impl HttpServer {
     pub async fn run(self) -> Result<(), ServerError> {
         let listener = TcpListener::bind(self.addr).await.map_err(|source| {
             error!(addr = %self.addr, error = %source, "Failed to bind");
-            ServerError::BindFailed {
-                addr: self.addr,
-                source,
-            }
+            ServerError::BindFailed { addr: self.addr, source }
         })?;
 
         info!(addr = %self.addr, "HTTP server listening");
@@ -132,9 +126,7 @@ impl HttpServer {
 /// - Windows: Only handles Ctrl+C (SIGINT)
 async fn shutdown_signal() {
     let ctrl_c = async {
-        tokio::signal::ctrl_c()
-            .await
-            .expect("Failed to install Ctrl+C handler");
+        tokio::signal::ctrl_c().await.expect("Failed to install Ctrl+C handler");
     };
 
     #[cfg(unix)]
@@ -170,9 +162,7 @@ mod tests {
     }
 
     async fn test_handler() -> Json<TestResponse> {
-        Json(TestResponse {
-            status: "ok".to_string(),
-        })
+        Json(TestResponse { status: "ok".to_string() })
     }
 
     #[tokio::test]
@@ -189,10 +179,7 @@ mod tests {
         let addr: SocketAddr = "127.0.0.1:8080".parse().unwrap();
         let io_error = std::io::Error::new(std::io::ErrorKind::AddrInUse, "port in use");
 
-        let error = ServerError::BindFailed {
-            addr,
-            source: io_error,
-        };
+        let error = ServerError::BindFailed { addr, source: io_error };
 
         let error_msg = error.to_string();
         assert!(error_msg.contains("127.0.0.1:8080"));

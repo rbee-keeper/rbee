@@ -6,8 +6,8 @@
 
 mod components;
 mod config;
-mod loader;
 pub mod generation;
+mod loader;
 
 pub use components::ModelComponents;
 pub use config::FluxConfig;
@@ -31,39 +31,52 @@ impl FluxModel {
     /// Create new FLUX model from loaded components
     pub fn new(components: ModelComponents) -> Self {
         let (width, height) = components.version.default_size();
-        
+
         let capabilities = ModelCapabilities {
-            img2img: false,  // FLUX doesn't support img2img in Candle
-            inpainting: false,  // FLUX doesn't support inpainting in Candle
-            lora: false,  // FLUX LoRA not yet supported in Candle
-            controlnet: false,  // FLUX ControlNet not yet supported in Candle
+            img2img: false,    // FLUX doesn't support img2img in Candle
+            inpainting: false, // FLUX doesn't support inpainting in Candle
+            lora: false,       // FLUX LoRA not yet supported in Candle
+            controlnet: false, // FLUX ControlNet not yet supported in Candle
             default_size: (width, height),
-            supported_sizes: vec![(1024, 1024), (768, 1024), (1024, 768)],  // FLUX typical sizes
+            supported_sizes: vec![(1024, 1024), (768, 1024), (1024, 768)], // FLUX typical sizes
             default_steps: components.version.default_steps(),
-            supports_guidance: matches!(components.version, crate::backend::models::SDVersion::FluxDev),
+            supports_guidance: matches!(
+                components.version,
+                crate::backend::models::SDVersion::FluxDev
+            ),
         };
-        
-        Self {
-            components,
-            capabilities,
-        }
+
+        Self { components, capabilities }
     }
 }
 
+/// TEAM-482: Implement ImageModel for FluxModel
+///
+/// Provides text-to-image capabilities using the FLUX architecture.
+/// Note: FLUX models don't support img2img or inpainting due to Candle limitations.
+///
+/// Adopted patterns from LLM Worker:
+/// - Sealed trait (API stability)
+/// - Static lifetimes (zero-cost)
+/// - Inline hints (performance)
+/// - Architecture constants (type safety)
 impl ImageModel for FluxModel {
-    fn model_type(&self) -> &str {
-        "flux"
+    #[inline]
+    fn model_type(&self) -> &'static str {
+        super::arch::FLUX
     }
 
-    fn model_variant(&self) -> &str {
+    #[inline]
+    fn model_variant(&self) -> &'static str {
         use crate::backend::models::SDVersion;
         match self.components.version {
-            SDVersion::FluxDev => "flux-dev",
-            SDVersion::FluxSchnell => "flux-schnell",
-            _ => "unknown",
+            SDVersion::FluxDev => super::arch::variants::FLUX_DEV,
+            SDVersion::FluxSchnell => super::arch::variants::FLUX_SCHNELL,
+            _ => "unknown", // SD models shouldn't reach here
         }
     }
 
+    #[inline]
     fn capabilities(&self) -> &ModelCapabilities {
         &self.capabilities
     }
@@ -80,7 +93,7 @@ impl ImageModel for FluxModel {
                 "FLUX models don't support img2img or inpainting (Candle limitation)".to_string(),
             ));
         }
-        
+
         // Call FLUX txt2img generation
         txt2img(&mut self.components, request, |step, total, preview| {
             progress_callback(step, total, preview)

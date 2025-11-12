@@ -112,9 +112,9 @@ impl Default for SamplingConfig {
             seed: None,
             width: 512,
             height: 512,
-            sampler: SamplerType::default(),     // TEAM-482: Defaults to Euler
-            schedule: NoiseSchedule::default(),  // TEAM-482: Defaults to Simple
-            loras: vec![],                       // TEAM-487: No LoRAs by default
+            sampler: SamplerType::default(), // TEAM-482: Defaults to Euler
+            schedule: NoiseSchedule::default(), // TEAM-482: Defaults to Simple
+            loras: vec![],                   // TEAM-487: No LoRAs by default
         }
     }
 }

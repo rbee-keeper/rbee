@@ -37,7 +37,16 @@
   },
   "linter": {
     "enabled": true,
-    "rules": { "recommended": true },
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noUnknownAtRules": "off",
+        "noArrayIndexKey": "warn"
+      },
+      "correctness": {
+        "noUnusedFunctionParameters": "warn"
+      }
+    },
     "includes": [
       "**",
       "!**/node_modules/",
@@ -52,6 +61,9 @@
       "!**/dev-server.log",
       "!**/wrangler.jsonc",
       "!**/components.json",
+      "!**/globals.css",
+      "!**/test-results/",
+      "!**/playwright-report/",
       "!reference/**"
     ]
   },

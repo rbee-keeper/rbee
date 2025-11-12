@@ -109,7 +109,7 @@ pub fn dev_loop() -> Result<()> {
 
     // 3) Regenerators
     crate::tasks::regen::regen_openapi()?;
-    crate::tasks::regen::regen_schema()?;
+    // TEAM-480: Removed regen_schema call - function deleted (dead code)
     crate::tasks::regen::spec_extract()?;
 
     // 4) Tests (workspace)

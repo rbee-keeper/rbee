@@ -125,16 +125,15 @@ pub fn run(app_arg: Option<String>, type_arg: Option<String>, dry_run: bool, ci_
 
     // TEAM-452: CRITICAL FIX - Run gates BEFORE version bump!
     // If gates fail, we don't want a dirty version bump in git
-    if !dry_run {
-        if let Some(ref app) = selected_app {
-            if app != "all" && app != "skip" {
-                println!("{}", "🚦 Running deployment gates...".bright_cyan());
-                println!();
-                crate::deploy::gates::check_gates(app)?;
-                println!();
-                println!("{}", "✅ All gates passed!".bright_green());
-                println!();
-            }
+    // TEAM-480: ALWAYS run gates, even in dry-run mode - validate everything works!
+    if let Some(ref app) = selected_app {
+        if app != "all" && app != "skip" {
+            println!("{}", "🚦 Running deployment gates...".bright_cyan());
+            println!();
+            crate::deploy::gates::check_gates(app)?;
+            println!();
+            println!("{}", "✅ All gates passed!".bright_green());
+            println!();
         }
     }
 

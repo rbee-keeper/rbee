@@ -12,8 +12,7 @@ pub struct Xtask {
 pub enum Cmd {
     #[command(name = "regen-openapi")]
     RegenOpenapi,
-    #[command(name = "regen-schema")]
-    RegenSchema,
+    // TEAM-480: Removed RegenSchema - dead code referencing non-existent contracts_config_schema
     #[command(name = "regen")]
     Regen,
     #[command(name = "spec-extract")]
@@ -30,24 +29,7 @@ pub enum Cmd {
     PactVerify,
     #[command(name = "docs:index")]
     DocsIndex,
-    #[command(name = "engine:status")]
-    EngineStatus {
-        /// Path to config YAML
-        #[arg(long, default_value = "requirements/llamacpp-3090-source.yaml")]
-        config: PathBuf,
-        /// Optional pool id to check (defaults to all)
-        #[arg(long)]
-        pool: Option<String>,
-    },
-    #[command(name = "engine:down")]
-    EngineDown {
-        /// Path to config YAML
-        #[arg(long, default_value = "requirements/llamacpp-3090-source.yaml")]
-        config: PathBuf,
-        /// Optional pool id to stop (defaults to all)
-        #[arg(long)]
-        pool: Option<String>,
-    },
+    // TEAM-480: Removed EngineStatus and EngineDown - dead code for old engine management system
     #[command(name = "bdd:test")]
     BddTest {
         /// Run tests with specific tag (e.g., @auth, @p0)

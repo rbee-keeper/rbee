@@ -6,7 +6,6 @@ use std::{fs, process::Command};
 
 pub fn regen_all() -> Result<()> {
     regen_openapi()?;
-    regen_schema()?;
     spec_extract()?;
     println!("regen: OK");
     Ok(())
@@ -57,14 +56,5 @@ pub fn regen_openapi() -> Result<()> {
     Ok(())
 }
 
-pub fn regen_schema() -> Result<()> {
-    let root = repo_root()?;
-    let out = root.join("contracts/schemas/config.schema.json");
-    contracts_config_schema::emit_schema_json(&out)
-        .map_err(|e| anyhow!("emit schema failed: {e}"))?;
-    println!("regen-schema: OK");
-
-    // Ensure formatting so dev:loop fmt check will pass
-    let _ = Command::new("cargo").arg("fmt").arg("--all").status();
-    Ok(())
-}
+// TEAM-480: Removed regen_schema - contracts_config_schema crate no longer exists
+// This was dead code referencing a non-existent dependency

@@ -19,7 +19,7 @@ use std::path::PathBuf;
 fn bump_version(app: &str, bump_type: &str, dry_run: bool) -> Result<()> {
     // Map app name to package directory
     let package_dir = match app {
-        "admin" => "bin/78-admin",
+        "admin" => "frontend/apps/admin",
         "worker" | "gwc" | "worker-catalog" => "bin/80-hono-worker-catalog",
         "commercial" => "frontend/apps/commercial",
         "marketplace" => "frontend/apps/marketplace",

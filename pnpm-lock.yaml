@@ -917,6 +917,9 @@ importers:
       '@opennextjs/cloudflare':
         specifier: ^1.11.1
         version: 1.11.1(wrangler@4.46.0(@cloudflare/workers-types@4.20251107.0))
+      '@rbee/env-config':
+        specifier: workspace:*
+        version: link:../../packages/env-config
       '@rbee/ui':
         specifier: workspace:*
         version: link:../../packages/rbee-ui

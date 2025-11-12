@@ -66,7 +66,8 @@ pub enum SDVersion {
 }
 
 impl SDVersion {
-    /// Get HuggingFace repository for this model version
+    /// Get `HuggingFace` repository for this model version
+    #[must_use] 
     pub fn repo(&self) -> &'static str {
         match self {
             Self::V1_5 => "runwayml/stable-diffusion-v1-5",
@@ -82,6 +83,7 @@ impl SDVersion {
     }
 
     /// Get default image dimensions for this model
+    #[must_use] 
     pub fn default_size(&self) -> (usize, usize) {
         match self {
             Self::V1_5 | Self::V1_5Inpaint => (512, 512),
@@ -92,6 +94,7 @@ impl SDVersion {
     }
 
     /// Get default number of inference steps
+    #[must_use] 
     pub fn default_steps(&self) -> usize {
         match self {
             Self::Turbo => 4,       // Turbo is optimized for 4 steps
@@ -102,6 +105,7 @@ impl SDVersion {
     }
 
     /// Get default guidance scale
+    #[must_use] 
     pub fn default_guidance_scale(&self) -> f64 {
         match self {
             Self::Turbo => 0.0,       // Turbo doesn't use guidance
@@ -112,16 +116,19 @@ impl SDVersion {
     }
 
     /// Check if this is an inpainting model
+    #[must_use] 
     pub fn is_inpainting(&self) -> bool {
         matches!(self, Self::V1_5Inpaint | Self::V2Inpaint | Self::XLInpaint)
     }
 
     /// Check if this is an XL-based model
+    #[must_use] 
     pub fn is_xl(&self) -> bool {
         matches!(self, Self::XL | Self::XLInpaint | Self::Turbo)
     }
 
     /// Check if this is a FLUX model
+    #[must_use] 
     pub fn is_flux(&self) -> bool {
         matches!(self, Self::FluxDev | Self::FluxSchnell)
     }
@@ -130,6 +137,7 @@ impl SDVersion {
     // Based on reference/candle/candle-transformers/src/models/stable_diffusion/mod.rs
 
     /// Get CLIP config for this model version
+    #[must_use] 
     pub fn clip_config(&self) -> candle_transformers::models::stable_diffusion::clip::Config {
         use candle_transformers::models::stable_diffusion::clip::Config;
         match self {
@@ -140,8 +148,9 @@ impl SDVersion {
         }
     }
 
-    /// Get UNet config for this model version
-    /// Manually constructed like in StableDiffusionConfig::v1_5()
+    /// Get `UNet` config for this model version
+    /// Manually constructed like in `StableDiffusionConfig::v1_5()`
+    #[must_use] 
     pub fn unet_config(
         &self,
     ) -> candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModelConfig {
@@ -224,7 +233,8 @@ impl SDVersion {
     }
 
     /// Get VAE config for this model version
-    /// Manually constructed like in StableDiffusionConfig::v1_5()
+    /// Manually constructed like in `StableDiffusionConfig::v1_5()`
+    #[must_use] 
     pub fn vae_config(
         &self,
     ) -> candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig {
@@ -272,8 +282,7 @@ impl SDVersion {
             "flux-dev" | "flux.1-dev" | "flux1-dev" => Ok(Self::FluxDev),
             "flux-schnell" | "flux.1-schnell" | "flux1-schnell" => Ok(Self::FluxSchnell),
             _ => Err(crate::error::Error::InvalidInput(format!(
-                "Unknown SD version: {}. Supported: v1-5, v2-1, xl, turbo, flux-dev, flux-schnell",
-                s
+                "Unknown SD version: {s}. Supported: v1-5, v2-1, xl, turbo, flux-dev, flux-schnell"
             ))),
         }
     }
@@ -292,6 +301,7 @@ pub enum ModelFile {
 
 impl ModelFile {
     /// Get the file path for this component
+    #[must_use] 
     pub fn path(&self, _version: SDVersion, use_f16: bool) -> &'static str {
         match self {
             Self::Tokenizer => "tokenizer/tokenizer_config.json",
@@ -328,6 +338,7 @@ impl ModelFile {
     }
 
     /// Get tokenizer repository (different for some models)
+    #[must_use] 
     pub fn tokenizer_repo(version: SDVersion) -> &'static str {
         match version {
             SDVersion::V1_5 | SDVersion::V1_5Inpaint | SDVersion::V2_1 | SDVersion::V2Inpaint => {

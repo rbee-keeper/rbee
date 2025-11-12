@@ -63,7 +63,7 @@ pub struct DPMSolverMultistepSchedulerConfig {
     pub beta_end: f64,
     /// Beta schedule type
     pub beta_schedule: BetaSchedule,
-    /// Prediction type (epsilon, v_prediction, or sample)
+    /// Prediction type (epsilon, `v_prediction`, or sample)
     pub prediction_type: PredictionType,
     /// Number of training timesteps (usually 1000)
     pub train_timesteps: usize,
@@ -387,7 +387,7 @@ impl DPMSolverMultistepScheduler {
                 prev_timestep,
                 timestep_list,
             ),
-            _ => Err(candle_core::Error::Msg(format!("Order {} not supported", order)).into()),
+            _ => Err(candle_core::Error::Msg(format!("Order {order} not supported")).into()),
         }
     }
 }

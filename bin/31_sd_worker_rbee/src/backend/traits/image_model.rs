@@ -18,7 +18,7 @@ use image::DynamicImage;
 
 /// TEAM-482: Sealed trait pattern - prevents external implementations
 ///
-/// This ensures only our internal model types can implement ImageModel.
+/// This ensures only our internal model types can implement `ImageModel`.
 /// External crates cannot add their own implementations, which:
 /// - Maintains API stability
 /// - Prevents breaking changes
@@ -41,10 +41,10 @@ pub struct ModelCapabilities {
     /// Supports inpainting with masks
     pub inpainting: bool,
 
-    /// Supports LoRA weight adaptation
+    /// Supports `LoRA` weight adaptation
     pub lora: bool,
 
-    /// Supports ControlNet conditioning
+    /// Supports `ControlNet` conditioning
     pub controlnet: bool,
 
     /// Default image size (width, height)
@@ -102,14 +102,14 @@ pub trait ImageModel: sealed::Sealed + Send + Sync {
         self.capabilities().inpainting
     }
 
-    /// Check if model supports LoRA
+    /// Check if model supports `LoRA`
     /// TEAM-482: Default implementation with inline hint for zero-cost
     #[inline]
     fn supports_lora(&self) -> bool {
         self.capabilities().lora
     }
 
-    /// Check if model supports ControlNet
+    /// Check if model supports `ControlNet`
     /// TEAM-482: Default implementation with inline hint for zero-cost
     #[inline]
     fn supports_controlnet(&self) -> bool {
@@ -123,13 +123,13 @@ pub trait ImageModel: sealed::Sealed + Send + Sync {
     ///
     /// This is the main generation function that all models implement.
     /// The model decides internally how to handle the request based on:
-    /// - Whether input_image is present (img2img vs txt2img)
+    /// - Whether `input_image` is present (img2img vs txt2img)
     /// - Whether mask is present (inpainting)
     /// - Model-specific capabilities
     ///
     /// # Arguments
     /// * `request` - Generation request with all parameters
-    /// * `progress_callback` - Boxed closure called periodically with (step, total, optional_preview)
+    /// * `progress_callback` - Boxed closure called periodically with (step, total, `optional_preview`)
     ///
     /// # Returns
     /// Generated image on success
@@ -188,21 +188,25 @@ pub struct GenerationRequest {
 
 impl GenerationRequest {
     /// Check if this is an inpainting request
+    #[must_use] 
     pub fn is_inpainting(&self) -> bool {
         self.input_image.is_some() && self.mask.is_some()
     }
 
     /// Check if this is an img2img request
+    #[must_use] 
     pub fn is_img2img(&self) -> bool {
         self.input_image.is_some() && self.mask.is_none()
     }
 
     /// Check if this is a txt2img request
+    #[must_use] 
     pub fn is_txt2img(&self) -> bool {
         self.input_image.is_none()
     }
 
     /// Get operation type as string
+    #[must_use] 
     pub fn operation_type(&self) -> &str {
         if self.is_inpainting() {
             "inpaint"

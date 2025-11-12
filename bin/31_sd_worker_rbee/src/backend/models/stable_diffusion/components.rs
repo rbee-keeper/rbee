@@ -26,7 +26,7 @@ pub struct ModelComponents {
     /// Data type (F16, F32, BF16)
     pub dtype: DType,
 
-    /// UNet (denoising network) - Direct Candle type
+    /// `UNet` (denoising network) - Direct Candle type
     pub unet: stable_diffusion::unet_2d::UNet2DConditionModel,
 
     /// VAE (encoder/decoder) - Direct Candle type

@@ -53,7 +53,7 @@ pub struct EulerAncestralSchedulerConfig {
     pub beta_schedule: BetaSchedule,
     /// Offset for timestep indexes
     pub steps_offset: usize,
-    /// Prediction type (epsilon, v_prediction, or sample)
+    /// Prediction type (epsilon, `v_prediction`, or sample)
     pub prediction_type: PredictionType,
     /// Number of training timesteps (usually 1000)
     pub train_timesteps: usize,

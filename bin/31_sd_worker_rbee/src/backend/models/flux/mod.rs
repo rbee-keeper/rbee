@@ -20,8 +20,8 @@ use crate::backend::traits::{GenerationRequest, ImageModel, ModelCapabilities};
 use crate::error::Result;
 use image::DynamicImage;
 
-/// FLUX model with ImageModel trait implementation
-/// TEAM-488: Wraps ModelComponents and implements the unified trait
+/// FLUX model with `ImageModel` trait implementation
+/// TEAM-488: Wraps `ModelComponents` and implements the unified trait
 pub struct FluxModel {
     components: ModelComponents,
     capabilities: ModelCapabilities,
@@ -50,7 +50,7 @@ impl FluxModel {
     }
 }
 
-/// TEAM-482: Implement ImageModel for FluxModel
+/// TEAM-482: Implement `ImageModel` for `FluxModel`
 ///
 /// Provides text-to-image capabilities using the FLUX architecture.
 /// Note: FLUX models don't support img2img or inpainting due to Candle limitations.
@@ -96,7 +96,7 @@ impl ImageModel for FluxModel {
 
         // Call FLUX txt2img generation
         txt2img(&mut self.components, request, |step, total, preview| {
-            progress_callback(step, total, preview)
+            progress_callback(step, total, preview);
         })
     }
 }

@@ -18,17 +18,19 @@ pub fn image_to_base64(image: &DynamicImage) -> Result<String> {
 pub fn base64_to_image(base64: &str) -> Result<DynamicImage> {
     let bytes = STANDARD
         .decode(base64)
-        .map_err(|e| crate::error::Error::InvalidInput(format!("Invalid base64: {}", e)))?;
+        .map_err(|e| crate::error::Error::InvalidInput(format!("Invalid base64: {e}")))?;
     let image = image::load_from_memory(&bytes)?;
     Ok(image)
 }
 
 /// Resize image to target dimensions
+#[must_use] 
 pub fn resize_image(image: &DynamicImage, width: u32, height: u32) -> DynamicImage {
     image.resize_exact(width, height, image::imageops::FilterType::Lanczos3)
 }
 
 /// Ensure image dimensions are multiples of 8 (required for SD)
+#[must_use] 
 pub fn ensure_multiple_of_8(image: &DynamicImage) -> DynamicImage {
     let (width, height) = image.dimensions();
     let new_width = (width / 8) * 8;
@@ -111,7 +113,7 @@ pub fn mask_to_latent_tensor(
     let data = gray.into_raw();
 
     // 3. Convert to f32 and normalize [0.0, 1.0]
-    let data: Vec<f32> = data.iter().map(|&x| x as f32 / 255.0).collect();
+    let data: Vec<f32> = data.iter().map(|&x| f32::from(x) / 255.0).collect();
 
     // 4. Reshape to (1, 1, height, width)
     let h = (height / 8) as usize;

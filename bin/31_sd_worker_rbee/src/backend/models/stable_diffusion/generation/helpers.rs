@@ -25,7 +25,7 @@ pub(super) fn text_embeddings(
         Some(padding) => *tokenizer
             .get_vocab(true)
             .get(padding.as_str())
-            .ok_or_else(|| Error::ModelLoading(format!("Pad token {} not found", padding)))?,
+            .ok_or_else(|| Error::ModelLoading(format!("Pad token {padding} not found")))?,
         None => *tokenizer
             .get_vocab(true)
             .get("</|endoftext|>")
@@ -34,7 +34,7 @@ pub(super) fn text_embeddings(
 
     let mut tokens = tokenizer
         .encode(prompt, true)
-        .map_err(|e| Error::ModelLoading(format!("Tokenization failed: {}", e)))?
+        .map_err(|e| Error::ModelLoading(format!("Tokenization failed: {e}")))?
         .get_ids()
         .to_vec();
 
@@ -58,7 +58,7 @@ pub(super) fn text_embeddings(
     let text_embeddings = if use_guide_scale {
         let mut uncond_tokens = tokenizer
             .encode(uncond_prompt, true)
-            .map_err(|e| Error::ModelLoading(format!("Tokenization failed: {}", e)))?
+            .map_err(|e| Error::ModelLoading(format!("Tokenization failed: {e}")))?
             .get_ids()
             .to_vec();
 
@@ -95,11 +95,11 @@ pub(super) fn tensor_to_image(tensor: &Tensor) -> Result<DynamicImage> {
     let (batch, channel, height, width) = tensor.dims4()?;
 
     if batch != 1 {
-        return Err(Error::Generation(format!("Expected batch size 1, got {}", batch)));
+        return Err(Error::Generation(format!("Expected batch size 1, got {batch}")));
     }
 
     if channel != 3 {
-        return Err(Error::Generation(format!("Expected 3 channels, got {}", channel)));
+        return Err(Error::Generation(format!("Expected 3 channels, got {channel}")));
     }
 
     let image_data = tensor.i(0)?.permute((1, 2, 0))?.flatten_all()?.to_vec1::<u8>()?;
@@ -136,9 +136,9 @@ fn image_to_tensor(image: &DynamicImage, device: &Device, dtype: DType) -> Resul
     let data: Vec<f32> = rgb
         .pixels()
         .flat_map(|p| {
-            let r = p[0] as f32 / 255.0;
-            let g = p[1] as f32 / 255.0;
-            let b = p[2] as f32 / 255.0;
+            let r = f32::from(p[0]) / 255.0;
+            let g = f32::from(p[1]) / 255.0;
+            let b = f32::from(p[2]) / 255.0;
             [r * 2.0 - 1.0, g * 2.0 - 1.0, b * 2.0 - 1.0]
         })
         .collect();

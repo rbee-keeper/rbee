@@ -25,7 +25,7 @@ impl ModelLoader {
     /// Create a new model loader
     pub fn new(version: SDVersion, use_f16: bool) -> Result<Self> {
         let api = Api::new()
-            .map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {}", e)))?;
+            .map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {e}")))?;
         Ok(Self { api, version, use_f16 })
     }
 
@@ -42,7 +42,7 @@ impl ModelLoader {
             .api
             .model(repo.to_string())
             .get(path)
-            .map_err(|e| Error::ModelLoading(format!("Failed to download {}: {}", path, e)))?;
+            .map_err(|e| Error::ModelLoading(format!("Failed to download {path}: {e}")))?;
 
         Ok(repo)
     }
@@ -71,7 +71,7 @@ impl ModelLoader {
 
         // Load tokenizer
         let tokenizer = tokenizers::Tokenizer::from_file(tokenizer_path)
-            .map_err(|e| Error::ModelLoading(format!("Failed to load tokenizer: {}", e)))?;
+            .map_err(|e| Error::ModelLoading(format!("Failed to load tokenizer: {e}")))?;
 
         // Get configs from version
         let clip_config = self.version.clip_config();
@@ -134,7 +134,7 @@ impl ModelLoader {
     }
 }
 
-/// Load model components without LoRA
+/// Load model components without `LoRA`
 pub fn load_model_simple(
     version: SDVersion,
     device: &Device,
@@ -145,7 +145,7 @@ pub fn load_model_simple(
     Ok(StableDiffusionModel::new(components))
 }
 
-/// Load a Stable Diffusion model with LoRA
+/// Load a Stable Diffusion model with `LoRA`
 pub fn load_stable_diffusion_with_lora(
     version: SDVersion,
     device: &Device,

@@ -14,11 +14,11 @@ use tokio::sync::mpsc;
 
 /// Request for image generation
 ///
-/// TEAM-396: response_tx is now PART of the request (not passed separately)
-/// TEAM-487: Added input_image, mask, and strength for img2img and inpainting
+/// TEAM-396: `response_tx` is now PART of the request (not passed separately)
+/// TEAM-487: Added `input_image`, mask, and strength for img2img and inpainting
 #[derive(Debug)]
 pub struct GenerationRequest {
-    /// Unique request ID (job_id from HTTP request)
+    /// Unique request ID (`job_id` from HTTP request)
     pub request_id: String,
 
     /// Sampling configuration
@@ -30,7 +30,7 @@ pub struct GenerationRequest {
 
     /// Optional mask for inpainting (white = inpaint, black = keep)
     /// TEAM-487: For inpainting generation
-    /// If Some, this is inpainting. If None with input_image, this is img2img.
+    /// If Some, this is inpainting. If None with `input_image`, this is img2img.
     pub mask: Option<DynamicImage>,
 
     /// Transformation strength for img2img (0.0-1.0)
@@ -63,7 +63,7 @@ pub enum GenerationResponse {
 ///
 /// TEAM-396: Fixed to match LLM worker pattern
 /// - Queue only holds SENDER (not receiver)
-/// - Receiver returned from new() and given to GenerationEngine
+/// - Receiver returned from `new()` and given to `GenerationEngine`
 /// - No Mutex needed (sender is Clone + Send)
 /// - Unbounded channels (no capacity limits)
 #[derive(Clone)]
@@ -76,6 +76,7 @@ impl RequestQueue {
     ///
     /// Returns the queue (for HTTP handlers) and receiver (for generation engine)
     /// TEAM-396: Clean separation - caller decides who gets what
+    #[must_use] 
     pub fn new() -> (Self, mpsc::UnboundedReceiver<GenerationRequest>) {
         let (tx, rx) = mpsc::unbounded_channel();
         (Self { tx }, rx)
@@ -83,7 +84,7 @@ impl RequestQueue {
 
     /// Add a request to the queue
     ///
-    /// TEAM-396: Now takes complete request (with response_tx inside)
+    /// TEAM-396: Now takes complete request (with `response_tx` inside)
     /// Returns Ok(()) if request was queued successfully.
     /// Returns Err if the generation engine has stopped.
     pub fn add_request(&self, request: GenerationRequest) -> Result<(), String> {

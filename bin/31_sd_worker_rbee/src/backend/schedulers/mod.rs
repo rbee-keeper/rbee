@@ -43,7 +43,7 @@ pub use euler_ancestral::EulerAncestralSchedulerConfig;
 
 use crate::error::Result;
 
-/// Build a scheduler from a SamplerType and NoiseSchedule
+/// Build a scheduler from a `SamplerType` and `NoiseSchedule`
 ///
 /// TEAM-482: Now accepts both sampler and schedule for proper architecture.
 /// Euler scheduler uses the noise schedule, others use their beta schedules.

@@ -16,8 +16,8 @@ use super::components::{ModelComponents, SendFluxModel};
 /// Load FLUX model from directory
 ///
 /// # Arguments
-/// * `model_path` - Path to model directory (from HuggingFace cache)
-/// * `version` - FLUX variant (FluxDev or FluxSchnell)
+/// * `model_path` - Path to model directory (from `HuggingFace` cache)
+/// * `version` - FLUX variant (`FluxDev` or `FluxSchnell`)
 /// * `device` - Device to load on (CPU/CUDA)
 /// * `use_f16` - Use F16 precision (recommended for GPU)
 /// * `quantized` - Use quantized GGUF model (memory efficient)
@@ -35,7 +35,7 @@ pub fn load_model(
     quantized: bool,
 ) -> Result<ModelComponents> {
     if !version.is_flux() {
-        return Err(Error::InvalidInput(format!("Expected FLUX model, got {:?}", version)));
+        return Err(Error::InvalidInput(format!("Expected FLUX model, got {version:?}")));
     }
 
     let dtype = if use_f16 { DType::F16 } else { DType::F32 };
@@ -49,7 +49,7 @@ pub fn load_model(
     let t5_tokenizer = {
         let tokenizer_path = model_path.join("tokenizer_2/tokenizer.json");
         Tokenizer::from_file(tokenizer_path)
-            .map_err(|e| Error::ModelLoading(format!("Failed to load T5 tokenizer: {}", e)))?
+            .map_err(|e| Error::ModelLoading(format!("Failed to load T5 tokenizer: {e}")))?
     };
 
     let t5_model = {
@@ -68,11 +68,11 @@ pub fn load_model(
         // SAFETY: Memory-mapped file access is safe for read-only model weights
         let vb = unsafe {
             VarBuilder::from_mmaped_safetensors(&[weights_path], dtype, device)
-                .map_err(|e| Error::ModelLoading(format!("Failed to load T5 weights: {}", e)))?
+                .map_err(|e| Error::ModelLoading(format!("Failed to load T5 weights: {e}")))?
         };
 
         t5::T5EncoderModel::load(vb, &config)
-            .map_err(|e| Error::ModelLoading(format!("Failed to build T5 model: {}", e)))?
+            .map_err(|e| Error::ModelLoading(format!("Failed to build T5 model: {e}")))?
     };
 
     // 2. Load CLIP text encoder
@@ -80,7 +80,7 @@ pub fn load_model(
     let clip_tokenizer = {
         let tokenizer_path = model_path.join("tokenizer/tokenizer.json");
         Tokenizer::from_file(tokenizer_path)
-            .map_err(|e| Error::ModelLoading(format!("Failed to load CLIP tokenizer: {}", e)))?
+            .map_err(|e| Error::ModelLoading(format!("Failed to load CLIP tokenizer: {e}")))?
     };
 
     let clip_model = {
@@ -101,11 +101,11 @@ pub fn load_model(
         // SAFETY: Memory-mapped file access is safe for read-only model weights
         let vb = unsafe {
             VarBuilder::from_mmaped_safetensors(&[weights_path], dtype, device)
-                .map_err(|e| Error::ModelLoading(format!("Failed to load CLIP weights: {}", e)))?
+                .map_err(|e| Error::ModelLoading(format!("Failed to load CLIP weights: {e}")))?
         };
 
         clip::text_model::ClipTextTransformer::new(vb.pp("text_model"), &config)
-            .map_err(|e| Error::ModelLoading(format!("Failed to build CLIP model: {}", e)))?
+            .map_err(|e| Error::ModelLoading(format!("Failed to build CLIP model: {e}")))?
     };
 
     // 3. Load FLUX transformer
@@ -134,10 +134,10 @@ pub fn load_model(
 
         let vb =
             candle_transformers::quantized_var_builder::VarBuilder::from_gguf(gguf_path, device)
-                .map_err(|e| Error::ModelLoading(format!("Failed to load GGUF: {}", e)))?;
+                .map_err(|e| Error::ModelLoading(format!("Failed to load GGUF: {e}")))?;
 
         let model = flux::quantized_model::Flux::new(&config, vb)
-            .map_err(|e| Error::ModelLoading(format!("Failed to build quantized FLUX: {}", e)))?;
+            .map_err(|e| Error::ModelLoading(format!("Failed to build quantized FLUX: {e}")))?;
 
         Box::new(model)
     } else {
@@ -158,11 +158,11 @@ pub fn load_model(
         // SAFETY: Memory-mapped file access is safe for read-only model weights
         let vb = unsafe {
             VarBuilder::from_mmaped_safetensors(&[weights_path], dtype, device)
-                .map_err(|e| Error::ModelLoading(format!("Failed to load FLUX weights: {}", e)))?
+                .map_err(|e| Error::ModelLoading(format!("Failed to load FLUX weights: {e}")))?
         };
 
         let model = flux::model::Flux::new(&config, vb)
-            .map_err(|e| Error::ModelLoading(format!("Failed to build FLUX model: {}", e)))?;
+            .map_err(|e| Error::ModelLoading(format!("Failed to build FLUX model: {e}")))?;
 
         Box::new(model)
     };
@@ -180,11 +180,11 @@ pub fn load_model(
         // SAFETY: Memory-mapped file access is safe for read-only model weights
         let vb = unsafe {
             VarBuilder::from_mmaped_safetensors(&[weights_path], dtype, device)
-                .map_err(|e| Error::ModelLoading(format!("Failed to load VAE weights: {}", e)))?
+                .map_err(|e| Error::ModelLoading(format!("Failed to load VAE weights: {e}")))?
         };
 
         flux::autoencoder::AutoEncoder::new(&config, vb)
-            .map_err(|e| Error::ModelLoading(format!("Failed to build VAE: {}", e)))?
+            .map_err(|e| Error::ModelLoading(format!("Failed to build VAE: {e}")))?
     };
 
     tracing::info!("FLUX model loaded successfully");

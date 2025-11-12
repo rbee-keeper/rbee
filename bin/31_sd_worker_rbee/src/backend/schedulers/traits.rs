@@ -37,7 +37,7 @@ pub trait Scheduler: Send + Sync {
     /// Perform one denoising step
     ///
     /// # Arguments
-    /// * `model_output` - The output from the UNet model
+    /// * `model_output` - The output from the `UNet` model
     /// * `timestep` - Current timestep in the diffusion process
     /// * `sample` - Current noisy sample
     ///

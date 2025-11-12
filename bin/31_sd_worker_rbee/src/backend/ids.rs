@@ -8,27 +8,31 @@ use std::fmt;
 
 /// Request ID for generation requests
 ///
-/// TEAM-481: Newtype pattern prevents mixing up with JobId
+/// TEAM-481: Newtype pattern prevents mixing up with `JobId`
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RequestId(String);
 
 impl RequestId {
     /// Create a new random request ID
+    #[must_use] 
     pub fn new() -> Self {
         Self(uuid::Uuid::new_v4().to_string())
     }
 
     /// Create from an existing string
+    #[must_use] 
     pub fn from_string(s: String) -> Self {
         Self(s)
     }
 
     /// Get the ID as a string slice
+    #[must_use] 
     pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Convert to owned String
+    #[must_use] 
     pub fn into_string(self) -> String {
         self.0
     }
@@ -60,27 +64,31 @@ impl From<RequestId> for String {
 
 /// Job ID for HTTP job tracking
 ///
-/// TEAM-481: Newtype pattern prevents mixing up with RequestId
+/// TEAM-481: Newtype pattern prevents mixing up with `RequestId`
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct JobId(String);
 
 impl JobId {
     /// Create a new random job ID
+    #[must_use] 
     pub fn new() -> Self {
         Self(uuid::Uuid::new_v4().to_string())
     }
 
     /// Create from an existing string
+    #[must_use] 
     pub fn from_string(s: String) -> Self {
         Self(s)
     }
 
     /// Get the ID as a string slice
+    #[must_use] 
     pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Convert to owned String
+    #[must_use] 
     pub fn into_string(self) -> String {
         self.0
     }

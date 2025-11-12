@@ -29,7 +29,7 @@ pub struct SamplingConfig {
     pub height: usize,
 
     /// Sampler to use (algorithm)
-    /// TEAM-482: Choose from Euler, EulerAncestral, DpmSolverMultistep, Ddim, Ddpm
+    /// TEAM-482: Choose from Euler, `EulerAncestral`, `DpmSolverMultistep`, Ddim, Ddpm
     /// Defaults to Euler if not specified
     #[serde(default)]
     pub sampler: SamplerType,
@@ -41,8 +41,8 @@ pub struct SamplingConfig {
     #[serde(default)]
     pub schedule: NoiseSchedule,
 
-    /// LoRAs to apply (optional)
-    /// TEAM-487: Allows stacking multiple LoRAs for customization
+    /// `LoRAs` to apply (optional)
+    /// TEAM-487: Allows stacking multiple `LoRAs` for customization
     #[serde(default)]
     pub loras: Vec<LoRAConfig>,
 }
@@ -51,7 +51,7 @@ impl SamplingConfig {
     /// Validate sampling configuration
     ///
     /// TEAM-481: Now uses constants for validation limits
-    /// TEAM-481: #[must_use] ensures validation result is checked
+    /// TEAM-481: #[`must_use`] ensures validation result is checked
     #[must_use = "validation result must be checked"]
     pub fn validate(&self) -> Result<()> {
         if self.prompt.is_empty() {
@@ -72,7 +72,7 @@ impl SamplingConfig {
             )));
         }
 
-        if self.width % DIMENSION_MULTIPLE != 0 || self.height % DIMENSION_MULTIPLE != 0 {
+        if !self.width.is_multiple_of(DIMENSION_MULTIPLE) || !self.height.is_multiple_of(DIMENSION_MULTIPLE) {
             return Err(Error::InvalidInput(format!(
                 "Width and height must be multiples of {}, got {}x{}",
                 DIMENSION_MULTIPLE, self.width, self.height

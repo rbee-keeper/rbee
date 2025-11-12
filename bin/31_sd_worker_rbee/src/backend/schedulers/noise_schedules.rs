@@ -16,7 +16,7 @@ use super::types::NoiseSchedule;
 /// It produces high-quality results by concentrating more steps
 /// in the important noise range.
 ///
-/// Reference: https://arxiv.org/abs/2206.00364
+/// Reference: <https://arxiv.org/abs/2206.00364>
 ///
 /// # Arguments
 /// * `num_steps` - Number of inference steps
@@ -26,6 +26,7 @@ use super::types::NoiseSchedule;
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
+#[must_use] 
 pub fn calculate_karras_sigmas(
     num_steps: usize,
     sigma_min: f64,
@@ -38,8 +39,8 @@ pub fn calculate_karras_sigmas(
     let mut sigmas: Vec<f64> = (0..num_steps)
         .map(|i| {
             let t = i as f64 / (num_steps - 1) as f64;
-            let sigma = (max_inv_rho + t * (min_inv_rho - max_inv_rho)).powf(rho);
-            sigma
+            
+            (max_inv_rho + t * (min_inv_rho - max_inv_rho)).powf(rho)
         })
         .collect();
 
@@ -60,12 +61,13 @@ pub fn calculate_karras_sigmas(
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
+#[must_use] 
 pub fn calculate_exponential_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64) -> Vec<f64> {
     let mut sigmas: Vec<f64> = (0..num_steps)
         .map(|i| {
             let t = i as f64 / (num_steps - 1) as f64;
-            let sigma = (sigma_max.ln() * (1.0 - t) + sigma_min.ln() * t).exp();
-            sigma
+            
+            (sigma_max.ln() * (1.0 - t) + sigma_min.ln() * t).exp()
         })
         .collect();
 
@@ -86,6 +88,7 @@ pub fn calculate_exponential_sigmas(num_steps: usize, sigma_min: f64, sigma_max:
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
+#[must_use] 
 pub fn calculate_simple_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64) -> Vec<f64> {
     let mut sigmas: Vec<f64> = (0..num_steps)
         .map(|i| {
@@ -112,6 +115,7 @@ pub fn calculate_simple_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64)
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
+#[must_use] 
 pub fn calculate_sigmas(
     schedule: NoiseSchedule,
     num_steps: usize,

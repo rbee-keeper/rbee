@@ -66,6 +66,7 @@ impl EulerScheduler {
     /// * `num_train_timesteps` - Number of training timesteps (usually 1000)
     /// * `num_inference_steps` - Number of inference steps (e.g., 20, 50)
     /// * `noise_schedule` - Noise schedule to use (Simple, Karras, Exponential, etc.)
+    #[must_use] 
     pub fn new(
         num_train_timesteps: usize,
         num_inference_steps: usize,

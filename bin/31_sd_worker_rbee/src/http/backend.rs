@@ -13,15 +13,15 @@ use std::sync::Arc;
 /// Shared application state for HTTP handlers
 ///
 /// TEAM-396: Fixed to match LLM worker pattern
-/// This state is cloned for each request (cheap - RequestQueue is Clone).
+/// This state is cloned for each request (cheap - `RequestQueue` is Clone).
 /// Contains the request queue for submitting generation jobs.
 ///
 /// # Thread Safety
-/// RequestQueue is Clone and thread-safe (internally uses UnboundedSender).
+/// `RequestQueue` is Clone and thread-safe (internally uses `UnboundedSender`).
 #[derive(Clone)]
 pub struct AppState {
     /// Request queue for submitting generation requests
-    /// TEAM-396: Changed from `Arc<GenerationEngine>` to RequestQueue
+    /// TEAM-396: Changed from `Arc<GenerationEngine>` to `RequestQueue`
     request_queue: RequestQueue,
 
     /// Model loading status (true = ready for inference)
@@ -29,13 +29,13 @@ pub struct AppState {
 }
 
 impl AppState {
-    /// Create new AppState with request queue
+    /// Create new `AppState` with request queue
     ///
     /// # Arguments
     /// * `request_queue` - Request queue from initialization
     ///
     /// TEAM-396: Simplified - just takes the queue
-    /// The GenerationEngine is started separately in main.rs
+    /// The `GenerationEngine` is started separately in main.rs
     ///
     /// # Correct Setup Pattern
     /// ```no_run
@@ -60,6 +60,7 @@ impl AppState {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use] 
     pub fn new(request_queue: RequestQueue) -> Self {
         Self { request_queue, model_loaded: Arc::new(AtomicBool::new(true)) }
     }
@@ -68,14 +69,16 @@ impl AppState {
     ///
     /// Returns true if model is loaded and ready to accept generation requests.
     /// Used by the /ready endpoint for Kubernetes readiness probes.
+    #[must_use] 
     pub fn is_ready(&self) -> bool {
         self.model_loaded.load(Ordering::Relaxed)
     }
 
     /// Get reference to request queue
     ///
-    /// TEAM-396: Changed from generation_engine() to request_queue()
+    /// TEAM-396: Changed from `generation_engine()` to `request_queue()`
     /// Used by job submission handlers to queue generation requests.
+    #[must_use] 
     pub fn request_queue(&self) -> &RequestQueue {
         &self.request_queue
     }

@@ -24,7 +24,7 @@ use crate::backend::traits::{GenerationRequest, ImageModel, ModelCapabilities};
 use crate::error::Result;
 use image::DynamicImage;
 
-/// Stable Diffusion model with ImageModel trait implementation
+/// Stable Diffusion model with `ImageModel` trait implementation
 pub struct StableDiffusionModel {
     components: ModelComponents,
     capabilities: ModelCapabilities,
@@ -52,7 +52,7 @@ impl StableDiffusionModel {
     }
 }
 
-/// TEAM-482: Implement ImageModel for StableDiffusionModel
+/// TEAM-482: Implement `ImageModel` for `StableDiffusionModel`
 ///
 /// Provides text-to-image, image-to-image, and inpainting capabilities
 /// using the Stable Diffusion architecture (v1.5, v2.1, XL, Turbo).
@@ -104,16 +104,16 @@ impl ImageModel for StableDiffusionModel {
                     )));
                 }
                 generation::inpaint(&self.components, request, img, mask, |step, total, preview| {
-                    progress_callback(step, total, preview)
+                    progress_callback(step, total, preview);
                 })
             }
             (Some(img), None) => {
                 generation::img2img(&self.components, request, img, |step, total, preview| {
-                    progress_callback(step, total, preview)
+                    progress_callback(step, total, preview);
                 })
             }
             (None, _) => generation::txt2img(&self.components, request, |step, total, preview| {
-                progress_callback(step, total, preview)
+                progress_callback(step, total, preview);
             }),
         }
     }

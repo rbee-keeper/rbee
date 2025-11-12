@@ -12,7 +12,7 @@ use axum::{
 use futures::stream::Stream;
 use std::convert::Infallible;
 
-/// Handle SSE streaming via GET /v1/jobs/{job_id}/stream
+/// Handle SSE streaming via GET /`v1/jobs/{job_id}/stream`
 ///
 /// TEAM-396: Streams generation progress and results
 pub async fn handle_stream_job(
@@ -21,7 +21,7 @@ pub async fn handle_stream_job(
 ) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, (StatusCode, String)> {
     // Take receiver from registry
     let mut response_rx = state.registry.take_token_receiver(&job_id).ok_or_else(|| {
-        (StatusCode::NOT_FOUND, format!("Job {} not found or already streaming", job_id))
+        (StatusCode::NOT_FOUND, format!("Job {job_id} not found or already streaming"))
     })?;
 
     // Stream events

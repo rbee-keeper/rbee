@@ -93,7 +93,7 @@ impl std::str::FromStr for SamplerType {
             "ddpm" => Ok(Self::Ddpm),
             "euler_ancestral" => Ok(Self::EulerAncestral),
             "dpm_solver_multistep" | "dpm++" | "dpmpp" => Ok(Self::DpmSolverMultistep),
-            _ => Err(format!("Unknown sampler type: {}", s)),
+            _ => Err(format!("Unknown sampler type: {s}")),
         }
     }
 }
@@ -146,7 +146,7 @@ impl std::str::FromStr for NoiseSchedule {
             "exponential" => Ok(Self::Exponential),
             "sgm_uniform" => Ok(Self::SgmUniform),
             "ddim_uniform" => Ok(Self::DdimUniform),
-            _ => Err(format!("Unknown noise schedule: {}", s)),
+            _ => Err(format!("Unknown noise schedule: {s}")),
         }
     }
 }

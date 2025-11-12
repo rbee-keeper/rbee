@@ -13,10 +13,10 @@ use tokio::sync::Mutex;
 ///
 /// TEAM-488: Clean architecture
 /// TEAM-481: Uses trait object (Box<dyn ImageModel>) for true polymorphism
-/// - Receives requests from RequestQueue
-/// - Calls ImageModel trait methods (works with SD or FLUX)
+/// - Receives requests from `RequestQueue`
+/// - Calls `ImageModel` trait methods (works with SD or FLUX)
 /// - Sends responses via channels
-/// - Runs in spawn_blocking (CPU-intensive work)
+/// - Runs in `spawn_blocking` (CPU-intensive work)
 pub struct GenerationEngine {
     model: Arc<Mutex<Box<dyn ImageModel>>>,
     request_rx: tokio::sync::mpsc::UnboundedReceiver<GenerationRequest>,
@@ -26,7 +26,7 @@ impl GenerationEngine {
     /// Create new generation engine
     ///
     /// # Arguments
-    /// * `model` - Boxed ImageModel trait object (SD or FLUX)
+    /// * `model` - Boxed `ImageModel` trait object (SD or FLUX)
     /// * `request_rx` - Receiver for generation requests
     pub fn new(
         model: Arc<Mutex<Box<dyn ImageModel>>>,
@@ -38,7 +38,7 @@ impl GenerationEngine {
     /// Start the generation engine (consumes self)
     ///
     /// Spawns a tokio task that processes requests from the queue.
-    /// Each generation runs in spawn_blocking (CPU/GPU intensive).
+    /// Each generation runs in `spawn_blocking` (CPU/GPU intensive).
     pub fn start(mut self) {
         tokio::spawn(async move {
             tracing::info!("🚀 Generation engine started");

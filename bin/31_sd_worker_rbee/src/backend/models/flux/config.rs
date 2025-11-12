@@ -14,6 +14,7 @@ pub struct FluxConfig {
 
 impl FluxConfig {
     /// Get configuration for FLUX.1-dev
+    #[must_use] 
     pub fn dev() -> Self {
         Self {
             version: SDVersion::FluxDev,
@@ -24,6 +25,7 @@ impl FluxConfig {
     }
 
     /// Get configuration for FLUX.1-schnell
+    #[must_use] 
     pub fn schnell() -> Self {
         Self {
             version: SDVersion::FluxSchnell,

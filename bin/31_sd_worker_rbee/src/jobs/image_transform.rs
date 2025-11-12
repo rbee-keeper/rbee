@@ -45,7 +45,7 @@ pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobRespons
             .iter()
             .map(|l| crate::backend::lora::LoRAConfig {
                 path: l.path.clone(),
-                strength: l.strength as f64,
+                strength: f64::from(l.strength),
             })
             .collect(), // TEAM-488: LoRA support wired up!
     };
@@ -67,7 +67,7 @@ pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobRespons
         response_tx: tx,
     };
 
-    state.queue.add_request(request).map_err(|e| anyhow!("Failed to queue request: {}", e))?;
+    state.queue.add_request(request).map_err(|e| anyhow!("Failed to queue request: {e}"))?;
 
-    Ok(JobResponse { job_id: job_id.clone(), sse_url: format!("/v1/jobs/{}/stream", job_id) })
+    Ok(JobResponse { job_id: job_id.clone(), sse_url: format!("/v1/jobs/{job_id}/stream") })
 }

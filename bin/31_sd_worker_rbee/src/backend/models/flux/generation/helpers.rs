@@ -16,7 +16,7 @@ pub(super) fn t5_embeddings(
 ) -> Result<Tensor> {
     let mut tokens = tokenizer
         .encode(prompt, true)
-        .map_err(|e| crate::error::Error::ModelLoading(format!("T5 tokenization failed: {}", e)))?
+        .map_err(|e| crate::error::Error::ModelLoading(format!("T5 tokenization failed: {e}")))?
         .get_ids()
         .to_vec();
 
@@ -38,7 +38,7 @@ pub(super) fn clip_embeddings(
 ) -> Result<Tensor> {
     let tokens = tokenizer
         .encode(prompt, true)
-        .map_err(|e| crate::error::Error::ModelLoading(format!("CLIP tokenization failed: {}", e)))?
+        .map_err(|e| crate::error::Error::ModelLoading(format!("CLIP tokenization failed: {e}")))?
         .get_ids()
         .to_vec();
 
@@ -66,15 +66,13 @@ pub(super) fn tensor_to_image(tensor: &Tensor) -> Result<DynamicImage> {
 
     if batch != 1 {
         return Err(crate::error::Error::Generation(format!(
-            "Expected batch size 1, got {}",
-            batch
+            "Expected batch size 1, got {batch}"
         )));
     }
 
     if channel != 3 {
         return Err(crate::error::Error::Generation(format!(
-            "Expected 3 channels, got {}",
-            channel
+            "Expected 3 channels, got {channel}"
         )));
     }
 

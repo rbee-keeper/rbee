@@ -13,14 +13,14 @@ use candle_core::Device;
 /// The model stays loaded in memory as long as the daemon runs.
 ///
 /// # Arguments
-/// * `version` - Model version (V1_5, XL, FluxDev, etc.)
+/// * `version` - Model version (`V1_5`, XL, `FluxDev`, etc.)
 /// * `device` - Compute device (CPU, CUDA, Metal)
 /// * `use_f16` - Use FP16 precision (recommended for GPU)
-/// * `loras` - LoRA configurations (SD only, ignored for FLUX)
+/// * `loras` - `LoRA` configurations (SD only, ignored for FLUX)
 /// * `quantized` - Use quantized models (FLUX only, ignored for SD)
 ///
 /// # Returns
-/// Box<dyn ImageModel> - Boxed trait object (either StableDiffusion or Flux)
+/// Box<dyn ImageModel> - Boxed trait object (either `StableDiffusion` or Flux)
 pub fn load_model(
     version: SDVersion,
     device: &Device,

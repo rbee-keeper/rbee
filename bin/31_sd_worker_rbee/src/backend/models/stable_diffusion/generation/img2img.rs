@@ -59,7 +59,7 @@ where
 
     // 3. Add noise based on request.strength
     let (mut latents, start_step) =
-        add_noise_for_img2img(&init_latents, request.strength, request.steps as usize)?;
+        add_noise_for_img2img(&init_latents, request.strength, request.steps)?;
 
     // 4. Denoise from start_step to end (partial denoising)
     let timesteps = components.scheduler.timesteps();

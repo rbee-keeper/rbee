@@ -24,9 +24,9 @@ use candle_nn::{Init, VarBuilder};
 use std::collections::HashMap;
 use std::path::Path;
 
-/// LoRA weights for a single LoRA file
+/// `LoRA` weights for a single `LoRA` file
 ///
-/// TEAM-487: Represents a complete LoRA model with all layer modifications
+/// TEAM-487: Represents a complete `LoRA` model with all layer modifications
 #[derive(Debug)]
 pub struct LoRAWeights {
     /// Model name/path
@@ -35,9 +35,9 @@ pub struct LoRAWeights {
     pub weights: HashMap<String, LoRATensor>,
 }
 
-/// A single LoRA tensor (A and B matrices)
+/// A single `LoRA` tensor (A and B matrices)
 ///
-/// TEAM-487: Represents one layer's LoRA modification
+/// TEAM-487: Represents one layer's `LoRA` modification
 #[derive(Debug)]
 pub struct LoRATensor {
     /// Down projection (A matrix)
@@ -49,16 +49,16 @@ pub struct LoRATensor {
 }
 
 impl LoRAWeights {
-    /// Load LoRA weights from SafeTensors file
+    /// Load `LoRA` weights from `SafeTensors` file
     ///
-    /// TEAM-487: Loads and parses LoRA file into structured weights
+    /// TEAM-487: Loads and parses `LoRA` file into structured weights
     ///
     /// # Arguments
     /// * `path` - Path to .safetensors file
     /// * `device` - Device to load tensors on
     ///
     /// # Returns
-    /// Loaded LoRA weights with all layer modifications
+    /// Loaded `LoRA` weights with all layer modifications
     ///
     /// # Example
     /// ```no_run
@@ -114,23 +114,25 @@ impl LoRAWeights {
         Ok(Self { name, weights })
     }
 
-    /// Get the number of LoRA tensors
+    /// Get the number of `LoRA` tensors
+    #[must_use] 
     pub fn len(&self) -> usize {
         self.weights.len()
     }
 
-    /// Check if LoRA has no tensors
+    /// Check if `LoRA` has no tensors
+    #[must_use] 
     pub fn is_empty(&self) -> bool {
         self.weights.is_empty()
     }
 }
 
-/// Parse LoRA key to get base layer name
+/// Parse `LoRA` key to get base layer name
 ///
-/// TEAM-487: Converts LoRA key format to UNet layer path
+/// TEAM-487: Converts `LoRA` key format to `UNet` layer path
 ///
 /// # Example
-/// Input:  "lora_unet_down_blocks_0_attentions_0_transformer_blocks_0_attn1_to_k.lora_down.weight"
+/// Input:  "`lora_unet_down_blocks_0_attentions_0_transformer_blocks_0_attn1_to_k.lora_down.weight`"
 /// Output: "unet.down.blocks.0.attentions.0.transformer.blocks.0.attn1.to.k"
 fn parse_lora_key(key: &str) -> Option<String> {
     // Remove "lora_" prefix
@@ -149,15 +151,15 @@ fn parse_lora_key(key: &str) -> Option<String> {
     Some(key)
 }
 
-/// LoRA configuration for generation
+/// `LoRA` configuration for generation
 ///
-/// TEAM-487: Specifies a LoRA file and its strength
+/// TEAM-487: Specifies a `LoRA` file and its strength
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct LoRAConfig {
-    /// Path to LoRA file
+    /// Path to `LoRA` file
     pub path: String,
     /// Strength (-10.0 to 10.0)
-    /// - Negative values invert the LoRA effect
+    /// - Negative values invert the `LoRA` effect
     /// - 0.0 = no effect
     /// - 1.0 = full effect (standard)
     /// - Values > 1.0 amplify the effect
@@ -165,14 +167,14 @@ pub struct LoRAConfig {
 }
 
 impl LoRAConfig {
-    /// Create a new LoRA configuration
+    /// Create a new `LoRA` configuration
     pub fn new(path: impl Into<String>, strength: f64) -> Self {
         Self { path: path.into(), strength }
     }
 
-    /// Validate LoRA configuration
+    /// Validate `LoRA` configuration
     ///
-    /// TEAM-481: #[must_use] ensures validation result is checked
+    /// TEAM-481: #[`must_use`] ensures validation result is checked
     #[must_use = "LoRA validation result must be checked"]
     pub fn validate(&self) -> Result<()> {
         // LoRA strengths typically range from -10.0 to 10.0
@@ -187,30 +189,31 @@ impl LoRAConfig {
     }
 }
 
-/// Custom VarBuilder backend that merges base model weights with LoRA deltas
+/// Custom `VarBuilder` backend that merges base model weights with `LoRA` deltas
 ///
-/// TEAM-487: Follows Candle's SimpleBackend pattern
-/// This allows us to transparently apply LoRA without modifying candle-transformers!
+/// TEAM-487: Follows Candle's `SimpleBackend` pattern
+/// This allows us to transparently apply `LoRA` without modifying candle-transformers!
 pub struct LoRABackend {
-    /// Base model VarBuilder
+    /// Base model `VarBuilder`
     base: VarBuilder<'static>,
-    /// LoRA weights to merge
+    /// `LoRA` weights to merge
     loras: Vec<(LoRAWeights, f64)>, // (weights, strength)
 }
 
 impl LoRABackend {
-    /// Create a new LoRA backend
+    /// Create a new `LoRA` backend
     ///
     /// # Arguments
-    /// * `base` - Base model VarBuilder
-    /// * `loras` - List of (LoRA weights, strength) tuples
+    /// * `base` - Base model `VarBuilder`
+    /// * `loras` - List of (`LoRA` weights, strength) tuples
+    #[must_use] 
     pub fn new(base: VarBuilder<'static>, loras: Vec<(LoRAWeights, f64)>) -> Self {
         Self { base, loras }
     }
 
-    /// Apply LoRA deltas to a base tensor
+    /// Apply `LoRA` deltas to a base tensor
     ///
-    /// Computes: W' = W + Σ(strength_i * alpha_i * (A_i × B_i))
+    /// Computes: W' = W + `Σ(strength_i` * `alpha_i` * (`A_i` × `B_i`))
     fn apply_lora_deltas(&self, base_tensor: &Tensor, tensor_name: &str) -> Result<Tensor> {
         let mut result = base_tensor.clone();
 
@@ -218,7 +221,7 @@ impl LoRABackend {
             // Check if this LoRA has weights for this tensor
             if let Some(lora_tensor) = lora.weights.get(tensor_name) {
                 // Calculate LoRA delta: alpha * (A × B)
-                let alpha = lora_tensor.alpha.unwrap_or(1.0) as f64;
+                let alpha = f64::from(lora_tensor.alpha.unwrap_or(1.0));
                 let rank = lora_tensor.down.dim(0)? as f64;
                 let scale = (alpha * strength) / rank;
 
@@ -278,9 +281,9 @@ impl SimpleBackend for LoRABackend {
     }
 }
 
-/// Create a VarBuilder with LoRA weights merged
+/// Create a `VarBuilder` with `LoRA` weights merged
 ///
-/// TEAM-487: This is the main entry point for using LoRAs
+/// TEAM-487: This is the main entry point for using `LoRAs`
 ///
 /// # Example
 /// ```no_run

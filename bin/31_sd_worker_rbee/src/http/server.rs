@@ -110,6 +110,7 @@ impl HttpServer {
     }
 
     /// Get the bind address
+    #[must_use] 
     pub fn addr(&self) -> SocketAddr {
         self.addr
     }
@@ -141,10 +142,10 @@ async fn shutdown_signal() {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => {
+        () = ctrl_c => {
             warn!("Received SIGINT (Ctrl+C), initiating graceful shutdown");
         },
-        _ = terminate => {
+        () = terminate => {
             warn!("Received SIGTERM, initiating graceful shutdown");
         },
     }

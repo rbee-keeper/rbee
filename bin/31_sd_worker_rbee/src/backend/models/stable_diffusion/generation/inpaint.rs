@@ -26,7 +26,7 @@ use image::DynamicImage;
 /// * `dtype` - Data type
 ///
 /// # Returns
-/// (image_latents, mask_latents, masked_image_latents)
+/// (`image_latents`, `mask_latents`, `masked_image_latents`)
 pub fn inpaint<F>(
     components: &ModelComponents,
     request: &GenerationRequest,

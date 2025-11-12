@@ -64,6 +64,7 @@ impl DDIMScheduler {
     /// * `num_inference_steps` - Number of inference steps (e.g., 20, 50)
     /// * `beta_start` - Beta schedule start value
     /// * `beta_end` - Beta schedule end value
+    #[must_use] 
     pub fn new(
         num_train_timesteps: usize,
         num_inference_steps: usize,

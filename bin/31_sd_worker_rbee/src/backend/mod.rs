@@ -16,7 +16,9 @@ pub mod lora; // TEAM-487: LoRA support
 
 // TEAM-392: Inference pipeline modules
 pub mod sampling;
-pub mod scheduler;
+
+// TEAM-481: Modular scheduler architecture
+pub mod schedulers;
 
 // TEAM-481: Type-safe IDs
 pub mod ids;

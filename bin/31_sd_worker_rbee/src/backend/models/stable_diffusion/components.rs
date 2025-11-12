@@ -33,7 +33,8 @@ pub struct ModelComponents {
     pub vae: stable_diffusion::vae::AutoEncoderKL,
 
     /// Scheduler - Our implementation (trait object for flexibility)
-    pub scheduler: Box<dyn crate::backend::scheduler::Scheduler>,
+    /// TEAM-481: Updated to use new schedulers module
+    pub scheduler: Box<dyn crate::backend::schedulers::Scheduler>,
 
     /// CLIP tokenizer
     pub tokenizer: Tokenizer,

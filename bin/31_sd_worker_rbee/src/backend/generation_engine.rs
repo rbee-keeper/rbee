@@ -77,10 +77,14 @@ impl GenerationEngine {
                 );
 
                 // TEAM-397: Call Candle generation function directly
+                // TEAM-487: Handle text-to-image, image-to-image, and inpainting
                 // No lock needed - ModelComponents is immutable
                 Self::generate_and_send(
                     &self.models,
                     &request.config,
+                    request.input_image.as_ref(),
+                    request.mask.as_ref(),
+                    request.strength,
                     request.response_tx,
                 );
 
@@ -98,19 +102,46 @@ impl GenerationEngine {
     ///
     /// TEAM-396: Simplified - response_tx is in the request
     /// TEAM-397: RULE ZERO - Calls generation::generate_image() directly
+    /// TEAM-487: Handles text-to-image, image-to-image, and inpainting
     fn generate_and_send(
         models: &ModelComponents,
         config: &crate::backend::sampling::SamplingConfig,
+        input_image: Option<&image::DynamicImage>,
+        mask: Option<&image::DynamicImage>,
+        strength: f64,
         response_tx: mpsc::UnboundedSender<GenerationResponse>,
     ) {
-        // Progress callback
+        // Progress callback with optional preview images
+        // TEAM-487: Callback can send Progress or Preview
         let progress_tx = response_tx.clone();
-        let progress_callback = move |step: usize, total: usize| {
-            let _ = progress_tx.send(GenerationResponse::Progress { step, total });
+        let progress_callback = move |step: usize, total: usize, preview: Option<image::DynamicImage>| {
+            if let Some(image) = preview {
+                let _ = progress_tx.send(GenerationResponse::Preview { step, total, image });
+            } else {
+                let _ = progress_tx.send(GenerationResponse::Progress { step, total });
+            }
         };
 
-        // TEAM-397: Call Candle generation function (not struct method)
-        match generation::generate_image(config, models, progress_callback) {
+        // TEAM-487: Dispatch based on input_image and mask
+        let result = match (input_image, mask) {
+            (Some(img), Some(msk)) => {
+                // Inpainting (both image and mask provided)
+                tracing::debug!("Running inpainting generation");
+                generation::inpaint(config, models, img, msk, progress_callback)
+            }
+            (Some(img), None) => {
+                // Image-to-image (image only, no mask)
+                tracing::debug!(strength = strength, "Running img2img generation");
+                generation::image_to_image(config, models, img, strength, progress_callback)
+            }
+            (None, _) => {
+                // Text-to-image (no image, mask ignored)
+                tracing::debug!("Running txt2img generation");
+                generation::generate_image(config, models, progress_callback)
+            }
+        };
+
+        match result {
             Ok(image) => {
                 // Send complete response with image
                 let _ = response_tx.send(GenerationResponse::Complete { image });

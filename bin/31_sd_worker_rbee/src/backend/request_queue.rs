@@ -15,6 +15,7 @@ use tokio::sync::mpsc;
 /// Request for image generation
 ///
 /// TEAM-396: response_tx is now PART of the request (not passed separately)
+/// TEAM-487: Added input_image, mask, and strength for img2img and inpainting
 #[derive(Debug)]
 pub struct GenerationRequest {
     /// Unique request ID (job_id from HTTP request)
@@ -23,17 +24,36 @@ pub struct GenerationRequest {
     /// Sampling configuration
     pub config: SamplingConfig,
     
+    /// Optional input image for img2img/inpainting (None = text-to-image)
+    /// TEAM-487: For image-to-image and inpainting generation
+    pub input_image: Option<DynamicImage>,
+    
+    /// Optional mask for inpainting (white = inpaint, black = keep)
+    /// TEAM-487: For inpainting generation
+    /// If Some, this is inpainting. If None with input_image, this is img2img.
+    pub mask: Option<DynamicImage>,
+    
+    /// Transformation strength for img2img (0.0-1.0)
+    /// TEAM-487: Only used for img2img (not inpainting)
+    /// Default: 0.8 (80% transformation)
+    pub strength: f64,
+    
     /// Channel to send responses back to HTTP handler
     /// TEAM-396: Moved from separate parameter to struct field
     pub response_tx: mpsc::UnboundedSender<GenerationResponse>,
 }
 
 /// Response events from generation
+///
+/// TEAM-487: Added Preview variant for intermediate images during generation
 #[derive(Debug, Clone)]
 pub enum GenerationResponse {
-    /// Progress update during generation
+    /// Progress update during generation (step number only)
     Progress { step: usize, total: usize },
-    /// Generation complete with image
+    /// Preview image during generation (intermediate result)
+    /// TEAM-487: Sent every N steps to show generation progress
+    Preview { step: usize, total: usize, image: DynamicImage },
+    /// Generation complete with final image
     Complete { image: DynamicImage },
     /// Generation failed
     Error { message: String },
@@ -94,6 +114,9 @@ mod tests {
                 prompt: "test".to_string(),
                 ..Default::default()
             },
+            input_image: None,  // TEAM-487: Text-to-image
+            mask: None,         // TEAM-487: No mask
+            strength: 0.8,      // TEAM-487: Default strength
             response_tx,  // TEAM-396: Now part of request
         };
 
@@ -115,6 +138,9 @@ mod tests {
                 prompt: "test".to_string(),
                 ..Default::default()
             },
+            input_image: None,  // TEAM-487: Text-to-image
+            mask: None,         // TEAM-487: No mask
+            strength: 0.8,      // TEAM-487: Default strength
             response_tx,  // TEAM-396: Now part of request
         };
 

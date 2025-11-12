@@ -18,6 +18,7 @@ pub mod device;
 pub mod error;
 pub mod http;
 pub mod job_router;
+pub mod jobs;  // TEAM-487: Job handlers separated from router
 pub mod narration;
 
 pub use error::{Error, Result};

@@ -45,6 +45,28 @@ pub async fn handle_stream_job(
                         .event("progress")
                         .data(json.to_string()));
                 }
+                GenerationResponse::Preview { step, total, image } => {
+                    // TEAM-487: Send preview image as base64 via SSE
+                    let base64 = match crate::backend::image_utils::image_to_base64(&image) {
+                        Ok(b64) => b64,
+                        Err(e) => {
+                            tracing::warn!(error = %e, "Failed to encode preview image");
+                            continue; // Skip this preview, don't break the stream
+                        }
+                    };
+                    
+                    let json = serde_json::json!({
+                        "type": "preview",
+                        "step": step,
+                        "total": total,
+                        "percent": (step as f32 / total as f32) * 100.0,
+                        "image": base64,
+                        "format": "png",
+                    });
+                    yield Ok(Event::default()
+                        .event("preview")
+                        .data(json.to_string()));
+                }
                 GenerationResponse::Complete { image } => {
                     // Convert image to base64
                     let base64 = match crate::backend::image_utils::image_to_base64(&image) {

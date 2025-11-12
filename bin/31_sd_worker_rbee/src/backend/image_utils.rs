@@ -46,23 +46,84 @@ pub fn ensure_multiple_of_8(image: &DynamicImage) -> DynamicImage {
 }
 
 /// Process mask image for inpainting
-pub fn process_mask(mask: &DynamicImage) -> Result<DynamicImage> {
-    // Convert to grayscale
+///
+/// TEAM-487: Converts mask to proper format for inpainting
+/// - White (255) = inpaint this region
+/// - Black (0) = keep this region  
+/// - Resize to target dimensions
+/// - Binary threshold
+///
+/// # Arguments
+/// * `mask` - Input mask (any format, will be converted to grayscale)
+/// * `target_width` - Target width (must match image width)
+/// * `target_height` - Target height (must match image height)
+///
+/// # Returns
+/// Processed mask (grayscale, resized, binary)
+pub fn process_mask(
+    mask: &DynamicImage,
+    target_width: u32,
+    target_height: u32,
+) -> Result<DynamicImage> {
+    // 1. Convert to grayscale
     let gray = mask.to_luma8();
     
-    // Ensure dimensions are multiples of 8
-    let (width, height) = gray.dimensions();
-    let new_width = (width / 8) * 8;
-    let new_height = (height / 8) * 8;
-    
-    let resized = image::imageops::resize(
-        &gray,
-        new_width,
-        new_height,
+    // 2. Resize to target dimensions
+    let resized = image::DynamicImage::ImageLuma8(gray).resize_exact(
+        target_width,
+        target_height,
         image::imageops::FilterType::Lanczos3,
     );
     
-    Ok(DynamicImage::ImageLuma8(resized))
+    // 3. Threshold to binary (0 or 255)
+    let mut binary = resized.to_luma8();
+    for pixel in binary.pixels_mut() {
+        pixel[0] = if pixel[0] > 127 { 255 } else { 0 };
+    }
+    
+    Ok(image::DynamicImage::ImageLuma8(binary))
+}
+
+/// Convert mask to latent space tensor
+///
+/// TEAM-487: Inpainting models need mask in latent space (1/8 resolution)
+///
+/// # Arguments
+/// * `mask` - Processed mask (binary, full resolution)
+/// * `device` - Device to create tensor on
+/// * `dtype` - Data type
+///
+/// # Returns
+/// Mask tensor in latent space (shape: [1, 1, height/8, width/8])
+pub fn mask_to_latent_tensor(
+    mask: &DynamicImage,
+    device: &candle_core::Device,
+    dtype: candle_core::DType,
+) -> Result<candle_core::Tensor> {
+    use candle_core::{Module, Tensor};
+    
+    // 1. Resize mask to latent dimensions (1/8 of original)
+    let (width, height) = mask.dimensions();
+    let latent_mask = mask.resize_exact(
+        width / 8,
+        height / 8,
+        image::imageops::FilterType::Nearest, // Use nearest for binary mask
+    );
+    
+    // 2. Convert to grayscale and get pixel data
+    let gray = latent_mask.to_luma8();
+    let data = gray.into_raw();
+    
+    // 3. Convert to f32 and normalize [0.0, 1.0]
+    let data: Vec<f32> = data.iter().map(|&x| x as f32 / 255.0).collect();
+    
+    // 4. Reshape to (1, 1, height, width)
+    let h = (height / 8) as usize;
+    let w = (width / 8) as usize;
+    let tensor = Tensor::from_vec(data, (h, w), device)?;
+    let tensor = tensor.unsqueeze(0)?.unsqueeze(0)?; // Add batch and channel dims
+    
+    Ok(tensor.to_dtype(dtype)?)
 }
 
 #[cfg(test)]
@@ -98,8 +159,9 @@ mod tests {
     #[test]
     fn test_process_mask() {
         let img = DynamicImage::ImageRgb8(RgbImage::new(67, 67));
-        let mask = process_mask(&img).unwrap();
+        let mask = process_mask(&img, 64, 64).unwrap();
         let (w, h) = mask.dimensions();
+        assert_eq!((w, h), (64, 64));
         assert_eq!(w % 8, 0);
         assert_eq!(h % 8, 0);
     }

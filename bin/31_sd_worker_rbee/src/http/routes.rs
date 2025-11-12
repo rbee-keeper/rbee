@@ -2,9 +2,12 @@
 // TEAM-394: HTTP route configuration with middleware stack
 
 use crate::http::backend::AppState;
-use crate::http::{health, jobs, ready, stream};  // TEAM-396: Added jobs and stream
+use crate::http::{health, jobs, ready, stream}; // TEAM-396: Added jobs and stream
 use crate::job_router::JobState;
-use axum::{routing::{get, post}, Router};  // TEAM-396: Added post
+use axum::{
+    routing::{get, post},
+    Router,
+}; // TEAM-396: Added post
 use job_server::JobRegistry;
 use std::sync::Arc;
 use std::time::Duration;
@@ -47,15 +50,13 @@ use tracing::Level;
 pub fn create_router(state: AppState) -> Router {
     // TEAM-394: Simplified middleware stack (no ServiceBuilder needed)
     // TEAM-396: Added job routes with operations-contract integration
-    
+
     // Create JobState for job routing
     // TEAM-396: JobRegistry uses GenerationResponse (not TokenResponse like LLM)
-    let registry = Arc::new(JobRegistry::<crate::backend::request_queue::GenerationResponse>::new());
-    let job_state = JobState {
-        registry,
-        queue: state.request_queue().clone(),
-    };
-    
+    let registry =
+        Arc::new(JobRegistry::<crate::backend::request_queue::GenerationResponse>::new());
+    let job_state = JobState { registry, queue: state.request_queue().clone() };
+
     Router::new()
         // Health and readiness endpoints
         .route("/health", get(health::health_check))
@@ -84,7 +85,7 @@ mod tests {
     fn test_router_creation() {
         // We can't create a real AppState without a pipeline,
         // but we can verify the router creation pattern compiles
-        
+
         // This would be tested in integration tests with a real pipeline
         // For now, just verify the function signature is correct
     }

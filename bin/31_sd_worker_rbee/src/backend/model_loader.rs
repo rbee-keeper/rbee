@@ -29,14 +29,14 @@ pub fn load_model(
     quantized: bool,
 ) -> Result<Box<dyn ImageModel>> {
     tracing::info!("Loading model: {:?} (f16={}, quantized={})", version, use_f16, quantized);
-    
+
     if version.is_flux() {
         // Load FLUX model
         tracing::info!("Loading FLUX model from HuggingFace...");
         let repo = version.repo();
         let components = flux::load_model(repo, version, device, use_f16, quantized)?;
         let model = flux::FluxModel::new(components);
-        
+
         tracing::info!("✅ FLUX model loaded: {}", model.model_variant());
         Ok(Box::new(model))
     } else {
@@ -47,7 +47,7 @@ pub fn load_model(
         } else {
             stable_diffusion::load_stable_diffusion_with_lora(version, device, use_f16, loras)?
         };
-        
+
         tracing::info!("✅ Stable Diffusion model loaded: {}", model.model_variant());
         Ok(Box::new(model))
     }

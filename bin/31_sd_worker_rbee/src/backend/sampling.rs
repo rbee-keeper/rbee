@@ -1,10 +1,20 @@
 // Created by: TEAM-392
 // TEAM-392: Sampling configuration for Stable Diffusion
 // TEAM-487: Added LoRA support
+// TEAM-481: Added constants for validation limits
 
 use crate::backend::lora::LoRAConfig;
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
+
+// TEAM-481: Validation constants - single source of truth
+const MIN_STEPS: usize = 1;
+const MAX_STEPS: usize = 150;
+const MIN_GUIDANCE: f64 = 0.0;
+const MAX_GUIDANCE: f64 = 20.0;
+const DIMENSION_MULTIPLE: usize = 8;
+const MIN_DIMENSION: usize = 256;
+const MAX_DIMENSION: usize = 2048;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SamplingConfig {
@@ -15,7 +25,7 @@ pub struct SamplingConfig {
     pub seed: Option<u64>,
     pub width: usize,
     pub height: usize,
-    
+
     /// LoRAs to apply (optional)
     /// TEAM-487: Allows stacking multiple LoRAs for customization
     #[serde(default)]
@@ -23,43 +33,48 @@ pub struct SamplingConfig {
 }
 
 impl SamplingConfig {
+    /// Validate sampling configuration
+    ///
+    /// TEAM-481: Now uses constants for validation limits
+    /// TEAM-481: #[must_use] ensures validation result is checked
+    #[must_use = "validation result must be checked"]
     pub fn validate(&self) -> Result<()> {
         if self.prompt.is_empty() {
             return Err(Error::InvalidInput("Prompt cannot be empty".to_string()));
         }
 
-        if self.steps == 0 || self.steps > 150 {
+        if self.steps < MIN_STEPS || self.steps > MAX_STEPS {
             return Err(Error::InvalidInput(format!(
-                "Steps must be between 1 and 150, got {}",
-                self.steps
+                "Steps must be between {} and {}, got {}",
+                MIN_STEPS, MAX_STEPS, self.steps
             )));
         }
 
-        if self.guidance_scale < 0.0 || self.guidance_scale > 20.0 {
+        if self.guidance_scale < MIN_GUIDANCE || self.guidance_scale > MAX_GUIDANCE {
             return Err(Error::InvalidInput(format!(
-                "Guidance scale must be between 0 and 20, got {}",
-                self.guidance_scale
+                "Guidance scale must be between {} and {}, got {}",
+                MIN_GUIDANCE, MAX_GUIDANCE, self.guidance_scale
             )));
         }
 
-        if self.width % 8 != 0 || self.height % 8 != 0 {
+        if self.width % DIMENSION_MULTIPLE != 0 || self.height % DIMENSION_MULTIPLE != 0 {
             return Err(Error::InvalidInput(format!(
-                "Width and height must be multiples of 8, got {}x{}",
-                self.width, self.height
+                "Width and height must be multiples of {}, got {}x{}",
+                DIMENSION_MULTIPLE, self.width, self.height
             )));
         }
 
-        if self.width < 256 || self.width > 2048 {
+        if self.width < MIN_DIMENSION || self.width > MAX_DIMENSION {
             return Err(Error::InvalidInput(format!(
-                "Width must be between 256 and 2048, got {}",
-                self.width
+                "Width must be between {} and {}, got {}",
+                MIN_DIMENSION, MAX_DIMENSION, self.width
             )));
         }
 
-        if self.height < 256 || self.height > 2048 {
+        if self.height < MIN_DIMENSION || self.height > MAX_DIMENSION {
             return Err(Error::InvalidInput(format!(
-                "Height must be between 256 and 2048, got {}",
-                self.height
+                "Height must be between {} and {}, got {}",
+                MIN_DIMENSION, MAX_DIMENSION, self.height
             )));
         }
 
@@ -82,7 +97,7 @@ impl Default for SamplingConfig {
             seed: None,
             width: 512,
             height: 512,
-            loras: vec![],  // TEAM-487: No LoRAs by default
+            loras: vec![], // TEAM-487: No LoRAs by default
         }
     }
 }

@@ -1,4 +1,5 @@
 // TEAM-487: Image generation job handler (text-to-image)
+// TEAM-481: Added tracing instrumentation for better observability
 
 use anyhow::{anyhow, Result};
 use operations_contract::ImageGenerationRequest;
@@ -9,8 +10,12 @@ use crate::job_router::JobState;
 use crate::jobs::JobResponse;
 
 /// Execute image generation operation (text-to-image)
+/// 
+/// TEAM-481: Instrumented for tracing - automatically logs function entry/exit
+#[tracing::instrument(skip(state), fields(job_id))]
 pub fn execute(state: JobState, req: ImageGenerationRequest) -> Result<JobResponse> {
     let job_id = state.registry.create_job();
+    tracing::Span::current().record("job_id", &job_id);
     observability_narration_core::sse_sink::create_job_channel(job_id.clone(), 1000);
     
     let (response_tx, response_rx) = tokio::sync::mpsc::unbounded_channel();

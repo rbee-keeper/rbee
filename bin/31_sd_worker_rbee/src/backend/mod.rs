@@ -18,6 +18,9 @@ pub mod lora; // TEAM-487: LoRA support
 pub mod sampling;
 pub mod scheduler;
 
+// TEAM-481: Type-safe IDs
+pub mod ids;
+
 // TEAM-488: Keep these for now (used by jobs and other modules)
 pub mod request_queue;
 pub mod image_utils;

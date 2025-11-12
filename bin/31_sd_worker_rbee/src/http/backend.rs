@@ -97,23 +97,9 @@ mod tests {
     use super::*;
     
     #[test]
-    fn test_appstate_clone() {
-        // Create mock pipeline (we can't create a real one without loading a model)
-        // This test verifies that AppState is Clone and Arc pointers work correctly
-        
-        // We can't easily test this without a real pipeline, but we can verify
-        // the struct is Clone and the pattern compiles
-        
-        // This would be tested in integration tests with a real pipeline
-    }
-    
-    #[test]
     fn test_model_loaded_flag() {
         // Test that we can set and read the model_loaded flag
         // This is important for the /ready endpoint
-        
-        // We can't create AppState without a pipeline, so this test
-        // verifies the AtomicBool pattern works correctly
         let flag = Arc::new(AtomicBool::new(false));
         assert!(!flag.load(Ordering::Relaxed));
         

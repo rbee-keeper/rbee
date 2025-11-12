@@ -93,7 +93,7 @@ impl LoRAWeights {
                 } else if key.ends_with(".lora_up.weight") {
                     entry.1 = Some(tensor);
                 } else if key.ends_with(".alpha") {
-                    // Alpha is a scalar
+                    // Alpha is a scalars
                     let alpha_value = tensor.to_vec0::<f32>()?;
                     entry.2 = Some(alpha_value);
                 }
@@ -171,6 +171,9 @@ impl LoRAConfig {
     }
 
     /// Validate LoRA configuration
+    /// 
+    /// TEAM-481: #[must_use] ensures validation result is checked
+    #[must_use = "LoRA validation result must be checked"]
     pub fn validate(&self) -> Result<()> {
         // LoRA strengths typically range from -10.0 to 10.0
         // Negative values invert the effect, values > 1.0 amplify it
@@ -256,7 +259,12 @@ impl SimpleBackend for LoRABackend {
             .map_err(|e| candle_core::Error::Msg(e.to_string()))
     }
 
-    fn get_unchecked(&self, name: &str, _dtype: DType, _dev: &Device) -> candle_core::Result<Tensor> {
+    fn get_unchecked(
+        &self,
+        name: &str,
+        _dtype: DType,
+        _dev: &Device,
+    ) -> candle_core::Result<Tensor> {
         // Get base tensor
         let base_tensor = self.base.get_unchecked(name)?;
 

@@ -16,5 +16,7 @@ mod tokenizer_loader;
 // TEAM-149: Real-time streaming modules
 pub mod generation_engine;
 pub mod request_queue;
+// TEAM-482: Traits module - interface definitions
+pub mod traits;
 
 pub use inference::CandleInferenceBackend;

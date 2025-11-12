@@ -110,8 +110,7 @@ impl QuantizedLlamaModel {
                      Try downloading a fresh copy from HuggingFace.",
                     available_keys.join(", ")
                 )
-            })?
-            as usize;
+            })?;
 
         let eos_token_id = content
             .metadata
@@ -153,10 +152,10 @@ impl QuantizedLlamaModel {
         // TEAM-482: Quantized model capabilities
         let capabilities = crate::backend::models::ModelCapabilities::quantized(
             crate::backend::models::arch::LLAMA,
-            2048,  // Default GGUF context
+            2048, // Default GGUF context
         );
 
-        Ok(Self { model, eos_token_id, vocab_size, capabilities })
+        Ok(Self { model, eos_token_id, vocab_size: vocab_size as usize, capabilities })
     }
 
     /// Forward pass through the model
@@ -210,7 +209,7 @@ impl crate::backend::models::ModelTrait for QuantizedLlamaModel {
     fn reset_cache(&mut self) -> Result<()> {
         self.reset_cache()
     }
-    
+
     #[inline]
     fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities

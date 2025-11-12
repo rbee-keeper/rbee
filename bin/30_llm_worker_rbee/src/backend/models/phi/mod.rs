@@ -1,80 +1,21 @@
 // TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Phi model implementation
+// TEAM-482: Refactored into components/loader pattern
 
 //! Phi model wrapper
 //!
 //! Created by: TEAM-017
 //! Refactored by: TEAM-017 (removed trait, using enum pattern)
+//! Refactored by: TEAM-482 (split into components/loader)
+
+mod components;
+mod loader;
+
+pub use components::PhiModel;
 
 use anyhow::{Context, Result};
-use candle_core::{DType, Device, Tensor};
-use candle_nn::VarBuilder;
-use candle_transformers::models::phi::{Config, Model};
-use std::path::Path;
-
-/// Phi model wrapper
-///
-/// TEAM-017: Wraps candle-transformers Phi with its natural interface
-/// TEAM-482: Added capabilities (Phi has special requirements)
-pub struct PhiModel {
-    model: Model,
-    vocab_size: usize,
-    capabilities: crate::backend::models::ModelCapabilities,
-}
+use candle_core::Tensor;
 
 impl PhiModel {
-    /// Load Phi model from `SafeTensors`
-    ///
-    /// TEAM-017: Candle-idiomatic pattern
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
-
-        // Parse config.json
-        let config_path = parent.join("config.json");
-        let config: Config = serde_json::from_reader(
-            std::fs::File::open(&config_path)
-                .with_context(|| format!("Failed to open config.json at {config_path:?}"))?,
-        )
-        .context("Failed to parse Phi config.json")?;
-
-        // Create VarBuilder and load model
-        let dtype = DType::F32;
-        let vb = unsafe { VarBuilder::from_mmaped_safetensors(&safetensor_files, dtype, device)? };
-        let model = Model::new(&config, vb).context("Failed to load Phi model")?;
-
-        // TEAM-017: Extract vocab_size from JSON since fields are private
-        let config_json: serde_json::Value = serde_json::from_reader(
-            std::fs::File::open(&config_path)
-                .with_context(|| format!("Failed to reopen config.json at {config_path:?}"))?,
-        )?;
-
-        let vocab_size = config_json["vocab_size"].as_u64().context("missing vocab_size")? as usize;
-        let hidden_size =
-            config_json["hidden_size"].as_u64().context("missing hidden_size")? as usize;
-        let num_hidden_layers = config_json["num_hidden_layers"]
-            .as_u64()
-            .context("missing num_hidden_layers")? as usize;
-
-        tracing::info!(
-            architecture = "phi",
-            hidden_size = hidden_size,
-            num_layers = num_hidden_layers,
-            vocab_size = vocab_size,
-            "Loaded Phi model"
-        );
-
-        // TEAM-482: Phi has special capabilities - doesn't use position, manages cache internally
-        let capabilities = crate::backend::models::ModelCapabilities {
-            uses_position: false,  // Phi doesn't use position parameter
-            supports_cache_reset: false,  // Phi manages cache internally
-            max_context_length: 2048,  // Phi default context
-            supports_streaming: true,
-            architecture_family: crate::backend::models::arch::PHI,
-            is_quantized: false,
-        };
-
-        Ok(Self { model, vocab_size, capabilities })
-    }
-
     /// Forward pass using Phi's natural interface
     ///
     /// TEAM-017: Phi doesn't use position parameter, manages cache internally

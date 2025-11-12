@@ -1,70 +1,21 @@
 // TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Qwen model implementation
+// TEAM-482: Refactored into components/loader pattern
 
 //! Qwen model wrapper
 //!
 //! Created by: TEAM-017
 //! Refactored by: TEAM-017 (removed trait, using enum pattern)
+//! Refactored by: TEAM-482 (split into components/loader)
+
+mod components;
+mod loader;
+
+pub use components::QwenModel;
 
 use anyhow::{Context, Result};
-use candle_core::{DType, Device, Tensor};
-use candle_nn::VarBuilder;
-use candle_transformers::models::qwen2::{Config, ModelForCausalLM};
-use std::path::Path;
-
-/// Qwen model wrapper
-///
-/// TEAM-017: Wraps candle-transformers Qwen2 with its natural interface
-/// TEAM-482: Added capabilities
-#[derive(Debug)]
-pub struct QwenModel {
-    model: ModelForCausalLM,
-    vocab_size: usize,
-    capabilities: crate::backend::models::ModelCapabilities,
-}
+use candle_core::Tensor;
 
 impl QwenModel {
-    /// Load Qwen model from `SafeTensors`
-    ///
-    /// TEAM-017: Candle-idiomatic pattern
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
-
-        // Parse config.json
-        let config_path = parent.join("config.json");
-        let config: Config = serde_json::from_reader(
-            std::fs::File::open(&config_path)
-                .with_context(|| format!("Failed to open config.json at {config_path:?}"))?,
-        )
-        .context("Failed to parse Qwen config.json")?;
-
-        // Create VarBuilder and load model
-        let dtype = DType::F32;
-        let vb = unsafe { VarBuilder::from_mmaped_safetensors(&safetensor_files, dtype, device)? };
-        let model = ModelForCausalLM::new(&config, vb).context("Failed to load Qwen model")?;
-
-        let vocab_size = config.vocab_size;
-
-        tracing::info!(
-            architecture = "qwen",
-            hidden_size = config.hidden_size,
-            num_layers = config.num_hidden_layers,
-            vocab_size = vocab_size,
-            "Loaded Qwen model"
-        );
-
-        // TEAM-482: Qwen capabilities (cache reset not yet implemented)
-        let capabilities = crate::backend::models::ModelCapabilities {
-            uses_position: true,
-            supports_cache_reset: false,  // Not yet implemented
-            max_context_length: 32768,
-            supports_streaming: true,
-            architecture_family: crate::backend::models::arch::QWEN,
-            is_quantized: false,
-        };
-
-        Ok(Self { model, vocab_size, capabilities })
-    }
-
     /// Forward pass using Qwen's natural interface
     ///
     /// TEAM-017: Uses position parameter

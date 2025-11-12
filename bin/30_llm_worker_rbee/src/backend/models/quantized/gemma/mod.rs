@@ -46,11 +46,19 @@ impl QuantizedGemmaModel {
         // Read GGUF content
         let content =
             candle_core::quantized::gguf_file::Content::read(&mut file).with_context(|| {
-                n!("gguf_gemma_parse_failed", "Failed to parse Gemma GGUF content from {}", path.display());
+                n!(
+                    "gguf_gemma_parse_failed",
+                    "Failed to parse Gemma GGUF content from {}",
+                    path.display()
+                );
                 format!("Failed to read Gemma GGUF content from {path:?}")
             })?;
 
-        n!("gguf_gemma_inspect_metadata", "Inspecting Gemma GGUF metadata ({} keys found)", content.metadata.len());
+        n!(
+            "gguf_gemma_inspect_metadata",
+            "Inspecting Gemma GGUF metadata ({} keys found)",
+            content.metadata.len()
+        );
 
         // Extract metadata
         let vocab_size = content
@@ -76,8 +84,7 @@ impl QuantizedGemmaModel {
                      Available keys: [{}]. This GGUF file may be incomplete or corrupted.",
                     available_keys.join(", ")
                 )
-            })?
-            as usize;
+            })?;
 
         let eos_token_id = content
             .metadata
@@ -85,7 +92,13 @@ impl QuantizedGemmaModel {
             .and_then(|v| v.to_u32().ok())
             .unwrap_or(1); // Default EOS token for Gemma (different from Llama!)
 
-        n!("gguf_gemma_metadata_loaded", "Gemma GGUF metadata: vocab={}, eos={}, tensors={}", vocab_size, eos_token_id, content.tensor_infos.len());
+        n!(
+            "gguf_gemma_metadata_loaded",
+            "Gemma GGUF metadata: vocab={}, eos={}, tensors={}",
+            vocab_size,
+            eos_token_id,
+            content.tensor_infos.len()
+        );
 
         tracing::info!(
             vocab_size = vocab_size,
@@ -94,7 +107,11 @@ impl QuantizedGemmaModel {
             "Gemma GGUF metadata loaded"
         );
 
-        n!("gguf_gemma_load_weights", "Loading {} tensors from Gemma GGUF", content.tensor_infos.len());
+        n!(
+            "gguf_gemma_load_weights",
+            "Loading {} tensors from Gemma GGUF",
+            content.tensor_infos.len()
+        );
 
         // Load model weights from GGUF
         let model = ModelWeights::from_gguf(content, &mut file, device).with_context(|| {
@@ -102,7 +119,12 @@ impl QuantizedGemmaModel {
             "Failed to load Gemma model weights from GGUF"
         })?;
 
-        n!("gguf_gemma_load_complete", "Gemma GGUF model loaded (vocab={}, eos={})", vocab_size, eos_token_id);
+        n!(
+            "gguf_gemma_load_complete",
+            "Gemma GGUF model loaded (vocab={}, eos={})",
+            vocab_size,
+            eos_token_id
+        );
 
         tracing::info!("Gemma GGUF model loaded successfully");
 
@@ -112,7 +134,7 @@ impl QuantizedGemmaModel {
             8192,
         );
 
-        Ok(Self { model, eos_token_id, vocab_size, capabilities })
+        Ok(Self { model, eos_token_id, vocab_size: vocab_size as usize, capabilities })
     }
 
     /// Forward pass through the model
@@ -164,7 +186,7 @@ impl crate::backend::models::ModelTrait for QuantizedGemmaModel {
     fn reset_cache(&mut self) -> Result<()> {
         self.reset_cache()
     }
-    
+
     #[inline]
     fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities

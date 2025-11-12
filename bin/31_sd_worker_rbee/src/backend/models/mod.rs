@@ -5,10 +5,10 @@
 use candle_core::DType;
 
 pub mod sd_config;
-pub mod flux_loader; // TEAM-483: FLUX model loading
 
-// TEAM-488: New self-contained model implementations
+// TEAM-488: Self-contained model implementations
 pub mod stable_diffusion;
+pub mod flux;
 
 /// Supported Stable Diffusion model versions
 /// TEAM-483: Added FLUX support

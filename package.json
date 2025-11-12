@@ -38,8 +38,13 @@
       "vite": "npm:rolldown-vite@7.1.14"
     },
     "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@parcel/watcher",
+      "@swc/core",
+      "core-js-pure",
       "esbuild",
-      "unrs-resolver",
+      "rclone.js",
+      "sharp",
       "workerd"
     ]
   },

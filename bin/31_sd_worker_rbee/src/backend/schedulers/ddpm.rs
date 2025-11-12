@@ -156,6 +156,24 @@ impl Scheduler for DDPMScheduler {
         &self.timesteps
     }
 
+    fn add_noise(&self, original: &Tensor, noise: Tensor, timestep: usize) -> Result<Tensor> {
+        let alpha_prod = self.alphas_cumprod.get(timestep).copied().unwrap_or(INITIAL_ALPHA_PROD);
+        let sqrt_alpha_prod = alpha_prod.sqrt();
+        let sqrt_one_minus_alpha_prod = (INITIAL_ALPHA_PROD - alpha_prod).sqrt();
+        let scaled_original = (original * sqrt_alpha_prod)?;
+        let scaled_noise = (noise * sqrt_one_minus_alpha_prod)?;
+        Ok((&scaled_original + scaled_noise)?)
+    }
+
+    fn init_noise_sigma(&self) -> f64 {
+        INIT_NOISE_SIGMA
+    }
+
+    fn scale_model_input(&self, sample: Tensor, _timestep: usize) -> Result<Tensor> {
+        // DDPM doesn't scale the model input
+        Ok(sample)
+    }
+
     fn step(&self, model_output: &Tensor, timestep: usize, sample: &Tensor) -> Result<Tensor> {
         let prev_t = timestep as isize - self.step_ratio as isize;
 

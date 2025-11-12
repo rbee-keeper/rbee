@@ -76,6 +76,20 @@ impl Scheduler for EulerScheduler {
         &self.timesteps
     }
 
+    fn add_noise(&self, original: &Tensor, noise: Tensor, timestep: usize) -> Result<Tensor> {
+        let sigma = self.sigmas.get(timestep).copied().unwrap_or(DEFAULT_SIGMA);
+        Ok((original + (noise * sigma))?)
+    }
+
+    fn init_noise_sigma(&self) -> f64 {
+        self.sigmas.first().copied().unwrap_or(INITIAL_ALPHA_PROD)
+    }
+
+    fn scale_model_input(&self, sample: Tensor, _timestep: usize) -> Result<Tensor> {
+        // Euler doesn't scale the model input
+        Ok(sample)
+    }
+
     fn step(&self, model_output: &Tensor, timestep: usize, sample: &Tensor) -> Result<Tensor> {
         let sigma = self.sigmas.get(timestep).copied().unwrap_or(DEFAULT_SIGMA);
         let pred_original_sample = (sample - (sigma * model_output)?)?;

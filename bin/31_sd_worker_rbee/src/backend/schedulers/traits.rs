@@ -10,9 +10,29 @@ use candle_core::Tensor;
 /// 
 /// TEAM-481: This trait defines the core interface for diffusion schedulers.
 /// Any new scheduler just needs to implement these methods.
+/// 
+/// This matches Candle's Scheduler trait for full compatibility.
 pub trait Scheduler: Send + Sync {
     /// Get the timesteps for this scheduler
     fn timesteps(&self) -> &[usize];
+    
+    /// Add noise to the original samples
+    /// 
+    /// # Arguments
+    /// * `original` - Original clean samples
+    /// * `noise` - Noise to add
+    /// * `timestep` - Current timestep
+    fn add_noise(&self, original: &Tensor, noise: Tensor, timestep: usize) -> Result<Tensor>;
+    
+    /// Get the initial noise sigma value
+    fn init_noise_sigma(&self) -> f64;
+    
+    /// Scale the model input (some schedulers need this)
+    /// 
+    /// # Arguments
+    /// * `sample` - The sample to scale
+    /// * `timestep` - Current timestep
+    fn scale_model_input(&self, sample: Tensor, timestep: usize) -> Result<Tensor>;
     
     /// Perform one denoising step
     /// 

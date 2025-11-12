@@ -7,16 +7,17 @@ describe('Route Logic (Isolated)', () => {
     it('should return all workers', () => {
       const result = { workers: WORKERS }
       expect(result.workers).toHaveLength(WORKERS.length)
-      expect(result.workers.length).toBeGreaterThanOrEqual(3)
+      expect(result.workers.length).toBe(2) // LLM Worker + SD Worker
     })
   })
 
   describe('GET /workers/:id', () => {
     it('should find worker by ID', () => {
-      const id = 'llm-worker-rbee-cpu'
+      const id = 'llm-worker-rbee'
       const worker = WORKERS.find((w) => w.id === id)
       expect(worker).toBeDefined()
       expect(worker?.id).toBe(id)
+      expect(worker?.variants.length).toBeGreaterThan(0)
     })
 
     it('should return undefined for non-existent worker', () => {
@@ -27,27 +28,33 @@ describe('Route Logic (Isolated)', () => {
   })
 
   describe('PKGBUILD URL Construction', () => {
-    it('should construct correct PKGBUILD URL', () => {
-      const id = 'llm-worker-rbee-cpu'
-      const url = `/pkgbuilds/${id}.PKGBUILD`
-      expect(url).toBe('/pkgbuilds/llm-worker-rbee-cpu.PKGBUILD')
+    it('should construct correct PKGBUILD URL from variant', () => {
+      const worker = WORKERS.find((w) => w.id === 'llm-worker-rbee')
+      const cpuVariant = worker?.variants.find((v) => v.backend === 'cpu')
+      expect(cpuVariant?.pkgbuildUrl).toBe('/workers/llm-worker-rbee-cpu/PKGBUILD')
     })
   })
 
   describe('Worker Filtering', () => {
-    it('should filter workers by platform', () => {
-      const linuxWorkers = WORKERS.filter((w) => w.platforms.includes('linux'))
-      expect(linuxWorkers.length).toBeGreaterThan(0)
-      linuxWorkers.forEach((w) => {
-        expect(w.platforms).toContain('linux')
+    it('should filter variants by platform', () => {
+      // Find all variants that support Linux
+      const linuxVariants = WORKERS.flatMap((w) =>
+        w.variants.filter((v) => v.platforms.includes('linux'))
+      )
+      expect(linuxVariants.length).toBeGreaterThan(0)
+      linuxVariants.forEach((v) => {
+        expect(v.platforms).toContain('linux')
       })
     })
 
-    it('should filter workers by type', () => {
-      const cpuWorkers = WORKERS.filter((w) => w.workerType === 'cpu')
-      expect(cpuWorkers.length).toBeGreaterThan(0)
-      cpuWorkers.forEach((w) => {
-        expect(w.workerType).toBe('cpu')
+    it('should filter variants by backend type', () => {
+      // Find all CPU variants
+      const cpuVariants = WORKERS.flatMap((w) =>
+        w.variants.filter((v) => v.backend === 'cpu')
+      )
+      expect(cpuVariants.length).toBeGreaterThan(0)
+      cpuVariants.forEach((v) => {
+        expect(v.backend).toBe('cpu')
       })
     })
   })

@@ -37,56 +37,22 @@ export type WorkerImplementation = 'rust' | 'python' | 'cpp'
 export type BuildSystem = 'cargo' | 'cmake' | 'pip' | 'npm'
 
 /**
- * Worker catalog entry
- * Provides all information needed to download, build, and install a worker
+ * Build variant for a worker
+ * Represents different backend acceleration options (CPU, CUDA, Metal, ROCm)
+ * TEAM-481: Consolidated from separate worker entries per backend
  */
-export interface WorkerCatalogEntry {
-  // ━━━ Identity ━━━
-  /** Unique worker ID (e.g., "llm-worker-rbee-cpu") */
-  id: string
+export interface BuildVariant {
+  /** Backend type (cpu, cuda, metal, rocm) */
+  backend: WorkerType
 
-  /** Worker implementation type */
-  implementation: WorkerImplementation
-
-  /** Worker type (backend) - MUST be camelCase to match Rust */
-  workerType: WorkerType
-
-  /** Version (semver) */
-  version: string
-
-  // ━━━ Platform Support ━━━
-  /** Supported platforms */
+  /** Supported platforms for this variant */
   platforms: Platform[]
 
-  /** Supported architectures */
+  /** Supported architectures for this variant */
   architectures: Architecture[]
 
-  // ━━━ Metadata ━━━
-  /** Human-readable name */
-  name: string
-
-  /** Short description */
-  description: string
-
-  /** License (SPDX identifier) */
-  license: string
-
-  // ━━━ Build Instructions ━━━
-  /** URL to PKGBUILD file - MUST be camelCase */
+  /** URL to PKGBUILD file for this variant */
   pkgbuildUrl: string
-
-  /** Build system - MUST be camelCase */
-  buildSystem: BuildSystem
-
-  /** Source repository */
-  source: {
-    /** Source type - Rust uses #[serde(rename = "type")] which overrides camelCase */
-    type: 'git' | 'tarball'
-    url: string
-    branch?: string
-    tag?: string
-    path?: string // Path within repo (e.g., "bin/30_llm_worker_rbee")
-  }
 
   /** Build configuration */
   build: {
@@ -98,21 +64,64 @@ export interface WorkerCatalogEntry {
     flags?: string[]
   }
 
-  // ━━━ Dependencies ━━━
-  /** Runtime dependencies */
+  /** Runtime dependencies specific to this variant */
   depends: string[]
 
-  /** Build dependencies */
+  /** Build dependencies specific to this variant */
   makedepends: string[]
 
-  // ━━━ Binary Info ━━━
-  /** Binary name (output) - MUST be camelCase */
+  /** Binary name for this variant (e.g., "llm-worker-rbee-cuda") */
   binaryName: string
 
-  /** Installation path - MUST be camelCase */
+  /** Installation path for this variant */
   installPath: string
+}
 
-  // ━━━ Capabilities ━━━
+/**
+ * Worker catalog entry
+ * Provides all information needed to download, build, and install a worker
+ * TEAM-481: Now represents a single worker type (e.g., "LLM Worker") with multiple build variants
+ */
+export interface WorkerCatalogEntry {
+  // ━━━ Identity ━━━
+  /** Unique worker ID (e.g., "llm-worker-rbee") */
+  id: string
+
+  /** Worker implementation type */
+  implementation: WorkerImplementation
+
+  /** Version (semver) */
+  version: string
+
+  // ━━━ Metadata ━━━
+  /** Human-readable name (e.g., "LLM Worker") */
+  name: string
+
+  /** Short description */
+  description: string
+
+  /** License (SPDX identifier) */
+  license: string
+
+  // ━━━ Build System ━━━
+  /** Build system - MUST be camelCase */
+  buildSystem: BuildSystem
+
+  /** Source repository (shared across all variants) */
+  source: {
+    /** Source type - Rust uses #[serde(rename = "type")] which overrides camelCase */
+    type: 'git' | 'tarball'
+    url: string
+    branch?: string
+    tag?: string
+    path?: string // Path within repo (e.g., "bin/30_llm_worker_rbee")
+  }
+
+  // ━━━ Build Variants ━━━
+  /** Available build variants (CPU, CUDA, Metal, ROCm) */
+  variants: BuildVariant[]
+
+  // ━━━ Capabilities (shared across all variants) ━━━
   /** Supported model formats - MUST be camelCase */
   supportedFormats: string[]
 

@@ -26,15 +26,17 @@ describe('Worker Catalog Data', () => {
     })
   })
 
-  it('should have valid PKGBUILD URLs', () => {
+  it('should have at least one build variant', () => {
     WORKERS.forEach((worker) => {
-      expect(worker.pkgbuildUrl).toMatch(/^\/workers\/[\w-]+\/PKGBUILD$/)
+      expect(worker.variants.length).toBeGreaterThan(0)
     })
   })
 
-  it('should have matching ID in PKGBUILD URL', () => {
+  it('should have valid PKGBUILD URLs in variants', () => {
     WORKERS.forEach((worker) => {
-      expect(worker.pkgbuildUrl).toContain(worker.id)
+      worker.variants.forEach((variant) => {
+        expect(variant.pkgbuildUrl).toMatch(/^\/workers\/[\w-]+\/PKGBUILD$/)
+      })
     })
   })
 
@@ -45,15 +47,19 @@ describe('Worker Catalog Data', () => {
     })
   })
 
-  it('should have at least one platform', () => {
+  it('should have at least one platform per variant', () => {
     WORKERS.forEach((worker) => {
-      expect(worker.platforms.length).toBeGreaterThan(0)
+      worker.variants.forEach((variant) => {
+        expect(variant.platforms.length).toBeGreaterThan(0)
+      })
     })
   })
 
-  it('should have at least one architecture', () => {
+  it('should have at least one architecture per variant', () => {
     WORKERS.forEach((worker) => {
-      expect(worker.architectures.length).toBeGreaterThan(0)
+      worker.variants.forEach((variant) => {
+        expect(variant.architectures.length).toBeGreaterThan(0)
+      })
     })
   })
 
@@ -65,25 +71,43 @@ describe('Worker Catalog Data', () => {
 })
 
 describe('Worker-Specific Validation', () => {
-  it('should validate llm-worker-rbee-cpu', () => {
-    const cpuWorker = WORKERS.find((w) => w.id === 'llm-worker-rbee-cpu')
-    expect(cpuWorker).toBeDefined()
-    expect(cpuWorker?.workerType).toBe('cpu')
-    expect(cpuWorker?.platforms).toContain('linux')
-    expect(cpuWorker?.build.features).toContain('cpu')
+  it('should validate llm-worker-rbee with CPU variant', () => {
+    const llmWorker = WORKERS.find((w) => w.id === 'llm-worker-rbee')
+    expect(llmWorker).toBeDefined()
+    
+    const cpuVariant = llmWorker?.variants.find((v) => v.backend === 'cpu')
+    expect(cpuVariant).toBeDefined()
+    expect(cpuVariant?.platforms).toContain('linux')
+    expect(cpuVariant?.build.features).toContain('cpu')
   })
 
-  it('should validate llm-worker-rbee-cuda', () => {
-    const cudaWorker = WORKERS.find((w) => w.id === 'llm-worker-rbee-cuda')
-    expect(cudaWorker).toBeDefined()
-    expect(cudaWorker?.workerType).toBe('cuda')
-    expect(cudaWorker?.depends).toContain('cuda')
+  it('should validate llm-worker-rbee with CUDA variant', () => {
+    const llmWorker = WORKERS.find((w) => w.id === 'llm-worker-rbee')
+    expect(llmWorker).toBeDefined()
+    
+    const cudaVariant = llmWorker?.variants.find((v) => v.backend === 'cuda')
+    expect(cudaVariant).toBeDefined()
+    expect(cudaVariant?.depends).toContain('cuda')
   })
 
-  it('should validate llm-worker-rbee-metal', () => {
-    const metalWorker = WORKERS.find((w) => w.id === 'llm-worker-rbee-metal')
-    expect(metalWorker).toBeDefined()
-    expect(metalWorker?.workerType).toBe('metal')
-    expect(metalWorker?.platforms).toContain('macos')
+  it('should validate llm-worker-rbee with Metal variant', () => {
+    const llmWorker = WORKERS.find((w) => w.id === 'llm-worker-rbee')
+    expect(llmWorker).toBeDefined()
+    
+    const metalVariant = llmWorker?.variants.find((v) => v.backend === 'metal')
+    expect(metalVariant).toBeDefined()
+    expect(metalVariant?.platforms).toContain('macos')
+  })
+
+  it('should validate sd-worker-rbee with all 4 variants', () => {
+    const sdWorker = WORKERS.find((w) => w.id === 'sd-worker-rbee')
+    expect(sdWorker).toBeDefined()
+    expect(sdWorker?.variants.length).toBe(4)
+    
+    const backends = sdWorker?.variants.map((v) => v.backend)
+    expect(backends).toContain('cpu')
+    expect(backends).toContain('cuda')
+    expect(backends).toContain('metal')
+    expect(backends).toContain('rocm')
   })
 })

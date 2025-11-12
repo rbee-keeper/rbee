@@ -28,31 +28,32 @@ describe('Worker Catalog API', () => {
       expect(data.workers.length).toBeGreaterThan(0)
     })
 
-    it('should include required worker variants', async () => {
+    it('should include required workers with variants', async () => {
       const res = await app.request('/workers')
-      const data = (await res.json()) as { workers: Array<{ id: string }> }
+      const data = (await res.json()) as { workers: Array<{ id: string; variants: Array<{ backend: string }> }> }
 
       const workerIds = data.workers.map((w) => w.id)
 
-      expect(workerIds).toContain('llm-worker-rbee-cpu')
-      expect(workerIds).toContain('llm-worker-rbee-cuda')
-      expect(workerIds).toContain('llm-worker-rbee-metal')
-      expect(workerIds).toContain('sd-worker-rbee-cpu')
-      expect(workerIds).toContain('sd-worker-rbee-cuda')
+      expect(workerIds).toContain('llm-worker-rbee')
+      expect(workerIds).toContain('sd-worker-rbee')
+      
+      // Check that workers have variants
+      data.workers.forEach(worker => {
+        expect(worker.variants.length).toBeGreaterThan(0)
+      })
     })
   })
 
   describe('GET /workers/:id', () => {
     it('should return specific worker by ID', async () => {
-      const res = await app.request('/workers/llm-worker-rbee-cpu')
+      const res = await app.request('/workers/llm-worker-rbee')
       expect(res.status).toBe(200)
 
       const data = (await res.json()) as Record<string, unknown>
-      expect(data).toHaveProperty('id', 'llm-worker-rbee-cpu')
+      expect(data).toHaveProperty('id', 'llm-worker-rbee')
       expect(data).toHaveProperty('name')
       expect(data).toHaveProperty('version')
-      expect(data).toHaveProperty('platforms')
-      expect(data).toHaveProperty('architectures')
+      expect(data).toHaveProperty('variants')
     })
 
     it('should return 404 for invalid worker ID', async () => {
@@ -63,21 +64,19 @@ describe('Worker Catalog API', () => {
       expect(data).toHaveProperty('error', 'Worker not found')
     })
 
-    it('should work for all worker variants', async () => {
+    it('should work for all workers', async () => {
       const workerIds = [
-        'llm-worker-rbee-cpu',
-        'llm-worker-rbee-cuda',
-        'llm-worker-rbee-metal',
-        'sd-worker-rbee-cpu',
-        'sd-worker-rbee-cuda',
+        'llm-worker-rbee',
+        'sd-worker-rbee',
       ]
 
       for (const id of workerIds) {
         const res = await app.request(`/workers/${id}`)
         expect(res.status).toBe(200)
 
-        const data = (await res.json()) as { id: string }
+        const data = (await res.json()) as { id: string; variants: Array<{ backend: string }> }
         expect(data.id).toBe(id)
+        expect(data.variants.length).toBeGreaterThan(0)
       }
     })
   })

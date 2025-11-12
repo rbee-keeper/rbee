@@ -1,4 +1,0 @@
-schema_version: 1
-source: .specs/25-catalog-core.md
-notes: No requirement IDs found; add stable IDs like ORCH-XXXX or OC-AREA-XXXX to normative requirements.
-requirements: {}

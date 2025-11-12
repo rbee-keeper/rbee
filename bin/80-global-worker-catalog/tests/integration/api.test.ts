@@ -43,8 +43,8 @@ describe('Worker Catalog API', () => {
       expect(worker).toHaveProperty('name')
       expect(worker).toHaveProperty('version')
       expect(worker).toHaveProperty('description')
-      expect(worker).toHaveProperty('platforms')
-      expect(worker).toHaveProperty('workerType')
+      expect(worker).toHaveProperty('variants')
+      expect(worker).toHaveProperty('supportedFormats')
     })
 
     it('should return response in reasonable time', async () => {
@@ -59,17 +59,22 @@ describe('Worker Catalog API', () => {
 
   describe('GET /workers/:id', () => {
     it('should return 200 for valid worker', async () => {
-      const res = await app.request('/workers/llm-worker-rbee-cpu')
+      const res = await app.request('/workers/llm-worker-rbee')
       expect(res.status).toBe(200)
     })
 
-    it('should return worker details', async () => {
-      const res = await app.request('/workers/llm-worker-rbee-cpu')
-      const data = (await res.json()) as { id: string; workerType: string; implementation: string }
+    it('should return worker details with variants', async () => {
+      const res = await app.request('/workers/llm-worker-rbee')
+      const data = (await res.json()) as { 
+        id: string
+        implementation: string
+        variants: Array<{ backend: string }>
+      }
 
-      expect(data.id).toBe('llm-worker-rbee-cpu')
-      expect(data.workerType).toBe('cpu')
+      expect(data.id).toBe('llm-worker-rbee')
       expect(data.implementation).toBe('rust')
+      expect(data.variants.length).toBeGreaterThan(0)
+      expect(data.variants[0]).toHaveProperty('backend')
     })
 
     it('should return 404 for non-existent worker', async () => {
@@ -99,7 +104,7 @@ describe('Worker Catalog API', () => {
     })
 
     it('should attempt to fetch PKGBUILD for valid worker', async () => {
-      const res = await app.request('/workers/llm-worker-rbee-cpu/PKGBUILD')
+      const res = await app.request('/workers/llm-worker-rbee/PKGBUILD')
       // Will be 404 or 500 in test environment (no ASSETS binding)
       // In production with Cloudflare, will be 200 or 404
       expect([200, 404, 500]).toContain(res.status)

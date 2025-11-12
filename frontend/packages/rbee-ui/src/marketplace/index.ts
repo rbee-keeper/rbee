@@ -32,6 +32,7 @@ export * from './organisms/CivitAIImageGallery'
 export * from './organisms/CivitAIStatsHeader'
 export * from './organisms/CivitAITrainedWords'
 export * from './organisms/FilterBar' // TEAM-476: Filter bar organism
+export * from './organisms/HFModelListCard' // TEAM-481: HuggingFace list card
 export * from './organisms/ModelCard'
 export * from './organisms/ModelCardVertical'
 export * from './organisms/ModelTable'

@@ -44,6 +44,11 @@ pub struct ExecuteRequest {
     #[serde(default = "default_repetition_penalty")]
     pub repetition_penalty: f32,
 
+    /// Context window for repetition penalty (0 = all tokens, >0 = last N tokens)
+    /// Typical values: 64-256
+    #[serde(default = "default_repeat_last_n")]
+    pub repeat_last_n: usize,
+
     /// Stop sequences (max 4)
     #[serde(default)]
     pub stop: Vec<String>,
@@ -63,6 +68,10 @@ fn default_top_p() -> f32 {
 
 fn default_repetition_penalty() -> f32 {
     1.0
+}
+
+fn default_repeat_last_n() -> usize {
+    128 // TEAM-485: Default context window for repeat penalty
 }
 
 /// Single field validation error
@@ -439,6 +448,7 @@ mod tests {
             top_p: 1.0,
             top_k: 0,
             repetition_penalty: 1.0,
+            repeat_last_n: 128, // TEAM-485
             stop: vec![],
             min_p: 0.0,
         }
@@ -579,6 +589,7 @@ mod tests {
             top_p: 1.0,
             top_k: 0,
             repetition_penalty: 1.0,
+            repeat_last_n: 128, // TEAM-485
             stop: vec![],
             min_p: 0.0,
         };
@@ -864,6 +875,7 @@ mod tests {
             top_p: 1.5, // Invalid
             top_k: 0,
             repetition_penalty: 3.0, // Invalid
+            repeat_last_n: 128, // TEAM-485
             stop: vec![
                 "a".to_string(),
                 "b".to_string(),

@@ -16,8 +16,10 @@ use std::path::Path;
 
 // TEAM-482: Restructured into directories for better organization
 pub mod deepseek; // TEAM-482: DeepSeek-R1 / DeepSeek-V2
+pub mod gemma; // TEAM-482: Gemma safetensors
 pub mod llama;
 pub mod mistral;
+pub mod mixtral; // TEAM-483: Mixtral MoE
 pub mod phi;
 pub mod qwen;
 
@@ -55,16 +57,18 @@ macro_rules! delegate_to_model {
     // Mutable reference methods (forward, reset_cache)
     ($self:expr, $method:ident $(, $arg:expr)*) => {
         match $self {
+            Model::DeepSeek(m) => ModelTrait::$method(m, $($arg),*), // TEAM-482
+            Model::Gemma(m) => ModelTrait::$method(m, $($arg),*), // TEAM-482
             Model::Llama(m) => ModelTrait::$method(m, $($arg),*),
             Model::QuantizedLlama(m) => ModelTrait::$method(m, $($arg),*),
             Model::Mistral(m) => ModelTrait::$method(m, $($arg),*),
+            Model::Mixtral(m) => ModelTrait::$method(m, $($arg),*), // TEAM-483
             Model::Phi(m) => ModelTrait::$method(m, $($arg),*),
             Model::QuantizedPhi(m) => ModelTrait::$method(m, $($arg),*),
             Model::Qwen(m) => ModelTrait::$method(m, $($arg),*),
             Model::QuantizedQwen(m) => ModelTrait::$method(m, $($arg),*),
-            Model::QuantizedGemma(m) => ModelTrait::$method(m, $($arg),*),
-            Model::DeepSeek(m) => ModelTrait::$method(m, $($arg),*), // TEAM-482
             Model::QuantizedDeepSeek(m) => ModelTrait::$method(m, $($arg),*), // TEAM-482
+            Model::QuantizedGemma(m) => ModelTrait::$method(m, $($arg),*),
         }
     };
 }
@@ -76,11 +80,14 @@ macro_rules! delegate_to_model {
 /// TEAM-090: Added quantized versions for Phi and Qwen
 /// TEAM-409: Added Gemma GGUF support (Mistral GGUF uses QuantizedLlama)
 /// TEAM-482: Reorganized quantized models to same level as regular models + added DeepSeek
+/// TEAM-483: Added Mixtral MoE
 pub enum Model {
     DeepSeek(deepseek::DeepSeekModel), // TEAM-482: DeepSeek-R1 / DeepSeek-V2
+    Gemma(gemma::GemmaModel), // TEAM-482: Gemma safetensors
     Llama(llama::LlamaModel),
     QuantizedLlama(llama_quantized::QuantizedLlamaModel), // Also handles Mistral GGUF
     Mistral(mistral::MistralModel),
+    Mixtral(mixtral::MixtralModel), // TEAM-483: Mixtral MoE
     Phi(phi::PhiModel),
     QuantizedPhi(phi_quantized::QuantizedPhiModel),
     Qwen(qwen::QwenModel),
@@ -103,6 +110,13 @@ impl Model {
     /// TEAM-482: Macro-based delegation
     pub fn eos_token_id(&self) -> u32 {
         delegate_to_model!(self, eos_token_id)
+    }
+
+    /// Get all EOS tokens (supports multiple EOS tokens)
+    ///
+    /// TEAM-485: Some models (like Llama 3) have multiple EOS tokens
+    pub fn eos_tokens(&self) -> crate::backend::traits::EosTokens {
+        delegate_to_model!(self, eos_tokens)
     }
 
     /// Get model architecture name
@@ -142,7 +156,13 @@ impl Model {
 /// TEAM-017: Factory function that returns Model enum (Candle-idiomatic pattern)
 /// TEAM-036: Added GGUF support - detects .gguf files and loads quantized models
 /// TEAM-090: Added architecture detection for GGUF files
-pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
+/// TEAM-485: Added optional dtype parameter for runtime dtype selection
+///
+/// # Arguments
+/// * `model_path` - Path to model files
+/// * `device` - Device to load model on
+/// * `dtype` - Optional dtype override (None = use default for model type)
+pub fn load_model(model_path: &str, device: &Device, dtype: Option<candle_core::DType>) -> Result<Model> {
     let path = Path::new(model_path);
 
     // TEAM-090: Check if this is a GGUF file (quantized model)
@@ -162,29 +182,29 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
         match architecture.as_str() {
             "deepseek" => {
                 // TEAM-482: DeepSeek GGUF
-                let model = deepseek_quantized::QuantizedDeepSeekModel::load(path, device)?;
+                let model = deepseek_quantized::QuantizedDeepSeekModel::load(path, device, dtype)?;
                 Ok(Model::QuantizedDeepSeek(model))
             }
             "llama" => {
-                let model = llama_quantized::QuantizedLlamaModel::load(path, device)?;
+                let model = llama_quantized::QuantizedLlamaModel::load(path, device, dtype)?;
                 Ok(Model::QuantizedLlama(model))
             }
             "mistral" => {
                 // TEAM-409: Mistral GGUF files use the same format as Llama
                 // Candle's quantized_llama loader handles both
-                let model = llama_quantized::QuantizedLlamaModel::load(path, device)?;
+                let model = llama_quantized::QuantizedLlamaModel::load(path, device, dtype)?;
                 Ok(Model::QuantizedLlama(model))
             }
             "phi" | "phi3" => {
-                let model = phi_quantized::QuantizedPhiModel::load(path, device)?;
+                let model = phi_quantized::QuantizedPhiModel::load(path, device, dtype)?;
                 return Ok(Model::QuantizedPhi(model));
             }
             "qwen" | "qwen2" => {
-                let model = qwen_quantized::QuantizedQwenModel::load(path, device)?;
+                let model = qwen_quantized::QuantizedQwenModel::load(path, device, dtype)?;
                 Ok(Model::QuantizedQwen(model))
             }
             "gemma" | "gemma2" | "gemma3" => {
-                let model = gemma_quantized::QuantizedGemmaModel::load(path, device)?;
+                let model = gemma_quantized::QuantizedGemmaModel::load(path, device, dtype)?;
                 Ok(Model::QuantizedGemma(model))
             }
             _ => bail!(
@@ -206,23 +226,33 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
         match architecture.as_str() {
             "deepseek" => {
                 // TEAM-482: DeepSeek-R1 / DeepSeek-V2
-                let model = deepseek::DeepSeekModel::load(path, device)?;
+                let model = deepseek::DeepSeekModel::load(path, device, dtype)?;
                 Ok(Model::DeepSeek(model))
             }
+            "gemma" | "gemma2" => {
+                // TEAM-482: Gemma safetensors
+                let model = gemma::GemmaModel::load(path, device, dtype)?;
+                Ok(Model::Gemma(model))
+            }
             "llama" => {
-                let model = llama::LlamaModel::load(path, device)?;
+                let model = llama::LlamaModel::load(path, device, dtype)?;
                 Ok(Model::Llama(model))
             }
             "mistral" => {
-                let model = mistral::MistralModel::load(path, device)?;
+                let model = mistral::MistralModel::load(path, device, dtype)?;
                 Ok(Model::Mistral(model))
             }
+            "mixtral" => {
+                // TEAM-483: Mixtral MoE
+                let model = mixtral::MixtralModel::load(path, device, dtype)?;
+                Ok(Model::Mixtral(model))
+            }
             "phi" => {
-                let model = phi::PhiModel::load(path, device)?;
+                let model = phi::PhiModel::load(path, device, dtype)?;
                 Ok(Model::Phi(model))
             }
             "qwen" | "qwen2" => {
-                let model = qwen::QwenModel::load(path, device)?;
+                let model = qwen::QwenModel::load(path, device, dtype)?;
                 Ok(Model::Qwen(model))
             }
             _ => bail!("Unsupported model architecture: {}", architecture),
@@ -263,7 +293,7 @@ mod tests {
     #[test]
     fn test_model_capabilities_clone() {
         // Verify ModelCapabilities is Clone (needed for flexibility)
-        let caps = ModelCapabilities::standard(arch::LLAMA, 4096);
+        let caps = ModelCapabilities::standard(arch::LLAMA, 4096, dtype);
         let _cloned = caps.clone();
     }
 }

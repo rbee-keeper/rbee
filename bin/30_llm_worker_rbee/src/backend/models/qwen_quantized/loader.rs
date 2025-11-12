@@ -18,7 +18,7 @@ impl QuantizedQwenModel {
     ///
     /// TEAM-090: Loads GGUF files using candle's quantized model support
     /// TEAM-482: Refactored to use helper functions
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         tracing::info!(path = ?path, "Loading GGUF Qwen model");
 
         n!("gguf_load_start", "Loading GGUF Qwen model from {}", path.display());
@@ -41,10 +41,7 @@ impl QuantizedQwenModel {
         n!("gguf_load_complete", "GGUF Qwen model loaded (vocab={}, eos={})", vocab_size, eos_token_id);
 
         // TEAM-482: Quantized Qwen capabilities
-        let capabilities = crate::backend::models::ModelCapabilities::quantized(
-            crate::backend::models::arch::QWEN,
-            32768,
-        );
+        let capabilities = crate::backend::models::ModelCapabilities::quantized(crate::backend::models::arch::QWEN, 32768, candle_core::DType::F32); // TEAM-485: Quantized models use native dtype from GGUF
 
         Ok(Self::new(model, eos_token_id, vocab_size, capabilities))
     }

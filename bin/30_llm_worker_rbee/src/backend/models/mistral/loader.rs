@@ -17,7 +17,7 @@ impl MistralModel {
     ///
     /// TEAM-017: Candle-idiomatic pattern
     /// TEAM-482: Moved to separate loader module
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
 
         // Parse config.json
@@ -29,7 +29,7 @@ impl MistralModel {
         .context("Failed to parse Mistral config.json")?;
 
         // Create VarBuilder and load model
-        let dtype = DType::F32;
+        let dtype = dtype.unwrap_or(DType::F32);
         let vb = unsafe { VarBuilder::from_mmaped_safetensors(&safetensor_files, dtype, device)? };
         let model = candle_transformers::models::mistral::Model::new(&config, vb)
             .context("Failed to load Mistral model")?;
@@ -45,14 +45,7 @@ impl MistralModel {
         );
 
         // TEAM-482: Mistral capabilities (cache reset not yet implemented)
-        let capabilities = crate::backend::models::ModelCapabilities {
-            uses_position: true,
-            supports_cache_reset: false, // Not yet implemented
-            max_context_length: 32768,
-            supports_streaming: true,
-            architecture_family: crate::backend::models::arch::MISTRAL,
-            is_quantized: false,
-        };
+        let capabilities = crate::backend::models::ModelCapabilities::standard(crate::backend::models::arch::MISTRAL, 32768, dtype);
 
         Ok(Self::new(model, vocab_size, capabilities))
     }

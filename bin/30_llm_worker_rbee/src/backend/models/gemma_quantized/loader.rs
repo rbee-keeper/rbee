@@ -20,7 +20,7 @@ impl QuantizedGemmaModel {
     ///
     /// TEAM-409: Loads GGUF files using candle's quantized model support
     /// TEAM-482: Refactored to use helper functions
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         tracing::info!(path = ?path, "Loading GGUF Gemma model");
 
         n!("gguf_load_start", "Loading GGUF Gemma model from {}", path.display());
@@ -82,10 +82,7 @@ impl QuantizedGemmaModel {
         tracing::info!("Gemma GGUF model loaded successfully");
 
         // TEAM-482: Quantized Gemma capabilities
-        let capabilities = crate::backend::models::ModelCapabilities::quantized(
-            crate::backend::models::arch::GEMMA_QUANTIZED,
-            8192,
-        );
+        let capabilities = crate::backend::models::ModelCapabilities::quantized(crate::backend::models::arch::GEMMA_QUANTIZED, 8192, candle_core::DType::F32); // TEAM-485: Quantized models use native dtype from GGUF
 
         Ok(Self::new(model, eos_token_id, vocab_size as usize, capabilities))
     }

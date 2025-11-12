@@ -5,4 +5,4 @@
 
 mod model_trait;
 
-pub use model_trait::{arch, ModelCapabilities, ModelTrait};
+pub use model_trait::{arch, EosTokens, ModelCapabilities, ModelTrait};

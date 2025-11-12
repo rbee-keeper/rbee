@@ -39,6 +39,12 @@ pub struct SamplingConfig {
     /// - <1.0 = encourage repeated tokens
     pub repetition_penalty: f32,
 
+    /// Context window for repetition penalty (number of recent tokens to consider)
+    /// - 0 = use all previous tokens
+    /// - >0 = only consider last N tokens
+    /// Typical values: 64-256
+    pub repeat_last_n: usize,
+
     /// Min-P sampling (0.0 = disabled)
     /// - 0.0 = disabled (no filtering)
     /// - >0.0 = filter tokens with prob < min_p * max_prob
@@ -129,6 +135,7 @@ impl Default for SamplingConfig {
             top_p: 1.0,
             top_k: 0,
             repetition_penalty: 1.0,
+            repeat_last_n: 128, // TEAM-485: Default context window for repeat penalty
             min_p: 0.0,
             stop_sequences: vec![],
             stop_strings: vec![],
@@ -157,6 +164,7 @@ mod tests {
             top_p,
             top_k,
             repetition_penalty,
+            repeat_last_n: 128, // TEAM-485: Use default in tests
             min_p,
             stop_sequences: vec![],
             stop_strings,

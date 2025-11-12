@@ -20,7 +20,7 @@ impl QuantizedLlamaModel {
     /// TEAM-036: Loads GGUF files using candle's quantized model support
     /// TEAM-088: Added comprehensive narration for debugging
     /// TEAM-482: Refactored to use helper functions
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         tracing::info!(path = ?path, "Loading GGUF model");
 
         // TEAM-088: Narrate GGUF loading start
@@ -77,9 +77,11 @@ impl QuantizedLlamaModel {
         tracing::info!("GGUF model loaded successfully");
 
         // TEAM-482: Quantized model capabilities
+        // TEAM-485: Quantized models use native dtype from GGUF
         let capabilities = crate::backend::models::ModelCapabilities::quantized(
             crate::backend::models::arch::LLAMA,
             2048, // Default GGUF context
+            candle_core::DType::F32
         );
 
         Ok(Self::new(model, eos_token_id, vocab_size, capabilities))

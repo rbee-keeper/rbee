@@ -17,7 +17,7 @@ impl DeepSeekModel {
     /// Load DeepSeek model from safetensors
     ///
     /// TEAM-482: Uses helper functions for clean, DRY implementation
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         tracing::info!(path = ?path, "Loading DeepSeek model");
 
         // TEAM-482: Use helper to find safetensors files
@@ -47,10 +47,7 @@ impl DeepSeekModel {
         tracing::info!(architecture = "deepseek", vocab_size = vocab_size, "Loaded DeepSeek model");
 
         // TEAM-482: DeepSeek capabilities
-        let capabilities = crate::backend::models::ModelCapabilities::standard(
-            crate::backend::models::arch::DEEPSEEK,
-            max_position_embeddings,
-        );
+        let capabilities = crate::backend::models::ModelCapabilities::standard(crate::backend::models::arch::DEEPSEEK, max_position_embeddings, dtype.unwrap_or(candle_core::DType::F32));
 
         Ok(Self::new(model, eos_token_id, vocab_size, device.clone(), capabilities))
     }

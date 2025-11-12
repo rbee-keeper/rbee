@@ -16,7 +16,8 @@ impl LlamaModel {
     ///
     /// TEAM-017: Candle-idiomatic pattern
     /// TEAM-482: Extracted to loader module
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    /// TEAM-485: Added optional dtype parameter
+    pub fn load(path: &Path, device: &Device, dtype: Option<DType>) -> Result<Self> {
         let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
 
         // Parse config.json
@@ -68,8 +69,9 @@ impl LlamaModel {
 
         // Create VarBuilder and load model
         // TEAM-019: Use F32 for all backends (Metal F16 causes forward pass failures)
-        let dtype = DType::F32;
-        tracing::info!(dtype = ?dtype, device = ?device, "Loading model with dtype");
+        // TEAM-485: Allow runtime dtype override
+        let dtype = dtype.unwrap_or(DType::F32);
+        tracing::info!(dtype = ?dtype, device = ?device, "Loading model with dtype (runtime selection)");
 
         let vb = unsafe { VarBuilder::from_mmaped_safetensors(&safetensor_files, dtype, device)? };
         let model = Llama::load(vb, &config).context("Failed to load Llama model")?;
@@ -90,6 +92,7 @@ impl LlamaModel {
         let capabilities = crate::backend::models::ModelCapabilities::standard(
             crate::backend::models::arch::LLAMA,
             max_position_embeddings as usize,
+            dtype,
         );
 
         Ok(Self::new(model, cache, config, vocab_size as usize, device.clone(), capabilities))

@@ -17,7 +17,7 @@ impl PhiModel {
     ///
     /// TEAM-017: Candle-idiomatic pattern
     /// TEAM-482: Moved to separate loader module
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
 
         // Parse config.json
@@ -29,7 +29,7 @@ impl PhiModel {
         .context("Failed to parse Phi config.json")?;
 
         // Create VarBuilder and load model
-        let dtype = DType::F32;
+        let dtype = dtype.unwrap_or(DType::F32);
         let vb = unsafe { VarBuilder::from_mmaped_safetensors(&safetensor_files, dtype, device)? };
         let model = candle_transformers::models::phi::Model::new(&config, vb)
             .context("Failed to load Phi model")?;
@@ -56,14 +56,7 @@ impl PhiModel {
         );
 
         // TEAM-482: Phi has special capabilities - doesn't use position, manages cache internally
-        let capabilities = crate::backend::models::ModelCapabilities {
-            uses_position: false,  // Phi doesn't use position parameter
-            supports_cache_reset: false,  // Phi manages cache internally
-            max_context_length: 2048,  // Phi default context
-            supports_streaming: true,
-            architecture_family: crate::backend::models::arch::PHI,
-            is_quantized: false,
-        };
+        let capabilities = crate::backend::models::ModelCapabilities::standard(crate::backend::models::arch::PHI, 2048, dtype);
 
         Ok(Self::new(model, vocab_size, capabilities))
     }

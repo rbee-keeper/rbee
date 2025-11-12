@@ -17,7 +17,7 @@ impl QuantizedDeepSeekModel {
     /// Load quantized DeepSeek model from GGUF file
     ///
     /// TEAM-482: Uses helper functions for clean, DRY implementation
-    pub fn load(path: &Path, device: &Device) -> Result<Self> {
+    pub fn load(path: &Path, device: &Device, dtype: Option<candle_core::DType>) -> Result<Self> {
         tracing::info!(path = ?path, "Loading GGUF DeepSeek model");
 
         n!("gguf_load_start", "Loading GGUF DeepSeek model from {}", path.display());
@@ -41,9 +41,11 @@ impl QuantizedDeepSeekModel {
         tracing::info!("GGUF DeepSeek model loaded successfully");
 
         // TEAM-482: Quantized DeepSeek capabilities
+        // TEAM-485: Quantized models use native dtype from GGUF
         let capabilities = crate::backend::models::ModelCapabilities::quantized(
             crate::backend::models::arch::DEEPSEEK_QUANTIZED,
             2048, // Default GGUF context
+            candle_core::DType::F32
         );
 
         Ok(Self::new(model, eos_token_id, vocab_size, capabilities))

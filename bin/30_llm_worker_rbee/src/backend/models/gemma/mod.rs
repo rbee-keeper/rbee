@@ -1,41 +1,48 @@
-// TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Quantized Phi GGUF support
-// TEAM-482: Refactored into components/loader pattern
-
-//! Quantized Phi model wrapper for GGUF files
-//!
-//! Created by: TEAM-090
-//! Refactored by: TEAM-482 (split into components/loader)
-//! Purpose: Load and run GGUF quantized Phi models
+// TEAM-482: Gemma model module
+//
+// Created by: TEAM-482
+// Purpose: Gemma safetensors support (completes existing GGUF support)
+// Reference: candle-transformers/src/models/gemma.rs
 
 mod components;
 mod loader;
 
-pub use components::QuantizedPhiModel;
+pub use components::GemmaModel;
 
 use anyhow::Result;
 use candle_core::Tensor;
 
-impl QuantizedPhiModel {
+impl GemmaModel {
+    /// Forward pass through the model
+    ///
+    /// TEAM-482: Delegates to candle's Gemma model
     pub fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.model.forward(input_ids, position).map_err(|e| anyhow::anyhow!("{}", e))
     }
 
+    /// Get EOS token ID
+    ///
+    /// TEAM-482: Gemma uses EOS token ID 1 (different from Llama's 2)
     pub fn eos_token_id(&self) -> u32 {
         self.eos_token_id
     }
 
+    /// Get vocab size
     pub fn vocab_size(&self) -> usize {
         self.vocab_size
     }
 
+    /// Reset KV cache
+    ///
+    /// TEAM-482: Gemma supports cache clearing
     pub fn reset_cache(&mut self) -> Result<()> {
-        tracing::debug!("Quantized Phi model cache will reset on next position=0 forward pass");
+        self.model.clear_kv_cache();
         Ok(())
     }
 }
 
-/// TEAM-482: Implement ModelTrait for QuantizedPhiModel
-impl crate::backend::models::ModelTrait for QuantizedPhiModel {
+/// TEAM-482: Implement ModelTrait for GemmaModel
+impl crate::backend::models::ModelTrait for GemmaModel {
     fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.forward(input_ids, position)
     }
@@ -51,7 +58,7 @@ impl crate::backend::models::ModelTrait for QuantizedPhiModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        crate::backend::models::arch::PHI_QUANTIZED
+        crate::backend::models::arch::GEMMA
     }
 
     fn vocab_size(&self) -> usize {
@@ -61,7 +68,7 @@ impl crate::backend::models::ModelTrait for QuantizedPhiModel {
     fn reset_cache(&mut self) -> Result<()> {
         self.reset_cache()
     }
-    
+
     #[inline]
     fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities

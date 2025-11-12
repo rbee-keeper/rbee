@@ -50,7 +50,8 @@ impl CandleInferenceBackend {
         let device = Device::Cpu;
 
         // TEAM-017: Load model using model factory (returns Model enum)
-        let model = models::load_model(model_path, &device)?;
+        // TEAM-485: Pass None for dtype to use model defaults
+        let model = models::load_model(model_path, &device, None)?;
         let model_size_bytes = models::calculate_model_size(model_path)?;
 
         // TEAM-017: Load tokenizer with auto-detection
@@ -75,7 +76,8 @@ impl CandleInferenceBackend {
         let device = Device::new_cuda(gpu_id)?;
 
         // TEAM-017: Load model using model factory (returns Model enum)
-        let model = models::load_model(model_path, &device)?;
+        // TEAM-485: Pass None for dtype to use model defaults
+        let model = models::load_model(model_path, &device, None)?;
         let model_size_bytes = models::calculate_model_size(model_path)?;
 
         // TEAM-017: Load tokenizer with auto-detection
@@ -100,7 +102,8 @@ impl CandleInferenceBackend {
         let device = Device::new_metal(gpu_id)?;
 
         // TEAM-017: Load model using model factory (returns Model enum)
-        let model = models::load_model(model_path, &device)?;
+        // TEAM-485: Pass None for dtype to use model defaults
+        let model = models::load_model(model_path, &device, None)?;
         let model_size_bytes = models::calculate_model_size(model_path)?;
 
         // TEAM-017: Load tokenizer with auto-detection
@@ -274,6 +277,20 @@ impl InferenceBackend for CandleInferenceBackend {
                 logits
             };
 
+            // TEAM-485: Apply repeat penalty before sampling (CRITICAL FIX)
+            // This was missing - users setting repetition_penalty had no effect!
+            let logits = if config.repetition_penalty == 1.0 {
+                logits
+            } else {
+                let start_at = tokens.len().saturating_sub(config.repeat_last_n);
+                candle_transformers::utils::apply_repeat_penalty(
+                    &logits,
+                    config.repetition_penalty,
+                    &tokens[start_at..],
+                )
+                .map_err(|e| format!("Failed to apply repeat penalty: {e}"))?
+            };
+
             // TEAM-014: Sample next token using Candle's LogitsProcessor
             let next_token =
                 logits_processor.sample(&logits).map_err(|e| format!("Sampling failed: {e}"))?;
@@ -286,10 +303,11 @@ impl InferenceBackend for CandleInferenceBackend {
                 "Sampled token"
             );
 
-            // TEAM-017: Check for EOS - try tokenizer first (Candle-idiomatic), fallback to model
+            // TEAM-485: Check for EOS - supports multiple EOS tokens
+            // Try tokenizer first (Candle-idiomatic), fallback to model
             let tokenizer_eos_id = self.tokenizer.token_to_id("</s>");
             let is_eos = tokenizer_eos_id.map_or_else(
-                || next_token == self.model.eos_token_id(),
+                || self.model.eos_tokens().is_eos(next_token),
                 |eos_id| next_token == eos_id,
             );
 

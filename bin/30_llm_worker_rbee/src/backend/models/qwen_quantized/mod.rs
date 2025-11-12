@@ -44,6 +44,11 @@ impl crate::backend::models::ModelTrait for QuantizedQwenModel {
         self.eos_token_id()
     }
 
+    fn eos_tokens(&self) -> crate::backend::traits::EosTokens {
+        // TEAM-485: Single EOS token (default for most models)
+        crate::backend::traits::EosTokens::single(self.eos_token_id())
+    }
+
     #[inline]
     fn architecture(&self) -> &'static str {
         crate::backend::models::arch::QWEN_QUANTIZED

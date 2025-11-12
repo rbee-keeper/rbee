@@ -83,6 +83,11 @@ impl crate::backend::models::ModelTrait for LlamaModel {
         self.eos_token_id()
     }
 
+    fn eos_tokens(&self) -> crate::backend::traits::EosTokens {
+        // TEAM-485: Llama models use single EOS token
+        crate::backend::traits::EosTokens::single(self.eos_token_id())
+    }
+
     fn architecture(&self) -> &'static str {
         crate::backend::models::arch::LLAMA
     }

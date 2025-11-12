@@ -45,42 +45,45 @@ pub enum TimestepSpacing {
     Trailing,
 }
 
-/// Scheduler type enum for user selection
+/// Sampler type enum - the sampling algorithm
 /// 
-/// TEAM-481: This enum makes it easy to add new schedulers.
-/// Just add a new variant here and implement the scheduler!
+/// TEAM-482: Separated from noise schedules for proper architecture.
+/// Samplers define HOW we sample, schedules define the noise curve.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum SchedulerType {
-    /// DDIM scheduler (default, good quality)
+pub enum SamplerType {
+    /// DDIM sampler (good quality)
     Ddim,
-    /// Euler scheduler (faster)
+    /// Euler sampler (fast and stable)
     Euler,
-    /// DDPM scheduler (probabilistic, good for inpainting)
+    /// DDPM sampler (probabilistic, good for inpainting)
     Ddpm,
-    // TEAM-481: Add new schedulers here!
-    // EulerAncestral,
-    // UniPc,
-    // DpmPlusPlus2M,
+    /// Euler Ancestral sampler (better quality than Euler, stochastic)
+    EulerAncestral,
+    /// DPM-Solver++ Multistep (fast, high-quality, popular in ComfyUI/A1111)
+    DpmSolverMultistep,
+    // TEAM-482: Add new samplers here!
 }
 
-impl Default for SchedulerType {
+impl Default for SamplerType {
     fn default() -> Self {
-        Self::Ddim
+        Self::Euler  // TEAM-482: Euler is fast and stable
     }
 }
 
-impl std::fmt::Display for SchedulerType {
+impl std::fmt::Display for SamplerType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Ddim => write!(f, "ddim"),
             Self::Euler => write!(f, "euler"),
             Self::Ddpm => write!(f, "ddpm"),
+            Self::EulerAncestral => write!(f, "euler_ancestral"),
+            Self::DpmSolverMultistep => write!(f, "dpm_solver_multistep"),
         }
     }
 }
 
-impl std::str::FromStr for SchedulerType {
+impl std::str::FromStr for SamplerType {
     type Err = String;
     
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -88,7 +91,66 @@ impl std::str::FromStr for SchedulerType {
             "ddim" => Ok(Self::Ddim),
             "euler" => Ok(Self::Euler),
             "ddpm" => Ok(Self::Ddpm),
-            _ => Err(format!("Unknown scheduler type: {}", s)),
+            "euler_ancestral" => Ok(Self::EulerAncestral),
+            "dpm_solver_multistep" | "dpm++" | "dpmpp" => Ok(Self::DpmSolverMultistep),
+            _ => Err(format!("Unknown sampler type: {}", s)),
         }
     }
 }
+
+/// Noise schedule type - defines the noise curve
+/// 
+/// TEAM-482: Noise schedules control HOW noise is distributed across timesteps.
+/// Different schedules can dramatically affect image quality.
+/// Karras is very popular for high-quality results!
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NoiseSchedule {
+    /// Simple linear schedule (most compatible)
+    Simple,
+    /// Karras schedule (very popular! high quality)
+    Karras,
+    /// Exponential schedule
+    Exponential,
+    /// SGM uniform schedule
+    SgmUniform,
+    /// DDIM uniform schedule
+    DdimUniform,
+}
+
+impl Default for NoiseSchedule {
+    fn default() -> Self {
+        Self::Simple  // TEAM-482: Simple is most compatible
+    }
+}
+
+impl std::fmt::Display for NoiseSchedule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Simple => write!(f, "simple"),
+            Self::Karras => write!(f, "karras"),
+            Self::Exponential => write!(f, "exponential"),
+            Self::SgmUniform => write!(f, "sgm_uniform"),
+            Self::DdimUniform => write!(f, "ddim_uniform"),
+        }
+    }
+}
+
+impl std::str::FromStr for NoiseSchedule {
+    type Err = String;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "simple" => Ok(Self::Simple),
+            "karras" => Ok(Self::Karras),
+            "exponential" => Ok(Self::Exponential),
+            "sgm_uniform" => Ok(Self::SgmUniform),
+            "ddim_uniform" => Ok(Self::DdimUniform),
+            _ => Err(format!("Unknown noise schedule: {}", s)),
+        }
+    }
+}
+
+// TEAM-482: SchedulerType removed - use SamplerType instead
+// RULE ZERO: Breaking changes > backwards compatibility
+// The compiler will find all call sites. Fix them.

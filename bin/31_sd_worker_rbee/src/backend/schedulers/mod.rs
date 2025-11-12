@@ -17,29 +17,40 @@
 pub mod traits;
 pub mod types;
 
+// TEAM-482: Noise schedule calculations
+pub mod noise_schedules;
+
 // TEAM-481: Scheduler implementations
 pub mod ddim;
 pub mod ddpm;
+pub mod dpm_solver_multistep;
 pub mod euler;
+pub mod euler_ancestral;
 
 // TEAM-481: Re-exports for convenience
 pub use traits::{Scheduler, SchedulerConfig};
-pub use types::{BetaSchedule, PredictionType, SchedulerType, TimestepSpacing};
+pub use types::{BetaSchedule, PredictionType, TimestepSpacing};
+
+// TEAM-482: Re-export new types
+pub use types::{NoiseSchedule, SamplerType};
 
 // TEAM-481: Re-export configs for easy access
 pub use ddim::DDIMSchedulerConfig;
 pub use ddpm::DDPMSchedulerConfig;
+pub use dpm_solver_multistep::DPMSolverMultistepSchedulerConfig;
 pub use euler::EulerSchedulerConfig;
+pub use euler_ancestral::EulerAncestralSchedulerConfig;
 
 use crate::error::Result;
 
-/// Build a scheduler from a SchedulerType
+/// Build a scheduler from a SamplerType and NoiseSchedule
 /// 
-/// TEAM-481: This is the main entry point for creating schedulers.
-/// It uses the default configuration for each scheduler type.
+/// TEAM-482: Now accepts both sampler and schedule for proper architecture.
+/// Euler scheduler uses the noise schedule, others use their beta schedules.
 /// 
 /// # Arguments
-/// * `scheduler_type` - The type of scheduler to build
+/// * `sampler` - The sampler to use (Euler, DDIM, etc.)
+/// * `schedule` - The noise schedule to use (Simple, Karras, etc.)
 /// * `inference_steps` - Number of inference steps
 /// 
 /// # Returns
@@ -47,30 +58,39 @@ use crate::error::Result;
 /// 
 /// # Example
 /// ```ignore
-/// let scheduler = build_scheduler(SchedulerType::Ddim, 20)?;
+/// let scheduler = build_scheduler(SamplerType::Euler, NoiseSchedule::Karras, 20)?;
 /// ```
 pub fn build_scheduler(
-    scheduler_type: SchedulerType,
+    sampler: SamplerType,
+    schedule: NoiseSchedule,
     inference_steps: usize,
 ) -> Result<Box<dyn Scheduler>> {
-    match scheduler_type {
-        SchedulerType::Ddim => {
+    match sampler {
+        SamplerType::Ddim => {
             let config = DDIMSchedulerConfig::default();
             config.build(inference_steps)
         }
-        SchedulerType::Euler => {
-            let config = EulerSchedulerConfig::default();
+        SamplerType::Euler => {
+            // TEAM-482: Euler uses noise schedule!
+            let config = EulerSchedulerConfig {
+                train_timesteps: 1000,
+                noise_schedule: schedule,
+            };
             config.build(inference_steps)
         }
-        SchedulerType::Ddpm => {
+        SamplerType::Ddpm => {
             let config = DDPMSchedulerConfig::default();
             config.build(inference_steps)
         }
-        // TEAM-481: Add new schedulers here!
-        // SchedulerType::EulerAncestral => {
-        //     let config = EulerAncestralSchedulerConfig::default();
-        //     config.build(inference_steps)
-        // }
+        SamplerType::EulerAncestral => {
+            let config = EulerAncestralSchedulerConfig::default();
+            config.build(inference_steps)
+        }
+        SamplerType::DpmSolverMultistep => {
+            let config = DPMSolverMultistepSchedulerConfig::default();
+            config.build(inference_steps)
+        }
+        // TEAM-482: Add new samplers here!
     }
 }
 
@@ -80,23 +100,44 @@ mod tests {
 
     #[test]
     fn test_build_ddim_scheduler() {
-        let scheduler = build_scheduler(SchedulerType::Ddim, 20).unwrap();
+        // TEAM-482: Updated to use new signature
+        let scheduler = build_scheduler(SamplerType::Ddim, NoiseSchedule::Simple, 20).unwrap();
         assert_eq!(scheduler.timesteps().len(), 20);
     }
 
     #[test]
     fn test_build_euler_scheduler() {
-        let scheduler = build_scheduler(SchedulerType::Euler, 20).unwrap();
+        // TEAM-482: Updated to use new signature
+        let scheduler = build_scheduler(SamplerType::Euler, NoiseSchedule::Simple, 20).unwrap();
         assert_eq!(scheduler.timesteps().len(), 20);
     }
 
     #[test]
-    fn test_scheduler_type_from_str() {
+    fn test_build_euler_with_karras() {
+        // TEAM-482: Test Karras schedule with Euler
+        let scheduler = build_scheduler(SamplerType::Euler, NoiseSchedule::Karras, 20).unwrap();
+        assert_eq!(scheduler.timesteps().len(), 20);
+    }
+
+    #[test]
+    fn test_sampler_type_from_str() {
         use std::str::FromStr;
         
-        assert!(matches!(SchedulerType::from_str("ddim"), Ok(SchedulerType::Ddim)));
-        assert!(matches!(SchedulerType::from_str("euler"), Ok(SchedulerType::Euler)));
-        assert!(matches!(SchedulerType::from_str("DDIM"), Ok(SchedulerType::Ddim)));
-        assert!(SchedulerType::from_str("unknown").is_err());
+        // TEAM-482: Updated to use SamplerType
+        assert!(matches!(SamplerType::from_str("ddim"), Ok(SamplerType::Ddim)));
+        assert!(matches!(SamplerType::from_str("euler"), Ok(SamplerType::Euler)));
+        assert!(matches!(SamplerType::from_str("DDIM"), Ok(SamplerType::Ddim)));
+        assert!(SamplerType::from_str("unknown").is_err());
+    }
+
+    #[test]
+    fn test_noise_schedule_from_str() {
+        use std::str::FromStr;
+        
+        // TEAM-482: Test NoiseSchedule parsing
+        assert!(matches!(NoiseSchedule::from_str("simple"), Ok(NoiseSchedule::Simple)));
+        assert!(matches!(NoiseSchedule::from_str("karras"), Ok(NoiseSchedule::Karras)));
+        assert!(matches!(NoiseSchedule::from_str("exponential"), Ok(NoiseSchedule::Exponential)));
+        assert!(NoiseSchedule::from_str("unknown").is_err());
     }
 }

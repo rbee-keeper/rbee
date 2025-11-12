@@ -29,6 +29,8 @@ pub fn execute(state: JobState, req: ImageGenerationRequest) -> Result<JobRespon
         seed: req.seed,
         width: req.width,
         height: req.height,
+        sampler: crate::backend::schedulers::SamplerType::default(),     // TEAM-482: Use default sampler (Euler)
+        schedule: crate::backend::schedulers::NoiseSchedule::default(),  // TEAM-482: Use default schedule (Simple)
         loras: req.loras.iter().map(|l| crate::backend::lora::LoRAConfig {
             path: l.path.clone(),
             strength: l.strength as f64,

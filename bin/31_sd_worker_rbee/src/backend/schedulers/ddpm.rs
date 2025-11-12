@@ -18,7 +18,7 @@ const INITIAL_ALPHA_PROD: f64 = 1.0;
 const MIN_VARIANCE: f64 = 1e-20;
 
 /// Configuration for DDPM scheduler
-/// 
+///
 /// TEAM-481: Simplified version focusing on core functionality
 #[derive(Debug, Clone, Copy)]
 pub struct DDPMSchedulerConfig {
@@ -56,7 +56,7 @@ impl SchedulerConfig for DDPMSchedulerConfig {
 }
 
 /// DDPM Scheduler implementation
-/// 
+///
 /// TEAM-481: Probabilistic scheduler with noise injection
 pub struct DDPMScheduler {
     timesteps: Vec<usize>,
@@ -66,7 +66,7 @@ pub struct DDPMScheduler {
 
 impl DDPMScheduler {
     /// Create a new DDPM scheduler
-    /// 
+    ///
     /// # Arguments
     /// * `num_train_timesteps` - Number of training timesteps (usually 1000)
     /// * `num_inference_steps` - Number of inference steps (e.g., 20, 50)
@@ -82,29 +82,26 @@ impl DDPMScheduler {
     ) -> Result<Self> {
         // Create beta schedule
         let betas: Vec<f64> = match beta_schedule {
-            BetaSchedule::Linear => {
-                (0..num_train_timesteps)
-                    .map(|i| {
-                        let t = (i as f64) / (num_train_timesteps as f64 - 1.0);
-                        beta_start + t * (beta_end - beta_start)
-                    })
-                    .collect()
-            }
-            BetaSchedule::ScaledLinear => {
-                (0..num_train_timesteps)
-                    .map(|i| {
-                        let t = (i as f64) / (num_train_timesteps as f64 - 1.0);
-                        let beta_sqrt = beta_start.sqrt() + t * (beta_end.sqrt() - beta_start.sqrt());
-                        beta_sqrt * beta_sqrt
-                    })
-                    .collect()
-            }
+            BetaSchedule::Linear => (0..num_train_timesteps)
+                .map(|i| {
+                    let t = (i as f64) / (num_train_timesteps as f64 - 1.0);
+                    beta_start + t * (beta_end - beta_start)
+                })
+                .collect(),
+            BetaSchedule::ScaledLinear => (0..num_train_timesteps)
+                .map(|i| {
+                    let t = (i as f64) / (num_train_timesteps as f64 - 1.0);
+                    let beta_sqrt = beta_start.sqrt() + t * (beta_end.sqrt() - beta_start.sqrt());
+                    beta_sqrt * beta_sqrt
+                })
+                .collect(),
             BetaSchedule::SquaredcosCapV2 => {
                 // Simplified cosine schedule
                 (0..num_train_timesteps)
                     .map(|i| {
                         let t = (i as f64) / num_train_timesteps as f64;
-                        let alpha_bar = f64::cos((t + 0.008) / 1.008 * std::f64::consts::FRAC_PI_2).powi(2);
+                        let alpha_bar =
+                            f64::cos((t + 0.008) / 1.008 * std::f64::consts::FRAC_PI_2).powi(2);
                         (1.0 - alpha_bar).min(0.999)
                     })
                     .collect()
@@ -122,31 +119,23 @@ impl DDPMScheduler {
         // Create timesteps
         let inference_steps = num_inference_steps.min(num_train_timesteps);
         let step_ratio = num_train_timesteps / inference_steps;
-        let timesteps: Vec<usize> = (0..inference_steps)
-            .map(|i| i * step_ratio)
-            .rev()
-            .collect();
+        let timesteps: Vec<usize> = (0..inference_steps).map(|i| i * step_ratio).rev().collect();
 
-        Ok(Self {
-            timesteps,
-            alphas_cumprod,
-            step_ratio,
-        })
+        Ok(Self { timesteps, alphas_cumprod, step_ratio })
     }
 
     /// Get variance for a given timestep
     fn get_variance(&self, timestep: usize) -> f64 {
         let prev_t = timestep as isize - self.step_ratio as isize;
         let alpha_prod_t = self.alphas_cumprod[timestep];
-        let alpha_prod_t_prev = if prev_t >= 0 {
-            self.alphas_cumprod[prev_t as usize]
-        } else {
-            INITIAL_ALPHA_PROD
-        };
-        
+        let alpha_prod_t_prev =
+            if prev_t >= 0 { self.alphas_cumprod[prev_t as usize] } else { INITIAL_ALPHA_PROD };
+
         let current_beta_t = INITIAL_ALPHA_PROD - alpha_prod_t / alpha_prod_t_prev;
-        let variance = (INITIAL_ALPHA_PROD - alpha_prod_t_prev) / (INITIAL_ALPHA_PROD - alpha_prod_t) * current_beta_t;
-        
+        let variance = (INITIAL_ALPHA_PROD - alpha_prod_t_prev)
+            / (INITIAL_ALPHA_PROD - alpha_prod_t)
+            * current_beta_t;
+
         variance.max(MIN_VARIANCE)
     }
 }
@@ -179,18 +168,16 @@ impl Scheduler for DDPMScheduler {
 
         // 1. Compute alphas, betas
         let alpha_prod_t = self.alphas_cumprod[timestep];
-        let alpha_prod_t_prev = if prev_t >= 0 {
-            self.alphas_cumprod[prev_t as usize]
-        } else {
-            INITIAL_ALPHA_PROD
-        };
+        let alpha_prod_t_prev =
+            if prev_t >= 0 { self.alphas_cumprod[prev_t as usize] } else { INITIAL_ALPHA_PROD };
         let beta_prod_t = INITIAL_ALPHA_PROD - alpha_prod_t;
         let beta_prod_t_prev = INITIAL_ALPHA_PROD - alpha_prod_t_prev;
         let current_alpha_t = alpha_prod_t / alpha_prod_t_prev;
         let current_beta_t = INITIAL_ALPHA_PROD - current_alpha_t;
 
         // 2. Compute predicted original sample (assuming epsilon prediction)
-        let pred_original_sample = ((sample - (beta_prod_t.sqrt() * model_output)?)? / alpha_prod_t.sqrt())?;
+        let pred_original_sample =
+            ((sample - (beta_prod_t.sqrt() * model_output)?)? / alpha_prod_t.sqrt())?;
 
         // 3. Compute coefficients
         let pred_original_sample_coeff = (alpha_prod_t_prev.sqrt() * current_beta_t) / beta_prod_t;
@@ -225,13 +212,15 @@ mod tests {
 
     #[test]
     fn test_ddpm_timesteps() {
-        let scheduler = DDPMScheduler::new(1000, 20, BETA_START, BETA_END, BetaSchedule::ScaledLinear).unwrap();
+        let scheduler =
+            DDPMScheduler::new(1000, 20, BETA_START, BETA_END, BetaSchedule::ScaledLinear).unwrap();
         assert_eq!(scheduler.timesteps().len(), 20);
     }
 
     #[test]
     fn test_ddpm_variance() {
-        let scheduler = DDPMScheduler::new(1000, 20, BETA_START, BETA_END, BetaSchedule::Linear).unwrap();
+        let scheduler =
+            DDPMScheduler::new(1000, 20, BETA_START, BETA_END, BetaSchedule::Linear).unwrap();
         let variance = scheduler.get_variance(10);
         assert!(variance > 0.0);
         assert!(variance >= MIN_VARIANCE);

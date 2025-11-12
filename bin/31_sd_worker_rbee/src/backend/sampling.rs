@@ -2,8 +2,10 @@
 // TEAM-392: Sampling configuration for Stable Diffusion
 // TEAM-487: Added LoRA support
 // TEAM-481: Added constants for validation limits
+// TEAM-481: Added scheduler selection
 
 use crate::backend::lora::LoRAConfig;
+use crate::backend::schedulers::{NoiseSchedule, SamplerType};
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 
@@ -25,6 +27,19 @@ pub struct SamplingConfig {
     pub seed: Option<u64>,
     pub width: usize,
     pub height: usize,
+
+    /// Sampler to use (algorithm)
+    /// TEAM-482: Choose from Euler, EulerAncestral, DpmSolverMultistep, Ddim, Ddpm
+    /// Defaults to Euler if not specified
+    #[serde(default)]
+    pub sampler: SamplerType,
+
+    /// Noise schedule to use
+    /// TEAM-482: Choose from Simple, Karras, Exponential, etc.
+    /// Karras is popular for high-quality results
+    /// Defaults to Simple if not specified
+    #[serde(default)]
+    pub schedule: NoiseSchedule,
 
     /// LoRAs to apply (optional)
     /// TEAM-487: Allows stacking multiple LoRAs for customization
@@ -97,7 +112,9 @@ impl Default for SamplingConfig {
             seed: None,
             width: 512,
             height: 512,
-            loras: vec![], // TEAM-487: No LoRAs by default
+            sampler: SamplerType::default(),     // TEAM-482: Defaults to Euler
+            schedule: NoiseSchedule::default(),  // TEAM-482: Defaults to Simple
+            loras: vec![],                       // TEAM-487: No LoRAs by default
         }
     }
 }

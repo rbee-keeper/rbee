@@ -17,7 +17,7 @@ const FINAL_ALPHA_CUMPROD: f64 = 1.0;
 const DEFAULT_TIMESTEP: usize = 0;
 
 /// Configuration for DDIM scheduler
-/// 
+///
 /// TEAM-481: This struct holds all configuration for DDIM.
 /// Implements Default for easy instantiation.
 #[derive(Debug, Clone, Copy)]
@@ -32,11 +32,7 @@ pub struct DDIMSchedulerConfig {
 
 impl Default for DDIMSchedulerConfig {
     fn default() -> Self {
-        Self {
-            train_timesteps: 1000,
-            beta_start: BETA_START,
-            beta_end: BETA_END,
-        }
+        Self { train_timesteps: 1000, beta_start: BETA_START, beta_end: BETA_END }
     }
 }
 
@@ -52,7 +48,7 @@ impl SchedulerConfig for DDIMSchedulerConfig {
 }
 
 /// DDIM Scheduler implementation
-/// 
+///
 /// TEAM-481: Deterministic scheduler with high quality results
 pub struct DDIMScheduler {
     timesteps: Vec<usize>,
@@ -62,7 +58,7 @@ pub struct DDIMScheduler {
 
 impl DDIMScheduler {
     /// Create a new DDIM scheduler
-    /// 
+    ///
     /// # Arguments
     /// * `num_train_timesteps` - Number of training timesteps (usually 1000)
     /// * `num_inference_steps` - Number of inference steps (e.g., 20, 50)
@@ -75,10 +71,8 @@ impl DDIMScheduler {
         beta_end: f64,
     ) -> Self {
         let step_ratio = num_train_timesteps / num_inference_steps;
-        let timesteps: Vec<usize> = (0..num_inference_steps)
-            .map(|i| i * step_ratio)
-            .rev()
-            .collect();
+        let timesteps: Vec<usize> =
+            (0..num_inference_steps).map(|i| i * step_ratio).rev().collect();
 
         let betas: Vec<f64> = (0..num_train_timesteps)
             .map(|i| {
@@ -94,11 +88,7 @@ impl DDIMScheduler {
             alphas_cumprod.push(alpha_prod);
         }
 
-        Self {
-            timesteps,
-            alphas_cumprod,
-            final_alpha_cumprod: FINAL_ALPHA_CUMPROD,
-        }
+        Self { timesteps, alphas_cumprod, final_alpha_cumprod: FINAL_ALPHA_CUMPROD }
     }
 }
 
@@ -108,10 +98,11 @@ impl Scheduler for DDIMScheduler {
     }
 
     fn add_noise(&self, original: &Tensor, noise: Tensor, timestep: usize) -> Result<Tensor> {
-        let alpha_prod = self.alphas_cumprod.get(timestep).copied().unwrap_or(self.final_alpha_cumprod);
+        let alpha_prod =
+            self.alphas_cumprod.get(timestep).copied().unwrap_or(self.final_alpha_cumprod);
         let sqrt_alpha_prod = alpha_prod.sqrt();
         let sqrt_one_minus_alpha_prod = (INITIAL_ALPHA_PROD - alpha_prod).sqrt();
-        
+
         let scaled_original = (original * sqrt_alpha_prod)?;
         let scaled_noise = (noise * sqrt_one_minus_alpha_prod)?;
         Ok((&scaled_original + scaled_noise)?)
@@ -127,11 +118,8 @@ impl Scheduler for DDIMScheduler {
     }
 
     fn step(&self, model_output: &Tensor, timestep: usize, sample: &Tensor) -> Result<Tensor> {
-        let alpha_prod_t = self
-            .alphas_cumprod
-            .get(timestep)
-            .copied()
-            .unwrap_or(self.final_alpha_cumprod);
+        let alpha_prod_t =
+            self.alphas_cumprod.get(timestep).copied().unwrap_or(self.final_alpha_cumprod);
 
         let prev_timestep = if timestep > DEFAULT_TIMESTEP {
             timestep.saturating_sub(self.timesteps.len() / self.alphas_cumprod.len())
@@ -139,11 +127,8 @@ impl Scheduler for DDIMScheduler {
             DEFAULT_TIMESTEP
         };
 
-        let alpha_prod_t_prev = self
-            .alphas_cumprod
-            .get(prev_timestep)
-            .copied()
-            .unwrap_or(self.final_alpha_cumprod);
+        let alpha_prod_t_prev =
+            self.alphas_cumprod.get(prev_timestep).copied().unwrap_or(self.final_alpha_cumprod);
 
         let beta_prod_t = INITIAL_ALPHA_PROD - alpha_prod_t;
         let beta_prod_t_prev = INITIAL_ALPHA_PROD - alpha_prod_t_prev;
@@ -151,7 +136,8 @@ impl Scheduler for DDIMScheduler {
         let pred_original_sample =
             ((sample - (beta_prod_t.sqrt() * model_output)?)? / alpha_prod_t.sqrt())?;
         let pred_sample_direction = (beta_prod_t_prev.sqrt() * model_output)?;
-        let prev_sample = ((alpha_prod_t_prev.sqrt() * pred_original_sample)? + pred_sample_direction)?;
+        let prev_sample =
+            ((alpha_prod_t_prev.sqrt() * pred_original_sample)? + pred_sample_direction)?;
 
         Ok(prev_sample)
     }

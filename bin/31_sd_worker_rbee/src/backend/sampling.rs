@@ -1,6 +1,8 @@
 // Created by: TEAM-392
 // TEAM-392: Sampling configuration for Stable Diffusion
+// TEAM-487: Added LoRA support
 
+use crate::backend::lora::LoRAConfig;
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 
@@ -13,6 +15,11 @@ pub struct SamplingConfig {
     pub seed: Option<u64>,
     pub width: usize,
     pub height: usize,
+    
+    /// LoRAs to apply (optional)
+    /// TEAM-487: Allows stacking multiple LoRAs for customization
+    #[serde(default)]
+    pub loras: Vec<LoRAConfig>,
 }
 
 impl SamplingConfig {
@@ -56,6 +63,11 @@ impl SamplingConfig {
             )));
         }
 
+        // TEAM-487: Validate LoRA configurations
+        for lora in &self.loras {
+            lora.validate()?;
+        }
+
         Ok(())
     }
 }
@@ -70,6 +82,7 @@ impl Default for SamplingConfig {
             seed: None,
             width: 512,
             height: 512,
+            loras: vec![],  // TEAM-487: No LoRAs by default
         }
     }
 }

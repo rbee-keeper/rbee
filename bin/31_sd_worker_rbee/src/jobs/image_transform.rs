@@ -29,6 +29,7 @@ pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobRespons
         seed: req.seed,
         width: img_width as usize,
         height: img_height as usize,
+        loras: vec![],  // TEAM-487: No LoRAs for now (TODO: add to request)
     };
 
     // 4. Create job and SSE sink

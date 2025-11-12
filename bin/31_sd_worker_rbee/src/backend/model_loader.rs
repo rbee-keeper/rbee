@@ -10,6 +10,7 @@ use hf_hub::api::sync::Api;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use super::lora::{create_lora_varbuilder, LoRAConfig, LoRAWeights};
 use super::models::{ModelComponents, ModelFile, SDVersion};
 
 /// Model loader for downloading and caching models
@@ -22,20 +23,15 @@ pub struct ModelLoader {
 impl ModelLoader {
     /// Create a new model loader
     pub fn new(version: SDVersion, use_f16: bool) -> Result<Self> {
-        let api = Api::new().map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {}", e)))?;
-        Ok(Self {
-            api,
-            version,
-            use_f16,
-        })
+        let api = Api::new()
+            .map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {}", e)))?;
+        Ok(Self { api, version, use_f16 })
     }
 
     /// Get path to a model file, downloading if necessary
     pub fn get_file(&self, file: ModelFile) -> Result<PathBuf> {
         let repo = match file {
-            ModelFile::Tokenizer | ModelFile::Tokenizer2 => {
-                ModelFile::tokenizer_repo(self.version)
-            }
+            ModelFile::Tokenizer | ModelFile::Tokenizer2 => ModelFile::tokenizer_repo(self.version),
             _ => self.version.repo(),
         };
 
@@ -52,7 +48,12 @@ impl ModelLoader {
 
     /// Load all model components
     /// TEAM-399: Full implementation with actual model loading
-    pub fn load_components(&self, device: &Device) -> Result<ModelComponents> {
+    /// TEAM-487: Added LoRA support
+    pub fn load_components(
+        &self,
+        device: &Device,
+        lora_configs: &[LoRAConfig],
+    ) -> Result<ModelComponents> {
         let start = Instant::now();
         log_model_loading_start(&format!("{:?}", self.version));
 
@@ -78,33 +79,46 @@ impl ModelLoader {
         let vae_config = self.version.vae_config();
 
         // Determine dtype
-        let dtype = if self.use_f16 {
-            candle_core::DType::F16
+        let dtype = if self.use_f16 { candle_core::DType::F16 } else { candle_core::DType::F32 };
+
+        // Create base VarBuilder from SafeTensors files
+        let base_unet_vb =
+            unsafe { VarBuilder::from_mmaped_safetensors(&[unet_weights.clone()], dtype, device)? };
+
+        // TEAM-487: Apply LoRAs if any are configured
+        let unet_vb = if !lora_configs.is_empty() {
+            tracing::info!("Loading {} LoRAs for UNet", lora_configs.len());
+
+            // Load all LoRA weights
+            let mut loras = Vec::new();
+            for config in lora_configs {
+                tracing::info!("Loading LoRA: {} (strength: {})", config.path, config.strength);
+                let lora_weights = LoRAWeights::load(&config.path, device)?;
+                loras.push((lora_weights, config.strength));
+            }
+
+            // Create VarBuilder with LoRAs merged
+            create_lora_varbuilder(base_unet_vb, loras)?
         } else {
-            candle_core::DType::F32
+            base_unet_vb
         };
 
-        // Create VarBuilder from SafeTensors files
-        let unet_vb = unsafe {
-            VarBuilder::from_mmaped_safetensors(&[unet_weights.clone()], dtype, device)?
-        };
-        let vae_vb = unsafe {
-            VarBuilder::from_mmaped_safetensors(&[vae_weights.clone()], dtype, device)?
-        };
+        let vae_vb =
+            unsafe { VarBuilder::from_mmaped_safetensors(&[vae_weights.clone()], dtype, device)? };
 
-        // Load UNet (from Candle)
-        let unet = candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModel::new(
-            unet_vb,
-            4, // in_channels
-            4, // out_channels
-            false, // use_flash_attn (set to false for CPU, can be enabled for CUDA)
-            unet_config,
-        )?;
+        // Load UNet (from Candle) - now with LoRAs applied!
+        let unet =
+            candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModel::new(
+                unet_vb,
+                4,     // in_channels
+                4,     // out_channels
+                false, // use_flash_attn (set to false for CPU, can be enabled for CUDA)
+                unet_config,
+            )?;
 
         // Load VAE (from Candle)
         let vae = candle_transformers::models::stable_diffusion::vae::AutoEncoderKL::new(
-            vae_vb,
-            3, // in_channels (RGB)
+            vae_vb, 3, // in_channels (RGB)
             3, // out_channels (RGB)
             vae_config,
         )?;
@@ -137,13 +151,15 @@ impl ModelLoader {
 }
 
 /// Load a Stable Diffusion model
+/// TEAM-487: Added LoRA support
 pub fn load_model(
     version: SDVersion,
     device: &Device,
     use_f16: bool,
+    lora_configs: &[LoRAConfig],
 ) -> Result<ModelComponents> {
     let loader = ModelLoader::new(version, use_f16)?;
-    loader.load_components(device)
+    loader.load_components(device, lora_configs)
 }
 
 #[cfg(test)]

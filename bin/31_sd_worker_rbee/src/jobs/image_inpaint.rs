@@ -33,6 +33,7 @@ pub fn execute(state: JobState, req: ImageInpaintRequest) -> Result<JobResponse>
         seed: req.seed,
         width: img_width as usize,
         height: img_height as usize,
+        loras: vec![],  // TEAM-487: No LoRAs for now
     };
     
     // 5. Create job and SSE sink

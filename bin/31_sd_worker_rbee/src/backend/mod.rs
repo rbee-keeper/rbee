@@ -2,21 +2,20 @@
 //
 // Backend modules for SD inference using Candle.
 
+// TEAM-397: Core generation modules (Candle-idiomatic, no wrappers)
+pub mod generation;
+pub mod image_utils;
+pub mod lora; // TEAM-487: LoRA support
 pub mod model_loader;
 pub mod models;
 
 // TEAM-392: Inference pipeline modules
-pub mod scheduler;
 pub mod sampling;
-
-// TEAM-397: RULE ZERO - Deleted clip.rs, vae.rs, inference.rs (custom wrappers)
-// TEAM-397: NEW - Direct Candle usage (no wrappers)
-pub mod generation;  // Candle-idiomatic generation functions
+pub mod scheduler;
 
 // TEAM-393: Generation engine modules
-pub mod generation_engine;  // TEAM-396: Added missing module declaration
+pub mod generation_engine;
 pub mod request_queue;
-pub mod image_utils;
 
 // TEAM-396/397: Public exports
 pub use generation_engine::GenerationEngine;

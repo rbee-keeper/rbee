@@ -21,10 +21,10 @@ pub fn execute(state: JobState, req: ImageGenerationRequest) -> Result<JobRespon
         negative_prompt: req.negative_prompt,
         steps: req.steps,
         guidance_scale: req.guidance_scale,
+        seed: req.seed,
         width: req.width,
         height: req.height,
-        seed: req.seed,
-        ..Default::default()
+        loras: vec![],  // TEAM-487: No LoRAs for now (TODO: add to request)
     };
     
     let request = GenerationRequest {

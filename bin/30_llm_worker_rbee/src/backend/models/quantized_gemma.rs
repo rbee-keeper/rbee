@@ -16,11 +16,13 @@ use std::path::Path;
 /// Quantized Gemma model wrapper for GGUF files
 ///
 /// TEAM-409: Wraps candle-transformers `quantized_gemma3` with GGUF support
+/// TEAM-482: Added capabilities
 #[derive(Debug)]
 pub struct QuantizedGemmaModel {
     model: ModelWeights,
     eos_token_id: u32,
     vocab_size: usize,
+    capabilities: super::ModelCapabilities,
 }
 
 impl QuantizedGemmaModel {
@@ -104,7 +106,13 @@ impl QuantizedGemmaModel {
 
         tracing::info!("Gemma GGUF model loaded successfully");
 
-        Ok(Self { model, eos_token_id, vocab_size })
+        // TEAM-482: Quantized Gemma capabilities
+        let capabilities = super::ModelCapabilities::quantized(
+            super::arch::GEMMA_QUANTIZED,
+            8192,
+        );
+
+        Ok(Self { model, eos_token_id, vocab_size, capabilities })
     }
 
     /// Forward pass through the model
@@ -131,5 +139,34 @@ impl QuantizedGemmaModel {
     pub fn reset_cache(&mut self) -> Result<()> {
         tracing::warn!("Cache reset not implemented for Gemma (managed internally)");
         Ok(())
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for QuantizedGemmaModel
+impl super::ModelTrait for QuantizedGemmaModel {
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
+        self.forward(input_ids, position)
+    }
+
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::GEMMA_QUANTIZED
+    }
+
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    fn reset_cache(&mut self) -> Result<()> {
+        self.reset_cache()
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

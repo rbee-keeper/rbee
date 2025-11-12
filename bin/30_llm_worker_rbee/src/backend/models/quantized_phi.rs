@@ -14,10 +14,12 @@ use std::path::Path;
 /// Quantized Phi model wrapper for GGUF files
 ///
 /// TEAM-090: Wraps candle-transformers `quantized_phi3` with GGUF support
+/// TEAM-482: Added capabilities
 pub struct QuantizedPhiModel {
     model: ModelWeights,
     eos_token_id: u32,
     vocab_size: usize,
+    capabilities: super::ModelCapabilities,
 }
 
 impl QuantizedPhiModel {
@@ -66,9 +68,20 @@ impl QuantizedPhiModel {
         let model = ModelWeights::from_gguf(false, content, &mut file, device)
             .with_context(|| "Failed to load Phi model weights from GGUF")?;
 
-        n!("gguf_load_complete", "GGUF Phi model loaded (vocab={}, eos={})", vocab_size, eos_token_id);
+        n!(
+            "gguf_load_complete",
+            "GGUF Phi model loaded (vocab={}, eos={})",
+            vocab_size,
+            eos_token_id
+        );
 
-        Ok(Self { model, eos_token_id, vocab_size })
+        // TEAM-482: Quantized Phi capabilities
+        let capabilities = super::ModelCapabilities::quantized(
+            super::arch::PHI,
+            2048,
+        );
+
+        Ok(Self { model, eos_token_id, vocab_size, capabilities })
     }
 
     pub fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
@@ -86,5 +99,34 @@ impl QuantizedPhiModel {
     pub fn reset_cache(&mut self) -> Result<()> {
         tracing::debug!("Quantized Phi model cache will reset on next position=0 forward pass");
         Ok(())
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for QuantizedPhiModel
+impl super::ModelTrait for QuantizedPhiModel {
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
+        self.forward(input_ids, position)
+    }
+
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::PHI_QUANTIZED
+    }
+
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    fn reset_cache(&mut self) -> Result<()> {
+        self.reset_cache()
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

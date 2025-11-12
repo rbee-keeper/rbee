@@ -15,11 +15,13 @@ use std::path::Path;
 /// Quantized Llama model wrapper for GGUF files
 ///
 /// TEAM-036: Wraps candle-transformers `quantized_llama` with GGUF support
+/// TEAM-482: Added capabilities
 #[derive(Debug)]
 pub struct QuantizedLlamaModel {
     model: ModelWeights,
     eos_token_id: u32,
     vocab_size: usize,
+    capabilities: super::ModelCapabilities,
 }
 
 impl QuantizedLlamaModel {
@@ -52,7 +54,11 @@ impl QuantizedLlamaModel {
             })?;
 
         // TEAM-088: Narrate metadata inspection
-        n!("gguf_inspect_metadata", "Inspecting GGUF metadata ({} keys found)", content.metadata.len());
+        n!(
+            "gguf_inspect_metadata",
+            "Inspecting GGUF metadata ({} keys found)",
+            content.metadata.len()
+        );
 
         // TEAM-088: List all available metadata keys for debugging
         let available_keys: Vec<String> =
@@ -114,7 +120,13 @@ impl QuantizedLlamaModel {
             .unwrap_or(2); // Default EOS token for Llama
 
         // TEAM-088: Narrate successful metadata extraction
-        n!("gguf_metadata_loaded", "GGUF metadata: vocab={}, eos={}, tensors={}", vocab_size, eos_token_id, content.tensor_infos.len());
+        n!(
+            "gguf_metadata_loaded",
+            "GGUF metadata: vocab={}, eos={}, tensors={}",
+            vocab_size,
+            eos_token_id,
+            content.tensor_infos.len()
+        );
 
         tracing::info!(
             vocab_size = vocab_size,
@@ -138,7 +150,13 @@ impl QuantizedLlamaModel {
 
         tracing::info!("GGUF model loaded successfully");
 
-        Ok(Self { model, eos_token_id, vocab_size })
+        // TEAM-482: Quantized model capabilities
+        let capabilities = super::ModelCapabilities::quantized(
+            super::arch::LLAMA,
+            2048,  // Default GGUF context
+        );
+
+        Ok(Self { model, eos_token_id, vocab_size, capabilities })
     }
 
     /// Forward pass through the model
@@ -167,5 +185,34 @@ impl QuantizedLlamaModel {
         // The kv_cache in each layer is set to None when index_pos == 0
         tracing::debug!("Quantized model cache will reset on next position=0 forward pass");
         Ok(())
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for QuantizedLlamaModel
+impl super::ModelTrait for QuantizedLlamaModel {
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
+        self.forward(input_ids, position)
+    }
+
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::LLAMA_QUANTIZED
+    }
+
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    fn reset_cache(&mut self) -> Result<()> {
+        self.reset_cache()
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

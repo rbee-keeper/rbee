@@ -16,6 +16,7 @@ use std::path::Path;
 ///
 /// TEAM-017: Wraps candle-transformers Llama with its natural interface
 /// TEAM-021: Added device field to support cache reset
+/// TEAM-482: Added capabilities for runtime feature detection
 #[derive(Debug)]
 pub struct LlamaModel {
     model: Llama,
@@ -23,6 +24,7 @@ pub struct LlamaModel {
     config: Config,
     vocab_size: usize,
     device: Device,
+    capabilities: super::ModelCapabilities,
 }
 
 impl LlamaModel {
@@ -99,7 +101,20 @@ impl LlamaModel {
             "Loaded Llama model"
         );
 
-        Ok(Self { model, cache, config, vocab_size: vocab_size as usize, device: device.clone() })
+        // TEAM-482: Initialize capabilities
+        let capabilities = super::ModelCapabilities::standard(
+            super::arch::LLAMA,
+            max_position_embeddings as usize,
+        );
+
+        Ok(Self { 
+            model, 
+            cache, 
+            config, 
+            vocab_size: vocab_size as usize, 
+            device: device.clone(),
+            capabilities,
+        })
     }
 
     /// Forward pass using Llama's natural interface
@@ -187,5 +202,41 @@ impl LlamaModel {
 
         tracing::debug!("Cache reset complete - ready for new request");
         Ok(())
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for LlamaModel
+/// 
+/// This implementation provides a consistent interface for Llama models,
+/// enabling seamless integration with the model factory pattern.
+impl super::ModelTrait for LlamaModel {
+    #[inline]
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
+        self.forward(input_ids, position)
+    }
+
+    #[inline]
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::LLAMA
+    }
+
+    #[inline]
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    #[inline]
+    fn reset_cache(&mut self) -> Result<()> {
+        self.reset_cache()
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

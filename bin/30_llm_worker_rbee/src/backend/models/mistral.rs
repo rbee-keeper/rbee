@@ -14,10 +14,12 @@ use std::path::Path;
 /// Mistral model wrapper
 ///
 /// TEAM-017: Wraps candle-transformers Mistral with its natural interface
+/// TEAM-482: Added capabilities
 #[derive(Debug)]
 pub struct MistralModel {
     model: Model,
     vocab_size: usize,
+    capabilities: super::ModelCapabilities,
 }
 
 impl MistralModel {
@@ -50,7 +52,17 @@ impl MistralModel {
             "Loaded Mistral model"
         );
 
-        Ok(Self { model, vocab_size })
+        // TEAM-482: Mistral capabilities (cache reset not yet implemented)
+        let capabilities = super::ModelCapabilities {
+            uses_position: true,
+            supports_cache_reset: false,  // Not yet implemented
+            max_context_length: 32768,
+            supports_streaming: true,
+            architecture_family: super::arch::MISTRAL,
+            is_quantized: false,
+        };
+
+        Ok(Self { model, vocab_size, capabilities })
     }
 
     /// Forward pass using Mistral's natural interface
@@ -69,5 +81,36 @@ impl MistralModel {
     /// Get vocab size
     pub fn vocab_size(&self) -> usize {
         self.vocab_size
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for MistralModel
+impl super::ModelTrait for MistralModel {
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
+        self.forward(input_ids, position)
+    }
+
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::MISTRAL
+    }
+
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    fn reset_cache(&mut self) -> Result<()> {
+        // TEAM-482: Mistral cache reset not yet implemented
+        // Return error instead of silent failure
+        anyhow::bail!("Cache reset not yet implemented for Mistral")
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

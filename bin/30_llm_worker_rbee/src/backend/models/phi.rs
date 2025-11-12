@@ -14,9 +14,11 @@ use std::path::Path;
 /// Phi model wrapper
 ///
 /// TEAM-017: Wraps candle-transformers Phi with its natural interface
+/// TEAM-482: Added capabilities (Phi has special requirements)
 pub struct PhiModel {
     model: Model,
     vocab_size: usize,
+    capabilities: super::ModelCapabilities,
 }
 
 impl PhiModel {
@@ -60,7 +62,17 @@ impl PhiModel {
             "Loaded Phi model"
         );
 
-        Ok(Self { model, vocab_size })
+        // TEAM-482: Phi has special capabilities - doesn't use position, manages cache internally
+        let capabilities = super::ModelCapabilities {
+            uses_position: false,  // Phi doesn't use position parameter
+            supports_cache_reset: false,  // Phi manages cache internally
+            max_context_length: 2048,  // Phi default context
+            supports_streaming: true,
+            architecture_family: super::arch::PHI,
+            is_quantized: false,
+        };
+
+        Ok(Self { model, vocab_size, capabilities })
     }
 
     /// Forward pass using Phi's natural interface
@@ -79,5 +91,44 @@ impl PhiModel {
     /// Get vocab size
     pub fn vocab_size(&self) -> usize {
         self.vocab_size
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for PhiModel
+///
+/// Note: Phi's forward pass doesn't use position parameter, so we ignore it.
+/// This demonstrates how the trait pattern handles model-specific differences.
+impl super::ModelTrait for PhiModel {
+    #[inline]
+    fn forward(&mut self, input_ids: &Tensor, _position: usize) -> Result<Tensor> {
+        // Phi doesn't use position - it manages cache internally
+        self.forward(input_ids)
+    }
+
+    #[inline]
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::PHI
+    }
+
+    #[inline]
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    #[inline]
+    fn reset_cache(&mut self) -> Result<()> {
+        // Phi manages cache internally, no reset needed
+        tracing::debug!("Phi manages cache internally, no reset needed");
+        Ok(())
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

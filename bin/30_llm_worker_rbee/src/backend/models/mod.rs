@@ -1,4 +1,5 @@
 // TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Model factory with enum pattern
+// TEAM-482: Refactored to trait-based abstraction - makes adding models trivial
 
 //! Model factory - Auto-detect and load models
 //!
@@ -6,6 +7,7 @@
 //! Refactored by: TEAM-017 (switched to enum pattern for Candle idiomaticity)
 //! Modified by: TEAM-036 (added GGUF support for quantized models)
 //! Modified by: TEAM-090 (added quantized versions for all architectures)
+//! Refactored by: TEAM-482 (trait-based abstraction to make adding models trivial)
 
 use anyhow::{bail, Context, Result};
 use candle_core::{Device, Tensor};
@@ -20,6 +22,164 @@ pub mod quantized_llama;
 pub mod quantized_phi;
 pub mod quantized_qwen;
 pub mod qwen;
+
+/// TEAM-482: Sealed trait pattern - prevents external implementations
+///
+/// This module ensures only internal model types can implement ModelTrait,
+/// maintaining type safety and preventing misuse.
+mod sealed {
+    pub trait Sealed {}
+    
+    // Only internal model types can implement Sealed
+    impl Sealed for super::llama::LlamaModel {}
+    impl Sealed for super::quantized_llama::QuantizedLlamaModel {}
+    impl Sealed for super::mistral::MistralModel {}
+    impl Sealed for super::phi::PhiModel {}
+    impl Sealed for super::quantized_phi::QuantizedPhiModel {}
+    impl Sealed for super::qwen::QwenModel {}
+    impl Sealed for super::quantized_qwen::QuantizedQwenModel {}
+    impl Sealed for super::quantized_gemma::QuantizedGemmaModel {}
+}
+
+/// TEAM-482: Model capabilities for runtime feature detection
+///
+/// Models declare their capabilities, allowing the generation engine
+/// to query what features are supported without hardcoded checks.
+#[derive(Debug, Clone)]
+pub struct ModelCapabilities {
+    /// Whether the model uses position parameter in forward pass
+    pub uses_position: bool,
+    
+    /// Whether the model supports cache reset
+    pub supports_cache_reset: bool,
+    
+    /// Maximum context length (in tokens)
+    pub max_context_length: usize,
+    
+    /// Whether the model supports streaming generation
+    pub supports_streaming: bool,
+    
+    /// Model architecture family (e.g., "llama", "mistral", "phi")
+    pub architecture_family: &'static str,
+    
+    /// Whether the model is quantized (GGUF)
+    pub is_quantized: bool,
+}
+
+impl ModelCapabilities {
+    /// Create capabilities for a standard model
+    pub fn standard(architecture: &'static str, max_context: usize) -> Self {
+        Self {
+            uses_position: true,
+            supports_cache_reset: true,
+            max_context_length: max_context,
+            supports_streaming: true,
+            architecture_family: architecture,
+            is_quantized: false,
+        }
+    }
+    
+    /// Create capabilities for a quantized model
+    pub fn quantized(architecture: &'static str, max_context: usize) -> Self {
+        Self {
+            uses_position: true,
+            supports_cache_reset: true,
+            max_context_length: max_context,
+            supports_streaming: true,
+            architecture_family: architecture,
+            is_quantized: true,
+        }
+    }
+}
+
+/// TEAM-482: Common interface that all models must implement
+///
+/// This trait enforces a consistent API across all model implementations,
+/// making it trivial to add new models. Simply implement this trait and
+/// add one line to the Model enum.
+///
+/// Design decisions:
+/// - `forward` takes `position` parameter (models that don't need it ignore it)
+/// - `reset_cache` must be implemented (return error if not supported)
+/// - All methods are required (no silent failures)
+/// - Sealed trait prevents external implementations (type safety)
+/// - Capabilities enable runtime feature detection
+pub trait ModelTrait: sealed::Sealed {
+    /// Forward pass through the model
+    ///
+    /// # Arguments
+    /// * `input_ids` - Input token IDs as a tensor
+    /// * `position` - Current position in the sequence (for KV cache)
+    ///
+    /// # Note
+    /// Models that don't use position (like Phi) can ignore this parameter
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor>;
+
+    /// Get the end-of-sequence token ID
+    fn eos_token_id(&self) -> u32;
+
+    /// Get the model architecture name (e.g., "llama", "mistral")
+    /// 
+    /// # Note
+    /// Returns a static string for zero-cost abstraction
+    fn architecture(&self) -> &'static str;
+
+    /// Get the vocabulary size
+    fn vocab_size(&self) -> usize;
+
+    /// Reset the KV cache to clear history between requests
+    ///
+    /// # Errors
+    /// Return an error if cache reset is not supported for this model
+    fn reset_cache(&mut self) -> Result<()>;
+    
+    /// Get model capabilities for runtime feature detection
+    ///
+    /// # Returns
+    /// Reference to capabilities struct describing what this model supports
+    fn capabilities(&self) -> &ModelCapabilities;
+}
+
+/// TEAM-482: Architecture name constants for type safety
+///
+/// Using constants ensures consistency and enables compile-time checks
+pub mod arch {
+    pub const LLAMA: &str = "llama";
+    pub const LLAMA_QUANTIZED: &str = "llama-quantized";
+    pub const MISTRAL: &str = "mistral";
+    pub const PHI: &str = "phi";
+    pub const PHI_QUANTIZED: &str = "phi-quantized";
+    pub const QWEN: &str = "qwen";
+    pub const QWEN_QUANTIZED: &str = "qwen-quantized";
+    pub const GEMMA_QUANTIZED: &str = "gemma-quantized";
+}
+
+/// TEAM-482: Enhanced macro with better ergonomics
+///
+/// This macro eliminates manual match statement updates when adding new models.
+/// It delegates method calls to the ModelTrait implementation.
+///
+/// Features:
+/// - Automatic trait method dispatch
+/// - Exhaustive pattern matching (compiler enforced)
+/// - Zero runtime overhead (monomorphization)
+///
+/// Usage: `delegate_to_model!(self, method_name, arg1, arg2, ...)`
+macro_rules! delegate_to_model {
+    // Mutable reference methods (forward, reset_cache)
+    ($self:expr, $method:ident $(, $arg:expr)*) => {
+        match $self {
+            Model::Llama(m) => ModelTrait::$method(m, $($arg),*),
+            Model::QuantizedLlama(m) => ModelTrait::$method(m, $($arg),*),
+            Model::Mistral(m) => ModelTrait::$method(m, $($arg),*),
+            Model::Phi(m) => ModelTrait::$method(m, $($arg),*),
+            Model::QuantizedPhi(m) => ModelTrait::$method(m, $($arg),*),
+            Model::Qwen(m) => ModelTrait::$method(m, $($arg),*),
+            Model::QuantizedQwen(m) => ModelTrait::$method(m, $($arg),*),
+            Model::QuantizedGemma(m) => ModelTrait::$method(m, $($arg),*),
+        }
+    };
+}
 
 /// Multi-model enum using Candle's idiomatic pattern
 ///
@@ -39,106 +199,50 @@ pub enum Model {
 }
 
 impl Model {
-    /// Forward pass - delegates to the specific model
+    /// Forward pass - delegates to the specific model via trait
     ///
-    /// TEAM-017: Each model uses its natural interface
-    /// TEAM-036: Added `QuantizedLlama` support
-    /// TEAM-090: Added all quantized variants
-    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
+    /// TEAM-482: Now uses macro-based delegation to ModelTrait
+    /// Adding a new model only requires implementing ModelTrait and adding to the macro
     pub fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
-        match self {
-            Model::Llama(m) => m.forward(input_ids, position),
-            Model::QuantizedLlama(m) => m.forward(input_ids, position),
-            Model::Mistral(m) => m.forward(input_ids, position),
-            Model::Phi(m) => m.forward(input_ids), // Phi doesn't use position
-            Model::QuantizedPhi(m) => m.forward(input_ids, position),
-            Model::Qwen(m) => m.forward(input_ids, position),
-            Model::QuantizedQwen(m) => m.forward(input_ids, position),
-            Model::QuantizedGemma(m) => m.forward(input_ids, position),
-        }
+        delegate_to_model!(self, forward, input_ids, position)
     }
 
     /// Get EOS token ID
-    /// TEAM-036: Added `QuantizedLlama` support
-    /// TEAM-090: Added all quantized variants
-    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
+    ///
+    /// TEAM-482: Macro-based delegation
     pub fn eos_token_id(&self) -> u32 {
-        match self {
-            Model::Llama(m) => m.eos_token_id(),
-            Model::QuantizedLlama(m) => m.eos_token_id(),
-            Model::Mistral(m) => m.eos_token_id(),
-            Model::Phi(m) => m.eos_token_id(),
-            Model::QuantizedPhi(m) => m.eos_token_id(),
-            Model::Qwen(m) => m.eos_token_id(),
-            Model::QuantizedQwen(m) => m.eos_token_id(),
-            Model::QuantizedGemma(m) => m.eos_token_id(),
-        }
+        delegate_to_model!(self, eos_token_id)
     }
 
     /// Get model architecture name
-    /// TEAM-036: Added `QuantizedLlama` support
-    /// TEAM-090: Added all quantized variants
-    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
-    pub fn architecture(&self) -> &str {
-        match self {
-            Model::Llama(_) => "llama",
-            Model::QuantizedLlama(_) => "llama-quantized",
-            Model::Mistral(_) => "mistral",
-            Model::Phi(_) => "phi",
-            Model::QuantizedPhi(_) => "phi-quantized",
-            Model::Qwen(_) => "qwen",
-            Model::QuantizedQwen(_) => "qwen-quantized",
-            Model::QuantizedGemma(_) => "gemma-quantized",
-        }
+    ///
+    /// TEAM-482: Macro-based delegation
+    /// Returns a static string for zero-cost abstraction
+    pub fn architecture(&self) -> &'static str {
+        delegate_to_model!(self, architecture)
     }
 
     /// Get vocab size
-    /// TEAM-036: Added `QuantizedLlama` support
-    /// TEAM-090: Added all quantized variants
-    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
+    ///
+    /// TEAM-482: Macro-based delegation
     pub fn vocab_size(&self) -> usize {
-        match self {
-            Model::Llama(m) => m.vocab_size(),
-            Model::QuantizedLlama(m) => m.vocab_size(),
-            Model::Mistral(m) => m.vocab_size(),
-            Model::Phi(m) => m.vocab_size(),
-            Model::QuantizedPhi(m) => m.vocab_size(),
-            Model::Qwen(m) => m.vocab_size(),
-            Model::QuantizedQwen(m) => m.vocab_size(),
-            Model::QuantizedGemma(m) => m.vocab_size(),
-        }
+        delegate_to_model!(self, vocab_size)
     }
 
     /// Reset KV cache to clear history
     ///
-    /// TEAM-021: Required to clear warmup pollution before inference
-    /// TEAM-036: Added `QuantizedLlama` support
-    /// TEAM-090: Added all quantized variants
-    /// TEAM-409: Added QuantizedMistral and QuantizedGemma
-    /// Not all models may support this (Phi manages cache internally)
+    /// TEAM-482: Macro-based delegation
+    /// Models that don't support cache reset will return an error
     pub fn reset_cache(&mut self) -> Result<()> {
-        match self {
-            Model::Llama(m) => m.reset_cache(),
-            Model::QuantizedLlama(m) => m.reset_cache(),
-            Model::Mistral(_m) => {
-                // TODO: Implement for Mistral when needed
-                tracing::warn!("Cache reset not implemented for Mistral");
-                Ok(())
-            }
-            Model::Phi(_m) => {
-                // Phi manages cache internally, no reset needed
-                tracing::debug!("Phi manages cache internally, no reset needed");
-                Ok(())
-            }
-            Model::QuantizedPhi(m) => m.reset_cache(),
-            Model::Qwen(_m) => {
-                // TODO: Implement for Qwen when needed
-                tracing::warn!("Cache reset not implemented for Qwen");
-                Ok(())
-            }
-            Model::QuantizedQwen(m) => m.reset_cache(),
-            Model::QuantizedGemma(m) => m.reset_cache(),
-        }
+        delegate_to_model!(self, reset_cache)
+    }
+    
+    /// Get model capabilities for runtime feature detection
+    ///
+    /// TEAM-482: Macro-based delegation
+    /// Returns capabilities describing what this model supports
+    pub fn capabilities(&self) -> &ModelCapabilities {
+        delegate_to_model!(self, capabilities)
     }
 }
 

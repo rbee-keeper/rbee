@@ -14,10 +14,12 @@ use std::path::Path;
 /// Qwen model wrapper
 ///
 /// TEAM-017: Wraps candle-transformers Qwen2 with its natural interface
+/// TEAM-482: Added capabilities
 #[derive(Debug)]
 pub struct QwenModel {
     model: ModelForCausalLM,
     vocab_size: usize,
+    capabilities: super::ModelCapabilities,
 }
 
 impl QwenModel {
@@ -50,7 +52,17 @@ impl QwenModel {
             "Loaded Qwen model"
         );
 
-        Ok(Self { model, vocab_size })
+        // TEAM-482: Qwen capabilities (cache reset not yet implemented)
+        let capabilities = super::ModelCapabilities {
+            uses_position: true,
+            supports_cache_reset: false,  // Not yet implemented
+            max_context_length: 32768,
+            supports_streaming: true,
+            architecture_family: super::arch::QWEN,
+            is_quantized: false,
+        };
+
+        Ok(Self { model, vocab_size, capabilities })
     }
 
     /// Forward pass using Qwen's natural interface
@@ -69,5 +81,36 @@ impl QwenModel {
     /// Get vocab size
     pub fn vocab_size(&self) -> usize {
         self.vocab_size
+    }
+}
+
+/// TEAM-482: Implement ModelTrait for QwenModel
+impl super::ModelTrait for QwenModel {
+    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
+        self.forward(input_ids, position)
+    }
+
+    fn eos_token_id(&self) -> u32 {
+        self.eos_token_id()
+    }
+
+    #[inline]
+    fn architecture(&self) -> &'static str {
+        super::arch::QWEN
+    }
+
+    fn vocab_size(&self) -> usize {
+        self.vocab_size()
+    }
+
+    fn reset_cache(&mut self) -> Result<()> {
+        // TEAM-482: Qwen cache reset not yet implemented
+        // Return error instead of silent failure
+        anyhow::bail!("Cache reset not yet implemented for Qwen")
+    }
+    
+    #[inline]
+    fn capabilities(&self) -> &super::ModelCapabilities {
+        &self.capabilities
     }
 }

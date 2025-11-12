@@ -5,40 +5,51 @@ import { describe, expect, it } from 'vitest'
 import { WORKERS } from './data'
 
 describe('Worker Catalog Data', () => {
-  it('should have all required worker variants', () => {
-    const requiredWorkers = [
-      'llm-worker-rbee-cpu',
-      'llm-worker-rbee-cuda',
-      'llm-worker-rbee-metal',
-      'sd-worker-rbee-cpu',
-      'sd-worker-rbee-cuda',
-    ]
+  it('should have all required workers with variants', () => {
+    const requiredWorkers = ['llm-worker-rbee', 'sd-worker-rbee']
 
     const workerIds = WORKERS.map((w) => w.id)
 
     for (const required of requiredWorkers) {
       expect(workerIds).toContain(required)
     }
+
+    // Verify each worker has variants
+    for (const worker of WORKERS) {
+      expect(worker.variants.length).toBeGreaterThan(0)
+    }
   })
 
   it('should have all required fields for each worker', () => {
-    const requiredFields = [
+    const requiredWorkerFields = [
       'id',
       'implementation',
-      'workerType',
       'version',
-      'platforms',
-      'architectures',
       'name',
       'description',
       'license',
+      'variants',
+    ]
+
+    const requiredVariantFields = [
+      'backend',
+      'platforms',
+      'architectures',
       'binaryName',
+      'pkgbuildUrl',
     ]
 
     for (const worker of WORKERS) {
-      for (const field of requiredFields) {
+      // Check worker-level fields
+      for (const field of requiredWorkerFields) {
         expect(worker).toHaveProperty(field)
-        expect((worker as any)[field]).toBeDefined()
+      }
+
+      // Check variant-level fields
+      for (const variant of worker.variants) {
+        for (const field of requiredVariantFields) {
+          expect(variant).toHaveProperty(field)
+        }
       }
     }
   })
@@ -51,24 +62,28 @@ describe('Worker Catalog Data', () => {
     }
   })
 
-  it('should have valid platforms', () => {
+  it('should have valid platforms in variants', () => {
     const validPlatforms = ['linux', 'macos', 'windows']
 
     for (const worker of WORKERS) {
-      expect(worker.platforms.length).toBeGreaterThan(0)
-      for (const platform of worker.platforms) {
-        expect(validPlatforms).toContain(platform)
+      for (const variant of worker.variants) {
+        expect(variant.platforms.length).toBeGreaterThan(0)
+        for (const platform of variant.platforms) {
+          expect(validPlatforms).toContain(platform)
+        }
       }
     }
   })
 
-  it('should have valid architectures', () => {
+  it('should have valid architectures in variants', () => {
     const validArchs = ['x86_64', 'aarch64']
 
     for (const worker of WORKERS) {
-      expect(worker.architectures.length).toBeGreaterThan(0)
-      for (const arch of worker.architectures) {
-        expect(validArchs).toContain(arch)
+      for (const variant of worker.variants) {
+        expect(variant.architectures.length).toBeGreaterThan(0)
+        for (const arch of variant.architectures) {
+          expect(validArchs).toContain(arch)
+        }
       }
     }
   })

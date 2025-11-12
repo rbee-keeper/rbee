@@ -51,8 +51,17 @@ export interface BuildVariant {
   /** Supported architectures for this variant */
   architectures: Architecture[]
 
-  /** URL to PKGBUILD file for this variant */
+  /** URL to PKGBUILD file (binary version) */
   pkgbuildUrl: string
+
+  /** URL to PKGBUILD file (git version) */
+  pkgbuildUrlGit: string
+
+  /** URL to Homebrew formula (binary version) */
+  homebrewFormula: string
+
+  /** URL to Homebrew formula (git version) */
+  homebrewFormulaGit: string
 
   /** Build configuration */
   build: {
@@ -70,7 +79,7 @@ export interface BuildVariant {
   /** Build dependencies specific to this variant */
   makedepends: string[]
 
-  /** Binary name for this variant (e.g., "llm-worker-rbee-cuda") */
+  /** Binary name for this variant (e.g., "llm-worker-rbee") */
   binaryName: string
 
   /** Installation path for this variant */

@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { WORKERS } from '../../src/data'
 
 describe('Worker Catalog Data', () => {
-  it('should have at least 3 workers', () => {
-    expect(WORKERS.length).toBeGreaterThanOrEqual(3)
+  it('should have 2 workers (LLM + SD)', () => {
+    expect(WORKERS.length).toBe(2)
   })
 
   it('should have unique worker IDs', () => {
@@ -35,7 +35,10 @@ describe('Worker Catalog Data', () => {
   it('should have valid PKGBUILD URLs in variants', () => {
     WORKERS.forEach((worker) => {
       worker.variants.forEach((variant) => {
-        expect(variant.pkgbuildUrl).toMatch(/^\/workers\/[\w-]+\/PKGBUILD$/)
+        expect(variant.pkgbuildUrl).toMatch(/^\/pkgbuilds\/arch\/[\w-]+\.PKGBUILD$/)
+        expect(variant.pkgbuildUrlGit).toMatch(/^\/pkgbuilds\/arch\/[\w-]+\.PKGBUILD$/)
+        expect(variant.homebrewFormula).toMatch(/^\/pkgbuilds\/homebrew\/[\w-]+\.rb$/)
+        expect(variant.homebrewFormulaGit).toMatch(/^\/pkgbuilds\/homebrew\/[\w-]+\.rb$/)
       })
     })
   })

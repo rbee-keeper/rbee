@@ -5,18 +5,17 @@ import { readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 
-const PKGBUILD_DIR = join(__dirname, '../public/pkgbuilds/arch/dev')
+const PKGBUILD_DIR = join(__dirname, '../public/pkgbuilds/arch')
 
 describe('PKGBUILD Files', () => {
   const pkgbuilds = readdirSync(PKGBUILD_DIR).filter((f) => f.endsWith('.PKGBUILD'))
 
-  it('should have PKGBUILD for all worker variants', () => {
+  it('should have PKGBUILD for all workers (bin + git)', () => {
     const requiredPKGBUILDs = [
-      'llm-worker-rbee-cpu.PKGBUILD',
-      'llm-worker-rbee-cuda.PKGBUILD',
-      'llm-worker-rbee-metal.PKGBUILD',
-      'sd-worker-rbee-cpu.PKGBUILD',
-      'sd-worker-rbee-cuda.PKGBUILD',
+      'llm-worker-rbee-bin.PKGBUILD',
+      'llm-worker-rbee-git.PKGBUILD',
+      'sd-worker-rbee-bin.PKGBUILD',
+      'sd-worker-rbee-git.PKGBUILD',
     ]
 
     for (const required of requiredPKGBUILDs) {
@@ -37,9 +36,13 @@ describe('PKGBUILD Files', () => {
       expect(content).toMatch(/^license=/m)
     })
 
-    it('should have build() function', () => {
-      expect(content).toMatch(/^build\(\)/m)
-      expect(content).toContain('cargo build')
+    it('should have build() function for git versions', () => {
+      const pkgname = content.match(/pkgname=([^\n]+)/)?.[1]
+      
+      if (pkgname?.includes('-git')) {
+        expect(content).toMatch(/^build\(\)/m)
+        expect(content).toContain('cargo build')
+      }
     })
 
     it('should have package() function', () => {
@@ -47,21 +50,21 @@ describe('PKGBUILD Files', () => {
       expect(content).toContain('install')
     })
 
-    it('should have check() function for tests', () => {
-      expect(content).toMatch(/^check\(\)/m)
-      expect(content).toContain('cargo test')
+    it('should have check() function for git versions', () => {
+      const pkgname = content.match(/pkgname=([^\n]+)/)?.[1]
+      
+      if (pkgname?.includes('-git')) {
+        expect(content).toMatch(/^check\(\)/m)
+        expect(content).toContain('cargo test')
+      }
     })
 
-    it('should support GitHub releases (not just git)', () => {
-      // Should have source array with both git and release options
-      expect(content).toMatch(/source=/)
+    it('should support GitHub releases or git', () => {
+      // Should support downloading from releases OR building from git
+      const hasSupport =
+        content.includes('github.com') && (content.includes('releases') || content.includes('git+'))
 
-      // Should have logic to use GitHub releases when available
-      // Either via commented alternative or conditional logic
-      const hasReleaseSupport =
-        content.includes('github.com') && (content.includes('releases/download') || content.includes('# Release'))
-
-      expect(hasReleaseSupport).toBe(true)
+      expect(hasSupport).toBe(true)
     })
 
     it('should have correct feature flags', () => {
@@ -89,40 +92,29 @@ describe('PKGBUILD Files', () => {
     })
 
     it('should install to correct location', () => {
-      // Should install with the package name
-      expect(content).toContain(`$pkgdir/usr/local/bin/$pkgname`)
+      // Should install to /usr/local/bin
+      expect(content).toContain('$pkgdir/usr/local/bin/')
     })
 
     it('should have correct architecture support', () => {
-      const pkgname = content.match(/pkgname=([^\n]+)/)?.[1]
       const archLine = content.match(/arch=\(([^)]+)\)/)?.[1]
 
-      // CPU variants should support both x86_64 and aarch64
-      if (pkgname?.includes('cpu')) {
-        expect(archLine).toContain('x86_64')
-        expect(archLine).toContain('aarch64')
-      }
-
-      // CUDA variants should only support x86_64
-      if (pkgname?.includes('cuda')) {
-        expect(archLine).toContain('x86_64')
-        expect(archLine).not.toContain('aarch64')
-      }
-
-      // Metal variants should only support aarch64
-      if (pkgname?.includes('metal')) {
-        expect(archLine).toContain('aarch64')
-        expect(archLine).not.toContain('x86_64')
-      }
+      // All bin/git versions support both architectures
+      expect(archLine).toContain('x86_64')
+      expect(archLine).toContain('aarch64')
     })
 
-    it('should use workspace-level target directory', () => {
-      // Should reference target/release at workspace root
-      expect(content).toContain('target/release')
-
-      // Should NOT use bin-specific target
-      expect(content).not.toContain('bin/30_llm_worker_rbee/target')
-      expect(content).not.toContain('bin/31_sd_worker_rbee/target')
+    it('should use workspace-level target directory for git versions', () => {
+      const pkgname = content.match(/pkgname=([^\n]+)/)?.[1]
+      
+      // Git versions should reference target/release at workspace root
+      if (pkgname?.includes('-git')) {
+        expect(content).toContain('target/release')
+        
+        // Should NOT use bin-specific target
+        expect(content).not.toContain('bin/30_llm_worker_rbee/target')
+        expect(content).not.toContain('bin/31_sd_worker_rbee/target')
+      }
     })
 
     it('should have GPL-3.0-or-later license', () => {
@@ -135,21 +127,30 @@ describe('PKGBUILD Files', () => {
   })
 
   describe('Worker-specific PKGBUILDs', () => {
-    it('LLM workers should build from bin/30_llm_worker_rbee', () => {
-      const llmPKGBUILDs = pkgbuilds.filter((f) => f.startsWith('llm-worker'))
+    it('LLM git workers should build from bin/30_llm_worker_rbee', () => {
+      const llmGitPKGBUILDs = pkgbuilds.filter((f) => f.startsWith('llm-worker') && f.includes('-git'))
 
-      for (const pkgbuild of llmPKGBUILDs) {
+      for (const pkgbuild of llmGitPKGBUILDs) {
         const content = readFileSync(join(PKGBUILD_DIR, pkgbuild), 'utf-8')
         expect(content).toContain('bin/30_llm_worker_rbee')
       }
     })
 
-    it('SD workers should build from bin/31_sd_worker_rbee', () => {
-      const sdPKGBUILDs = pkgbuilds.filter((f) => f.startsWith('sd-worker'))
+    it('SD git workers should build from bin/31_sd_worker_rbee', () => {
+      const sdGitPKGBUILDs = pkgbuilds.filter((f) => f.startsWith('sd-worker') && f.includes('-git'))
 
-      for (const pkgbuild of sdPKGBUILDs) {
+      for (const pkgbuild of sdGitPKGBUILDs) {
         const content = readFileSync(join(PKGBUILD_DIR, pkgbuild), 'utf-8')
         expect(content).toContain('bin/31_sd_worker_rbee')
+      }
+    })
+    
+    it('Binary versions should auto-detect platform', () => {
+      const binPKGBUILDs = pkgbuilds.filter((f) => f.includes('-bin'))
+
+      for (const pkgbuild of binPKGBUILDs) {
+        const content = readFileSync(join(PKGBUILD_DIR, pkgbuild), 'utf-8')
+        expect(content).toContain('_detect_platform')
       }
     })
   })

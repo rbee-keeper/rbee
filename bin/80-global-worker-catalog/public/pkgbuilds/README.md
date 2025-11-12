@@ -8,59 +8,69 @@
 
 ```
 pkgbuilds/
-├── arch/           # Arch Linux PKGBUILDs (pacman/makepkg)
-│   ├── prod/       # Production: Download from GitHub releases
-│   └── dev/        # Development: Build from source (main branch)
-├── homebrew/       # macOS Homebrew formulas (brew)
-│   ├── prod/       # Production: Download from GitHub releases
-│   └── dev/        # Development: Build from source (main branch)
-└── README.md       # This file
+├── arch/                           # Arch Linux PKGBUILDs (pacman/makepkg)
+│   ├── llm-worker-rbee-bin.PKGBUILD    # LLM Worker (binary/release)
+│   ├── llm-worker-rbee-git.PKGBUILD    # LLM Worker (git/source)
+│   ├── sd-worker-rbee-bin.PKGBUILD     # SD Worker (binary/release)
+│   └── sd-worker-rbee-git.PKGBUILD     # SD Worker (git/source)
+├── homebrew/                       # macOS Homebrew formulas (brew)
+│   ├── llm-worker-rbee-bin.rb          # LLM Worker (binary/release)
+│   ├── llm-worker-rbee-git.rb          # LLM Worker (git/source)
+│   ├── sd-worker-rbee-bin.rb           # SD Worker (binary/release)
+│   └── sd-worker-rbee-git.rb           # SD Worker (git/source)
+└── README.md                       # This file
 ```
 
 ---
 
 ## 🎯 When to Use Each
 
-### Arch Linux (PKGBUILD)
+### Binary Version (`-bin`)
 
-**Production (`arch/prod/`):**
+**Use for:**
 - ✅ End users installing from releases
 - ✅ Fast installation (pre-built binaries)
 - ✅ Stable versions only
-- ❌ Not for development
+- ✅ Auto-detects platform (Linux/macOS) and GPU (CUDA/ROCm/Metal/CPU)
 
-**Development (`arch/dev/`):**
+**Auto-detection:**
+- **Linux:** CUDA > ROCm > CPU (priority order)
+- **macOS:** Metal (Apple Silicon) or CPU (Intel)
+
+### Git Version (`-git`)
+
+**Use for:**
 - ✅ Developers testing latest changes
 - ✅ Builds from `main` branch
 - ✅ Always up-to-date
+- ✅ Custom feature selection via `RBEE_FEATURES` env var
 - ❌ Slower (compiles from source)
 
-### macOS (Homebrew Formula)
-
-**Production (`homebrew/prod/`):**
-- ✅ End users installing from releases
-- ✅ Fast installation (pre-built bottles)
-- ✅ Stable versions only
-- ❌ Not for development
-
-**Development (`homebrew/dev/`):**
-- ✅ Developers testing latest changes
-- ✅ Builds from `main` branch
-- ✅ Always up-to-date
-- ❌ Slower (compiles from source)
+**Feature selection:**
+```bash
+RBEE_FEATURES=cuda makepkg -si    # NVIDIA CUDA
+RBEE_FEATURES=rocm makepkg -si    # AMD ROCm
+RBEE_FEATURES=metal makepkg -si   # Apple Metal
+RBEE_FEATURES=cpu makepkg -si     # CPU-only (default)
+```
 
 ---
 
 ## 📦 Available Workers
 
-### LLM Workers
-- `llm-worker-rbee-cpu` - CPU-only (x86_64, aarch64)
-- `llm-worker-rbee-cuda` - NVIDIA CUDA (x86_64 only)
-- `llm-worker-rbee-metal` - Apple Metal (aarch64 only)
+### LLM Worker (`llm-worker-rbee`)
+Text generation and chat inference with 4 backend variants:
+- **CPU** - CPU-only (Linux, macOS, Windows | x86_64, aarch64)
+- **CUDA** - NVIDIA CUDA (Linux, Windows | x86_64)
+- **Metal** - Apple Metal (macOS | aarch64)
+- **ROCm** - AMD ROCm (Linux | x86_64)
 
-### SD Workers
-- `sd-worker-rbee-cpu` - CPU-only (x86_64, aarch64)
-- `sd-worker-rbee-cuda` - NVIDIA CUDA (x86_64 only)
+### SD Worker (`sd-worker-rbee`)
+Image generation (Stable Diffusion) with 4 backend variants:
+- **CPU** - CPU-only (Linux, macOS, Windows | x86_64, aarch64)
+- **CUDA** - NVIDIA CUDA (Linux, Windows | x86_64)
+- **Metal** - Apple Metal (macOS | aarch64)
+- **ROCm** - AMD ROCm (Linux | x86_64)
 
 ---
 
@@ -68,74 +78,80 @@ pkgbuilds/
 
 ### Arch Linux
 
-**Production (recommended):**
+**Binary version (recommended):**
 ```bash
 # Download PKGBUILD
-curl -O https://gwc.rbee.dev/workers/llm-worker-rbee-cpu/PKGBUILD/prod
+curl -O https://gwc.rbee.dev/pkgbuilds/arch/llm-worker-rbee-bin.PKGBUILD
 
-# Build and install
+# Build and install (auto-detects platform)
 makepkg -si
 ```
 
-**Development:**
+**Git version (for developers):**
 ```bash
-# Download dev PKGBUILD
-curl -O https://gwc.rbee.dev/workers/llm-worker-rbee-cpu/PKGBUILD/dev
+# Download PKGBUILD
+curl -O https://gwc.rbee.dev/pkgbuilds/arch/llm-worker-rbee-git.PKGBUILD
 
-# Build from source
-makepkg -si
+# Build with CUDA
+RBEE_FEATURES=cuda makepkg -si
+
+# Or build with ROCm
+RBEE_FEATURES=rocm makepkg -si
 ```
 
 ### macOS (Homebrew)
 
-**Production (recommended):**
+**Binary version (recommended):**
 ```bash
 # Add tap
 brew tap rbee-keeper/rbee
 
-# Install
-brew install llm-worker-rbee-cpu
+# Install (auto-detects Metal or CPU)
+brew install llm-worker-rbee-bin
 ```
 
-**Development:**
+**Git version (for developers):**
 ```bash
-# Install HEAD version
-brew install --HEAD llm-worker-rbee-cpu
+# Install from source
+brew install llm-worker-rbee-git
+
+# Or with custom features
+RBEE_FEATURES=metal brew install llm-worker-rbee-git
 ```
 
 ---
 
 ## 🔧 rbee-keeper Integration
 
-The rbee-keeper automatically selects the correct package format:
+The rbee-keeper automatically selects the correct package:
 
 ```bash
-# Automatically uses:
-# - Arch PKGBUILD on Arch Linux
-# - Homebrew Formula on macOS
-# - Production builds by default
-# - Development builds if --dev flag
+# Binary version (auto-detects platform and GPU)
+rbee worker install llm-worker-rbee
 
-rbee worker install llm-worker-rbee-cpu
-rbee worker install llm-worker-rbee-cpu --dev  # Development build
+# Git version (for developers)
+rbee worker install llm-worker-rbee --git
+
+# Git version with specific features
+rbee worker install llm-worker-rbee --git --features cuda
 ```
 
 ---
 
 ## 📝 Maintenance
 
-### Updating Production Builds
+### Updating Binary Builds
 
 When a new release is published:
 
-1. Update `pkgver` in all production PKGBUILDs/Formulas
-2. Update checksums (sha256sums)
-3. Test installation
+1. Update `pkgver` in `-bin` PKGBUILDs/Formulas
+2. Update checksums (sha256sums) for new release artifacts
+3. Test installation on all platforms
 4. Deploy to worker catalog
 
-### Updating Development Builds
+### Updating Git Builds
 
-Development builds always pull from `main` branch, so they auto-update.
+Git builds always pull from `main` branch, so they auto-update.
 No maintenance needed unless build process changes.
 
 ---
@@ -157,6 +173,14 @@ pnpm test -- pkgbuild.test.ts
 ## 📊 File Counts
 
 **Total files needed:**
-- 5 workers × 2 platforms × 2 build types = **20 files**
-  - 10 Arch PKGBUILDs (5 prod + 5 dev)
-  - 10 Homebrew Formulas (5 prod + 5 dev)
+- 2 workers × 2 versions × 2 platforms = **8 files**
+  - 4 Arch PKGBUILDs (2 bin + 2 git)
+  - 4 Homebrew Formulas (2 bin + 2 git)
+
+**Breakdown:**
+- LLM Worker: `llm-worker-rbee-bin`, `llm-worker-rbee-git`
+- SD Worker: `sd-worker-rbee-bin`, `sd-worker-rbee-git`
+
+**Platform/GPU detection:**
+- Binary versions auto-detect: Linux (CUDA/ROCm/CPU) or macOS (Metal/CPU)
+- Git versions use `RBEE_FEATURES` env var for custom builds

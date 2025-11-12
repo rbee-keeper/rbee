@@ -28,10 +28,13 @@ describe('Route Logic (Isolated)', () => {
   })
 
   describe('PKGBUILD URL Construction', () => {
-    it('should construct correct PKGBUILD URL from variant', () => {
+    it('should have correct PKGBUILD URLs from variant', () => {
       const worker = WORKERS.find((w) => w.id === 'llm-worker-rbee')
       const cpuVariant = worker?.variants.find((v) => v.backend === 'cpu')
-      expect(cpuVariant?.pkgbuildUrl).toBe('/workers/llm-worker-rbee-cpu/PKGBUILD')
+      expect(cpuVariant?.pkgbuildUrl).toBe('/pkgbuilds/arch/llm-worker-rbee-bin.PKGBUILD')
+      expect(cpuVariant?.pkgbuildUrlGit).toBe('/pkgbuilds/arch/llm-worker-rbee-git.PKGBUILD')
+      expect(cpuVariant?.homebrewFormula).toBe('/pkgbuilds/homebrew/llm-worker-rbee-bin.rb')
+      expect(cpuVariant?.homebrewFormulaGit).toBe('/pkgbuilds/homebrew/llm-worker-rbee-git.rb')
     })
   })
 

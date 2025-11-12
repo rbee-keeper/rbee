@@ -26,6 +26,10 @@
       "dependsOn": ["^build"],
       "outputs": ["playwright-report/**", "test-results/**"]
     },
+    "cf-typegen": {
+      "cache": false,
+      "outputs": ["worker-configuration.d.ts"]
+    },
     "//#format-and-lint": {},
     "//#format-and-lint:fix": {
       "cache": false

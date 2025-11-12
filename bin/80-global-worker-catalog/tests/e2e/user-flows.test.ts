@@ -29,7 +29,7 @@ describe('E2E: Worker Discovery Flow', () => {
 
 describe('E2E: Worker Installation Simulation', () => {
   it('should provide all info needed for installation', async () => {
-    const workerId = 'llm-worker-rbee-cpu'
+    const workerId = 'llm-worker-rbee'
 
     // Get worker metadata
     const res = await app.request(`/workers/${workerId}`)
@@ -37,21 +37,27 @@ describe('E2E: Worker Installation Simulation', () => {
 
     const worker = (await res.json()) as Record<string, unknown>
 
-    // Verify installation requirements are present
+    // Verify common worker information
     expect(worker.buildSystem).toBeDefined()
-    expect(worker.depends).toBeDefined()
-    expect(worker.makedepends).toBeDefined()
     expect(worker.source).toBeDefined()
-    expect(worker.binaryName).toBeDefined()
-    expect(worker.installPath).toBeDefined()
+    expect(worker.variants).toBeDefined()
 
     // Verify source information
     expect((worker.source as Record<string, unknown>).type).toBeDefined()
     expect((worker.source as Record<string, unknown>).url).toBeDefined()
 
-    // Verify build information
-    expect(worker.build).toBeDefined()
-    expect((worker.build as Record<string, unknown>).profile).toBeDefined()
+    // Verify variants have installation requirements
+    const variants = worker.variants as Array<Record<string, unknown>>
+    expect(variants.length).toBeGreaterThan(0)
+    
+    variants.forEach((variant) => {
+      expect(variant.depends).toBeDefined()
+      expect(variant.makedepends).toBeDefined()
+      expect(variant.binaryName).toBeDefined()
+      expect(variant.installPath).toBeDefined()
+      expect(variant.build).toBeDefined()
+      expect((variant.build as Record<string, unknown>).profile).toBeDefined()
+    })
   })
 })
 
@@ -69,23 +75,32 @@ describe('E2E: Error Handling Flow', () => {
 })
 
 describe('E2E: Multi-Platform Worker Selection', () => {
-  it('should find workers for specific platform', async () => {
+  it('should find variants for specific platform', async () => {
     // Get all workers
     const res = await app.request('/workers')
     expect(res.status).toBe(200)
 
-    const { workers } = (await res.json()) as { workers: Array<Record<string, unknown>> }
+    const { workers } = (await res.json()) as { 
+      workers: Array<{ 
+        variants: Array<{ 
+          platforms: string[]
+          architectures: string[] 
+        }> 
+      }> 
+    }
 
-    // Filter for Linux workers
-    const linuxWorkers = workers.filter((w: any) => w.platforms.includes('linux'))
+    // Find all Linux variants across all workers
+    const linuxVariants = workers.flatMap((w) =>
+      w.variants.filter((v) => v.platforms.includes('linux'))
+    )
 
-    expect(linuxWorkers.length).toBeGreaterThan(0)
+    expect(linuxVariants.length).toBeGreaterThan(0)
 
-    // Verify each Linux worker has required info
-    linuxWorkers.forEach((worker: any) => {
-      expect(worker.platforms).toContain('linux')
-      expect(worker.architectures).toBeDefined()
-      expect(worker.architectures.length).toBeGreaterThan(0)
+    // Verify each Linux variant has required info
+    linuxVariants.forEach((variant) => {
+      expect(variant.platforms).toContain('linux')
+      expect(variant.architectures).toBeDefined()
+      expect(variant.architectures.length).toBeGreaterThan(0)
     })
   })
 })
@@ -96,17 +111,22 @@ describe('E2E: Version Compatibility Check', () => {
     const res = await app.request('/workers')
     expect(res.status).toBe(200)
 
-    const { workers } = (await res.json()) as { workers: Array<Record<string, unknown>> }
+    const { workers } = (await res.json()) as { 
+      workers: Array<{ 
+        id: string
+        version: string 
+      }> 
+    }
 
     // Verify all workers have valid version
     const semverRegex = /^\d+\.\d+\.\d+$/
-    workers.forEach((worker: any) => {
+    workers.forEach((worker) => {
       expect(worker.version).toMatch(semverRegex)
     })
 
     // Verify we can get details for each worker
     for (const worker of workers) {
-      const detailRes = await app.request(`/workers/${worker.id as string}`)
+      const detailRes = await app.request(`/workers/${worker.id}`)
       expect(detailRes.status).toBe(200)
 
       const details = (await detailRes.json()) as { version: string }

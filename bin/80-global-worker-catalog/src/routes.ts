@@ -1,5 +1,6 @@
 // API Routes for Worker Catalog
 // TEAM-453: Added input validation and cache headers
+// TEAM-481: Env type is globally available from worker-configuration.d.ts
 
 import { Hono } from 'hono'
 import { WORKERS } from './data'

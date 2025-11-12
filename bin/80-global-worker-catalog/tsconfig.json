@@ -1,7 +1,6 @@
 {
   "extends": "../../frontend/packages/typescript-config/cloudflare-worker.json",
   "compilerOptions": {
-    "jsxImportSource": "hono/jsx",
-    "types": ["@cloudflare/workers-types", "./worker-configuration.d.ts"]
+    "jsxImportSource": "hono/jsx"
   }
 }

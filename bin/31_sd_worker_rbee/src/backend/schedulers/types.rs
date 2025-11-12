@@ -62,6 +62,8 @@ pub enum SamplerType {
     EulerAncestral,
     /// DPM-Solver++ Multistep (fast, high-quality, popular in ComfyUI/A1111)
     DpmSolverMultistep,
+    /// UniPC (best for 5-10 steps, 2-3x faster than DDIM)
+    UniPc,
     // TEAM-482: Add new samplers here!
 }
 
@@ -79,6 +81,7 @@ impl std::fmt::Display for SamplerType {
             Self::Ddpm => write!(f, "ddpm"),
             Self::EulerAncestral => write!(f, "euler_ancestral"),
             Self::DpmSolverMultistep => write!(f, "dpm_solver_multistep"),
+            Self::UniPc => write!(f, "uni_pc"),
         }
     }
 }
@@ -93,6 +96,7 @@ impl std::str::FromStr for SamplerType {
             "ddpm" => Ok(Self::Ddpm),
             "euler_ancestral" => Ok(Self::EulerAncestral),
             "dpm_solver_multistep" | "dpm++" | "dpmpp" => Ok(Self::DpmSolverMultistep),
+            "uni_pc" | "unipc" => Ok(Self::UniPc),
             _ => Err(format!("Unknown sampler type: {s}")),
         }
     }

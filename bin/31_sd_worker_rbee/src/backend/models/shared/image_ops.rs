@@ -95,6 +95,7 @@ pub fn image_to_tensor(image: &DynamicImage, device: &Device, dtype: DType) -> R
 /// # Returns
 /// Resized image if needed
 #[inline]
+#[must_use] 
 pub fn resize_for_model(
     image: &DynamicImage,
     target_width: u32,

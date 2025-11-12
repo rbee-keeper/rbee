@@ -4,9 +4,9 @@
 
 use crate::backend::models::shared::{image_to_tensor, tensor_to_image_sd};
 use crate::error::{Error, Result};
-use candle_core::{DType, Device, IndexOp, Module, Tensor};
+use candle_core::{DType, Device, Module, Tensor};
 use candle_transformers::models::stable_diffusion;
-use image::{DynamicImage, RgbImage};
+use image::DynamicImage;
 use tokenizers::Tokenizer;
 
 /// Parameters for text embedding generation

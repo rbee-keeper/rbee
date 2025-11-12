@@ -7,10 +7,16 @@
 // - Karras: Very popular for high-quality results (implement first!)
 // - Exponential: Alternative high-quality schedule
 // - Simple: Linear schedule, most compatible
+//
+// ✅ RULE ZERO APPLIED: Karras and Exponential now use shared sigma_schedules module
+// No more duplication!
 
+use super::sigma_schedules::{ExponentialSigmaSchedule, KarrasSigmaSchedule};
 use super::types::NoiseSchedule;
 
 /// Calculate sigmas using Karras schedule
+///
+/// ✅ RULE ZERO: Now uses shared KarrasSigmaSchedule - no duplication!
 ///
 /// TEAM-482: Karras schedule is VERY popular in ComfyUI/A1111.
 /// It produces high-quality results by concentrating more steps
@@ -33,23 +39,13 @@ pub fn calculate_karras_sigmas(
     sigma_max: f64,
     rho: f64,
 ) -> Vec<f64> {
-    let min_inv_rho = sigma_min.powf(1.0 / rho);
-    let max_inv_rho = sigma_max.powf(1.0 / rho);
-
-    let mut sigmas: Vec<f64> = (0..num_steps)
-        .map(|i| {
-            let t = i as f64 / (num_steps - 1) as f64;
-
-            (max_inv_rho + t * (min_inv_rho - max_inv_rho)).powf(rho)
-        })
-        .collect();
-
-    // Add final sigma of 0.0
-    sigmas.push(0.0);
-    sigmas
+    let schedule = KarrasSigmaSchedule { sigma_min, sigma_max, rho };
+    schedule.sigmas_array(num_steps)
 }
 
 /// Calculate sigmas using exponential schedule
+///
+/// ✅ RULE ZERO: Now uses shared ExponentialSigmaSchedule - no duplication!
 ///
 /// TEAM-482: Exponential schedule is an alternative to Karras.
 /// It provides smooth exponential decay of noise.
@@ -63,17 +59,8 @@ pub fn calculate_karras_sigmas(
 /// Vector of sigma values for each timestep
 #[must_use]
 pub fn calculate_exponential_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64) -> Vec<f64> {
-    let mut sigmas: Vec<f64> = (0..num_steps)
-        .map(|i| {
-            let t = i as f64 / (num_steps - 1) as f64;
-
-            (sigma_max.ln() * (1.0 - t) + sigma_min.ln() * t).exp()
-        })
-        .collect();
-
-    // Add final sigma of 0.0
-    sigmas.push(0.0);
-    sigmas
+    let schedule = ExponentialSigmaSchedule { sigma_min, sigma_max };
+    schedule.sigmas_array(num_steps)
 }
 
 /// Calculate sigmas using simple linear schedule

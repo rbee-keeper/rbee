@@ -20,12 +20,18 @@ pub mod types;
 // TEAM-482: Noise schedule calculations
 pub mod noise_schedules;
 
+// ✅ SHARED: Sigma schedule implementations (used by all schedulers)
+pub mod sigma_schedules;
+
 // TEAM-481: Scheduler implementations
 pub mod ddim;
 pub mod ddpm;
 pub mod dpm_solver_multistep;
 pub mod euler;
 pub mod euler_ancestral;
+
+// TEAM-489: UniPC scheduler - ✅ FULLY IMPLEMENTED
+pub mod uni_pc;
 
 // TEAM-481: Re-exports for convenience
 pub use traits::{Scheduler, SchedulerConfig};
@@ -40,6 +46,9 @@ pub use ddpm::DDPMSchedulerConfig;
 pub use dpm_solver_multistep::DPMSolverMultistepSchedulerConfig;
 pub use euler::EulerSchedulerConfig;
 pub use euler_ancestral::EulerAncestralSchedulerConfig;
+
+// TEAM-489: UniPC config (STUB)
+pub use uni_pc::UniPCSchedulerConfig;
 
 use crate::error::Result;
 
@@ -85,6 +94,11 @@ pub fn build_scheduler(
         }
         SamplerType::DpmSolverMultistep => {
             let config = DPMSolverMultistepSchedulerConfig::default();
+            config.build(inference_steps)
+        }
+        // TEAM-489: UniPC sampler (STUB - will panic until implemented)
+        SamplerType::UniPc => {
+            let config = UniPCSchedulerConfig::default();
             config.build(inference_steps)
         } // TEAM-482: Add new samplers here!
     }

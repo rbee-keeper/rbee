@@ -4,9 +4,9 @@
 
 use crate::backend::models::shared::tensor_to_image_flux;
 use crate::error::Result;
-use candle_core::{Device, IndexOp, Module, Tensor};
+use candle_core::{Device, Module, Tensor};
 // flux module is imported via parent module
-use image::{DynamicImage, RgbImage};
+use image::DynamicImage;
 use tokenizers::Tokenizer;
 
 /// Generate T5 text embeddings

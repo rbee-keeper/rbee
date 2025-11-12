@@ -17,6 +17,7 @@ const PREVIEW_FREQUENCY: usize = 5;
 /// # Returns
 /// `true` if preview should be generated
 #[inline(always)]
+#[must_use] 
 pub fn should_generate_preview(step_idx: usize, num_steps: usize) -> bool {
     step_idx.is_multiple_of(PREVIEW_FREQUENCY) || step_idx == num_steps - 1
 }

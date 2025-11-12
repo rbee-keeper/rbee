@@ -94,7 +94,7 @@ impl LoRAWeights {
         for (key, tensor) in tensors {
             if let Some(base_key) = parse_lora_key(&key) {
                 // TEAM-482: PERFORMANCE - Use to_owned() only when inserting (avoids clone in hot loop)
-                let entry = lora_keys.entry(base_key.to_owned()).or_insert((None, None, None));
+                let entry = lora_keys.entry(base_key.clone()).or_insert((None, None, None));
 
                 if key.ends_with(".lora_down.weight") {
                     entry.0 = Some(tensor);

@@ -18,7 +18,7 @@ use std::path::Path;
 pub struct PhiModel {
     model: Model,
     vocab_size: usize,
-    capabilities: super::ModelCapabilities,
+    capabilities: crate::backend::models::ModelCapabilities,
 }
 
 impl PhiModel {
@@ -26,7 +26,7 @@ impl PhiModel {
     ///
     /// TEAM-017: Candle-idiomatic pattern
     pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        let (parent, safetensor_files) = super::find_safetensors_files(path)?;
+        let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
 
         // Parse config.json
         let config_path = parent.join("config.json");
@@ -63,12 +63,12 @@ impl PhiModel {
         );
 
         // TEAM-482: Phi has special capabilities - doesn't use position, manages cache internally
-        let capabilities = super::ModelCapabilities {
+        let capabilities = crate::backend::models::ModelCapabilities {
             uses_position: false,  // Phi doesn't use position parameter
             supports_cache_reset: false,  // Phi manages cache internally
             max_context_length: 2048,  // Phi default context
             supports_streaming: true,
-            architecture_family: super::arch::PHI,
+            architecture_family: crate::backend::models::arch::PHI,
             is_quantized: false,
         };
 
@@ -98,7 +98,7 @@ impl PhiModel {
 ///
 /// Note: Phi's forward pass doesn't use position parameter, so we ignore it.
 /// This demonstrates how the trait pattern handles model-specific differences.
-impl super::ModelTrait for PhiModel {
+impl crate::backend::models::ModelTrait for PhiModel {
     #[inline]
     fn forward(&mut self, input_ids: &Tensor, _position: usize) -> Result<Tensor> {
         // Phi doesn't use position - it manages cache internally
@@ -112,7 +112,7 @@ impl super::ModelTrait for PhiModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        super::arch::PHI
+        crate::backend::models::arch::PHI
     }
 
     #[inline]
@@ -128,7 +128,7 @@ impl super::ModelTrait for PhiModel {
     }
     
     #[inline]
-    fn capabilities(&self) -> &super::ModelCapabilities {
+    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }
 }

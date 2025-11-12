@@ -21,7 +21,7 @@ pub struct QuantizedLlamaModel {
     model: ModelWeights,
     eos_token_id: u32,
     vocab_size: usize,
-    capabilities: super::ModelCapabilities,
+    capabilities: crate::backend::models::ModelCapabilities,
 }
 
 impl QuantizedLlamaModel {
@@ -151,8 +151,8 @@ impl QuantizedLlamaModel {
         tracing::info!("GGUF model loaded successfully");
 
         // TEAM-482: Quantized model capabilities
-        let capabilities = super::ModelCapabilities::quantized(
-            super::arch::LLAMA,
+        let capabilities = crate::backend::models::ModelCapabilities::quantized(
+            crate::backend::models::arch::LLAMA,
             2048,  // Default GGUF context
         );
 
@@ -189,7 +189,7 @@ impl QuantizedLlamaModel {
 }
 
 /// TEAM-482: Implement ModelTrait for QuantizedLlamaModel
-impl super::ModelTrait for QuantizedLlamaModel {
+impl crate::backend::models::ModelTrait for QuantizedLlamaModel {
     fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.forward(input_ids, position)
     }
@@ -200,7 +200,7 @@ impl super::ModelTrait for QuantizedLlamaModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        super::arch::LLAMA_QUANTIZED
+        crate::backend::models::arch::LLAMA_QUANTIZED
     }
 
     fn vocab_size(&self) -> usize {
@@ -212,7 +212,7 @@ impl super::ModelTrait for QuantizedLlamaModel {
     }
     
     #[inline]
-    fn capabilities(&self) -> &super::ModelCapabilities {
+    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }
 }

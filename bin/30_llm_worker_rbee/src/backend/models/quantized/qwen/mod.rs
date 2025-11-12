@@ -1,35 +1,35 @@
-// TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Quantized Phi GGUF support
+// TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Quantized Qwen GGUF support
 
-//! Quantized Phi model wrapper for GGUF files
+//! Quantized Qwen model wrapper for GGUF files
 //!
 //! Created by: TEAM-090
-//! Purpose: Load and run GGUF quantized Phi models
+//! Purpose: Load and run GGUF quantized Qwen models
 
 use anyhow::{Context, Result};
 use candle_core::{Device, Tensor};
-use candle_transformers::models::quantized_phi3::ModelWeights;
+use candle_transformers::models::quantized_qwen2::ModelWeights;
 use observability_narration_core::n;
 use std::path::Path;
 
-/// Quantized Phi model wrapper for GGUF files
+/// Quantized Qwen model wrapper for GGUF files
 ///
-/// TEAM-090: Wraps candle-transformers `quantized_phi3` with GGUF support
+/// TEAM-090: Wraps candle-transformers `quantized_qwen2` with GGUF support
 /// TEAM-482: Added capabilities
-pub struct QuantizedPhiModel {
+pub struct QuantizedQwenModel {
     model: ModelWeights,
     eos_token_id: u32,
     vocab_size: usize,
-    capabilities: super::ModelCapabilities,
+    capabilities: crate::backend::models::ModelCapabilities,
 }
 
-impl QuantizedPhiModel {
-    /// Load quantized Phi model from GGUF file
+impl QuantizedQwenModel {
+    /// Load quantized Qwen model from GGUF file
     ///
     /// TEAM-090: Loads GGUF files using candle's quantized model support
     pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        tracing::info!(path = ?path, "Loading GGUF Phi model");
+        tracing::info!(path = ?path, "Loading GGUF Qwen model");
 
-        n!("gguf_load_start", "Loading GGUF Phi model from {}", path.display());
+        n!("gguf_load_start", "Loading GGUF Qwen model from {}", path.display());
 
         let mut file = std::fs::File::open(path)
             .with_context(|| format!("Failed to open GGUF file at {path:?}"))?;
@@ -40,7 +40,8 @@ impl QuantizedPhiModel {
         // Extract metadata
         let vocab_size = content
             .metadata
-            .get("phi.vocab_size")
+            .get("qwen.vocab_size")
+            .or_else(|| content.metadata.get("qwen2.vocab_size"))
             .or_else(|| content.metadata.get("llama.vocab_size"))
             .and_then(|v| v.to_u32().ok())
             .or_else(|| {
@@ -56,29 +57,24 @@ impl QuantizedPhiModel {
             .metadata
             .get("tokenizer.ggml.eos_token_id")
             .and_then(|v| v.to_u32().ok())
-            .unwrap_or(32000);
+            .unwrap_or(151643);
 
         tracing::info!(
             vocab_size = vocab_size,
             eos_token_id = eos_token_id,
             tensors = content.tensor_infos.len(),
-            "GGUF Phi metadata loaded"
+            "GGUF Qwen metadata loaded"
         );
 
-        let model = ModelWeights::from_gguf(false, content, &mut file, device)
-            .with_context(|| "Failed to load Phi model weights from GGUF")?;
+        let model = ModelWeights::from_gguf(content, &mut file, device)
+            .with_context(|| "Failed to load Qwen model weights from GGUF")?;
 
-        n!(
-            "gguf_load_complete",
-            "GGUF Phi model loaded (vocab={}, eos={})",
-            vocab_size,
-            eos_token_id
-        );
+        n!("gguf_load_complete", "GGUF Qwen model loaded (vocab={}, eos={})", vocab_size, eos_token_id);
 
-        // TEAM-482: Quantized Phi capabilities
-        let capabilities = super::ModelCapabilities::quantized(
-            super::arch::PHI,
-            2048,
+        // TEAM-482: Quantized Qwen capabilities
+        let capabilities = crate::backend::models::ModelCapabilities::quantized(
+            crate::backend::models::arch::QWEN,
+            32768,
         );
 
         Ok(Self { model, eos_token_id, vocab_size, capabilities })
@@ -97,13 +93,13 @@ impl QuantizedPhiModel {
     }
 
     pub fn reset_cache(&mut self) -> Result<()> {
-        tracing::debug!("Quantized Phi model cache will reset on next position=0 forward pass");
+        tracing::debug!("Quantized Qwen model cache will reset on next position=0 forward pass");
         Ok(())
     }
 }
 
-/// TEAM-482: Implement ModelTrait for QuantizedPhiModel
-impl super::ModelTrait for QuantizedPhiModel {
+/// TEAM-482: Implement ModelTrait for QuantizedQwenModel
+impl crate::backend::models::ModelTrait for QuantizedQwenModel {
     fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.forward(input_ids, position)
     }
@@ -114,7 +110,7 @@ impl super::ModelTrait for QuantizedPhiModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        super::arch::PHI_QUANTIZED
+        crate::backend::models::arch::QWEN_QUANTIZED
     }
 
     fn vocab_size(&self) -> usize {
@@ -126,7 +122,7 @@ impl super::ModelTrait for QuantizedPhiModel {
     }
     
     #[inline]
-    fn capabilities(&self) -> &super::ModelCapabilities {
+    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }
 }

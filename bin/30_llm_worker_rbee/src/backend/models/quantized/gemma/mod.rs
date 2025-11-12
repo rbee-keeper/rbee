@@ -22,7 +22,7 @@ pub struct QuantizedGemmaModel {
     model: ModelWeights,
     eos_token_id: u32,
     vocab_size: usize,
-    capabilities: super::ModelCapabilities,
+    capabilities: crate::backend::models::ModelCapabilities,
 }
 
 impl QuantizedGemmaModel {
@@ -107,8 +107,8 @@ impl QuantizedGemmaModel {
         tracing::info!("Gemma GGUF model loaded successfully");
 
         // TEAM-482: Quantized Gemma capabilities
-        let capabilities = super::ModelCapabilities::quantized(
-            super::arch::GEMMA_QUANTIZED,
+        let capabilities = crate::backend::models::ModelCapabilities::quantized(
+            crate::backend::models::arch::GEMMA_QUANTIZED,
             8192,
         );
 
@@ -143,7 +143,7 @@ impl QuantizedGemmaModel {
 }
 
 /// TEAM-482: Implement ModelTrait for QuantizedGemmaModel
-impl super::ModelTrait for QuantizedGemmaModel {
+impl crate::backend::models::ModelTrait for QuantizedGemmaModel {
     fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.forward(input_ids, position)
     }
@@ -154,7 +154,7 @@ impl super::ModelTrait for QuantizedGemmaModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        super::arch::GEMMA_QUANTIZED
+        crate::backend::models::arch::GEMMA_QUANTIZED
     }
 
     fn vocab_size(&self) -> usize {
@@ -166,7 +166,7 @@ impl super::ModelTrait for QuantizedGemmaModel {
     }
     
     #[inline]
-    fn capabilities(&self) -> &super::ModelCapabilities {
+    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }
 }

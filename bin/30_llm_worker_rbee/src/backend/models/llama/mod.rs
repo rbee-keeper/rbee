@@ -24,7 +24,7 @@ pub struct LlamaModel {
     config: Config,
     vocab_size: usize,
     device: Device,
-    capabilities: super::ModelCapabilities,
+    capabilities: crate::backend::models::ModelCapabilities,
 }
 
 impl LlamaModel {
@@ -32,7 +32,7 @@ impl LlamaModel {
     ///
     /// TEAM-017: Candle-idiomatic pattern
     pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        let (parent, safetensor_files) = super::find_safetensors_files(path)?;
+        let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
 
         // Parse config.json
         let config_path = parent.join("config.json");
@@ -102,8 +102,8 @@ impl LlamaModel {
         );
 
         // TEAM-482: Initialize capabilities
-        let capabilities = super::ModelCapabilities::standard(
-            super::arch::LLAMA,
+        let capabilities = crate::backend::models::ModelCapabilities::standard(
+            crate::backend::models::arch::LLAMA,
             max_position_embeddings as usize,
         );
 
@@ -209,7 +209,7 @@ impl LlamaModel {
 /// 
 /// This implementation provides a consistent interface for Llama models,
 /// enabling seamless integration with the model factory pattern.
-impl super::ModelTrait for LlamaModel {
+impl crate::backend::models::ModelTrait for LlamaModel {
     #[inline]
     fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.forward(input_ids, position)
@@ -222,7 +222,7 @@ impl super::ModelTrait for LlamaModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        super::arch::LLAMA
+        crate::backend::models::arch::LLAMA
     }
 
     #[inline]
@@ -236,7 +236,7 @@ impl super::ModelTrait for LlamaModel {
     }
     
     #[inline]
-    fn capabilities(&self) -> &super::ModelCapabilities {
+    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }
 }

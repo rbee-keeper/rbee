@@ -14,14 +14,12 @@ use candle_core::{Device, Tensor};
 use serde_json::Value;
 use std::path::Path;
 
+// TEAM-482: Restructured into directories for better organization
 pub mod llama;
 pub mod mistral;
 pub mod phi;
-pub mod quantized_gemma;
-pub mod quantized_llama;
-pub mod quantized_phi;
-pub mod quantized_qwen;
 pub mod qwen;
+pub mod quantized;
 
 /// TEAM-482: Sealed trait pattern - prevents external implementations
 ///
@@ -32,13 +30,13 @@ mod sealed {
     
     // Only internal model types can implement Sealed
     impl Sealed for super::llama::LlamaModel {}
-    impl Sealed for super::quantized_llama::QuantizedLlamaModel {}
+    impl Sealed for super::quantized::llama::QuantizedLlamaModel {}
     impl Sealed for super::mistral::MistralModel {}
     impl Sealed for super::phi::PhiModel {}
-    impl Sealed for super::quantized_phi::QuantizedPhiModel {}
+    impl Sealed for super::quantized::phi::QuantizedPhiModel {}
     impl Sealed for super::qwen::QwenModel {}
-    impl Sealed for super::quantized_qwen::QuantizedQwenModel {}
-    impl Sealed for super::quantized_gemma::QuantizedGemmaModel {}
+    impl Sealed for super::quantized::qwen::QuantizedQwenModel {}
+    impl Sealed for super::quantized::gemma::QuantizedGemmaModel {}
 }
 
 /// TEAM-482: Model capabilities for runtime feature detection
@@ -198,13 +196,13 @@ macro_rules! delegate_to_model {
 /// TEAM-409: Added Gemma GGUF support (Mistral GGUF uses QuantizedLlama)
 pub enum Model {
     Llama(llama::LlamaModel),
-    QuantizedLlama(quantized_llama::QuantizedLlamaModel),  // Also handles Mistral GGUF
+    QuantizedLlama(quantized::llama::QuantizedLlamaModel),  // Also handles Mistral GGUF
     Mistral(mistral::MistralModel),
     Phi(phi::PhiModel),
-    QuantizedPhi(quantized_phi::QuantizedPhiModel),
+    QuantizedPhi(quantized::phi::QuantizedPhiModel),
     Qwen(qwen::QwenModel),
-    QuantizedQwen(quantized_qwen::QuantizedQwenModel),
-    QuantizedGemma(quantized_gemma::QuantizedGemmaModel),
+    QuantizedQwen(quantized::qwen::QuantizedQwenModel),
+    QuantizedGemma(quantized::gemma::QuantizedGemmaModel),
 }
 
 impl Model {
@@ -378,25 +376,25 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
         // TEAM-409: Added Mistral and Gemma GGUF support
         match architecture.as_str() {
             "llama" => {
-                let model = quantized_llama::QuantizedLlamaModel::load(path, device)?;
+                let model = quantized::llama::QuantizedLlamaModel::load(path, device)?;
                 Ok(Model::QuantizedLlama(model))
             }
             "mistral" => {
                 // TEAM-409: Mistral GGUF files use the same format as Llama
                 // Candle's quantized_llama loader handles both
-                let model = quantized_llama::QuantizedLlamaModel::load(path, device)?;
+                let model = quantized::llama::QuantizedLlamaModel::load(path, device)?;
                 Ok(Model::QuantizedLlama(model))
             }
             "phi" | "phi3" => {
-                let model = quantized_phi::QuantizedPhiModel::load(path, device)?;
-                Ok(Model::QuantizedPhi(model))
+                let model = quantized::phi::QuantizedPhiModel::load(path, device)?;
+                return Ok(Model::QuantizedPhi(model));
             }
             "qwen" | "qwen2" => {
-                let model = quantized_qwen::QuantizedQwenModel::load(path, device)?;
+                let model = quantized::qwen::QuantizedQwenModel::load(path, device)?;
                 Ok(Model::QuantizedQwen(model))
             }
             "gemma" | "gemma2" | "gemma3" => {
-                let model = quantized_gemma::QuantizedGemmaModel::load(path, device)?;
+                let model = quantized::gemma::QuantizedGemmaModel::load(path, device)?;
                 Ok(Model::QuantizedGemma(model))
             }
             _ => bail!(

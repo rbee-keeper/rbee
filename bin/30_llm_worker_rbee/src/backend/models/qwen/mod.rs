@@ -19,7 +19,7 @@ use std::path::Path;
 pub struct QwenModel {
     model: ModelForCausalLM,
     vocab_size: usize,
-    capabilities: super::ModelCapabilities,
+    capabilities: crate::backend::models::ModelCapabilities,
 }
 
 impl QwenModel {
@@ -27,7 +27,7 @@ impl QwenModel {
     ///
     /// TEAM-017: Candle-idiomatic pattern
     pub fn load(path: &Path, device: &Device) -> Result<Self> {
-        let (parent, safetensor_files) = super::find_safetensors_files(path)?;
+        let (parent, safetensor_files) = crate::backend::models::find_safetensors_files(path)?;
 
         // Parse config.json
         let config_path = parent.join("config.json");
@@ -53,12 +53,12 @@ impl QwenModel {
         );
 
         // TEAM-482: Qwen capabilities (cache reset not yet implemented)
-        let capabilities = super::ModelCapabilities {
+        let capabilities = crate::backend::models::ModelCapabilities {
             uses_position: true,
             supports_cache_reset: false,  // Not yet implemented
             max_context_length: 32768,
             supports_streaming: true,
-            architecture_family: super::arch::QWEN,
+            architecture_family: crate::backend::models::arch::QWEN,
             is_quantized: false,
         };
 
@@ -85,7 +85,7 @@ impl QwenModel {
 }
 
 /// TEAM-482: Implement ModelTrait for QwenModel
-impl super::ModelTrait for QwenModel {
+impl crate::backend::models::ModelTrait for QwenModel {
     fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
         self.forward(input_ids, position)
     }
@@ -96,7 +96,7 @@ impl super::ModelTrait for QwenModel {
 
     #[inline]
     fn architecture(&self) -> &'static str {
-        super::arch::QWEN
+        crate::backend::models::arch::QWEN
     }
 
     fn vocab_size(&self) -> usize {
@@ -110,7 +110,7 @@ impl super::ModelTrait for QwenModel {
     }
     
     #[inline]
-    fn capabilities(&self) -> &super::ModelCapabilities {
+    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }
 }

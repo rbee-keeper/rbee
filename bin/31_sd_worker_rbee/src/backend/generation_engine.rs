@@ -48,7 +48,7 @@ impl GenerationEngine {
 
                 // Spawn blocking task for CPU/GPU intensive work
                 tokio::task::spawn_blocking(move || {
-                    Self::process_request(model, request);
+                    Self::process_request(&model, &request);
                 });
             }
 
@@ -57,7 +57,9 @@ impl GenerationEngine {
     }
 
     /// Process a single generation request
-    fn process_request(model: Arc<Mutex<Box<dyn ImageModel>>>, request: GenerationRequest) {
+    ///
+    /// TEAM-482: Takes parameters by reference to avoid needless_pass_by_value
+    fn process_request(model: &Arc<Mutex<Box<dyn ImageModel>>>, request: &GenerationRequest) {
         let request_id = request.request_id.clone();
         let response_tx = request.response_tx.clone();
 

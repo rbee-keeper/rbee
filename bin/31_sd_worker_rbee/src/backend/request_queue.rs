@@ -76,7 +76,7 @@ impl RequestQueue {
     ///
     /// Returns the queue (for HTTP handlers) and receiver (for generation engine)
     /// TEAM-396: Clean separation - caller decides who gets what
-    #[must_use] 
+    #[must_use]
     pub fn new() -> (Self, mpsc::UnboundedReceiver<GenerationRequest>) {
         let (tx, rx) = mpsc::unbounded_channel();
         (Self { tx }, rx)

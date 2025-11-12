@@ -12,9 +12,14 @@ use super::super::SDVersion;
 /// The generation queue ensures only one generation happens at a time
 pub(super) struct SendFluxModel(pub Box<dyn flux::WithForward>);
 
-// SAFETY: We guarantee single-threaded access via the generation queue
-// The generation engine processes requests sequentially, never concurrently
+// SAFETY: We guarantee single-threaded access via the generation queue.
+// The generation engine processes requests sequentially, never concurrently.
+// The FLUX model is only accessed from within the generation queue's spawn_blocking context,
+// which ensures exclusive access. No concurrent access to the model ever occurs.
 unsafe impl Send for SendFluxModel {}
+
+// SAFETY: Same reasoning as Send - the generation queue ensures sequential access.
+// The model is never shared across threads concurrently.
 unsafe impl Sync for SendFluxModel {}
 
 /// FLUX model components loaded into memory

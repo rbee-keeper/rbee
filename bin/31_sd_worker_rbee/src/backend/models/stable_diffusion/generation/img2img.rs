@@ -5,6 +5,7 @@
 use super::super::ModelComponents;
 use super::helpers::{
     add_noise_for_img2img, encode_image_to_latents, tensor_to_image, text_embeddings,
+    TextEmbeddingParams,
 };
 use crate::backend::traits::GenerationRequest;
 use crate::error::{Error, Result};
@@ -36,16 +37,17 @@ where
     let use_guide_scale = request.guidance_scale > 1.0;
 
     // 1. Generate text embeddings (same as text-to-image)
-    let text_embeddings = text_embeddings(
-        &request.prompt,
-        request.negative_prompt.as_deref().unwrap_or(""),
-        &components.tokenizer,
-        &components.clip_config,
-        &components.clip_weights,
-        &components.device,
-        components.dtype,
+    // TEAM-482: Use parameter struct to avoid too_many_arguments
+    let text_embeddings = text_embeddings(&TextEmbeddingParams {
+        prompt: &request.prompt,
+        uncond_prompt: request.negative_prompt.as_deref().unwrap_or(""),
+        tokenizer: &components.tokenizer,
+        clip_config: &components.clip_config,
+        clip_weights: &components.clip_weights,
+        device: &components.device,
+        dtype: components.dtype,
         use_guide_scale,
-    )?;
+    })?;
 
     // 2. Encode input image to latents
     let init_latents = encode_image_to_latents(
@@ -67,6 +69,7 @@ where
 
     for (step_idx, &timestep) in timesteps.iter().enumerate().skip(start_step) {
         // Expand latents for classifier-free guidance
+        // TEAM-482: clone() is cheap (Arc-based), but cat() avoids it entirely for CFG
         let latent_model_input =
             if use_guide_scale { Tensor::cat(&[&latents, &latents], 0)? } else { latents.clone() };
 

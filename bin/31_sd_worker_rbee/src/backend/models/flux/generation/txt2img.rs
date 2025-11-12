@@ -79,10 +79,8 @@ where
     let guidance_tensor = candle_core::Tensor::full(guidance as f32, b_sz, &components.device)?;
 
     for (step_idx, window) in timesteps.windows(2).enumerate() {
-        let (t_curr, t_prev) = match window {
-            [a, b] => (a, b),
-            _ => continue,
-        };
+        // TEAM-482: Use let...else pattern (clippy::manual_let_else)
+        let [t_curr, t_prev] = window else { continue };
 
         let t_vec = candle_core::Tensor::full(*t_curr as f32, b_sz, &components.device)?;
         let pred = components.flux_model_mut().forward(

@@ -3,7 +3,9 @@
 // Fills masked regions of images using text prompts
 
 use super::super::ModelComponents;
-use super::helpers::{prepare_inpainting_latents, tensor_to_image, text_embeddings};
+use super::helpers::{
+    prepare_inpainting_latents, tensor_to_image, text_embeddings, TextEmbeddingParams,
+};
 use crate::backend::traits::GenerationRequest;
 use crate::error::{Error, Result};
 use candle_core::Tensor;
@@ -52,16 +54,17 @@ where
     let use_guide_scale = request.guidance_scale > 1.0;
 
     // 1. Generate text embeddings
-    let text_embeddings = text_embeddings(
-        &request.prompt,
-        request.negative_prompt.as_deref().unwrap_or(""),
-        &components.tokenizer,
-        &components.clip_config,
-        &components.clip_weights,
-        &components.device,
-        components.dtype,
+    // TEAM-482: Use parameter struct to avoid too_many_arguments
+    let text_embeddings = text_embeddings(&TextEmbeddingParams {
+        prompt: &request.prompt,
+        uncond_prompt: request.negative_prompt.as_deref().unwrap_or(""),
+        tokenizer: &components.tokenizer,
+        clip_config: &components.clip_config,
+        clip_weights: &components.clip_weights,
+        device: &components.device,
+        dtype: components.dtype,
         use_guide_scale,
-    )?;
+    })?;
 
     // 2. Process mask
     let processed_mask = crate::backend::image_utils::process_mask(

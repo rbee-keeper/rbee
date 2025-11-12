@@ -12,8 +12,9 @@ use crate::jobs::JobResponse;
 /// Execute image generation operation (text-to-image)
 ///
 /// TEAM-481: Instrumented for tracing - automatically logs function entry/exit
+/// TEAM-482: Takes `state` by reference (`clippy::needless_pass_by_value`)
 #[tracing::instrument(skip(state), fields(job_id))]
-pub fn execute(state: JobState, req: ImageGenerationRequest) -> Result<JobResponse> {
+pub fn execute(state: &JobState, req: ImageGenerationRequest) -> Result<JobResponse> {
     let job_id = state.registry.create_job();
     tracing::Span::current().record("job_id", &job_id);
     observability_narration_core::sse_sink::create_job_channel(job_id.clone(), 1000);
@@ -50,10 +51,7 @@ pub fn execute(state: JobState, req: ImageGenerationRequest) -> Result<JobRespon
         response_tx,
     };
 
-    state
-        .queue
-        .add_request(request)
-        .map_err(|e| anyhow!("Failed to add request to queue: {e}"))?;
+    state.queue.add_request(request).map_err(|e| anyhow!("Failed to add request to queue: {e}"))?;
 
     Ok(JobResponse { job_id: job_id.clone(), sse_url: format!("/v1/jobs/{job_id}/stream") })
 }

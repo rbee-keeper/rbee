@@ -15,8 +15,9 @@ use crate::jobs::JobResponse;
 ///
 /// TEAM-481: Instrumented for tracing - automatically logs function entry/exit
 /// TEAM-487: Full implementation with mask processing and 9-channel `UNet` input
+/// TEAM-482: Takes `state` by reference (`clippy::needless_pass_by_value`)
 #[tracing::instrument(skip(state), fields(job_id))]
-pub fn execute(state: JobState, req: ImageInpaintRequest) -> Result<JobResponse> {
+pub fn execute(state: &JobState, req: ImageInpaintRequest) -> Result<JobResponse> {
     // 1. Decode base64 input image
     // TEAM-481: Using .context() preserves full error chain
     let input_image = crate::backend::image_utils::base64_to_image(&req.init_image)

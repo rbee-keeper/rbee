@@ -37,10 +37,11 @@ pub async fn create_job(state: JobState, payload: serde_json::Value) -> Result<J
         serde_json::from_value(payload).map_err(|e| anyhow!("Failed to parse operation: {e}"))?;
 
     // Route to appropriate handler (TEAM-487: handlers in jobs/ folder)
+    // TEAM-482: Pass state by reference (handlers don't need ownership)
     match operation {
-        Operation::ImageGeneration(req) => crate::jobs::image_generation::execute(state, req),
-        Operation::ImageTransform(req) => crate::jobs::image_transform::execute(state, req),
-        Operation::ImageInpaint(req) => crate::jobs::image_inpaint::execute(state, req),
+        Operation::ImageGeneration(req) => crate::jobs::image_generation::execute(&state, req),
+        Operation::ImageTransform(req) => crate::jobs::image_transform::execute(&state, req),
+        Operation::ImageInpaint(req) => crate::jobs::image_inpaint::execute(&state, req),
         _ => Err(anyhow!("Unsupported operation for SD worker: {operation:?}")),
     }
 }

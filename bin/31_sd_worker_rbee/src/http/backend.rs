@@ -60,7 +60,7 @@ impl AppState {
     /// # Ok(())
     /// # }
     /// ```
-    #[must_use] 
+    #[must_use]
     pub fn new(request_queue: RequestQueue) -> Self {
         Self { request_queue, model_loaded: Arc::new(AtomicBool::new(true)) }
     }
@@ -69,7 +69,7 @@ impl AppState {
     ///
     /// Returns true if model is loaded and ready to accept generation requests.
     /// Used by the /ready endpoint for Kubernetes readiness probes.
-    #[must_use] 
+    #[must_use]
     pub fn is_ready(&self) -> bool {
         self.model_loaded.load(Ordering::Relaxed)
     }
@@ -78,7 +78,7 @@ impl AppState {
     ///
     /// TEAM-396: Changed from `generation_engine()` to `request_queue()`
     /// Used by job submission handlers to queue generation requests.
-    #[must_use] 
+    #[must_use]
     pub fn request_queue(&self) -> &RequestQueue {
         &self.request_queue
     }

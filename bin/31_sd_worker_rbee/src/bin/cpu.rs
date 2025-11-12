@@ -70,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
     device::verify_device(&device)?;
 
     // Parse SD version
-    let sd_version = SDVersion::from_str(&args.sd_version)?;
+    let sd_version = SDVersion::parse_version(&args.sd_version)?;
     tracing::info!("Loading model: {:?}", sd_version);
 
     // Load model components (downloads from HuggingFace if needed)

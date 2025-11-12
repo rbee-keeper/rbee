@@ -1,26 +1,44 @@
 // TEAM-488: Helper functions for SD generation
 // Shared utilities used across txt2img, img2img, and inpaint
+// TEAM-482: Uses shared helpers to avoid duplication with FLUX
 
+use crate::backend::models::shared::{image_to_tensor, tensor_to_image_sd};
 use crate::error::{Error, Result};
 use candle_core::{DType, Device, IndexOp, Module, Tensor};
 use candle_transformers::models::stable_diffusion;
 use image::{DynamicImage, RgbImage};
 use tokenizers::Tokenizer;
 
+/// Parameters for text embedding generation
+///
+/// TEAM-482: Groups related parameters to avoid `too_many_arguments` warning
+pub(super) struct TextEmbeddingParams<'a> {
+    pub prompt: &'a str,
+    pub uncond_prompt: &'a str,
+    pub tokenizer: &'a Tokenizer,
+    pub clip_config: &'a stable_diffusion::clip::Config,
+    pub clip_weights: &'a std::path::Path,
+    pub device: &'a Device,
+    pub dtype: DType,
+    pub use_guide_scale: bool,
+}
+
 /// Generate text embeddings
 ///
 /// TEAM-397: Candle idiom - direct from reference example
 /// Based on reference/candle/.../stable-diffusion/main.rs lines 345-433
-pub(super) fn text_embeddings(
-    prompt: &str,
-    uncond_prompt: &str,
-    tokenizer: &Tokenizer,
-    clip_config: &stable_diffusion::clip::Config,
-    clip_weights: &std::path::Path,
-    device: &Device,
-    dtype: DType,
-    use_guide_scale: bool,
-) -> Result<Tensor> {
+/// TEAM-482: Uses parameter struct to avoid `too_many_arguments`
+pub(super) fn text_embeddings(params: &TextEmbeddingParams<'_>) -> Result<Tensor> {
+    let TextEmbeddingParams {
+        prompt,
+        uncond_prompt,
+        tokenizer,
+        clip_config,
+        clip_weights,
+        device,
+        dtype,
+        use_guide_scale,
+    } = *params;
     let pad_id = match &clip_config.pad_with {
         Some(padding) => *tokenizer
             .get_vocab(true)
@@ -86,28 +104,10 @@ pub(super) fn text_embeddings(
 }
 
 /// Convert tensor to image
+///
+/// TEAM-482: Delegates to shared helper to avoid duplication
 pub(super) fn tensor_to_image(tensor: &Tensor) -> Result<DynamicImage> {
-    let tensor = ((tensor / 2.)? + 0.5)?;
-    let tensor = tensor.to_device(&Device::Cpu)?;
-    let tensor = (tensor.clamp(0f32, 1.)? * 255.)?;
-    let tensor = tensor.to_dtype(DType::U8)?;
-
-    let (batch, channel, height, width) = tensor.dims4()?;
-
-    if batch != 1 {
-        return Err(Error::Generation(format!("Expected batch size 1, got {batch}")));
-    }
-
-    if channel != 3 {
-        return Err(Error::Generation(format!("Expected 3 channels, got {channel}")));
-    }
-
-    let image_data = tensor.i(0)?.permute((1, 2, 0))?.flatten_all()?.to_vec1::<u8>()?;
-
-    let img = RgbImage::from_raw(width as u32, height as u32, image_data)
-        .ok_or_else(|| Error::Generation("Failed to create image from tensor".to_string()))?;
-
-    Ok(DynamicImage::ImageRgb8(img))
+    tensor_to_image_sd(tensor)
 }
 
 /// Encode image to latent space
@@ -130,24 +130,7 @@ pub fn encode_image_to_latents(
     Ok(dist.sample()?)
 }
 
-fn image_to_tensor(image: &DynamicImage, device: &Device, dtype: DType) -> Result<Tensor> {
-    let rgb = image.to_rgb8();
-    let (width, height) = rgb.dimensions();
-    let data: Vec<f32> = rgb
-        .pixels()
-        .flat_map(|p| {
-            let r = f32::from(p[0]) / 255.0;
-            let g = f32::from(p[1]) / 255.0;
-            let b = f32::from(p[2]) / 255.0;
-            [r * 2.0 - 1.0, g * 2.0 - 1.0, b * 2.0 - 1.0]
-        })
-        .collect();
-
-    let tensor = Tensor::from_vec(data, (height as usize, width as usize, 3), device)?;
-    let tensor = tensor.permute((2, 0, 1))?.unsqueeze(0)?;
-
-    Ok(tensor.to_dtype(dtype)?)
-}
+// TEAM-482: Removed - now using shared::image_to_tensor
 
 pub(super) fn add_noise_for_img2img(
     latents: &Tensor,

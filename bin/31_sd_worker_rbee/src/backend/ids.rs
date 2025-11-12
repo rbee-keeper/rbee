@@ -9,32 +9,44 @@ use std::fmt;
 /// Request ID for generation requests
 ///
 /// TEAM-481: Newtype pattern prevents mixing up with `JobId`
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct RequestId(String);
+/// TEAM-482: AGGRESSIVE - Store Uuid directly, convert to string only when needed
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct RequestId(uuid::Uuid);
 
 impl RequestId {
     /// Create a new random request ID
-    #[must_use] 
+    #[must_use]
+    #[inline(always)]
     pub fn new() -> Self {
-        Self(uuid::Uuid::new_v4().to_string())
+        Self(uuid::Uuid::new_v4())
     }
 
     /// Create from an existing string
-    #[must_use] 
+    #[must_use]
+    #[inline]
     pub fn from_string(s: String) -> Self {
-        Self(s)
+        Self(uuid::Uuid::parse_str(&s).expect("Invalid UUID"))
     }
 
-    /// Get the ID as a string slice
-    #[must_use] 
-    pub fn as_str(&self) -> &str {
-        &self.0
+    /// Get the ID as a string (allocates)
+    #[must_use]
+    #[inline]
+    pub fn as_str(&self) -> String {
+        self.0.to_string()
     }
 
     /// Convert to owned String
-    #[must_use] 
+    #[must_use]
+    #[inline]
     pub fn into_string(self) -> String {
-        self.0
+        self.0.to_string()
+    }
+
+    /// Get raw UUID (zero-cost)
+    #[must_use]
+    #[inline(always)]
+    pub fn as_uuid(&self) -> &uuid::Uuid {
+        &self.0
     }
 }
 
@@ -45,52 +57,67 @@ impl Default for RequestId {
 }
 
 impl fmt::Display for RequestId {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
 impl From<String> for RequestId {
+    #[inline]
     fn from(s: String) -> Self {
-        Self(s)
+        Self::from_string(s)
     }
 }
 
 impl From<RequestId> for String {
+    #[inline]
     fn from(id: RequestId) -> Self {
-        id.0
+        id.into_string()
     }
 }
 
 /// Job ID for HTTP job tracking
 ///
 /// TEAM-481: Newtype pattern prevents mixing up with `RequestId`
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct JobId(String);
+/// TEAM-482: AGGRESSIVE - Store Uuid directly, convert to string only when needed
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct JobId(uuid::Uuid);
 
 impl JobId {
     /// Create a new random job ID
-    #[must_use] 
+    #[must_use]
+    #[inline(always)]
     pub fn new() -> Self {
-        Self(uuid::Uuid::new_v4().to_string())
+        Self(uuid::Uuid::new_v4())
     }
 
     /// Create from an existing string
-    #[must_use] 
+    #[must_use]
+    #[inline]
     pub fn from_string(s: String) -> Self {
-        Self(s)
+        Self(uuid::Uuid::parse_str(&s).expect("Invalid UUID"))
     }
 
-    /// Get the ID as a string slice
-    #[must_use] 
-    pub fn as_str(&self) -> &str {
-        &self.0
+    /// Get the ID as a string (allocates)
+    #[must_use]
+    #[inline]
+    pub fn as_str(&self) -> String {
+        self.0.to_string()
     }
 
     /// Convert to owned String
-    #[must_use] 
+    #[must_use]
+    #[inline]
     pub fn into_string(self) -> String {
-        self.0
+        self.0.to_string()
+    }
+
+    /// Get raw UUID (zero-cost)
+    #[must_use]
+    #[inline(always)]
+    pub fn as_uuid(&self) -> &uuid::Uuid {
+        &self.0
     }
 }
 
@@ -107,14 +134,16 @@ impl fmt::Display for JobId {
 }
 
 impl From<String> for JobId {
+    #[inline]
     fn from(s: String) -> Self {
-        Self(s)
+        Self::from_string(s)
     }
 }
 
 impl From<JobId> for String {
+    #[inline]
     fn from(id: JobId) -> Self {
-        id.0
+        id.into_string()
     }
 }
 

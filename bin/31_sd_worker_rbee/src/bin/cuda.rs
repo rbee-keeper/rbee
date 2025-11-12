@@ -85,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
     device::verify_device(&device)?;
 
     // Parse SD version
-    let sd_version = SDVersion::from_str(&args.sd_version)?;
+    let sd_version = SDVersion::parse_version(&args.sd_version)?;
     tracing::info!(
         "Loading model: {:?} with FP16={}, Flash-Attn={}",
         sd_version,

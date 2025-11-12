@@ -72,7 +72,9 @@ impl SamplingConfig {
             )));
         }
 
-        if !self.width.is_multiple_of(DIMENSION_MULTIPLE) || !self.height.is_multiple_of(DIMENSION_MULTIPLE) {
+        if !self.width.is_multiple_of(DIMENSION_MULTIPLE)
+            || !self.height.is_multiple_of(DIMENSION_MULTIPLE)
+        {
             return Err(Error::InvalidInput(format!(
                 "Width and height must be multiples of {}, got {}x{}",
                 DIMENSION_MULTIPLE, self.width, self.height

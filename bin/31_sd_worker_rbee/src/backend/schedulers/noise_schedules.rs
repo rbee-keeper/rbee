@@ -26,7 +26,7 @@ use super::types::NoiseSchedule;
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
-#[must_use] 
+#[must_use]
 pub fn calculate_karras_sigmas(
     num_steps: usize,
     sigma_min: f64,
@@ -39,7 +39,7 @@ pub fn calculate_karras_sigmas(
     let mut sigmas: Vec<f64> = (0..num_steps)
         .map(|i| {
             let t = i as f64 / (num_steps - 1) as f64;
-            
+
             (max_inv_rho + t * (min_inv_rho - max_inv_rho)).powf(rho)
         })
         .collect();
@@ -61,12 +61,12 @@ pub fn calculate_karras_sigmas(
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
-#[must_use] 
+#[must_use]
 pub fn calculate_exponential_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64) -> Vec<f64> {
     let mut sigmas: Vec<f64> = (0..num_steps)
         .map(|i| {
             let t = i as f64 / (num_steps - 1) as f64;
-            
+
             (sigma_max.ln() * (1.0 - t) + sigma_min.ln() * t).exp()
         })
         .collect();
@@ -88,7 +88,7 @@ pub fn calculate_exponential_sigmas(num_steps: usize, sigma_min: f64, sigma_max:
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
-#[must_use] 
+#[must_use]
 pub fn calculate_simple_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64) -> Vec<f64> {
     let mut sigmas: Vec<f64> = (0..num_steps)
         .map(|i| {
@@ -115,7 +115,7 @@ pub fn calculate_simple_sigmas(num_steps: usize, sigma_min: f64, sigma_max: f64)
 ///
 /// # Returns
 /// Vector of sigma values for each timestep
-#[must_use] 
+#[must_use]
 pub fn calculate_sigmas(
     schedule: NoiseSchedule,
     num_steps: usize,

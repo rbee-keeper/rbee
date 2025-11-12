@@ -24,8 +24,8 @@ pub struct ModelLoader {
 impl ModelLoader {
     /// Create a new model loader
     pub fn new(version: SDVersion, use_f16: bool) -> Result<Self> {
-        let api = Api::new()
-            .map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {e}")))?;
+        let api =
+            Api::new().map_err(|e| Error::ModelLoading(format!("Failed to create HF API: {e}")))?;
         Ok(Self { api, version, use_f16 })
     }
 
@@ -82,10 +82,18 @@ impl ModelLoader {
         let dtype = if self.use_f16 { candle_core::DType::F16 } else { candle_core::DType::F32 };
 
         // Create VarBuilder from SafeTensors files
-        let unet_vb =
-            unsafe { VarBuilder::from_mmaped_safetensors(&[unet_weights.clone()], dtype, device)? };
-        let vae_vb =
-            unsafe { VarBuilder::from_mmaped_safetensors(&[vae_weights.clone()], dtype, device)? };
+        // SAFETY: The safetensors files were just downloaded/verified by hf-hub.
+        // Memory mapping is safe because:
+        // 1. Files are immutable after download
+        // 2. Files are validated by hf-hub before use
+        // 3. Candle's mmap implementation handles alignment and bounds checking
+        let unet_vb = unsafe {
+            VarBuilder::from_mmaped_safetensors(std::slice::from_ref(&unet_weights), dtype, device)?
+        };
+        // SAFETY: Same reasoning as unet_vb - validated safetensors file from hf-hub
+        let vae_vb = unsafe {
+            VarBuilder::from_mmaped_safetensors(std::slice::from_ref(&vae_weights), dtype, device)?
+        };
 
         // Load UNet (from Candle)
         let unet =

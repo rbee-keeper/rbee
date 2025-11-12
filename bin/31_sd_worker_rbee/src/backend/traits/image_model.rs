@@ -188,25 +188,25 @@ pub struct GenerationRequest {
 
 impl GenerationRequest {
     /// Check if this is an inpainting request
-    #[must_use] 
+    #[must_use]
     pub fn is_inpainting(&self) -> bool {
         self.input_image.is_some() && self.mask.is_some()
     }
 
     /// Check if this is an img2img request
-    #[must_use] 
+    #[must_use]
     pub fn is_img2img(&self) -> bool {
         self.input_image.is_some() && self.mask.is_none()
     }
 
     /// Check if this is a txt2img request
-    #[must_use] 
+    #[must_use]
     pub fn is_txt2img(&self) -> bool {
         self.input_image.is_none()
     }
 
     /// Get operation type as string
-    #[must_use] 
+    #[must_use]
     pub fn operation_type(&self) -> &str {
         if self.is_inpainting() {
             "inpaint"

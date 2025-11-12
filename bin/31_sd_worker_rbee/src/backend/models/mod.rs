@@ -7,6 +7,9 @@
 pub mod flux;
 pub mod stable_diffusion;
 
+// TEAM-482: Shared helpers to avoid code duplication
+pub mod shared;
+
 /// TEAM-482: Architecture constants - single source of truth for model identifiers
 ///
 /// Adopted from LLM Worker for type safety and maintainability.
@@ -67,7 +70,7 @@ pub enum SDVersion {
 
 impl SDVersion {
     /// Get `HuggingFace` repository for this model version
-    #[must_use] 
+    #[must_use]
     pub fn repo(&self) -> &'static str {
         match self {
             Self::V1_5 => "runwayml/stable-diffusion-v1-5",
@@ -83,52 +86,54 @@ impl SDVersion {
     }
 
     /// Get default image dimensions for this model
-    #[must_use] 
+    #[must_use]
     pub fn default_size(&self) -> (usize, usize) {
         match self {
             Self::V1_5 | Self::V1_5Inpaint => (512, 512),
             Self::V2_1 | Self::V2Inpaint => (768, 768),
-            Self::XL | Self::XLInpaint | Self::Turbo => (1024, 1024),
-            Self::FluxDev | Self::FluxSchnell => (1024, 1024),
+            // TEAM-482: Merged identical arms (clippy::match_same_arms)
+            Self::XL | Self::XLInpaint | Self::Turbo | Self::FluxDev | Self::FluxSchnell => {
+                (1024, 1024)
+            }
         }
     }
 
     /// Get default number of inference steps
-    #[must_use] 
+    #[must_use]
     pub fn default_steps(&self) -> usize {
         match self {
-            Self::Turbo => 4,       // Turbo is optimized for 4 steps
-            Self::FluxSchnell => 4, // Schnell is fast (4 steps)
-            Self::FluxDev => 50,    // Dev needs more steps for quality
+            // TEAM-482: Merged identical arms (clippy::match_same_arms)
+            Self::Turbo | Self::FluxSchnell => 4, // Turbo/Schnell optimized for 4 steps
+            Self::FluxDev => 50,                  // Dev needs more steps for quality
             _ => 20,
         }
     }
 
     /// Get default guidance scale
-    #[must_use] 
+    #[must_use]
     pub fn default_guidance_scale(&self) -> f64 {
         match self {
-            Self::Turbo => 0.0,       // Turbo doesn't use guidance
-            Self::FluxSchnell => 0.0, // Schnell doesn't use guidance
-            Self::FluxDev => 3.5,     // FLUX uses lower guidance than SD
+            // TEAM-482: Merged identical arms (clippy::match_same_arms)
+            Self::Turbo | Self::FluxSchnell => 0.0, // Turbo/Schnell don't use guidance
+            Self::FluxDev => 3.5,                   // FLUX uses lower guidance than SD
             _ => 7.5,
         }
     }
 
     /// Check if this is an inpainting model
-    #[must_use] 
+    #[must_use]
     pub fn is_inpainting(&self) -> bool {
         matches!(self, Self::V1_5Inpaint | Self::V2Inpaint | Self::XLInpaint)
     }
 
     /// Check if this is an XL-based model
-    #[must_use] 
+    #[must_use]
     pub fn is_xl(&self) -> bool {
         matches!(self, Self::XL | Self::XLInpaint | Self::Turbo)
     }
 
     /// Check if this is a FLUX model
-    #[must_use] 
+    #[must_use]
     pub fn is_flux(&self) -> bool {
         matches!(self, Self::FluxDev | Self::FluxSchnell)
     }
@@ -137,7 +142,7 @@ impl SDVersion {
     // Based on reference/candle/candle-transformers/src/models/stable_diffusion/mod.rs
 
     /// Get CLIP config for this model version
-    #[must_use] 
+    #[must_use]
     pub fn clip_config(&self) -> candle_transformers::models::stable_diffusion::clip::Config {
         use candle_transformers::models::stable_diffusion::clip::Config;
         match self {
@@ -150,7 +155,7 @@ impl SDVersion {
 
     /// Get `UNet` config for this model version
     /// Manually constructed like in `StableDiffusionConfig::v1_5()`
-    #[must_use] 
+    #[must_use]
     pub fn unet_config(
         &self,
     ) -> candle_transformers::models::stable_diffusion::unet_2d::UNet2DConditionModelConfig {
@@ -234,7 +239,7 @@ impl SDVersion {
 
     /// Get VAE config for this model version
     /// Manually constructed like in `StableDiffusionConfig::v1_5()`
-    #[must_use] 
+    #[must_use]
     pub fn vae_config(
         &self,
     ) -> candle_transformers::models::stable_diffusion::vae::AutoEncoderKLConfig {
@@ -270,7 +275,10 @@ impl SDVersion {
     }
 
     /// Parse from string (e.g., "v1-5", "xl", "turbo", "flux-dev", "flux-schnell")
-    pub fn from_str(s: &str) -> crate::error::Result<Self> {
+    ///
+    /// TEAM-482: Custom parsing logic (not std::str::FromStr trait)
+    /// We use a custom method name to avoid confusion with the trait
+    pub fn parse_version(s: &str) -> crate::error::Result<Self> {
         match s.to_lowercase().as_str() {
             "v1-5" | "v1.5" | "1.5" => Ok(Self::V1_5),
             "v1-5-inpaint" | "v1.5-inpaint" => Ok(Self::V1_5Inpaint),
@@ -301,7 +309,7 @@ pub enum ModelFile {
 
 impl ModelFile {
     /// Get the file path for this component
-    #[must_use] 
+    #[must_use]
     pub fn path(&self, _version: SDVersion, use_f16: bool) -> &'static str {
         match self {
             Self::Tokenizer => "tokenizer/tokenizer_config.json",
@@ -338,7 +346,7 @@ impl ModelFile {
     }
 
     /// Get tokenizer repository (different for some models)
-    #[must_use] 
+    #[must_use]
     pub fn tokenizer_repo(version: SDVersion) -> &'static str {
         match version {
             SDVersion::V1_5 | SDVersion::V1_5Inpaint | SDVersion::V2_1 | SDVersion::V2Inpaint => {
@@ -363,10 +371,10 @@ mod tests {
 
     #[test]
     fn test_version_parsing() {
-        assert_eq!(SDVersion::from_str("v1-5").unwrap(), SDVersion::V1_5);
-        assert_eq!(SDVersion::from_str("xl").unwrap(), SDVersion::XL);
-        assert_eq!(SDVersion::from_str("turbo").unwrap(), SDVersion::Turbo);
-        assert!(SDVersion::from_str("invalid").is_err());
+        assert_eq!(SDVersion::parse_version("v1-5").unwrap(), SDVersion::V1_5);
+        assert_eq!(SDVersion::parse_version("xl").unwrap(), SDVersion::XL);
+        assert_eq!(SDVersion::parse_version("turbo").unwrap(), SDVersion::Turbo);
+        assert!(SDVersion::parse_version("invalid").is_err());
     }
 
     #[test]

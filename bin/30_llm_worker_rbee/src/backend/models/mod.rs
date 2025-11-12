@@ -104,6 +104,15 @@ impl ModelCapabilities {
 /// - All methods are required (no silent failures)
 /// - Sealed trait prevents external implementations (type safety)
 /// - Capabilities enable runtime feature detection
+/// - **Object-safe**: Can use `Box<dyn ModelTrait>` for true polymorphism
+///
+/// # Object Safety
+///
+/// This trait is object-safe, enabling dynamic dispatch:
+/// ```ignore
+/// let model: Box<dyn ModelTrait> = Box::new(llama_model);
+/// let models: Vec<Box<dyn ModelTrait>> = vec![...];
+/// ```
 pub trait ModelTrait: sealed::Sealed {
     /// Forward pass through the model
     ///
@@ -467,4 +476,42 @@ pub fn calculate_model_size(model_path: &str) -> Result<u64> {
         safetensor_files.iter().filter_map(|p| std::fs::metadata(p).ok()).map(|m| m.len()).sum();
 
     Ok(model_size_bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// TEAM-482: Test that ModelTrait is object-safe
+    /// 
+    /// This test verifies that ModelTrait can be used with dynamic dispatch,
+    /// enabling plugin architectures and runtime polymorphism.
+    #[test]
+    fn test_model_trait_is_object_safe() {
+        // This compiles only if ModelTrait is object-safe
+        // We can't actually create instances without loading models,
+        // but the type system will verify object safety at compile time
+        
+        fn _takes_trait_object(_model: &dyn ModelTrait) {
+            // This function signature proves ModelTrait is object-safe
+        }
+        
+        fn _returns_boxed_trait() -> Box<dyn ModelTrait> {
+            // This return type proves we can use Box<dyn ModelTrait>
+            unimplemented!("This is a compile-time test only")
+        }
+        
+        fn _uses_vec_of_traits(_models: Vec<Box<dyn ModelTrait>>) {
+            // This proves we can store trait objects in collections
+        }
+        
+        // If this test compiles, ModelTrait is object-safe ✅
+    }
+    
+    #[test]
+    fn test_model_capabilities_clone() {
+        // Verify ModelCapabilities is Clone (needed for flexibility)
+        let caps = ModelCapabilities::standard(arch::LLAMA, 4096);
+        let _cloned = caps.clone();
+    }
 }

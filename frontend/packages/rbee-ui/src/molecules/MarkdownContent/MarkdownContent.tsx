@@ -107,7 +107,7 @@ export function MarkdownContent({
       // Inline code
       return (
         <code 
-          className="bg-muted/50 border border-border/50 rounded px-1.5 py-0.5 text-[13px] font-mono"
+          className="bg-muted/50 border border-border/50 rounded px-1.5 py-0.5 text-[13px] font-mono break-words"
           {...rest}
         >
           {children}
@@ -192,7 +192,7 @@ export function MarkdownContent({
   }
 
   const markdownContent = (
-    <div className={cn('markdown-content', className)}>
+    <div className={cn('markdown-content overflow-hidden', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}

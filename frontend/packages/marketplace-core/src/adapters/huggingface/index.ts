@@ -5,7 +5,7 @@ import type { MarketplaceModel, PaginatedResponse } from '../common'
 import type { HuggingFaceListModelsParams } from './types'
 
 // Re-export details functions
-export { fetchHuggingFaceModel } from './details'
+export { fetchHuggingFaceModel, fetchHuggingFaceModelReadme } from './details'
 // Re-export list functions
 export { convertHFModel, fetchHuggingFaceModels } from './list'
 

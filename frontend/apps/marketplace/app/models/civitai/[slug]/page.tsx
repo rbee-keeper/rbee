@@ -1,12 +1,11 @@
-// TEAM-477: CivitAI model detail page - CORRECT implementation
-// Uses @rbee/marketplace-core adapters (not marketplace-node)
-// Uses fetchCivitAIModel (returns normalized MarketplaceModel)
-// Uses CivitAIModelDetail template (3-column design)
+// TEAM-478: CivitAI model detail page - Enhanced with full API data
+// Fetches raw CivitAI API data to show versions, all images, files, stats
+// Uses CivitAIModelDetail template (3-column design with version selector)
 
-import { fetchCivitAIModel } from '@rbee/marketplace-core'
 import { CivitAIModelDetail } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import type { CivitAIModel } from '@rbee/marketplace-core'
 
 // Cache for 1 hour
 export const revalidate = 3600
@@ -41,15 +40,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const modelId = slugToModelId(slug)
-    const model = await fetchCivitAIModel(modelId)
+    const rawModel = await fetchCivitAIModelRaw(modelId)
+
+    const description = rawModel.description
+      ? rawModel.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)
+      : `${rawModel.name} - ${rawModel.stats.downloadCount.toLocaleString()} downloads`
+
+    const primaryImage = rawModel.modelVersions?.[0]?.images?.[0]?.url
 
     return {
-      title: `${model.name} | CivitAI Model`,
-      description: model.description || `${model.name} - ${model.downloads.toLocaleString()} downloads`,
+      title: `${rawModel.name} | CivitAI Model`,
+      description,
       openGraph: {
-        title: `${model.name} | CivitAI Model`,
-        description: model.description || `${model.name} - ${model.downloads.toLocaleString()} downloads`,
-        images: model.imageUrl ? [{ url: model.imageUrl }] : undefined,
+        title: `${rawModel.name} | CivitAI Model`,
+        description,
+        images: primaryImage ? [{ url: primaryImage }] : undefined,
       },
     }
   } catch {
@@ -63,29 +68,74 @@ export default async function CivitAIModelDetailPage({ params }: Props) {
   try {
     const modelId = slugToModelId(slug)
     
-    // TEAM-477: Use marketplace-core adapter (returns normalized MarketplaceModel)
-    const model = await fetchCivitAIModel(modelId)
+    // TEAM-478: Fetch raw CivitAI API data (includes all versions, images, files)
+    const rawModel = await fetchCivitAIModelRaw(modelId)
 
-    // TEAM-477: Convert MarketplaceModel to CivitAIModelDetailProps format
+    // TEAM-478: Convert to CivitAIModelDetailProps with full data
+    const primaryVersion = rawModel.modelVersions?.[0]
+    const primaryFile = primaryVersion?.files?.find((f) => f.primary) ?? primaryVersion?.files?.[0]
+
     const civitaiModelData = {
-      id: model.id,
-      name: model.name,
-      description: model.description || '',
-      author: model.author,
-      downloads: model.downloads,
-      likes: model.likes,
-      rating: typeof model.metadata?.rating === 'number' ? model.metadata.rating : 0,
-      size: model.sizeBytes ? formatBytes(model.sizeBytes) : 'Unknown',
-      tags: model.tags,
-      type: model.type,
-      baseModel: (model.metadata?.baseModel as string) || 'Unknown',
-      version: (model.metadata?.version as string) || 'Latest',
-      images: model.imageUrl && !model.nsfw ? [{ url: model.imageUrl, nsfw: false, width: 1024, height: 1024 }] : [],
-      files: [], // Files would come from metadata if available
-      trainedWords: (model.metadata?.trainedWords as string[]) || undefined,
-      allowCommercialUse: model.metadata?.allowCommercialUse || 'Unknown',
-      externalUrl: model.url,
+      id: String(rawModel.id),
+      name: rawModel.name,
+      description: rawModel.description || '',
+      author: rawModel.creator?.username || 'Unknown',
+      downloads: rawModel.stats?.downloadCount ?? 0,
+      likes: rawModel.stats?.favoriteCount ?? 0,
+      rating: rawModel.stats?.rating ?? 0,
+      thumbsUpCount: rawModel.stats?.thumbsUpCount,
+      commentCount: rawModel.stats?.commentCount,
+      ratingCount: rawModel.stats?.ratingCount,
+      size: primaryFile?.sizeKB ? formatBytes(primaryFile.sizeKB * 1024) : 'Unknown',
+      tags: rawModel.tags ?? [],
+      type: rawModel.type,
+      baseModel: primaryVersion?.baseModel || 'Unknown',
+      version: primaryVersion?.name || 'Latest',
+      images: primaryVersion?.images?.map((img) => ({
+        url: img.url,
+        nsfw: img.nsfwLevel > 1,
+        width: img.width,
+        height: img.height,
+      })) ?? [],
+      files: primaryVersion?.files?.map((file) => ({
+        name: file.name,
+        id: file.id,
+        sizeKb: file.sizeKB,
+        downloadUrl: file.downloadUrl || '',
+        primary: file.primary ?? false,
+      })) ?? [],
+      ...(primaryVersion?.trainedWords ? { trainedWords: primaryVersion.trainedWords } : {}),
+      allowCommercialUse: rawModel.allowCommercialUse?.join(', ') || 'Unknown',
+      externalUrl: `https://civitai.com/models/${rawModel.id}`,
       externalLabel: 'View on CivitAI',
+      // TEAM-478: Pass all versions for version selector
+      versions: rawModel.modelVersions?.map((version) => ({
+        id: version.id,
+        name: version.name,
+        ...(version.baseModel ? { baseModel: version.baseModel } : {}),
+        ...(version.description ? { description: version.description } : {}),
+        createdAt: version.createdAt,
+        updatedAt: version.updatedAt,
+        ...(version.publishedAt ? { publishedAt: version.publishedAt } : {}),
+        ...(version.trainedWords ? { trainedWords: version.trainedWords } : {}),
+        images: version.images?.map((img) => ({
+          url: img.url,
+          nsfw: img.nsfwLevel > 1,
+          width: img.width,
+          height: img.height,
+        })) ?? [],
+        files: version.files?.map((file) => ({
+          name: file.name,
+          id: file.id,
+          sizeKb: file.sizeKB,
+          downloadUrl: file.downloadUrl || '',
+          primary: file.primary ?? false,
+        })) ?? [],
+        ...(version.downloadUrl ? { downloadUrl: version.downloadUrl } : {}),
+        ...(version.stats ? { stats: version.stats } : {}),
+      })) ?? [],
+      ...(primaryVersion?.publishedAt ? { publishedAt: primaryVersion.publishedAt } : {}),
+      ...(primaryVersion?.updatedAt ? { updatedAt: primaryVersion.updatedAt } : {}),
     }
 
     return (
@@ -97,6 +147,18 @@ export default async function CivitAIModelDetailPage({ params }: Props) {
     console.error('[CivitAI Detail] Error:', error)
     notFound()
   }
+}
+
+// TEAM-478: Fetch raw CivitAI API data (not normalized)
+async function fetchCivitAIModelRaw(modelId: number): Promise<CivitAIModel> {
+  const url = `https://civitai.com/api/v1/models/${modelId}`
+  const response = await fetch(url, { next: { revalidate: 3600 } })
+  
+  if (!response.ok) {
+    throw new Error(`CivitAI API error: ${response.status}`)
+  }
+  
+  return response.json() as Promise<CivitAIModel>
 }
 
 // Helper function

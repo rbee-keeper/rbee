@@ -1,10 +1,10 @@
 // TEAM-463: Premium details card for CivitAI models
-// Beautiful metadata display with icons and badges
+// Clean, professional metadata display
+// TEAM-481: Redesigned with minimal, professional styling - removed colorful icons
 
 'use client'
 
-import { Badge, Card, Separator } from '@rbee/ui/atoms'
-import { Package, Layers, Tag, HardDrive, ShieldCheck } from 'lucide-react'
+import { Badge, Card } from '@rbee/ui/atoms'
 import { cn } from '@rbee/ui/utils'
 
 export interface CivitAIDetailsCardProps {
@@ -25,78 +25,88 @@ export function CivitAIDetailsCard({
   className,
 }: CivitAIDetailsCardProps) {
   // TEAM-463: Safely handle allowCommercialUse which might be string, boolean, or object
+  // TEAM-481: Enhanced detection for various CivitAI commercial use formats
   const commercialUseValue = String(allowCommercialUse || 'Unknown')
-  const isAllowed = commercialUseValue.toLowerCase().includes('allowed') || 
-                    commercialUseValue.toLowerCase().includes('yes') ||
-                    commercialUseValue === 'true'
+
+  // Check if commercial use is allowed
+  // CivitAI returns values like: "Image", "RentCivit", "Sell", "None", etc.
+  const isAllowed =
+    commercialUseValue.toLowerCase().includes('image') ||
+    commercialUseValue.toLowerCase().includes('rent') ||
+    commercialUseValue.toLowerCase().includes('sell') ||
+    commercialUseValue.toLowerCase().includes('allowed') ||
+    commercialUseValue.toLowerCase().includes('yes') ||
+    commercialUseValue === 'true'
+
+  const isRestricted =
+    commercialUseValue.toLowerCase().includes('none') ||
+    commercialUseValue.toLowerCase() === 'no' ||
+    commercialUseValue === 'false'
 
   const details = [
     {
-      icon: Package,
       label: 'Type',
       value: type,
       badge: true,
-      color: 'text-purple-500',
     },
     {
-      icon: Layers,
       label: 'Base Model',
       value: baseModel,
       badge: false,
-      color: 'text-blue-500',
     },
     {
-      icon: Tag,
       label: 'Version',
       value: version,
       badge: false,
-      color: 'text-green-500',
     },
     {
-      icon: HardDrive,
       label: 'Size',
       value: size,
       badge: false,
-      color: 'text-orange-500',
     },
     {
-      icon: ShieldCheck,
       label: 'Commercial Use',
       value: commercialUseValue,
       badge: true,
-      color: isAllowed ? 'text-green-500' : 'text-red-500',
+      isCommercial: true,
     },
   ]
 
   return (
-    <Card className={cn('p-6 space-y-4', className)}>
-      <h3 className="font-semibold text-lg flex items-center gap-2">
-        <Package className="size-5 text-primary" />
-        Details
-      </h3>
+    <Card className={cn('p-6 border-border/50', className)}>
+      <div className="space-y-1 mb-6">
+        <h3 className="font-semibold text-base tracking-tight">Details</h3>
+        <p className="text-xs text-muted-foreground">Model specifications and licensing</p>
+      </div>
 
-      <div className="space-y-3">
-        {details.map((detail, idx) => {
-          const Icon = detail.icon
+      <div className="space-y-4">
+        {details.map((detail) => {
           return (
-            <div key={detail.label}>
-              <div className="flex items-center justify-between py-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Icon className={cn('size-4', detail.color)} />
-                  <span>{detail.label}</span>
-                </div>
-                {detail.badge ? (
-                  <Badge
-                    variant={detail.label === 'Commercial Use' && detail.value.toLowerCase().includes('allowed') ? 'default' : 'secondary'}
-                    className="font-medium"
-                  >
-                    {detail.value}
-                  </Badge>
-                ) : (
-                  <span className="font-medium text-sm">{detail.value}</span>
-                )}
-              </div>
-              {idx < details.length - 1 && <Separator />}
+            <div key={detail.label} className="flex items-start justify-between gap-4">
+              <span className="text-sm text-muted-foreground font-medium min-w-[120px]">{detail.label}</span>
+              {detail.badge ? (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'font-medium text-xs',
+                    detail.isCommercial &&
+                      isAllowed &&
+                      'bg-green-500/10 text-green-600 hover:bg-green-500/15 border-green-500/30',
+                    detail.isCommercial &&
+                      isRestricted &&
+                      'bg-red-500/10 text-red-600 hover:bg-red-500/15 border-red-500/30',
+                    detail.isCommercial &&
+                      !isAllowed &&
+                      !isRestricted &&
+                      'bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/15 border-yellow-500/30',
+                    !detail.isCommercial && 'bg-muted/50',
+                  )}
+                >
+                  {detail.value}
+                </Badge>
+              ) : (
+                <span className="font-semibold text-sm text-right flex-1">{detail.value}</span>
+              )}
             </div>
           )
         })}

@@ -1,8 +1,10 @@
 // TEAM-422: Vertical model card for CivitAI-style portrait images
 // TEAM-461: Added automatic image fallback handling
+// TEAM-479: Added href prop to make cards clickable
 import { Badge } from '@rbee/ui/atoms/Badge'
 import { Card, CardFooter } from '@rbee/ui/atoms/Card'
 import { Download, Heart, Sparkles, User } from 'lucide-react'
+import Link from 'next/link'
 import { ImageWithFallback } from './ImageWithFallback'
 
 export interface ModelCardVerticalProps {
@@ -18,9 +20,10 @@ export interface ModelCardVerticalProps {
     likes: number
     size: string
   }
+  href?: string
 }
 
-export function ModelCardVertical({ model }: ModelCardVerticalProps) {
+export function ModelCardVertical({ model, href }: ModelCardVerticalProps) {
   // TEAM-422: Pure SSG component - no useState
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
@@ -28,8 +31,8 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
     return num.toString()
   }
 
-  return (
-    <Card className="group h-full flex flex-col overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
+  const cardContent = (
+    <Card className="group h-full flex flex-col overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer">
       {/* Vertical Image Section - Portrait Aspect Ratio */}
       <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-br from-primary/10 via-background to-muted">
         {model.imageUrl ? (
@@ -108,4 +111,15 @@ export function ModelCardVertical({ model }: ModelCardVerticalProps) {
       </CardFooter>
     </Card>
   )
+
+  // TEAM-479: Wrap in Link if href is provided
+  if (href) {
+    return (
+      <Link href={href} className="block h-full">
+        {cardContent}
+      </Link>
+    )
+  }
+
+  return cardContent
 }

@@ -62,10 +62,10 @@ export default async function RootLayout({
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
       <span>{new Date().getFullYear()} © rbee. Your private AI cloud, in one command.</span>
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <a key="github" href="https://github.com/veighnsche/llama-orch" target="_blank" rel="noopener noreferrer">
+        <a href="https://github.com/veighnsche/llama-orch" target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
-        <a key="website" href="https://rbee.dev" target="_blank" rel="noopener noreferrer">
+        <a href="https://rbee.dev" target="_blank" rel="noopener noreferrer">
           rbee.dev
         </a>
       </div>
@@ -74,7 +74,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className="bg-background text-foreground">
         <Navigation />
         <main id="main">
           <Layout

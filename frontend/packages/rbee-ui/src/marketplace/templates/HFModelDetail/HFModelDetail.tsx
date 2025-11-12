@@ -51,55 +51,69 @@ export interface HFModelDetailData {
   mask_token?: string | undefined
 
   // TEAM-464: Widget data for inference examples
-  widgetData?: Array<{
-    source_sentence?: string | undefined
-    sentences?: string[] | undefined
-    text?: string | undefined
-  }> | undefined
+  widgetData?:
+    | Array<{
+        source_sentence?: string | undefined
+        sentences?: string[] | undefined
+        text?: string | undefined
+      }>
+    | undefined
 
-  config?: {
-    architectures?: string[] | undefined
-    model_type?: string | undefined
-    tokenizer_config?: {
-      unk_token?: string | undefined
-      sep_token?: string | undefined
-      pad_token?: string | undefined
-      cls_token?: string | undefined
-      mask_token?: string | undefined
-      bos_token?: string | { content?: string | undefined; [key: string]: unknown } | undefined
-      eos_token?: string | { content?: string | undefined; [key: string]: unknown } | undefined
-      chat_template?: string | undefined
-    } | undefined
-  } | undefined
+  config?:
+    | {
+        architectures?: string[] | undefined
+        model_type?: string | undefined
+        tokenizer_config?:
+          | {
+              unk_token?: string | undefined
+              sep_token?: string | undefined
+              pad_token?: string | undefined
+              cls_token?: string | undefined
+              mask_token?: string | undefined
+              bos_token?: string | { content?: string | undefined; [key: string]: unknown } | undefined
+              eos_token?: string | { content?: string | undefined; [key: string]: unknown } | undefined
+              chat_template?: string | undefined
+            }
+          | undefined
+      }
+    | undefined
 
   // TEAM-464: Extended card data
-  cardData?: {
-    base_model?: string | undefined
-    license?: string | undefined
-    language?: string | string[] | undefined
-    datasets?: string[] | undefined
-    pipeline_tag?: string | undefined
-  } | undefined
+  cardData?:
+    | {
+        base_model?: string | undefined
+        license?: string | undefined
+        language?: string | string[] | undefined
+        datasets?: string[] | undefined
+        pipeline_tag?: string | undefined
+      }
+    | undefined
 
   // TEAM-464: Transformers info for inference
-  transformersInfo?: {
-    auto_model?: string | undefined
-    pipeline_tag?: string | undefined
-    processor?: string | undefined
-  } | undefined
+  transformersInfo?:
+    | {
+        auto_model?: string | undefined
+        pipeline_tag?: string | undefined
+        processor?: string | undefined
+      }
+    | undefined
 
   // TEAM-464: Inference status
   inference?: 'warm' | 'cold' | string | undefined
 
   // TEAM-464: Safetensors parameters
-  safetensors?: {
-    parameters?: {
-      I64?: number | undefined
-      F32?: number | undefined
-      [key: string]: number | undefined
-    } | undefined
-    total?: number | undefined
-  } | undefined
+  safetensors?:
+    | {
+        parameters?:
+          | {
+              I64?: number | undefined
+              F32?: number | undefined
+              [key: string]: number | undefined
+            }
+          | undefined
+        total?: number | undefined
+      }
+    | undefined
 
   // TEAM-464: Spaces using this model
   spaces?: string[] | undefined
@@ -215,7 +229,7 @@ export function HFModelDetail({
         {/* Left Columns (span 2) - README & Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* TEAM-464: README Documentation */}
-          {model.readmeMarkdown && <MarkdownContent markdown={model.readmeMarkdown} />}
+          {model.readmeMarkdown && <MarkdownContent markdown={model.readmeMarkdown} asCard={false} />}
 
           {/* TEAM-427: Image Gallery for CivitAI models */}
           {model.images && model.images.length > 0 && (
@@ -255,15 +269,6 @@ export function HFModelDetail({
             </Card>
           )}
 
-          {/* TEAM-464: Inference Providers */}
-          {(model.inference || model.library_name || model.transformersInfo) && (
-            <InferenceProvidersCard
-              {...(model.inference ? { inferenceStatus: model.inference } : {})}
-              {...(model.library_name ? { libraryName: model.library_name } : {})}
-              transformersInfo={model.transformersInfo as any}
-            />
-          )}
-
           {/* TEAM-464: Widget Data / Usage Examples */}
           {(model.widgetData || model.pipeline_tag) && (
             <WidgetDataCard
@@ -271,21 +276,6 @@ export function HFModelDetail({
               {...(model.pipeline_tag ? { pipelineTag: model.pipeline_tag } : {})}
             />
           )}
-
-          {/* Basic Info */}
-          <ModelMetadataCard
-            title="Basic Information"
-            items={[
-              { label: 'Model ID', value: model.id, code: true },
-              ...(model.author ? [{ label: 'Author', value: model.author }] : []),
-              ...(model.pipeline_tag
-                ? [{ label: 'Pipeline', value: model.pipeline_tag, icon: <Code className="size-4" /> }]
-                : []),
-              ...(model.sha
-                ? [{ label: 'SHA', value: `${model.sha.substring(0, 12)}...`, icon: <Hash className="size-4" /> }]
-                : []),
-            ]}
-          />
 
           {/* Model Config */}
           {model.config && (
@@ -354,33 +344,6 @@ export function HFModelDetail({
                 </code>
               </CardContent>
             </Card>
-          )}
-
-          {/* Timestamps */}
-          {(model.createdAt || model.lastModified) && (
-            <ModelMetadataCard
-              title="Timeline"
-              items={[
-                ...(model.createdAt
-                  ? [
-                      {
-                        label: 'Created',
-                        value: formatDate(model.createdAt),
-                        icon: <Calendar className="size-4" />,
-                      },
-                    ]
-                  : []),
-                ...(model.lastModified
-                  ? [
-                      {
-                        label: 'Last Modified',
-                        value: formatDate(model.lastModified),
-                        icon: <Calendar className="size-4" />,
-                      },
-                    ]
-                  : []),
-              ]}
-            />
           )}
 
           {/* Example Prompts */}
@@ -501,6 +464,57 @@ export function HFModelDetail({
               )}
             </div>
           </Card>
+
+          {/* TEAM-478: Inference Providers - moved to sidebar */}
+          {(model.inference || model.library_name || model.transformersInfo) && (
+            <InferenceProvidersCard
+              {...(model.inference ? { inferenceStatus: model.inference } : {})}
+              {...(model.library_name ? { libraryName: model.library_name } : {})}
+              transformersInfo={model.transformersInfo as any}
+            />
+          )}
+
+          {/* TEAM-478: Basic Information - moved to sidebar */}
+          <ModelMetadataCard
+            title="Basic Information"
+            items={[
+              { label: 'Model ID', value: model.id, code: true },
+              ...(model.author ? [{ label: 'Author', value: model.author }] : []),
+              ...(model.pipeline_tag
+                ? [{ label: 'Pipeline', value: model.pipeline_tag, icon: <Code className="size-4" /> }]
+                : []),
+              ...(model.sha
+                ? [{ label: 'SHA', value: `${model.sha.substring(0, 12)}...`, icon: <Hash className="size-4" /> }]
+                : []),
+            ]}
+          />
+
+          {/* TEAM-478: Timeline - moved to sidebar */}
+          {(model.createdAt || model.lastModified) && (
+            <ModelMetadataCard
+              title="Timeline"
+              items={[
+                ...(model.createdAt
+                  ? [
+                      {
+                        label: 'Created',
+                        value: formatDate(model.createdAt),
+                        icon: <Calendar className="size-4" />,
+                      },
+                    ]
+                  : []),
+                ...(model.lastModified
+                  ? [
+                      {
+                        label: 'Last Modified',
+                        value: formatDate(model.lastModified),
+                        icon: <Calendar className="size-4" />,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          )}
 
           {/* TEAM-464: Model Card - Structured metadata from YAML frontmatter */}
           {(model.cardData || model.pipeline_tag || model.library_name) && (

@@ -8,6 +8,7 @@ import type React from 'react'
 import './globals.css'
 import '@rbee/ui/styles.css'
 import { MarketplaceNav } from '@/components/MarketplaceNav'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'rbee Marketplace - AI Models & Workers',
@@ -20,13 +21,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
-      <body className="antialiased">
-        <MarketplaceNav />
-        <main className="pt-16">{children}</main>
+      <body className="bg-background text-foreground antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <MarketplaceNav />
+          <main className="pt-16">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   )

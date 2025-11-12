@@ -2,8 +2,9 @@
 // Uses @rbee/marketplace-core adapters (not marketplace-node)
 // Uses fetchHuggingFaceModel (returns normalized MarketplaceModel)
 // Uses HFModelDetail template (3-column design)
+// TEAM-478: Added README markdown parser above the fold
 
-import { fetchHuggingFaceModel } from '@rbee/marketplace-core'
+import { fetchHuggingFaceModel, fetchHuggingFaceModelReadme } from '@rbee/marketplace-core'
 import { HFModelDetail } from '@rbee/ui/marketplace'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -65,9 +66,14 @@ export default async function HuggingFaceModelDetailPage({ params }: Props) {
 
   try {
     // TEAM-477: Use marketplace-core adapter (returns normalized MarketplaceModel)
-    const model = await fetchHuggingFaceModel(modelId)
+    // TEAM-478: Fetch both model data and README in parallel
+    const [model, readme] = await Promise.all([
+      fetchHuggingFaceModel(modelId),
+      fetchHuggingFaceModelReadme(modelId),
+    ])
 
     // TEAM-477: Convert MarketplaceModel to HFModelDetailData for template
+    // TEAM-478: Include README in model data for 3-column layout
     const hfModelData = {
       id: model.id,
       name: model.name,
@@ -90,6 +96,9 @@ export default async function HuggingFaceModelDetailPage({ params }: Props) {
       // External URL
       externalUrl: model.url,
       externalLabel: 'View on HuggingFace',
+      
+      // TEAM-478: README markdown (displayed in first 2 columns)
+      ...(readme ? { readmeMarkdown: readme } : {}),
     }
 
     return (

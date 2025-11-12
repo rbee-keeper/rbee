@@ -34,7 +34,7 @@ export type {
   PaginationMeta,
 } from './adapters/common'
 // Detail fetch functions (for model detail pages)
-export { fetchHuggingFaceModel } from './adapters/huggingface/details'
+export { fetchHuggingFaceModel, fetchHuggingFaceModelReadme } from './adapters/huggingface/details'
 
 // List fetch functions (for model list pages)
 export { fetchHuggingFaceModels } from './adapters/huggingface/list'

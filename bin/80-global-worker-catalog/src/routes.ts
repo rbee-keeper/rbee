@@ -17,14 +17,10 @@ export const routes = new Hono<{ Bindings: Env }>()
  * List all available worker variants
  */
 routes.get('/workers', (c) => {
-  return c.json(
-    { workers: WORKERS },
-    200,
-    {
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1 hour
-      'CDN-Cache-Control': 'max-age=3600',
-    }
-  )
+  return c.json({ workers: WORKERS }, 200, {
+    'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1 hour
+    'CDN-Cache-Control': 'max-age=3600',
+  })
 })
 
 /**
@@ -39,14 +35,10 @@ routes.get('/workers/:id', validateWorkerId(), (c) => {
     return c.json({ error: 'Worker not found' }, 404)
   }
 
-  return c.json(
-    worker,
-    200,
-    {
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1 hour
-      'CDN-Cache-Control': 'max-age=3600',
-    }
-  )
+  return c.json(worker, 200, {
+    'Cache-Control': 'public, max-age=3600, s-maxage=3600', // 1 hour
+    'CDN-Cache-Control': 'max-age=3600',
+  })
 })
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

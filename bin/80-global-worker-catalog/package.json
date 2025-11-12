@@ -18,6 +18,7 @@
     "test:e2e": "vitest run tests/e2e"
   },
   "dependencies": {
+    "@rbee/marketplace-core": "workspace:*",
     "hono": "^4.10.5"
   },
   "devDependencies": {

@@ -1,13 +1,16 @@
 // TEAM-403: Type validation tests
-import { describe, expect, it } from 'vitest'
+// TEAM-483: Import directly from marketplace-core (no shim file)
+
 import type {
   Architecture,
   BuildSystem,
+  BuildVariant,
+  GWCWorker,
   Platform,
-  WorkerCatalogEntry,
   WorkerImplementation,
   WorkerType,
-} from '../../src/types'
+} from '@rbee/marketplace-core'
+import { describe, expect, it } from 'vitest'
 
 describe('WorkerType Enum', () => {
   it('should validate worker type enum values', () => {
@@ -54,41 +57,49 @@ describe('BuildSystem Enum', () => {
   })
 })
 
-describe('WorkerCatalogEntry Structure', () => {
+describe('GWCWorker Structure', () => {
   it('should validate complete worker entry structure', () => {
-    const worker: WorkerCatalogEntry = {
+    const worker: GWCWorker = {
       id: 'test-worker',
       implementation: 'rust',
-      workerType: 'cpu',
       version: '0.1.0',
-      platforms: ['linux'],
-      architectures: ['x86_64'],
       name: 'Test Worker',
       description: 'Test description',
       license: 'GPL-3.0-or-later',
-      pkgbuildUrl: '/workers/test-worker/PKGBUILD',
       buildSystem: 'cargo',
       source: {
         type: 'git',
         url: 'https://github.com/test/repo.git',
         branch: 'main',
       },
-      build: {
-        features: ['cpu'],
-        profile: 'release',
-      },
-      depends: ['gcc'],
-      makedepends: ['rust', 'cargo'],
-      binaryName: 'test-worker',
-      installPath: '/usr/local/bin/test-worker',
+      variants: [
+        {
+          backend: 'cpu',
+          platforms: ['linux'],
+          architectures: ['x86_64'],
+          pkgbuildUrl: '/workers/test-worker/PKGBUILD',
+          pkgbuildUrlGit: '/workers/test-worker-git/PKGBUILD',
+          homebrewFormula: '/workers/test-worker.rb',
+          homebrewFormulaGit: '/workers/test-worker-git.rb',
+          build: {
+            features: ['cpu'],
+            profile: 'release',
+          },
+          depends: ['gcc'],
+          makedepends: ['rust', 'cargo'],
+          binaryName: 'test-worker',
+          installPath: '/usr/local/bin/test-worker',
+        },
+      ],
       supportedFormats: ['gguf'],
       supportsStreaming: true,
       supportsBatching: false,
     }
 
     expect(worker.id).toBe('test-worker')
-    expect(worker.platforms).toContain('linux')
-    expect(worker.workerType).toBe('cpu')
+    expect(worker.variants).toHaveLength(1)
+    expect(worker.variants[0]?.platforms).toContain('linux')
+    expect(worker.variants[0]?.backend).toBe('cpu')
     expect(worker.implementation).toBe('rust')
   })
 
@@ -106,17 +117,35 @@ describe('WorkerCatalogEntry Structure', () => {
   })
 
   it('should validate optional fields', () => {
-    const workerWithOptionals: Partial<WorkerCatalogEntry> = {
+    const workerWithOptionals: Partial<GWCWorker> = {
       maxContextLength: 32768,
-      build: {
-        features: ['cpu', 'avx2'],
-        profile: 'release',
-        flags: ['--target', 'x86_64-unknown-linux-gnu'],
-      },
     }
 
     expect(workerWithOptionals.maxContextLength).toBe(32768)
-    expect(workerWithOptionals.build?.features).toHaveLength(2)
-    expect(workerWithOptionals.build?.flags).toBeDefined()
+  })
+
+  it('should validate build variant structure', () => {
+    const variant: BuildVariant = {
+      backend: 'cuda',
+      platforms: ['linux'],
+      architectures: ['x86_64'],
+      pkgbuildUrl: '/test.PKGBUILD',
+      pkgbuildUrlGit: '/test-git.PKGBUILD',
+      homebrewFormula: '/test.rb',
+      homebrewFormulaGit: '/test-git.rb',
+      build: {
+        features: ['cuda', 'avx2'],
+        profile: 'release',
+        flags: ['--target', 'x86_64-unknown-linux-gnu'],
+      },
+      depends: ['cuda'],
+      makedepends: ['rust', 'cargo'],
+      binaryName: 'test-worker',
+      installPath: '/usr/local/bin/test-worker',
+    }
+
+    expect(variant.backend).toBe('cuda')
+    expect(variant.build.features).toHaveLength(2)
+    expect(variant.build.flags).toBeDefined()
   })
 })

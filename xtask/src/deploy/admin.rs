@@ -26,10 +26,20 @@ pub fn deploy(production: bool, dry_run: bool) -> Result<()> {
 
     // Deploy using @opennextjs/cloudflare (handles SSR build + deploy)
     println!("🔨 Building and deploying with @opennextjs/cloudflare...");
-    let status = Command::new("npm")
-        .args(&["run", "deploy"])
-        .current_dir(app_dir)
-        .status()
+    
+    // Set WRANGLER_ENV to specify target environment (avoids warning)
+    let mut cmd = Command::new("npm");
+    cmd.args(&["run", "deploy"])
+        .current_dir(app_dir);
+    
+    // Explicitly set environment for wrangler
+    if production {
+        cmd.env("WRANGLER_ENV", "production");
+    } else {
+        cmd.env("WRANGLER_ENV", "preview");
+    }
+    
+    let status = cmd.status()
         .context("Failed to run npm run deploy")?;
 
     if !status.success() {

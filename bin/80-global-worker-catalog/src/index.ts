@@ -4,9 +4,9 @@
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { routes } from './routes'
 import { errorHandler, requestLogger, securityHeaders } from './middleware/security'
 import { validateMethod } from './middleware/validation'
+import { routes } from './routes'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -47,7 +47,7 @@ app.use(
       'http://127.0.0.1:7823',
       'http://127.0.0.1:7844',
       'http://127.0.0.1:7843',
-      
+
       // Production
       'https://marketplace.rbee.dev',
       'https://rbee.dev',

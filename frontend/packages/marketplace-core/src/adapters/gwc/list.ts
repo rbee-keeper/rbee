@@ -29,7 +29,7 @@ export function convertGWCWorker(worker: GWCWorker): MarketplaceModel {
     tags: [
       worker.implementation, // rust, python, cpp
       ...(worker.variants?.map(v => v.backend) || []), // cpu, cuda, metal, rocm
-      ...(worker.supportedFormats || []), // gguf, safetensors, etc.
+      ...(worker.capabilities.supportedFormats || []), // gguf, safetensors, etc.
     ],
     downloads: 0, // GWC doesn't track downloads yet
     likes: 0, // GWC doesn't track likes yet
@@ -43,9 +43,9 @@ export function convertGWCWorker(worker: GWCWorker): MarketplaceModel {
       version: worker.version,
       backends,
       implementation: worker.implementation,
-      supportedFormats: worker.supportedFormats.join(', '),
-      supportsStreaming: worker.supportsStreaming,
-      supportsBatching: worker.supportsBatching,
+      supportedFormats: worker.capabilities.supportedFormats.join(', '),
+      supportsStreaming: worker.capabilities.supportsStreaming,
+      supportsBatching: worker.capabilities.supportsBatching,
     },
   }
 }

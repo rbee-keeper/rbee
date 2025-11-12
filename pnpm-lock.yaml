@@ -466,6 +466,9 @@ importers:
 
   bin/80-global-worker-catalog:
     dependencies:
+      '@rbee/marketplace-core':
+        specifier: workspace:*
+        version: link:../../frontend/packages/marketplace-core
       hono:
         specifier: ^4.10.5
         version: 4.10.5

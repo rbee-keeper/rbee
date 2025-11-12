@@ -57,12 +57,19 @@ export type {
 // GWC types (for gwc-adapter)
 export type {
   Architecture,
+  BuildConfig,
   BuildSystem,
   BuildVariant,
+  CivitAICompatibility,
   GWCListWorkersParams,
   GWCListWorkersResponse,
   GWCWorker,
+  HuggingFaceCompatibility,
+  MarketplaceCompatibility,
+  MarketplaceVendor,
   Platform,
+  SourceConfig,
+  WorkerCapabilities,
   WorkerImplementation,
   WorkerType,
 } from './adapters/gwc/types'

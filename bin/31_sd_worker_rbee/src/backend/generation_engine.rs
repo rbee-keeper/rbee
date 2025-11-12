@@ -1,4 +1,5 @@
 // TEAM-488: Generation engine - processes request queue
+// TEAM-481: Now uses Box<dyn ImageModel> instead of generic (object-safe trait)
 //
 // Receives GenerationRequest from queue, calls ImageModel trait methods,
 // sends responses back via channels.
@@ -11,25 +12,24 @@ use tokio::sync::Mutex;
 /// Generation engine that processes requests from the queue
 ///
 /// TEAM-488: Clean architecture
+/// TEAM-481: Uses trait object (Box<dyn ImageModel>) for true polymorphism
 /// - Receives requests from RequestQueue
 /// - Calls ImageModel trait methods (works with SD or FLUX)
 /// - Sends responses via channels
 /// - Runs in spawn_blocking (CPU-intensive work)
-///
-/// Generic over M: ImageModel to avoid trait object issues
-pub struct GenerationEngine<M: ImageModel + 'static> {
-    model: Arc<Mutex<M>>,
+pub struct GenerationEngine {
+    model: Arc<Mutex<Box<dyn ImageModel>>>,
     request_rx: tokio::sync::mpsc::UnboundedReceiver<GenerationRequest>,
 }
 
-impl<M: ImageModel + 'static> GenerationEngine<M> {
+impl GenerationEngine {
     /// Create new generation engine
     ///
     /// # Arguments
-    /// * `model` - ImageModel implementation (SD or FLUX)
+    /// * `model` - Boxed ImageModel trait object (SD or FLUX)
     /// * `request_rx` - Receiver for generation requests
     pub fn new(
-        model: Arc<Mutex<M>>,
+        model: Arc<Mutex<Box<dyn ImageModel>>>,
         request_rx: tokio::sync::mpsc::UnboundedReceiver<GenerationRequest>,
     ) -> Self {
         Self { model, request_rx }
@@ -58,7 +58,7 @@ impl<M: ImageModel + 'static> GenerationEngine<M> {
 
     /// Process a single generation request
     fn process_request(
-        model: Arc<Mutex<M>>,
+        model: Arc<Mutex<Box<dyn ImageModel>>>,
         request: GenerationRequest,
     ) {
         let request_id = request.request_id.clone();
@@ -81,17 +81,19 @@ impl<M: ImageModel + 'static> GenerationEngine<M> {
             strength: request.strength,
         };
         
-        // Progress callback
+        // Progress callback - TEAM-481: Box the closure for object safety
         let progress_tx = response_tx.clone();
-        let progress_callback = move |step: usize, total: usize, preview: Option<image::DynamicImage>| {
-            let response = if let Some(img) = preview {
-                GenerationResponse::Preview { step, total, image: img }
-            } else {
-                GenerationResponse::Progress { step, total }
-            };
-            
-            let _ = progress_tx.send(response);
-        };
+        let progress_callback: Box<dyn FnMut(usize, usize, Option<image::DynamicImage>) + Send> = Box::new(
+            move |step: usize, total: usize, preview: Option<image::DynamicImage>| {
+                let response = if let Some(img) = preview {
+                    GenerationResponse::Preview { step, total, image: img }
+                } else {
+                    GenerationResponse::Progress { step, total }
+                };
+                
+                let _ = progress_tx.send(response);
+            }
+        );
         
         // Generate image
         let result = {

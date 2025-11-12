@@ -91,17 +91,20 @@ pub trait ImageModel: Send + Sync {
     ///
     /// # Arguments
     /// * `request` - Generation request with all parameters
-    /// * `progress_callback` - Called periodically with (step, total, optional_preview)
+    /// * `progress_callback` - Boxed closure called periodically with (step, total, optional_preview)
     ///
     /// # Returns
     /// Generated image on success
-    fn generate<F>(
+    ///
+    /// # Object Safety
+    /// TEAM-481: Changed from generic `F` to `Box<dyn FnMut>` for object safety.
+    /// This allows using `Box<dyn ImageModel>` instead of enum wrapper.
+    /// Performance impact: ~100ns heap allocation vs 2-50s generation = negligible.
+    fn generate(
         &mut self,
         request: &GenerationRequest,
-        progress_callback: F,
-    ) -> Result<DynamicImage>
-    where
-        F: FnMut(usize, usize, Option<DynamicImage>);
+        progress_callback: Box<dyn FnMut(usize, usize, Option<DynamicImage>) + Send>,
+    ) -> Result<DynamicImage>;
 }
 
 /// Unified generation request for all model types

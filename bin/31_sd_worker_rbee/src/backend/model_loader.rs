@@ -1,6 +1,5 @@
 // TEAM-488: Unified model loader for SD and FLUX
-//
-// Loads models based on SDVersion and returns trait objects
+// TEAM-481: Now returns Box<dyn ImageModel> for true object safety
 
 use crate::backend::lora::LoRAConfig;
 use crate::backend::models::{flux, stable_diffusion, SDVersion};
@@ -8,54 +7,9 @@ use crate::backend::traits::ImageModel;
 use crate::error::Result;
 use candle_core::Device;
 
-/// Model enum that can hold either SD or FLUX models
-///
-/// TEAM-488: Concrete enum instead of trait object (avoids object safety issues)
-pub enum LoadedModel {
-    StableDiffusion(stable_diffusion::StableDiffusionModel),
-    Flux(flux::FluxModel),
-}
-
-impl ImageModel for LoadedModel {
-    fn model_type(&self) -> &str {
-        match self {
-            Self::StableDiffusion(m) => m.model_type(),
-            Self::Flux(m) => m.model_type(),
-        }
-    }
-
-    fn model_variant(&self) -> &str {
-        match self {
-            Self::StableDiffusion(m) => m.model_variant(),
-            Self::Flux(m) => m.model_variant(),
-        }
-    }
-
-    fn capabilities(&self) -> &crate::backend::traits::ModelCapabilities {
-        match self {
-            Self::StableDiffusion(m) => m.capabilities(),
-            Self::Flux(m) => m.capabilities(),
-        }
-    }
-
-    fn generate<F>(
-        &mut self,
-        request: &crate::backend::traits::GenerationRequest,
-        progress_callback: F,
-    ) -> Result<image::DynamicImage>
-    where
-        F: FnMut(usize, usize, Option<image::DynamicImage>),
-    {
-        match self {
-            Self::StableDiffusion(m) => m.generate(request, progress_callback),
-            Self::Flux(m) => m.generate(request, progress_callback),
-        }
-    }
-}
-
 /// Load a model (SD or FLUX) based on version
 ///
-/// Returns a LoadedModel enum that implements ImageModel.
+/// TEAM-481: Returns Box<dyn ImageModel> for true polymorphism and object safety.
 /// The model stays loaded in memory as long as the daemon runs.
 ///
 /// # Arguments
@@ -66,14 +20,14 @@ impl ImageModel for LoadedModel {
 /// * `quantized` - Use quantized models (FLUX only, ignored for SD)
 ///
 /// # Returns
-/// LoadedModel enum (StableDiffusion or Flux variant)
+/// Box<dyn ImageModel> - Boxed trait object (either StableDiffusion or Flux)
 pub fn load_model(
     version: SDVersion,
     device: &Device,
     use_f16: bool,
     loras: &[LoRAConfig],
     quantized: bool,
-) -> Result<LoadedModel> {
+) -> Result<Box<dyn ImageModel>> {
     tracing::info!("Loading model: {:?} (f16={}, quantized={})", version, use_f16, quantized);
     
     if version.is_flux() {
@@ -84,7 +38,7 @@ pub fn load_model(
         let model = flux::FluxModel::new(components);
         
         tracing::info!("✅ FLUX model loaded: {}", model.model_variant());
-        Ok(LoadedModel::Flux(model))
+        Ok(Box::new(model))
     } else {
         // Load Stable Diffusion model
         tracing::info!("Loading Stable Diffusion model from HuggingFace...");
@@ -95,6 +49,6 @@ pub fn load_model(
         };
         
         tracing::info!("✅ Stable Diffusion model loaded: {}", model.model_variant());
-        Ok(LoadedModel::StableDiffusion(model))
+        Ok(Box::new(model))
     }
 }

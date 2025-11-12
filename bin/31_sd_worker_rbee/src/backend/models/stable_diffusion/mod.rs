@@ -36,26 +36,19 @@ impl StableDiffusionModel {
         // Determine capabilities based on version
         let is_inpaint = components.version.is_inpainting();
         let default_steps = components.version.default_steps();
-        
+
         let capabilities = ModelCapabilities {
             img2img: true,
             inpainting: is_inpaint,
             lora: true,
             controlnet: false, // Not implemented yet
             default_size: components.version.default_size(),
-            supported_sizes: vec![
-                (512, 512),
-                (768, 768),
-                (1024, 1024),
-            ],
+            supported_sizes: vec![(512, 512), (768, 768), (1024, 1024)],
             default_steps,
             supports_guidance: true,
         };
 
-        Self {
-            components,
-            capabilities,
-        }
+        Self { components, capabilities }
     }
 }
 
@@ -79,33 +72,33 @@ impl ImageModel for StableDiffusionModel {
         &self.capabilities
     }
 
-    fn generate<F>(
+    fn generate(
         &mut self,
         request: &GenerationRequest,
-        progress_callback: F,
-    ) -> Result<DynamicImage>
-    where
-        F: FnMut(usize, usize, Option<DynamicImage>),
-    {
+        mut progress_callback: Box<dyn FnMut(usize, usize, Option<DynamicImage>) + Send>,
+    ) -> Result<DynamicImage> {
+        // TEAM-481: Unbox the callback and pass it to generation functions
         // Dispatch based on operation type
         match (request.input_image.as_ref(), request.mask.as_ref()) {
             (Some(img), Some(mask)) => {
                 if !self.supports_inpainting() {
-                    return Err(crate::error::Error::InvalidInput(
-                        format!(
-                            "Model {:?} does not support inpainting. Use an inpainting-specific model.",
-                            self.components.version
-                        )
-                    ));
+                    return Err(crate::error::Error::InvalidInput(format!(
+                        "Model {:?} does not support inpainting. Use an inpainting-specific model.",
+                        self.components.version
+                    )));
                 }
-                generation::inpaint(&self.components, request, img, mask, progress_callback)
+                generation::inpaint(&self.components, request, img, mask, |step, total, preview| {
+                    progress_callback(step, total, preview)
+                })
             }
             (Some(img), None) => {
-                generation::img2img(&self.components, request, img, progress_callback)
+                generation::img2img(&self.components, request, img, |step, total, preview| {
+                    progress_callback(step, total, preview)
+                })
             }
-            (None, _) => {
-                generation::txt2img(&self.components, request, progress_callback)
-            }
+            (None, _) => generation::txt2img(&self.components, request, |step, total, preview| {
+                progress_callback(step, total, preview)
+            }),
         }
     }
 }

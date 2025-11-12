@@ -6,7 +6,7 @@ use super::super::ModelComponents;
 use super::helpers::{text_embeddings, tensor_to_image};
 use crate::backend::traits::GenerationRequest;
 use crate::error::Result;
-use candle_core::{Module, Tensor};
+use candle_core::Tensor;
 use image::DynamicImage;
 
 pub fn txt2img<F>(

@@ -16,6 +16,7 @@ use sd_worker_rbee::{
 use shared_worker_rbee::device;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tokio::sync::Mutex; // TEAM-481: For wrapping trait object
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
@@ -89,8 +90,9 @@ async fn main() -> anyhow::Result<()> {
     let (request_queue, request_rx) = RequestQueue::new();
     
     // 2. Create generation engine with loaded models
+    // TEAM-481: model_components is now Box<dyn ImageModel>, wrap in Arc<Mutex<>>
     let engine = GenerationEngine::new(
-        Arc::new(model_components),
+        Arc::new(Mutex::new(model_components)),
         request_rx,
     );
     

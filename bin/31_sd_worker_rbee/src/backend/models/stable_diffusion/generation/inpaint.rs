@@ -6,7 +6,7 @@ use super::super::ModelComponents;
 use super::helpers::{text_embeddings, tensor_to_image, prepare_inpainting_latents};
 use crate::backend::traits::GenerationRequest;
 use crate::error::{Error, Result};
-use candle_core::{Module, Tensor};
+use candle_core::Tensor;
 use image::DynamicImage;
 
 /// Prepare inpainting latents

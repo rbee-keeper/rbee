@@ -7,7 +7,6 @@ use super::super::ModelComponents;
 use super::helpers::{clip_embeddings, t5_embeddings, tensor_to_image};
 use crate::backend::traits::GenerationRequest;
 use crate::error::Result;
-use candle_core::IndexOp;
 use candle_transformers::models::flux;
 use image::DynamicImage;
 

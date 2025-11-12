@@ -68,14 +68,12 @@ impl ImageModel for FluxModel {
         &self.capabilities
     }
 
-    fn generate<F>(
+    fn generate(
         &mut self,
         request: &GenerationRequest,
-        progress_callback: F,
-    ) -> Result<DynamicImage>
-    where
-        F: FnMut(usize, usize, Option<DynamicImage>),
-    {
+        mut progress_callback: Box<dyn FnMut(usize, usize, Option<DynamicImage>) + Send>,
+    ) -> Result<DynamicImage> {
+        // TEAM-481: Unbox the callback and pass it to generation function
         // FLUX only supports txt2img
         if request.input_image.is_some() {
             return Err(crate::error::Error::InvalidInput(
@@ -84,6 +82,8 @@ impl ImageModel for FluxModel {
         }
         
         // Call FLUX txt2img generation
-        txt2img(&mut self.components, request, progress_callback)
+        txt2img(&mut self.components, request, |step, total, preview| {
+            progress_callback(step, total, preview)
+        })
     }
 }

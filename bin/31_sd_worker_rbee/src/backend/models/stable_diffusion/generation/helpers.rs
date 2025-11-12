@@ -4,7 +4,7 @@
 use crate::error::{Error, Result};
 use candle_core::{DType, Device, IndexOp, Module, Tensor};
 use candle_transformers::models::stable_diffusion;
-use image::{DynamicImage, GenericImageView, RgbImage};
+use image::{DynamicImage, RgbImage};
 use tokenizers::Tokenizer;
 
 /// Generate text embeddings

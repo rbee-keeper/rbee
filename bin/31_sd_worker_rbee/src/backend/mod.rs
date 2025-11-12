@@ -8,9 +8,9 @@ pub mod traits;
 // TEAM-488: Model implementations (self-contained)
 pub mod models;
 
-// TEAM-488: OLD FILES DELETED - generation.rs, flux_generation.rs, generation_engine.rs, model_loader.rs
-// Generation logic will be in models/stable_diffusion/generator.rs and models/flux/generator.rs
-// Loading logic will be in models/stable_diffusion/loader.rs and models/flux/loader.rs
+// TEAM-488: Unified infrastructure
+pub mod generation_engine;
+pub mod model_loader;
 
 pub mod lora; // TEAM-487: LoRA support
 

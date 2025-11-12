@@ -95,11 +95,13 @@ pub trait ImageModel: Send + Sync {
     ///
     /// # Returns
     /// Generated image on success
-    fn generate(
+    fn generate<F>(
         &mut self,
         request: &GenerationRequest,
-        progress_callback: impl FnMut(usize, usize, Option<DynamicImage>),
-    ) -> Result<DynamicImage>;
+        progress_callback: F,
+    ) -> Result<DynamicImage>
+    where
+        F: FnMut(usize, usize, Option<DynamicImage>);
 }
 
 /// Unified generation request for all model types

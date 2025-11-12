@@ -2,10 +2,6 @@
 //
 // Defines supported SD models and their configurations.
 
-use candle_core::DType;
-
-pub mod sd_config;
-
 // TEAM-488: Self-contained model implementations
 pub mod stable_diffusion;
 pub mod flux;

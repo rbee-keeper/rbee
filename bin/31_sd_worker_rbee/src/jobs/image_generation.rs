@@ -24,7 +24,10 @@ pub fn execute(state: JobState, req: ImageGenerationRequest) -> Result<JobRespon
         seed: req.seed,
         width: req.width,
         height: req.height,
-        loras: vec![],  // TEAM-487: No LoRAs for now (TODO: add to request)
+        loras: req.loras.iter().map(|l| crate::backend::lora::LoRAConfig {
+            path: l.path.clone(),
+            strength: l.strength as f64,
+        }).collect(),  // TEAM-488: LoRA support wired up!
     };
     
     let request = GenerationRequest {

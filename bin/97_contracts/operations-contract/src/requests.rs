@@ -199,6 +199,21 @@ fn default_stream() -> bool {
 // Image Generation Requests (TEAM-397)
 // ============================================================================
 
+/// LoRA configuration for image generation
+/// TEAM-488: Wire up LoRA support (TEAM-487 left it incomplete)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct LoRAConfig {
+    /// Path to LoRA .safetensors file
+    pub path: String,
+    /// Strength multiplier (0.0-1.0, default: 1.0)
+    #[serde(default = "default_lora_strength")]
+    pub strength: f32,
+}
+
+fn default_lora_strength() -> f32 {
+    1.0
+}
+
 /// Request to generate image from text prompt (Stable Diffusion)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ImageGenerationRequest {
@@ -209,23 +224,26 @@ pub struct ImageGenerationRequest {
     /// Text prompt
     pub prompt: String,
     /// Negative prompt (optional)
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub negative_prompt: Option<String>,
-    /// Number of inference steps
+    /// Number of inference steps (default: 20)
     #[serde(default = "default_steps")]
     pub steps: usize,
-    /// Guidance scale
+    /// Guidance scale (default: 7.5)
     #[serde(default = "default_guidance")]
     pub guidance_scale: f64,
-    /// Image width
+    /// Random seed (optional)
+    #[serde(default)]
+    pub seed: Option<u64>,
+    /// Image width (default: 512)
     #[serde(default = "default_width")]
     pub width: usize,
-    /// Image height
+    /// Image height (default: 512)
     #[serde(default = "default_height")]
     pub height: usize,
-    /// Random seed (optional)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub seed: Option<u64>,
+    /// LoRA configurations (TEAM-488: Finally wired up!)
+    #[serde(default)]
+    pub loras: Vec<LoRAConfig>,
     /// Specific worker ID (optional, for direct routing)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub worker_id: Option<String>,
@@ -248,11 +266,6 @@ pub struct ImageTransformRequest {
     /// Negative prompt (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub negative_prompt: Option<String>,
-    /// Base64-encoded input image
-    pub init_image: String,
-    /// Strength of transformation (0.0-1.0)
-    #[serde(default = "default_strength")]
-    pub strength: f64,
     /// Number of inference steps
     #[serde(default = "default_steps")]
     pub steps: usize,
@@ -262,6 +275,14 @@ pub struct ImageTransformRequest {
     /// Random seed (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seed: Option<u64>,
+    /// Transformation strength (0.0-1.0)
+    #[serde(default = "default_strength")]
+    pub strength: f64,
+    /// Input image (base64 encoded)
+    pub input_image: String,
+    /// LoRA configurations (TEAM-488: Finally wired up!)
+    #[serde(default)]
+    pub loras: Vec<LoRAConfig>,
     /// Specific worker ID (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub worker_id: Option<String>,
@@ -294,6 +315,9 @@ pub struct ImageInpaintRequest {
     /// Random seed (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seed: Option<u64>,
+    /// LoRA configurations (TEAM-488: Finally wired up!)
+    #[serde(default)]
+    pub loras: Vec<LoRAConfig>,
     /// Specific worker ID (optional)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub worker_id: Option<String>,
@@ -355,6 +379,7 @@ mod tests {
             width: 512,
             height: 512,
             seed: Some(42),
+            loras: vec![],  // TEAM-488: LoRA support
             worker_id: None,
         };
 
@@ -389,11 +414,12 @@ mod tests {
             model: "stable-diffusion-v1-5".to_string(),
             prompt: "make it artistic".to_string(),
             negative_prompt: None,
-            init_image: "base64encodedimage".to_string(),
-            strength: 0.8,
             steps: 20,
             guidance_scale: 7.5,
             seed: None,
+            strength: 0.8,
+            input_image: "base64encodedimage".to_string(),
+            loras: vec![],  // TEAM-488: LoRA support
             worker_id: None,
         };
 
@@ -416,6 +442,7 @@ mod tests {
             steps: 20,
             guidance_scale: 7.5,
             seed: None,
+            loras: vec![],  // TEAM-488: LoRA support
             worker_id: None,
         };
 

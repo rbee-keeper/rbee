@@ -215,44 +215,73 @@ export const WORKERS: GWCWorker[] = [
     },
     marketplaceCompatibility: {
       huggingface: {
-        // SD Worker supports image generation models
+        // SD Worker supports Stable Diffusion + FLUX image generation
+        // Available filters: author, library, task, tags, model_name, language, trained_dataset
+        // See: .docs/HUGGINGFACE_FILTERS_AVAILABLE.md for all options
         tasks: [
-          'text-to-image', // Stable Diffusion models
+          'text-to-image', // SD 1.x, 2.x, XL, FLUX models
         ],
         libraries: [
           'diffusers', // HuggingFace diffusers library
         ],
+        // Optional filters (uncomment to enable):
+        // tags: ['safetensors'],  // Only safe models (recommended)
+        // tags: ['stable-diffusion-xl', 'flux'],  // Only modern models
+        // author: ['stabilityai', 'black-forest-labs'],  // Only official models
       },
       civitai: {
-        // SD Worker ONLY supports base Checkpoint models
-        // Source: src/backend/models/mod.rs line 10-27 (SDVersion enum)
-        // ❌ NO LoRA, ControlNet, TextualInversion, Hypernetwork support in source code
+        // SD Worker supports Stable Diffusion + FLUX base Checkpoint models
+        // Source: bin/31_sd_worker_rbee/src/backend/models/mod.rs (SDVersion enum)
+        // ✅ FLUX fully integrated (TEAM-488)
+        // ✅ LoRA support FULLY WIRED (TEAM-488)
+        // ❌ NO ControlNet, TextualInversion, Hypernetwork support
         modelTypes: [
-          'Checkpoint',   // ✅ ONLY Checkpoints (V1.5, V2.1, XL, Turbo)
+          'Checkpoint',   // ✅ Checkpoints only (SD 1.x, 2.x, XL, FLUX)
+          'LORA',         // ✅ FULLY SUPPORTED (TEAM-488)
         ],
         baseModels: [
-          // SD 1.x series
+          // SD 1.x series - ✅ SUPPORTED
           'SD 1.4',
           'SD 1.5',
-          // SD 2.x series
+          'SD 1.5 LCM',        // ✅ Scheduler variant
+          'SD 1.5 Hyper',      // ✅ Scheduler variant
+          
+          // SD 2.x series - ✅ SUPPORTED
           'SD 2.0',
           'SD 2.0 768',
           'SD 2.1',
           'SD 2.1 768',
           'SD 2.1 Unclip',
-          // SDXL series
+          
+          // SDXL series - ✅ SUPPORTED
           'SDXL 0.9',
           'SDXL 1.0',
           'SDXL 1.0 LCM',
           'SDXL Distilled',
           'SDXL Turbo',
-          // SD 3.x series
-          'SD 3',
-          'SD 3.5',
-          // FLUX series (Candle has full support!)
-          // Source: reference/candle/candle-transformers/src/models/flux/
-          // 'Flux.1 D',  // ⏳ ASPIRATIONAL - 4-6 days to integrate
-          // 'Flux.1 S',  // ⏳ ASPIRATIONAL - 4-6 days to integrate
+          'SDXL Lightning',    // ✅ Scheduler variant
+          'SDXL Hyper',        // ✅ Scheduler variant
+          
+          // FLUX series - ✅ FULLY INTEGRATED (TEAM-488)
+          // Source: bin/31_sd_worker_rbee/src/backend/models/flux/
+          'Flux.1 D',          // ✅ FLUX.1-dev (50 steps, guidance 3.5)
+          'Flux.1 S',          // ✅ FLUX.1-schnell (4 steps, fast)
+          'Flux.1 Krea',       // ✅ Compatible (FLUX fine-tune)
+          'Flux.1 Kontext',    // ✅ Compatible (FLUX fine-tune)
+          
+          // Anime/Character models - ✅ SUPPORTED (SDXL fine-tunes)
+          'Illustrious',       // ✅ SDXL-based anime model
+          'Pony',              // ✅ Pony V6 (SDXL-based)
+          // 'Pony V7',           // ❌ NOT SUPPORTED (AuraFlow architecture)
+          'NoobAI',            // ✅ NoobAI XL (SDXL-based)
+          
+          // ❌ NOT SUPPORTED (different architectures)
+          // 'SD 3',           // ⏳ In Candle, needs integration
+          // 'SD 3.5',         // ⏳ In Candle, needs integration
+          // 'Kolors',         // ❌ Custom architecture + ChatGLM
+          // 'Aura Flow',      // ❌ Not in Candle
+          // 'PixArt α',       // ❌ Not in Candle
+          // 'PixArt Σ',       // ❌ Not in Candle
         ],
       },
     },

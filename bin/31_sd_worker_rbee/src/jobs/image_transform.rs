@@ -1,6 +1,8 @@
 // TEAM-487: Image transform job handler (img2img)
 
 use anyhow::{anyhow, Result};
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
 use image::GenericImageView;
 use operations_contract::ImageTransformRequest;
 
@@ -14,8 +16,10 @@ use crate::jobs::JobResponse;
 /// TEAM-487: Full implementation with VAE encoding and noise addition
 pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobResponse> {
     // 1. Decode base64 input image
-    let input_image = crate::backend::image_utils::base64_to_image(&req.init_image)
+    let input_image_bytes = STANDARD.decode(&req.input_image)
         .map_err(|e| anyhow!("Failed to decode input image: {}", e))?;
+    let input_image = image::load_from_memory(&input_image_bytes)
+        .map_err(|e| anyhow!("Failed to load image: {}", e))?;
 
     // 2. Get image dimensions for config
     let (img_width, img_height) = input_image.dimensions();
@@ -29,7 +33,10 @@ pub fn execute(state: JobState, req: ImageTransformRequest) -> Result<JobRespons
         seed: req.seed,
         width: img_width as usize,
         height: img_height as usize,
-        loras: vec![],  // TEAM-487: No LoRAs for now (TODO: add to request)
+        loras: req.loras.iter().map(|l| crate::backend::lora::LoRAConfig {
+            path: l.path.clone(),
+            strength: l.strength as f64,
+        }).collect(),  // TEAM-488: LoRA support wired up!
     };
 
     // 4. Create job and SSE sink

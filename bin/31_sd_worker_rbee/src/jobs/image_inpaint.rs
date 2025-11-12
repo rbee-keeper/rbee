@@ -33,7 +33,10 @@ pub fn execute(state: JobState, req: ImageInpaintRequest) -> Result<JobResponse>
         seed: req.seed,
         width: img_width as usize,
         height: img_height as usize,
-        loras: vec![],  // TEAM-487: No LoRAs for now
+        loras: req.loras.iter().map(|l| crate::backend::lora::LoRAConfig {
+            path: l.path.clone(),
+            strength: l.strength as f64,
+        }).collect(),  // TEAM-488: LoRA support wired up!
     };
     
     // 5. Create job and SSE sink

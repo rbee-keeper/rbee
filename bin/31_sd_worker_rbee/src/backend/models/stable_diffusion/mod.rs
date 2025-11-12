@@ -79,11 +79,14 @@ impl ImageModel for StableDiffusionModel {
         &self.capabilities
     }
 
-    fn generate(
+    fn generate<F>(
         &mut self,
         request: &GenerationRequest,
-        progress_callback: impl FnMut(usize, usize, Option<DynamicImage>),
-    ) -> Result<DynamicImage> {
+        progress_callback: F,
+    ) -> Result<DynamicImage>
+    where
+        F: FnMut(usize, usize, Option<DynamicImage>),
+    {
         // Dispatch based on operation type
         match (request.input_image.as_ref(), request.mask.as_ref()) {
             (Some(img), Some(mask)) => {

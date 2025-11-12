@@ -37,16 +37,16 @@ app.use(
   cors({
     origin: [
       // Development
-      'http://localhost:7836', // Hive UI
+      'http://localhost:7845', // Hive UI
       'http://localhost:7822', // Commercial
       'http://localhost:7823', // Marketplace
-      'http://localhost:8500', // Queen Rbee
-      'http://localhost:8501', // Rbee Keeper
-      'http://127.0.0.1:7836',
+      'http://localhost:7844', // Queen Rbee UI
+      'http://localhost:7843', // Rbee Keeper
+      'http://127.0.0.1:7845',
       'http://127.0.0.1:7822',
       'http://127.0.0.1:7823',
-      'http://127.0.0.1:8500',
-      'http://127.0.0.1:8501',
+      'http://127.0.0.1:7844',
+      'http://127.0.0.1:7843',
       
       // Production
       'https://marketplace.rbee.dev',

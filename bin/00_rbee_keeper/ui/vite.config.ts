@@ -16,7 +16,7 @@ export default defineConfig({
   },
   server: {
     host: 'localhost', // TEAM-XXX: mac compat - MUST use localhost (not 127.0.0.1) for Tauri v2 remote permissions
-    port: 5173, // Dedicated port for rbee-keeper UI
+    port: 7843, // Dedicated port for rbee-keeper UI
     strictPort: true, // Fail if port is in use instead of trying another
   },
   optimizeDeps: {

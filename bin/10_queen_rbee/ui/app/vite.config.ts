@@ -7,7 +7,7 @@ import wasm from 'vite-plugin-wasm'
 // https://vite.dev/config/
 export default defineConfig({
   server: {
-    port: 7834, // queen-rbee UI dev server
+    port: 7844, // queen-rbee UI dev server
     strictPort: true,
   },
   plugins: [

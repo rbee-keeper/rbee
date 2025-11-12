@@ -21,12 +21,12 @@ function slugToModelId(slug: string): string {
   // Slug format: "meta-llama-llama-2-7b-hf" -> "meta-llama/Llama-2-7b-hf"
   // URL decode first
   const decoded = decodeURIComponent(slug)
-  
+
   // If it already contains /, return as-is
   if (decoded.includes('/')) {
     return decoded
   }
-  
+
   // Otherwise, try to parse from slug format
   // Common pattern: org-name-model-name -> org-name/model-name
   const parts = decoded.split('-')
@@ -35,7 +35,7 @@ function slugToModelId(slug: string): string {
     const modelName = parts.slice(1).join('-')
     return `${org}/${modelName}`
   }
-  
+
   return decoded
 }
 
@@ -67,10 +67,7 @@ export default async function HuggingFaceModelDetailPage({ params }: Props) {
   try {
     // TEAM-477: Use marketplace-core adapter (returns normalized MarketplaceModel)
     // TEAM-478: Fetch both model data and README in parallel
-    const [model, readme] = await Promise.all([
-      fetchHuggingFaceModel(modelId),
-      fetchHuggingFaceModelReadme(modelId),
-    ])
+    const [model, readme] = await Promise.all([fetchHuggingFaceModel(modelId), fetchHuggingFaceModelReadme(modelId)])
 
     // TEAM-477: Convert MarketplaceModel to HFModelDetailData for template
     // TEAM-478: Include README in model data for 3-column layout
@@ -83,20 +80,20 @@ export default async function HuggingFaceModelDetailPage({ params }: Props) {
       likes: model.likes,
       size: model.sizeBytes ? formatBytes(model.sizeBytes) : 'Unknown',
       tags: model.tags,
-      
+
       // HF-specific metadata
       pipeline_tag: model.metadata?.pipeline_tag as string | undefined,
       library_name: model.metadata?.library_name as string | undefined,
       sha: model.metadata?.sha as string | undefined,
-      
+
       // Dates
       createdAt: model.createdAt.toISOString(),
       lastModified: model.updatedAt.toISOString(),
-      
+
       // External URL
       externalUrl: model.url,
       externalLabel: 'View on HuggingFace',
-      
+
       // TEAM-478: README markdown (displayed in first 2 columns)
       ...(readme ? { readmeMarkdown: readme } : {}),
     }

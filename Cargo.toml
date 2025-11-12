@@ -33,8 +33,28 @@ members = [
     "bin/25_rbee_hive_crates/vram-checker",
     "bin/25_rbee_hive_crates/worker-catalog",
     "bin/25_rbee_hive_crates/worker-provisioner", # TEAM-402: Worker provisioning
-    
+    "bin/25_rbee_hive_crates/model-provisioner", # TEAM-329: Removed daemon-contract (inlined into daemon-lifecycle)
 
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # LIFECYCLE CRATES — Daemon Lifecycle Management (96_lifecycle)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    
+    "bin/96_lifecycle/health-poll",              # HTTP health polling utility
+    "bin/96_lifecycle/lifecycle-shared",         # TEAM-367: Shared types and utilities
+    "bin/96_lifecycle/lifecycle-local",          # Local daemon management (ALWAYS monitored)
+    "bin/96_lifecycle/lifecycle-ssh",            # SSH daemon management (remote only)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # CONTRACT CRATES — Type-safe contracts (TEAM-285: Moved from 99 to 97)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    
+    "bin/97_contracts/artifacts-contract",  # TEAM-402: Artifact types (ModelEntry, WorkerBinary)
+    "bin/97_contracts/shared-contract",     # TEAM-284: Shared contract types (workers + hives)
+    "bin/97_contracts/worker-contract",     # TEAM-270/284: Worker contract types and API spec
+    "bin/97_contracts/hive-contract",       # TEAM-284: Hive contract types and API spec
+    "bin/97_contracts/operations-contract", # TEAM-186/284: Operations contract (queen ↔ hive)
+    "bin/97_contracts/jobs-contract",  # TEAM-305/312: Job registry contract (moved from shared_crates)
+    
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # SECURITY CRATES — Security & Compliance (TEAM-270: Reorganized)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -47,71 +67,24 @@ members = [
     "bin/98_security_crates/secrets-management",
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # LIFECYCLE CRATES — Daemon Lifecycle Management (96_lifecycle)
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    
-    "bin/96_lifecycle/health-poll",              # HTTP health polling utility
-    "bin/96_lifecycle/lifecycle-shared",         # TEAM-367: Shared types and utilities
-    "bin/96_lifecycle/lifecycle-local",          # Local daemon management (ALWAYS monitored)
-    "bin/96_lifecycle/lifecycle-ssh",            # SSH daemon management (remote only)
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # SHARED CRATES — Cross-Service Utilities (TEAM-135: Added new shared crates)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
     "bin/99_shared_crates/narration-core",
-    # TEAM-385: narration-macros removed (context injected by job-server)
-    # TEAM-135: New shared crates for consolidation
-    # TEAM-330: daemon-lifecycle split into 96_lifecycle category (RULE ZERO - focused crates)
     "bin/99_shared_crates/heartbeat-registry",  # TEAM-285: Generic heartbeat registry
     "bin/99_shared_crates/job-server",        # TEAM-154: Dual-call pattern job tracking (worker/queen/hive)
     "bin/99_shared_crates/timeout-enforcer",    # TEAM-163: Hard timeout enforcement with visual countdown
     "bin/99_shared_crates/auto-update",         # TEAM-193: Dependency-aware auto-update for binaries
-    # TEAM-290: DELETED rbee-config (file-based config deprecated)
-    # TEAM-284: DELETED daemon-sync and ssh-client (SSH/remote operations removed)
     "bin/99_shared_crates/job-client",          # Workspace automation (cargo xtask)
     "bin/99_shared_crates/ssh-config-parser",   # TEAM-365: SSH config parser for Queen discovery
     "bin/99_shared_crates/env-config",          # TEAM-XXX: Environment variable configuration
-    "bin/79_marketplace_core/marketplace-sdk",  # WASM SDK for marketplace integration
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # CONTRACT CRATES — Type-safe contracts (TEAM-285: Moved from 99 to 97)
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    
-    "bin/97_contracts/artifacts-contract",  # TEAM-402: Artifact types (ModelEntry, WorkerBinary)
-    "bin/97_contracts/shared-contract",     # TEAM-284: Shared contract types (workers + hives)
-    "bin/97_contracts/worker-contract",     # TEAM-270/284: Worker contract types and API spec
-    "bin/97_contracts/hive-contract",       # TEAM-284: Hive contract types and API spec
-    "bin/97_contracts/operations-contract", # TEAM-186/284: Operations contract (queen ↔ hive)
-    "bin/97_contracts/jobs-contract",  # TEAM-305/312: Job registry contract (moved from shared_crates)
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # CONTRACTS — API Specifications & Types
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # Contract definitions for cross-service communication.
-    
-    "contracts/api-types",       # Shared API types
-    "contracts/config-schema",   # Configuration schema
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # CONSUMER LIBRARIES — External SDKs
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # Client libraries and utilities for external developers.
-    
-    # TEAM-295: rbee-sdk moved out of Cargo workspace (WASM-only package)
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # DEVELOPER TOOLS — Build & Maintenance
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Tools for working with the monorepo.
-    
-    "tools/openapi-client",  # OpenAPI client generator
-    "tools/readme-index",    # README index generator
-    "tools/spec-extract",    # Spec extraction & validation
+
     "xtask", 
-    "bin/97_contracts/keeper-config-contract", "bin/25_rbee_hive_crates/model-provisioner", # TEAM-329: Removed daemon-contract (inlined into daemon-lifecycle)
-    
-    # TEAM-358: Removed stub-binary (directory doesn't exist)
 ]
 
 resolver = "2"

@@ -4,18 +4,17 @@ import type { MarketplaceAdapter } from '../adapter'
 import type { MarketplaceModel, PaginatedResponse } from '../common'
 import type { CivitAIListModelsParams } from './types'
 
-// Re-export list functions
-export { fetchCivitAIModels, convertCivitAIModel } from './list'
-
 // Re-export details functions
 export { fetchCivitAIModel } from './details'
+// Re-export list functions
+export { convertCivitAIModel, fetchCivitAIModels } from './list'
 
 // Re-export types
 export type * from './types'
 
+import { fetchCivitAIModel } from './details'
 // Import functions for adapter implementation
 import { fetchCivitAIModels } from './list'
-import { fetchCivitAIModel } from './details'
 
 /**
  * CivitAI Adapter - implements MarketplaceAdapter with CivitAI-specific filters

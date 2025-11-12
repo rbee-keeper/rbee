@@ -8,16 +8,15 @@ echo ""
 # TEAM-XXX: Updated from PORT_CONFIGURATION.md (v3.0, 2025-11-09)
 # 
 # Port Allocation:
-# - Desktop Apps:     5173 (keeper)
+# - Desktop Apps:     7843 (keeper)
 # - Workers (dev):    5174 (sd-worker), 7837 (llm-worker), 7838 (comfy-worker), 7839 (vllm-worker)
 # - Storybooks:       6006 (@rbee/ui), 6007 (commercial)
-# - Frontend Apps:    7811 (user-docs), 7822 (commercial), 7823 (marketplace)
-# - Backend APIs:     7833 (queen), 7835 (hive)
-# - Backend UIs:      7834 (queen-ui dev), 7836 (hive-ui dev)
+# - Frontend Apps:    7811 (gwc), 7824 (user-docs), 7822 (commercial), 7823 (marketplace), 7825 (admin)
+# - Backend APIs:     7833 (queen), 7834 (hive)
+# - Backend UIs:      7844 (queen-ui dev), 7845 (hive-ui dev)
 # - Workers (prod):   8080+ (dynamic - assigned by hive)
-# - CF Workers:       8787 (global-worker-catalog), 8788 (admin)
 #
-PORTS=(5173 5174 6006 6007 7811 7822 7823 7833 7834 7835 7836 7837 7838 7839 8080 8081 8787 8788)
+PORTS=(7843 5174 6006 6007 7811 7822 7823 7824 7825 7833 7834 7844 7845 7837 7838 7839 8080 8081)
 KILLED_ANY=false
 
 echo "Step 1: Killing processes by name..."

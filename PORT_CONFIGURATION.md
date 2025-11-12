@@ -21,17 +21,31 @@ This document is the **single source of truth** for all port assignments in the 
 
 ## Port Assignments
 
+### Desktop Applications
+
+| Service | Dev Port | Production | Description |
+|---------|----------|------------|-------------|
+| **rbee-keeper** | 7843 | N/A (Tauri) | Desktop CLI manager |
+
+**Notes:**
+- Tauri desktop application
+- No production HTTP port
+- Dev port is Vite dev server
+
+---
+
+
 ### Backend Services (HTTP APIs)
 
 | Service | Dev Port | Prod Port | Production URL | Description |
 |---------|----------|-----------|----------------|-------------|
-| **queen-rbee** | 7834 (UI) | 7833 | http://localhost:7833 | Orchestrator API + UI |
-| **rbee-hive** | 7836 (UI) | 7835 | http://localhost:7835 | Worker manager API + UI |
+| **queen-rbee** | 7844 (UI) | 7833 | {localhost}:7833 | Orchestrator API + UI |
+| **rbee-hive** | 7845 (UI) | 7834 | {localhost/remote host}:7834 | Worker manager API + UI |
 
 **Notes:**
-- Dev ports (7834, 7836) are Vite dev servers
-- Prod ports (7833, 7835) serve embedded UI from backend
-- Workers are dynamically assigned ports by hive (starting from 8080)
+- Dev ports are Vite dev servers
+- Prod ports serve embedded UI from backend
+- Workers are dynamically assigned ports by hive (starting from 7855)
 
 ---
 
@@ -41,8 +55,8 @@ This document is the **single source of truth** for all port assignments in the 
 |---------|----------|----------------|-------------|
 | **commercial** | 7822 | https://rbee.dev | Commercial site (Next.js) |
 | **marketplace** | 7823 | https://marketplace.rbee.dev | Marketplace (Next.js) |
-| **user-docs** | 7811 | https://docs.rbee.dev | Documentation (Next.js) |
-| **admin** | 8788 | https://install.rbee.dev | Admin dashboard (Hono + Cloudflare Workers) |
+| **user-docs** | 7824 | https://docs.rbee.dev | Documentation (Next.js) |
+| **admin** | 7825 | https://backend.rbee.dev | Admin dashboard (Next.js) |
 
 **Notes:**
 - All deployed to Cloudflare Pages/Workers
@@ -55,26 +69,12 @@ This document is the **single source of truth** for all port assignments in the 
 
 | Service | Dev Port | Production URL | Description |
 |---------|----------|----------------|-------------|
-| **global-worker-catalog** | 8787 | https://gwc.rbee.dev | Worker catalog API (Hono) |
-| **admin** | 8788 | https://install.rbee.dev | Admin dashboard (Hono) |
+| **global-worker-catalog** | 7811 | https://gwc.rbee.dev | Worker catalog API (Hono) |
 
 **Notes:**
 - Both use Cloudflare Workers runtime
 - Dev ports are for `wrangler dev`
 - Production uses Cloudflare Workers
-
----
-
-### Desktop Applications
-
-| Service | Dev Port | Production | Description |
-|---------|----------|------------|-------------|
-| **rbee-keeper** | 5173 | N/A (Tauri) | Desktop CLI manager |
-
-**Notes:**
-- Tauri desktop application
-- No production HTTP port
-- Dev port is Vite dev server
 
 ---
 
@@ -91,13 +91,11 @@ This document is the **single source of truth** for all port assignments in the 
 
 | Worker Type | Dev Port | Prod Port | Description |
 |-------------|----------|-----------|-------------|
-| **llm-worker** | 7837 | Dynamic | LLM inference worker |
-| **sd-worker** | 5174 | Dynamic | Stable Diffusion worker |
-| **comfy-worker** | 7838 | Dynamic | ComfyUI worker |
-| **vllm-worker** | 7839 | Dynamic | vLLM worker |
+| **llm-worker** | 7855 - 7899 | Dynamic | LLM inference worker |
+| **sd-worker** | 7855 - 7899 | Dynamic | Stable Diffusion worker |
 
 **Notes:**
-- Production ports are **dynamically assigned** by hive (starting from 8080)
+- Production ports are **dynamically assigned** by hive (starting from 7855)
 - Dev ports are fixed for local development
 - Query hive for actual worker URLs in production
 
@@ -109,13 +107,12 @@ This document is the **single source of truth** for all port assignments in the 
 
 | Range | Purpose |
 |-------|---------|
-| 5173-5174 | Vite dev servers (keeper, sd-worker) |
+| 7843-7845 | Vite dev servers |
 | 6006-6007 | Storybooks |
-| 7811 | User docs |
-| 7822-7823 | Frontend apps (commercial, marketplace) |
-| 7833-7839 | Backend services + worker dev ports |
-| 8080+ | Dynamic worker assignments (production) |
-| 8787-8788 | Cloudflare Workers dev |
+| 7822-7825 | Frontend apps (Nextjs) |
+| 7833-7834 | Backend services + worker dev ports |
+| 7855-7899 | Dynamic worker assignments (production) |
+| 7811 | Hono Cloudflare Workers dev |
 
 ---
 
@@ -125,19 +122,19 @@ This document is the **single source of truth** for all port assignments in the 
 
 | Service | URL | Type |
 |---------|-----|------|
-| **Commercial Site** | https://rbee.dev | Cloudflare Pages |
-| **Marketplace** | https://marketplace.rbee.dev | Cloudflare Pages |
-| **Documentation** | https://docs.rbee.dev | Cloudflare Pages |
-| **Admin Dashboard** | https://install.rbee.dev | Cloudflare Workers |
-| **Worker Catalog** | https://gwc.rbee.dev | Cloudflare Workers |
+| **Commercial Site** | https://rbee.dev | Nextjs Cloudflare Pages |
+| **Marketplace** | https://marketplace.rbee.dev | Nextjs Cloudflare Workers |
+| **Documentation** | https://docs.rbee.dev | Nextjs Cloudflare Pages |
+| **Admin Dashboard** | https://backend.rbee.dev | Nextjs Cloudflare Workers |
+| **Worker Catalog** | https://gwc.rbee.dev | Hono Cloudflare Workers |
 
 ### Internal/Development
 
 | Service | URL | Type |
 |---------|-----|------|
 | **Queen API** | http://localhost:7833 | Backend |
-| **Hive API** | http://localhost:7835 | Backend |
-| **Workers** | Dynamic (8080+) | Backend |
+| **Hive API** | http://localhost:7834 | Backend |
+| **Workers** | Dynamic (7855-7899) | Backend |
 
 ---
 
@@ -154,31 +151,32 @@ NEXT_PUBLIC_SITE_URL=http://localhost:7822
 VITE_MARKETPLACE_PORT=7823
 NEXT_PUBLIC_SITE_URL=http://localhost:7823
 
-# User Docs (7811)
-VITE_USER_DOCS_PORT=7811
-NEXT_PUBLIC_SITE_URL=http://localhost:7811
+# User Docs (7824)
+VITE_USER_DOCS_PORT=7824
+NEXT_PUBLIC_SITE_URL=http://localhost:7824
+
+# Admin Dashboard (7825)
+VITE_ADMIN_PORT=7825
+NEXT_PUBLIC_SITE_URL=http://localhost:7825
 ```
 
 ### Cloudflare Workers
 
 ```bash
-# Global Worker Catalog (8787)
-VITE_HONO_CATALOG_PORT=8787
-
-# Admin Dashboard (8788)
-VITE_ADMIN_PORT=8788
+# Global Worker Catalog (7811)
+VITE_HONO_CATALOG_PORT=7811
 ```
 
 ### Backend Services
 
 ```bash
-# Queen (7833 prod, 7834 dev UI)
+# Queen (7833 prod, 7844 dev UI)
 VITE_QUEEN_PORT=7833
-VITE_QUEEN_UI_DEV_PORT=7834
+VITE_QUEEN_UI_DEV_PORT=7844
 
-# Hive (7835 prod, 7836 dev UI)
-VITE_HIVE_PORT=7835
-VITE_HIVE_UI_DEV_PORT=7836
+# Hive (7834 prod, 7845 dev UI)
+VITE_HIVE_PORT=7834
+VITE_HIVE_UI_DEV_PORT=7845
 ```
 
 ---
@@ -221,7 +219,7 @@ kill -9 $(lsof -t -i:PORT_NUMBER)
 ## History
 
 ### v3.0 (2025-11-09)
-- Added admin dashboard (8788, https://install.rbee.dev)
+- Added admin dashboard (8788, https://backend.rbee.dev)
 - Documented production URLs for all services
 - Added Cloudflare Workers section
 

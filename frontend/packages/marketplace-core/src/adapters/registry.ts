@@ -1,7 +1,9 @@
 // TEAM-476: Adapter Registry - ONE place to register all vendor adapters
+// TEAM-482: Added GWC (Global Worker Catalog) adapter
 
 import type { MarketplaceAdapter } from './adapter'
 import { civitaiAdapter } from './civitai'
+import { gwcAdapter } from './gwc'
 import { huggingfaceAdapter } from './huggingface'
 
 /**
@@ -11,6 +13,7 @@ import { huggingfaceAdapter } from './huggingface'
 export const adapters = {
   civitai: civitaiAdapter,
   huggingface: huggingfaceAdapter,
+  gwc: gwcAdapter, // TEAM-482: Global Worker Catalog
   // Future: ollama, replicate, etc.
 } as const
 

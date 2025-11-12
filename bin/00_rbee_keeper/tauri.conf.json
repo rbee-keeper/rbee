@@ -5,7 +5,7 @@
   "identifier": "com.rbee.keeper",
   "build": {
     "frontendDist": "../ui/dist",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://localhost:7843",
     "beforeDevCommand": "cargo tauri-typegen generate && cd ../ui && npm run dev",
     "beforeBuildCommand": "cargo tauri-typegen generate && cd ../ui && npm run build"
   },
@@ -46,7 +46,7 @@
         "minHeight": 800,
         "decorations": false,
         "transparent": false,
-        "url": "http://localhost:5173"
+        "url": "http://localhost:7843"
       }
     ],
     "security": {
@@ -57,7 +57,7 @@
           "description": "Main window capabilities",
           "windows": ["main"],
           "remote": {
-            "urls": ["http://localhost:5173"]
+            "urls": ["http://localhost:7843"]
           },
           "permissions": [
             "core:default",

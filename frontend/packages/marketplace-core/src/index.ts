@@ -1,5 +1,6 @@
 // TEAM-476: Marketplace Core - Unified adapter interface + vendor-specific types
 // TEAM-477: Added detail fetch functions export
+// TEAM-482: Added GWC (Global Worker Catalog) adapter
 
 // Unified Adapter Interface (USE THIS!)
 export type { BaseFilterParams, MarketplaceAdapter } from './adapters/adapter'
@@ -53,5 +54,19 @@ export type {
   HuggingFaceSort,
   HuggingFaceTask,
 } from './adapters/huggingface/types'
+// GWC types (for gwc-adapter)
+export type {
+  Architecture,
+  BuildSystem,
+  BuildVariant,
+  GWCListWorkersParams,
+  GWCListWorkersResponse,
+  GWCWorker,
+  Platform,
+  WorkerImplementation,
+  WorkerType,
+} from './adapters/gwc/types'
+export { fetchGWCWorker } from './adapters/gwc/details'
+export { fetchGWCWorkers } from './adapters/gwc/list'
 export type { VendorName } from './adapters/registry'
 export { adapters, getAdapter } from './adapters/registry'

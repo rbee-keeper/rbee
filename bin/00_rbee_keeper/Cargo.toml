@@ -69,7 +69,6 @@ job-client = { path = "../99_shared_crates/job-client" }  # TEAM-259: Shared job
 # TEAM-323: DELETED queen-lifecycle and hive-lifecycle - use daemon-lifecycle directly (RULE ZERO)
 keeper-config-contract = { path = "../97_contracts/keeper-config-contract" }  # TEAM-315: Keeper configuration contract
 ssh-config-parser = { path = "../99_shared_crates/ssh-config-parser" }  # TEAM-365: Shared SSH config parser
-marketplace-sdk = { path = "../79_marketplace_core/marketplace-sdk", features = ["specta"] }  # TEAM-405: Marketplace SDK for HuggingFace/CivitAI/Worker Catalog
 artifacts-contract = { path = "../97_contracts/artifacts-contract", features = ["specta"] }  # TEAM-429: Filter types for marketplace
 
 # TEAM-293/294: Tauri v2 dependencies for GUI

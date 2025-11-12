@@ -40,14 +40,14 @@ function getPort(envVar: string, defaultPort: number): number {
 export const PORTS = {
   // Backend Services (HTTP APIs)
   queen: {
-    dev: getPort('VITE_QUEEN_UI_DEV_PORT', 7834), // Vite dev server
+    dev: getPort('VITE_QUEEN_UI_DEV_PORT', 7844), // Vite dev server
     prod: getPort('VITE_QUEEN_PORT', 7833), // Embedded in backend
     backend: getPort('VITE_QUEEN_PORT', 7833), // Backend HTTP server
   },
   hive: {
-    dev: getPort('VITE_HIVE_UI_DEV_PORT', 7836),
-    prod: getPort('VITE_HIVE_PORT', 7835),
-    backend: getPort('VITE_HIVE_PORT', 7835),
+    dev: getPort('VITE_HIVE_UI_DEV_PORT', 7845),
+    prod: getPort('VITE_HIVE_PORT', 7834),
+    backend: getPort('VITE_HIVE_PORT', 7834),
   },
   // TEAM-XXX: Worker backend ports are DYNAMIC (assigned by hive starting from 8080)
   // Only dev ports are fixed for local development
@@ -77,7 +77,7 @@ export const PORTS = {
 
   // Frontend Services (Development)
   keeper: {
-    dev: getPort('VITE_KEEPER_DEV_PORT', 5173),
+    dev: getPort('VITE_KEEPER_DEV_PORT', 7843),
     prod: null, // Tauri app, no HTTP port
   },
   commercial: {
@@ -89,7 +89,7 @@ export const PORTS = {
     prod: null, // Deployed to Cloudflare
   },
   userDocs: {
-    dev: getPort('VITE_USER_DOCS_PORT', 7811),
+    dev: getPort('VITE_USER_DOCS_PORT', 7824),
     prod: null, // Deployed to Cloudflare
   },
 
@@ -101,11 +101,11 @@ export const PORTS = {
 
   // Cloudflare Workers
   honoCatalog: {
-    dev: getPort('VITE_HONO_CATALOG_PORT', 8787),
+    dev: getPort('VITE_HONO_CATALOG_PORT', 7811),
     prod: null, // Deployed to Cloudflare
   },
   admin: {
-    dev: getPort('VITE_ADMIN_PORT', 8788),
+    dev: getPort('VITE_ADMIN_PORT', 7825),
     prod: null, // Deployed to Cloudflare
   },
 } as const

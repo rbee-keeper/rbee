@@ -7,7 +7,7 @@ import wasm from 'vite-plugin-wasm'
 // https://vite.dev/config/
 export default defineConfig({
   server: {
-    port: 7836, // rbee-hive UI dev server
+    port: 7845, // rbee-hive UI dev server
     strictPort: true,
     host: '0.0.0.0', // TEAM-378: Bind to all interfaces for remote access
   },

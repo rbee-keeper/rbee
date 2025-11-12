@@ -38,20 +38,20 @@ describe('@rbee/shared-config', () => {
     })
 
     it('should have keeper ports', () => {
-      expect(PORTS.keeper.dev).toBe(5173)
+      expect(PORTS.keeper.dev).toBe(7843)
       expect(PORTS.keeper.prod).toBeNull()
     })
 
     it('should have queen ports', () => {
-      expect(PORTS.queen.dev).toBe(7834)
+      expect(PORTS.queen.dev).toBe(7844)
       expect(PORTS.queen.prod).toBe(7833)
       expect(PORTS.queen.backend).toBe(7833)
     })
 
     it('should have hive ports', () => {
-      expect(PORTS.hive.dev).toBe(7836)
-      expect(PORTS.hive.prod).toBe(7835)
-      expect(PORTS.hive.backend).toBe(7835)
+      expect(PORTS.hive.dev).toBe(7845)
+      expect(PORTS.hive.prod).toBe(7834)
+      expect(PORTS.hive.backend).toBe(7834)
     })
 
     it('should have worker ports', () => {
@@ -80,7 +80,7 @@ describe('@rbee/shared-config', () => {
     })
 
     it('should have userDocs ports', () => {
-      expect(PORTS.userDocs.dev).toBe(7811)
+      expect(PORTS.userDocs.dev).toBe(7824)
       expect(PORTS.userDocs.prod).toBeNull()
     })
 
@@ -90,7 +90,7 @@ describe('@rbee/shared-config', () => {
     })
 
     it('should have honoCatalog ports', () => {
-      expect(PORTS.honoCatalog.dev).toBe(8787)
+      expect(PORTS.honoCatalog.dev).toBe(7811)
       expect(PORTS.honoCatalog.prod).toBeNull()
     })
 
@@ -105,10 +105,10 @@ describe('@rbee/shared-config', () => {
     it('should return HTTP origins by default', () => {
       const origins = getAllowedOrigins()
 
-      expect(origins).toContain('http://localhost:7834') // queen dev
+      expect(origins).toContain('http://localhost:7844') // queen dev
       expect(origins).toContain('http://localhost:7833') // queen prod
-      expect(origins).toContain('http://localhost:7836') // hive dev
-      expect(origins).toContain('http://localhost:7835') // hive prod
+      expect(origins).toContain('http://localhost:7845') // hive dev
+      expect(origins).toContain('http://localhost:7834') // hive prod
       expect(origins).toContain('http://localhost:7837') // llm worker dev
       expect(origins).toContain('http://localhost:8080') // llm worker prod
       expect(origins).toContain('http://localhost:5174') // sd worker dev
@@ -122,14 +122,14 @@ describe('@rbee/shared-config', () => {
     it('should not include keeper', () => {
       const origins = getAllowedOrigins()
 
-      expect(origins).not.toContain('http://localhost:5173')
+      expect(origins).not.toContain('http://localhost:7843')
     })
 
     it('should include HTTPS when requested', () => {
       const origins = getAllowedOrigins(true)
 
       expect(origins).toContain('https://localhost:7833') // queen prod
-      expect(origins).toContain('https://localhost:7835') // hive prod
+      expect(origins).toContain('https://localhost:7834') // hive prod
       expect(origins).toContain('https://localhost:8080') // llm worker prod
       expect(origins).toContain('https://localhost:8081') // sd worker prod
       expect(origins).toContain('https://localhost:8188') // comfy worker prod
@@ -139,8 +139,8 @@ describe('@rbee/shared-config', () => {
     it('should not include HTTPS for dev ports', () => {
       const origins = getAllowedOrigins(true)
 
-      expect(origins).not.toContain('https://localhost:7834') // queen dev
-      expect(origins).not.toContain('https://localhost:7836') // hive dev
+      expect(origins).not.toContain('https://localhost:7844') // queen dev
+      expect(origins).not.toContain('https://localhost:7845') // hive dev
       expect(origins).not.toContain('https://localhost:7837') // llm worker dev
       expect(origins).not.toContain('https://localhost:5174') // sd worker dev
       expect(origins).not.toContain('https://localhost:7838') // comfy worker dev
@@ -172,7 +172,7 @@ describe('@rbee/shared-config', () => {
   describe('getIframeUrl()', () => {
     it('should return dev URL for queen', () => {
       const url = getIframeUrl('queen', true)
-      expect(url).toBe('http://localhost:7834')
+      expect(url).toBe('http://localhost:7844')
     })
 
     it('should return prod URL for queen', () => {
@@ -182,12 +182,12 @@ describe('@rbee/shared-config', () => {
 
     it('should return dev URL for hive', () => {
       const url = getIframeUrl('hive', true)
-      expect(url).toBe('http://localhost:7836')
+      expect(url).toBe('http://localhost:7845')
     })
 
     it('should return prod URL for hive', () => {
       const url = getIframeUrl('hive', false)
-      expect(url).toBe('http://localhost:7835')
+      expect(url).toBe('http://localhost:7834')
     })
 
     // Note: 'worker' is not a valid ServiceName since workers are nested
@@ -195,7 +195,7 @@ describe('@rbee/shared-config', () => {
 
     it('should return dev URL for keeper', () => {
       const url = getIframeUrl('keeper', true)
-      expect(url).toBe('http://localhost:5173')
+      expect(url).toBe('http://localhost:7843')
     })
 
     it('should throw error for keeper prod', () => {
@@ -209,44 +209,44 @@ describe('@rbee/shared-config', () => {
 
     it('should support HTTPS for dev', () => {
       const url = getIframeUrl('queen', true, true)
-      expect(url).toBe('https://localhost:7834')
+      expect(url).toBe('https://localhost:7844')
     })
   })
 
   describe('getParentOrigin()', () => {
     it('should return keeper dev for queen dev port', () => {
-      const origin = getParentOrigin(7834)
-      expect(origin).toBe('http://localhost:5173')
+      const origin = getParentOrigin(7844)
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return keeper dev for hive dev port', () => {
-      const origin = getParentOrigin(7836)
-      expect(origin).toBe('http://localhost:5173')
+      const origin = getParentOrigin(7845)
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return keeper dev for llm worker dev port', () => {
       const origin = getParentOrigin(7837)
-      expect(origin).toBe('http://localhost:5173')
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return keeper dev for sd worker dev port', () => {
       const origin = getParentOrigin(5174)
-      expect(origin).toBe('http://localhost:5173')
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return keeper dev for comfy worker dev port', () => {
       const origin = getParentOrigin(7838)
-      expect(origin).toBe('http://localhost:5173')
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return keeper dev for vllm worker dev port', () => {
       const origin = getParentOrigin(7839)
-      expect(origin).toBe('http://localhost:5173')
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return keeper dev for keeper dev port', () => {
-      const origin = getParentOrigin(5173)
-      expect(origin).toBe('http://localhost:5173')
+      const origin = getParentOrigin(7843)
+      expect(origin).toBe('http://localhost:7843')
     })
 
     it('should return wildcard for queen prod port', () => {
@@ -255,7 +255,7 @@ describe('@rbee/shared-config', () => {
     })
 
     it('should return wildcard for hive prod port', () => {
-      const origin = getParentOrigin(7835)
+      const origin = getParentOrigin(7834)
       expect(origin).toBe('*')
     })
 
@@ -289,19 +289,19 @@ describe('@rbee/shared-config', () => {
     describe('dev mode', () => {
       it('should return queen dev URL', () => {
         const url = getServiceUrl('queen', 'dev')
-        expect(url).toBe('http://localhost:7834')
+        expect(url).toBe('http://localhost:7844')
       })
 
       it('should return hive dev URL', () => {
         const url = getServiceUrl('hive', 'dev')
-        expect(url).toBe('http://localhost:7836')
+        expect(url).toBe('http://localhost:7845')
       })
 
       // Note: 'worker' is not a valid ServiceName
 
       it('should return keeper dev URL', () => {
         const url = getServiceUrl('keeper', 'dev')
-        expect(url).toBe('http://localhost:5173')
+        expect(url).toBe('http://localhost:7843')
       })
     })
 
@@ -313,7 +313,7 @@ describe('@rbee/shared-config', () => {
 
       it('should return hive prod URL', () => {
         const url = getServiceUrl('hive', 'prod')
-        expect(url).toBe('http://localhost:7835')
+        expect(url).toBe('http://localhost:7834')
       })
 
       // Note: 'worker' is not a valid ServiceName
@@ -332,7 +332,7 @@ describe('@rbee/shared-config', () => {
 
       it('should return hive backend URL', () => {
         const url = getServiceUrl('hive', 'backend')
-        expect(url).toBe('http://localhost:7835')
+        expect(url).toBe('http://localhost:7834')
       })
 
       // Note: 'worker' is not a valid ServiceName
@@ -346,7 +346,7 @@ describe('@rbee/shared-config', () => {
     describe('HTTPS support', () => {
       it('should support HTTPS in dev mode', () => {
         const url = getServiceUrl('queen', 'dev', true)
-        expect(url).toBe('https://localhost:7834')
+        expect(url).toBe('https://localhost:7844')
       })
 
       it('should support HTTPS in prod mode', () => {
@@ -363,7 +363,7 @@ describe('@rbee/shared-config', () => {
     describe('default parameters', () => {
       it('should default to dev mode', () => {
         const url = getServiceUrl('queen')
-        expect(url).toBe('http://localhost:7834')
+        expect(url).toBe('http://localhost:7844')
       })
 
       it('should default to HTTP', () => {
@@ -657,9 +657,9 @@ describe('@rbee/shared-config', () => {
 
       expect(origins).not.toContain('http://localhost:7822') // commercial
       expect(origins).not.toContain('http://localhost:7823') // marketplace
-      expect(origins).not.toContain('http://localhost:7811') // userDocs
+      expect(origins).not.toContain('http://localhost:7824') // userDocs
       expect(origins).not.toContain('http://localhost:6006') // storybook
-      expect(origins).not.toContain('http://localhost:8787') // honoCatalog
+      expect(origins).not.toContain('http://localhost:7811') // honoCatalog
     })
 
     it('should return exact count of expected origins', () => {

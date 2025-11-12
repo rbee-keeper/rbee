@@ -39,6 +39,7 @@ export * from './organisms/ModelTable'
 export * from './organisms/UniversalFilterBar' // TEAM-423: Works in both SSG and GUI
 export * from './organisms/WorkerCard'
 export * from './organisms/WorkerCompatibilityList'
+export * from './organisms/WorkerListCard' // TEAM-482: Worker list card
 // Templates (Pure presentation, no hooks)
 export * from './templates/ArtifactDetailPageTemplate' // TEAM-421: Unified artifact detail template
 export * from './templates/CivitAIModelDetail' // TEAM-463: CivitAI Stable Diffusion model detail

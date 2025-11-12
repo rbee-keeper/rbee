@@ -5,21 +5,24 @@
 // TEAM-481: Refactored to use reusable HFModelListCard component
 
 import type { HuggingFaceListModelsParams } from '@rbee/marketplace-core'
-import { DevelopmentBanner } from '@rbee/ui/molecules'
 import { HFModelListCard } from '@rbee/ui/marketplace'
+import { DevelopmentBanner } from '@rbee/ui/molecules'
 import { HuggingFaceFilterBar } from '../../../components/HuggingFaceFilterBar'
 import { ModelPageContainer } from '../../../components/ModelPageContainer'
 
 export default async function HuggingFaceModelsPage({
   searchParams,
 }: {
-  searchParams: { search?: string; sort?: string; library?: string }
+  searchParams: Promise<{ search?: string; sort?: string; library?: string }>
 }) {
+  // Next.js 15: searchParams is now a Promise
+  const params = await searchParams
+  
   // Build vendor-specific filters from URL params
   const filters: HuggingFaceListModelsParams = {
-    ...(searchParams.search && { search: searchParams.search }),
-    ...(searchParams.sort && { sort: searchParams.sort as HuggingFaceListModelsParams['sort'] }),
-    ...(searchParams.library && { library: searchParams.library as HuggingFaceListModelsParams['library'] }),
+    ...(params.search && { search: params.search }),
+    ...(params.sort && { sort: params.sort as HuggingFaceListModelsParams['sort'] }),
+    ...(params.library && { library: params.library as HuggingFaceListModelsParams['library'] }),
     limit: 50,
   }
 
@@ -39,9 +42,9 @@ export default async function HuggingFaceModelsPage({
         filters={filters}
         filterBar={
           <HuggingFaceFilterBar
-            searchValue={searchParams.search || ''}
-            libraryValue={searchParams.library}
-            sortValue={searchParams.sort || 'downloads'}
+            searchValue={params.search || ''}
+            libraryValue={params.library}
+            sortValue={params.sort || 'downloads'}
           />
         }
       >

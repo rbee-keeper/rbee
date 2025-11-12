@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 7811 --webpack",
+    "dev": "next dev -p 7824 --webpack",
     "build": "NEXT_PUBLIC_SITE_URL=https://docs.rbee.dev next build --webpack",
     "comment": "TEAM-450: --webpack flag needed for both dev and build due to Nextra v4 + Next.js 16 Turbopack incompatibility",
     "start": "next start",

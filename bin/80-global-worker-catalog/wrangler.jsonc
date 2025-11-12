@@ -15,7 +15,7 @@
 		"enabled": true
 	},
 	"dev": {
-		"port": 8787
+		"port": 7811
 	},
 	/**
 	 * TEAM-457: Environment Variables for Production

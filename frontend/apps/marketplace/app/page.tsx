@@ -11,14 +11,14 @@ import { fetchModels } from '@/lib/fetchModels'
 export default async function Home() {
   // TEAM-481: Fetch trending models server-side for SEO
   const [civitaiResponse, huggingfaceResponse] = await Promise.all([
-    fetchModels<CivitAIListModelsParams>('civitai', {
+    fetchModels('civitai', {
       sort: 'Most Downloaded',
       limit: 9,
-    }),
-    fetchModels<HuggingFaceListModelsParams>('huggingface', {
+    } as CivitAIListModelsParams),
+    fetchModels('huggingface', {
       sort: 'downloads',
       limit: 9,
-    }),
+    } as HuggingFaceListModelsParams),
   ])
 
   const trendingCivitAI = civitaiResponse.items

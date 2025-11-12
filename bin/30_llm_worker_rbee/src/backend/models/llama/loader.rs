@@ -92,13 +92,6 @@ impl LlamaModel {
             max_position_embeddings as usize,
         );
 
-        Ok(Self::new(
-            model,
-            cache,
-            config,
-            vocab_size as usize,
-            device.clone(),
-            capabilities,
-        ))
+        Ok(Self::new(model, cache, config, vocab_size as usize, device.clone(), capabilities))
     }
 }

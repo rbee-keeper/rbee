@@ -14,14 +14,15 @@ mod sealed {
     pub trait Sealed {}
     
     // Only internal model types can implement Sealed
+    // TEAM-482: Updated to use new quantized module structure
     impl Sealed for crate::backend::models::llama::LlamaModel {}
-    impl Sealed for crate::backend::models::quantized::llama::QuantizedLlamaModel {}
+    impl Sealed for crate::backend::models::llama_quantized::QuantizedLlamaModel {}
     impl Sealed for crate::backend::models::mistral::MistralModel {}
     impl Sealed for crate::backend::models::phi::PhiModel {}
-    impl Sealed for crate::backend::models::quantized::phi::QuantizedPhiModel {}
+    impl Sealed for crate::backend::models::phi_quantized::QuantizedPhiModel {}
     impl Sealed for crate::backend::models::qwen::QwenModel {}
-    impl Sealed for crate::backend::models::quantized::qwen::QuantizedQwenModel {}
-    impl Sealed for crate::backend::models::quantized::gemma::QuantizedGemmaModel {}
+    impl Sealed for crate::backend::models::qwen_quantized::QuantizedQwenModel {}
+    impl Sealed for crate::backend::models::gemma_quantized::QuantizedGemmaModel {}
 }
 
 /// TEAM-482: Model capabilities for runtime feature detection

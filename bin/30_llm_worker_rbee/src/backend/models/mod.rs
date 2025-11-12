@@ -19,7 +19,12 @@ pub mod llama;
 pub mod mistral;
 pub mod phi;
 pub mod qwen;
-pub mod quantized;
+
+// TEAM-482: Quantized models at same level as regular models
+pub mod gemma_quantized;
+pub mod llama_quantized;
+pub mod phi_quantized;
+pub mod qwen_quantized;
 
 // TEAM-482: Helper functions organized in subdirectory
 pub mod helpers;
@@ -28,7 +33,10 @@ pub mod helpers;
 pub use crate::backend::traits::{arch, ModelCapabilities, ModelTrait};
 
 // TEAM-482: Re-export commonly used helper functions
-pub use helpers::{calculate_model_size, detect_architecture, detect_architecture_from_gguf, find_safetensors_files, load_config_json};
+pub use helpers::{
+    calculate_model_size, detect_architecture, detect_architecture_from_gguf,
+    find_safetensors_files, load_config_json,
+};
 
 /// TEAM-482: Enhanced macro with better ergonomics
 ///
@@ -63,15 +71,16 @@ macro_rules! delegate_to_model {
 /// TEAM-036: Added `QuantizedLlama` for GGUF support
 /// TEAM-090: Added quantized versions for Phi and Qwen
 /// TEAM-409: Added Gemma GGUF support (Mistral GGUF uses QuantizedLlama)
+/// TEAM-482: Reorganized quantized models to same level as regular models
 pub enum Model {
     Llama(llama::LlamaModel),
-    QuantizedLlama(quantized::llama::QuantizedLlamaModel),  // Also handles Mistral GGUF
+    QuantizedLlama(llama_quantized::QuantizedLlamaModel), // Also handles Mistral GGUF
     Mistral(mistral::MistralModel),
     Phi(phi::PhiModel),
-    QuantizedPhi(quantized::phi::QuantizedPhiModel),
+    QuantizedPhi(phi_quantized::QuantizedPhiModel),
     Qwen(qwen::QwenModel),
-    QuantizedQwen(quantized::qwen::QuantizedQwenModel),
-    QuantizedGemma(quantized::gemma::QuantizedGemmaModel),
+    QuantizedQwen(qwen_quantized::QuantizedQwenModel),
+    QuantizedGemma(gemma_quantized::QuantizedGemmaModel),
 }
 
 impl Model {
@@ -112,7 +121,7 @@ impl Model {
     pub fn reset_cache(&mut self) -> Result<()> {
         delegate_to_model!(self, reset_cache)
     }
-    
+
     /// Get model capabilities for runtime feature detection
     ///
     /// TEAM-482: Macro-based delegation
@@ -143,27 +152,28 @@ pub fn load_model(model_path: &str, device: &Device) -> Result<Model> {
 
         // Load appropriate quantized model based on architecture
         // TEAM-409: Added Mistral and Gemma GGUF support
+        // TEAM-482: Updated to use new module structure
         match architecture.as_str() {
             "llama" => {
-                let model = quantized::llama::QuantizedLlamaModel::load(path, device)?;
+                let model = llama_quantized::QuantizedLlamaModel::load(path, device)?;
                 Ok(Model::QuantizedLlama(model))
             }
             "mistral" => {
                 // TEAM-409: Mistral GGUF files use the same format as Llama
                 // Candle's quantized_llama loader handles both
-                let model = quantized::llama::QuantizedLlamaModel::load(path, device)?;
+                let model = llama_quantized::QuantizedLlamaModel::load(path, device)?;
                 Ok(Model::QuantizedLlama(model))
             }
             "phi" | "phi3" => {
-                let model = quantized::phi::QuantizedPhiModel::load(path, device)?;
+                let model = phi_quantized::QuantizedPhiModel::load(path, device)?;
                 return Ok(Model::QuantizedPhi(model));
             }
             "qwen" | "qwen2" => {
-                let model = quantized::qwen::QuantizedQwenModel::load(path, device)?;
+                let model = qwen_quantized::QuantizedQwenModel::load(path, device)?;
                 Ok(Model::QuantizedQwen(model))
             }
             "gemma" | "gemma2" | "gemma3" => {
-                let model = quantized::gemma::QuantizedGemmaModel::load(path, device)?;
+                let model = gemma_quantized::QuantizedGemmaModel::load(path, device)?;
                 Ok(Model::QuantizedGemma(model))
             }
             _ => bail!(
@@ -209,7 +219,7 @@ mod tests {
     use super::*;
 
     /// TEAM-482: Test that ModelTrait is object-safe
-    /// 
+    ///
     /// This test verifies that ModelTrait can be used with dynamic dispatch,
     /// enabling plugin architectures and runtime polymorphism.
     #[test]
@@ -217,23 +227,23 @@ mod tests {
         // This compiles only if ModelTrait is object-safe
         // We can't actually create instances without loading models,
         // but the type system will verify object safety at compile time
-        
+
         fn _takes_trait_object(_model: &dyn ModelTrait) {
             // This function signature proves ModelTrait is object-safe
         }
-        
+
         fn _returns_boxed_trait() -> Box<dyn ModelTrait> {
             // This return type proves we can use Box<dyn ModelTrait>
             unimplemented!("This is a compile-time test only")
         }
-        
+
         fn _uses_vec_of_traits(_models: Vec<Box<dyn ModelTrait>>) {
             // This proves we can store trait objects in collections
         }
-        
+
         // If this test compiles, ModelTrait is object-safe ✅
     }
-    
+
     #[test]
     fn test_model_capabilities_clone() {
         // Verify ModelCapabilities is Clone (needed for flexibility)

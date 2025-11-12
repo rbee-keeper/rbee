@@ -94,7 +94,7 @@ impl crate::backend::models::ModelTrait for LlamaModel {
     fn reset_cache(&mut self) -> Result<()> {
         self.reset_cache()
     }
-    
+
     fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
         &self.capabilities
     }

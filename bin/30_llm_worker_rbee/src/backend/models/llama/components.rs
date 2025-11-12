@@ -33,13 +33,6 @@ impl LlamaModel {
         device: Device,
         capabilities: crate::backend::models::ModelCapabilities,
     ) -> Self {
-        Self {
-            model,
-            cache,
-            config,
-            vocab_size,
-            device,
-            capabilities,
-        }
+        Self { model, cache, config, vocab_size, device, capabilities }
     }
 }

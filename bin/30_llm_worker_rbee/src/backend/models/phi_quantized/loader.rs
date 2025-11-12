@@ -1,31 +1,22 @@
-// TEAM-109: Audited 2025-10-18 - ✅ CLEAN - Quantized Phi GGUF support
-
-//! Quantized Phi model wrapper for GGUF files
+// TEAM-482: Created during loader/component separation
+//! Quantized Phi model loader
 //!
 //! Created by: TEAM-090
-//! Purpose: Load and run GGUF quantized Phi models
+//! Refactored by: TEAM-482 (split into components/loader)
 
 use anyhow::{Context, Result};
-use candle_core::{Device, Tensor};
+use candle_core::Device;
 use candle_transformers::models::quantized_phi3::ModelWeights;
 use observability_narration_core::n;
 use std::path::Path;
 
-/// Quantized Phi model wrapper for GGUF files
-///
-/// TEAM-090: Wraps candle-transformers `quantized_phi3` with GGUF support
-/// TEAM-482: Added capabilities
-pub struct QuantizedPhiModel {
-    model: ModelWeights,
-    eos_token_id: u32,
-    vocab_size: usize,
-    capabilities: crate::backend::models::ModelCapabilities,
-}
+use super::QuantizedPhiModel;
 
 impl QuantizedPhiModel {
     /// Load quantized Phi model from GGUF file
     ///
     /// TEAM-090: Loads GGUF files using candle's quantized model support
+    /// TEAM-482: Moved to separate loader module
     pub fn load(path: &Path, device: &Device) -> Result<Self> {
         tracing::info!(path = ?path, "Loading GGUF Phi model");
 
@@ -49,8 +40,7 @@ impl QuantizedPhiModel {
                     _ => None,
                 })
             })
-            .with_context(|| "Cannot determine vocab_size from GGUF metadata")?
-            as usize;
+            .with_context(|| "Cannot determine vocab_size from GGUF metadata")?;
 
         let eos_token_id = content
             .metadata
@@ -81,52 +71,6 @@ impl QuantizedPhiModel {
             2048,
         );
 
-        Ok(Self { model, eos_token_id, vocab_size, capabilities })
-    }
-
-    pub fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
-        self.model.forward(input_ids, position).map_err(|e| anyhow::anyhow!("{}", e))
-    }
-
-    pub fn eos_token_id(&self) -> u32 {
-        self.eos_token_id
-    }
-
-    pub fn vocab_size(&self) -> usize {
-        self.vocab_size
-    }
-
-    pub fn reset_cache(&mut self) -> Result<()> {
-        tracing::debug!("Quantized Phi model cache will reset on next position=0 forward pass");
-        Ok(())
-    }
-}
-
-/// TEAM-482: Implement ModelTrait for QuantizedPhiModel
-impl crate::backend::models::ModelTrait for QuantizedPhiModel {
-    fn forward(&mut self, input_ids: &Tensor, position: usize) -> Result<Tensor> {
-        self.forward(input_ids, position)
-    }
-
-    fn eos_token_id(&self) -> u32 {
-        self.eos_token_id()
-    }
-
-    #[inline]
-    fn architecture(&self) -> &'static str {
-        crate::backend::models::arch::PHI_QUANTIZED
-    }
-
-    fn vocab_size(&self) -> usize {
-        self.vocab_size()
-    }
-
-    fn reset_cache(&mut self) -> Result<()> {
-        self.reset_cache()
-    }
-    
-    #[inline]
-    fn capabilities(&self) -> &crate::backend::models::ModelCapabilities {
-        &self.capabilities
+        Ok(Self::new(model, eos_token_id, vocab_size, capabilities))
     }
 }

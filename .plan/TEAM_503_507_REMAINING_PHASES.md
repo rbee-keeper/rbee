@@ -195,16 +195,30 @@ fn rocm_fwd(&self, _storage: &RocmStorage, _layout: &Layout) -> Result<(RocmStor
 - [x] SoftmaxLastDim fully implemented ✅ PRODUCTION-READY
 - [x] Sigmoid fully implemented ✅ PRODUCTION-READY
 - [x] All operations have stubs with clear error messages ✅ COMPLETE
-- [ ] SDPA implemented (MIOpen MhaDescriptor available - 2-4 hours)
-- [ ] LayerNorm implemented (MIOpen BatchNorm or custom - 2-4 hours)
-- [ ] RoPE kernels implemented (custom HIP needed - 8-12 hours)
-- [ ] RmsNorm kernel implemented (custom HIP needed - 4-8 hours)
-- [ ] Can run transformer models on ROCm
-- [ ] Performance is comparable to CUDA
+- [x] CUDA parity verified for all unary operations ✅ TEAM-505 COMPLETE
+- [x] CUDA parity verified for all indexing operations ✅ TEAM-505 COMPLETE
+- [x] LayerNorm fully implemented ✅ TEAM-503 (HIP kernel + Rust wrapper) | TEAM-505 (CUDA parity verified) | TEAM-506 (wired up)
+- [x] RmsNorm fully implemented ✅ TEAM-503 (HIP kernel + Rust wrapper) | TEAM-505 (CUDA parity verified) | TEAM-506 (wired up)
+- [x] RoPE kernels fully implemented (all 3 variants) ✅ TEAM-503 (HIP kernels + Rust wrappers) | TEAM-505 (CUDA parity verified) | TEAM-506 (wired up)
+- [x] SDPA workaround documented ✅ TEAM-506 (manual implementation using existing ROCm ops)
+- [ ] SDPA fused kernel (MIOpen MhaDescriptor integration - 4-8 hours) - **OPTIMIZATION REMAINING**
+- [x] Can run transformer models on ROCm ✅ (using manual SDPA implementation)
+- [ ] Performance optimization needed (fused SDPA kernel)
 
-**Status:** ⚠️ **PHASE 5 PARTIALLY COMPLETE** - 2/8 fully implemented (25%), 6/8 have stubs with guidance
+**Status:** ✅ **PHASE 5 FUNCTIONALLY COMPLETE** - All operations working, optimization remaining
+**TEAM-503 Contribution:** ✅ HIP kernels + Rust wrappers for LayerNorm, RmsNorm, RoPE (all 3 variants)
+**TEAM-505 Contribution:** ✅ CUDA parity verification + Candle NN wiring complete for all operations
+**TEAM-506 Contribution:** ✅ CUDA parity verification for wiring + SDPA workaround documented
 
-**Remaining Effort:** 2-3 days (16-24 hours) for full completion
+**Wiring Complete:**
+- ✅ RmsNorm wired up in `/deps/candle/candle-nn/src/ops.rs` (TEAM-505 + TEAM-506 parity verified)
+- ✅ LayerNorm wired up in `/deps/candle/candle-nn/src/ops.rs` (TEAM-505 + TEAM-506 parity verified)
+- ✅ RopeI wired up in `/deps/candle/candle-nn/src/rotary_emb.rs` (TEAM-505 + TEAM-506 parity verified, bug fixed)
+- ✅ Rope wired up in `/deps/candle/candle-nn/src/rotary_emb.rs` (TEAM-505 + TEAM-506 parity verified)
+- ✅ RopeThd wired up in `/deps/candle/candle-nn/src/rotary_emb.rs` (TEAM-505 + TEAM-506 parity verified)
+- ✅ SDPA workaround documented in `/deps/candle/candle-nn/src/ops.rs` (TEAM-506)
+
+**Remaining Optimization:** 4-8 hours for fused SDPA kernel (MIOpen MhaDescriptor integration)
 
 ---
 

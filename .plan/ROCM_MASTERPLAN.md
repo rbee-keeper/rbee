@@ -11,13 +11,18 @@
 
 This masterplan outlines the complete integration of ROCm support into the rbee project, enabling LLM and Stable Diffusion workers to run on AMD GPUs with performance comparable to NVIDIA CUDA.
 
+**MAJOR UPDATE (2025-11-13):** After thorough investigation, rocm-rs already has 626 lines of HIP kernels covering 7/11 Candle operations!
+
 **Key Deliverables:**
-- ROCm device support in Candle fork
-- 11 CUDA kernels translated to HIP
+- ROCm device support in Candle fork ✅ DONE (Phase 1)
+- Add 3-4 missing kernels to rocm-rs (not Candle!) - cast, quantized, ternary, partial unary
+- Use rocm-rs built-in kernels for 7 operations (binary, fill, indexing, reduce, sort, conv via MIOpen)
 - Flash Attention integration (2-4x speedup)
 - Both workers (LLM + SD) running on AMD GPUs
 - Comprehensive test suite
 - Production-ready documentation
+
+**Work Reduction:** 31% (81KB of 259KB covered by rocm-rs)
 
 ---
 
@@ -25,10 +30,12 @@ This masterplan outlines the complete integration of ROCm support into the rbee 
 
 | Phase | Duration | Focus | Deliverable |
 |-------|----------|-------|-------------|
-| **Phase 0** | Day 1-2 | Setup rocm-rs | rocm-rs forked and building |
-| **Phase 1** | Week 1 | Candle Device | Wrap rocm-rs in Candle |
-| **Phase 2** | Week 2-3 | Kernel Compilation | 11 kernels → .hsaco binaries |
-| **Phase 3** | Week 4-5 | Backend Operations | rocBLAS/MIOpen integrated |
+| **Phase 0** | Day 1-2 | Setup rocm-rs | ✅ DONE |
+| **Phase 1** | Week 1 | Candle Device | ✅ DONE - Wrapped rocm-rs |
+| **Phase 2 - Step 1** | Week 2 | Add HIP kernels to rocm-rs | ✅ DONE - 495 lines added |
+| **Phase 2 - Step 2** | Week 2-3 | Add Rust wrappers | 📋 TODO - See STEP2 doc |
+| **Phase 2 - Step 3** | Week 3 | Integrate into Candle | 📋 TODO - See STEP3 doc |
+| **Phase 3** | Week 4-5 | Backend Operations | rocBLAS/MIOpen/rocm-rs integrated |
 | **Phase 4** | Week 6 | Flash Attention | Flash Attention integrated |
 | **Phase 5** | Week 7 | Worker Integration | Workers compile with ROCm |
 | **Phase 6** | Week 8 | Testing & Optimization | Production-ready |
@@ -508,19 +515,59 @@ This masterplan provides a clear, structured approach to integrating ROCm suppor
 
 ---
 
+## Kernels Status
+
+### ✅ COMPLETED - Added to rocm-rs
+
+**1. Cast Operations (97 lines)** ✅ DONE
+- 56 cast kernel variants for all dtype combinations
+- F32, F64, F16, I32, I64, U8, U32, BF16 support
+
+**2. Ternary Operations (52 lines)** ✅ DONE
+- 24 where/select kernel variants
+- All condition and value type combinations
+
+**3. Unary Operations (346 lines)** ✅ DONE
+- exp, log, sin, cos, sqrt, tanh
+- ceil, floor, round, erf, normcdf
+- abs, recip, neg, sqr, sign
+- gelu, gelu_erf, silu, relu, elu, sigmoid, powf, copy
+
+**Total added:** 495 lines, ~150+ kernel functions
+**File size:** 626 → 1109 lines
+
+### ❌ REMAINING - Candle-Specific
+
+**Quantization Operations (quantized.cu - 158KB)**
+- Stays in Candle (Candle-specific quantization formats)
+- Will be translated to HIP when needed
+
+### 📋 NEXT STEPS
+
+1. **Add Rust wrappers** in `rocm-rs/src/rocarray/kernels.rs`
+2. **Integrate into Candle** - Use rocm-rs kernels from Candle backend
+3. **Translate quantized.cu** to HIP (Candle-specific, stays in Candle)
+
+---
+
 **Created by:** TEAM-488  
 **Date:** 2025-11-13  
-**Status:** 📋 MASTERPLAN
+**Last Updated:** 2025-11-13 (Major findings from rocm-rs investigation)  
+**Status:** 📋 MASTERPLAN - REVISED
 
 ---
 
 ## Quick Links
 
+- **Phase 0:** `ROCM_PHASE0_SETUP_ROCM_RS.md`
 - **Phase 1:** `ROCM_PHASE1_DEVICE_SUPPORT.md`
-- **Phase 2:** `ROCM_PHASE2_KERNEL_TRANSLATION.md`
+- **Phase 2 - Step 1:** `ROCM_PHASE2_STEP1_ADD_KERNELS.md` ✅ DONE
+- **Phase 2 - Step 2:** `ROCM_PHASE2_STEP2_RUST_WRAPPERS.md` 📋 TODO
+- **Phase 2 - Step 3:** `ROCM_PHASE2_STEP3_CANDLE_INTEGRATION.md` 📋 TODO
 - **Phase 3:** `ROCM_PHASE3_BACKEND_OPERATIONS.md`
 - **Phase 4:** `ROCM_PHASE4_FLASH_ATTENTION.md`
 - **Phase 5:** `ROCM_PHASE5_WORKER_INTEGRATION.md`
+- **Phase 6:** `ROCM_PHASE6_TESTING_OPTIMIZATION.md`
 - **Phase 6:** `ROCM_PHASE6_TESTING_OPTIMIZATION.md`
 
 **Start here:** Phase 1 → Device Support

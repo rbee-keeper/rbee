@@ -1,0 +1,20 @@
+# Created by: TEAM-488
+# Ignore sensitive files and instance state
+
+# AWS
+aws/.env
+aws/.instance-id
+aws/.instance-ip
+aws/*.pem
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+
+# Credentials
+*.pem
+*.key
+.env
+credentials.json

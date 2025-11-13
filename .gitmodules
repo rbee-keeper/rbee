@@ -9,3 +9,7 @@
 	path = deps/candle
 	url = git@github.com:veighnsche/candle.git
 	branch = rocm-support
+[submodule "deps/rocm-rs"]
+	path = deps/rocm-rs
+	url = git@github.com:veighnsche/rocm-rs.git
+	branch = candle-integration

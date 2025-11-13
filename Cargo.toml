@@ -87,6 +87,12 @@ members = [
     "xtask", 
 ]
 
+# TEAM-488: Exclude external dependencies (they have their own workspaces)
+exclude = [
+    "deps/candle",      # Candle fork (has its own workspace)
+    "deps/rocm-rs",     # ROCm bindings (has its own workspace)
+]
+
 resolver = "2"
 
 [workspace.package]

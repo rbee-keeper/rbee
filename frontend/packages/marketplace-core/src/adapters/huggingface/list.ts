@@ -64,44 +64,68 @@ export function convertHFModel(model: HuggingFaceModel): MarketplaceModel {
 }
 
 /**
+ * MVP-compatible task for llm-worker-rbee
+ * Source: bin/80-global-worker-catalog/src/data.ts line 112
+ * TEAM-484: Only show models we can actually run
+ */
+const MVP_PIPELINE_TAG = 'text-generation'
+
+/**
+ * MVP-compatible library for llm-worker-rbee
+ * Source: bin/80-global-worker-catalog/src/data.ts line 115
+ */
+const MVP_LIBRARY = 'transformers'
+
+/**
  * Fetch models from HuggingFace Hub API
  *
  * API Docs: https://huggingface.co/docs/hub/en/api
  *
  * @param params - Query parameters for filtering/sorting
  * @returns Paginated response with normalized MarketplaceModel[]
+ *
+ * TEAM-484: Enforces MVP compatibility - only returns models llm-worker-rbee can run
  */
 export async function fetchHuggingFaceModels(
   params: HuggingFaceListModelsParams = {},
 ): Promise<PaginatedResponse<MarketplaceModel>> {
+  // TEAM-484: Merge user params with MVP compatibility filters
+  const mvpParams: HuggingFaceListModelsParams = {
+    ...params,
+    // Force text-generation task (llm-worker-rbee only supports this)
+    pipeline_tag: MVP_PIPELINE_TAG,
+    // Force transformers library
+    library: MVP_LIBRARY,
+  }
+
   // Build query string
   const queryParams = new URLSearchParams()
 
-  if (params.search) queryParams.append('search', params.search)
-  if (params.author) queryParams.append('author', params.author)
-  if (params.sort) queryParams.append('sort', params.sort)
-  if (params.direction) queryParams.append('direction', String(params.direction))
-  if (params.limit) queryParams.append('limit', String(params.limit))
-  if (params.full !== undefined) queryParams.append('full', String(params.full))
-  if (params.config !== undefined) queryParams.append('config', String(params.config))
+  if (mvpParams.search) queryParams.append('search', mvpParams.search)
+  if (mvpParams.author) queryParams.append('author', mvpParams.author)
+  if (mvpParams.sort) queryParams.append('sort', mvpParams.sort)
+  if (mvpParams.direction) queryParams.append('direction', String(mvpParams.direction))
+  if (mvpParams.limit) queryParams.append('limit', String(mvpParams.limit))
+  if (mvpParams.full !== undefined) queryParams.append('full', String(mvpParams.full))
+  if (mvpParams.config !== undefined) queryParams.append('config', String(mvpParams.config))
 
   // Handle filter parameter (can be string or array)
-  if (params.filter) {
-    if (Array.isArray(params.filter)) {
-      for (const f of params.filter) {
+  if (mvpParams.filter) {
+    if (Array.isArray(mvpParams.filter)) {
+      for (const f of mvpParams.filter) {
         queryParams.append('filter', f)
       }
     } else {
-      queryParams.append('filter', params.filter)
+      queryParams.append('filter', mvpParams.filter)
     }
   }
 
-  // Additional filters
-  if (params.pipeline_tag) queryParams.append('filter', `pipeline_tag:${params.pipeline_tag}`)
-  if (params.library) queryParams.append('filter', `library:${params.library}`)
-  if (params.language) queryParams.append('filter', `language:${params.language}`)
-  if (params.dataset) queryParams.append('filter', `dataset:${params.dataset}`)
-  if (params.license) queryParams.append('filter', `license:${params.license}`)
+  // Additional filters (MVP-enforced)
+  if (mvpParams.pipeline_tag) queryParams.append('filter', `pipeline_tag:${mvpParams.pipeline_tag}`)
+  if (mvpParams.library) queryParams.append('filter', `library:${mvpParams.library}`)
+  if (mvpParams.language) queryParams.append('filter', `language:${mvpParams.language}`)
+  if (mvpParams.dataset) queryParams.append('filter', `dataset:${mvpParams.dataset}`)
+  if (mvpParams.license) queryParams.append('filter', `license:${mvpParams.license}`)
 
   const url = `${HF_API_BASE}/models?${queryParams.toString()}`
 

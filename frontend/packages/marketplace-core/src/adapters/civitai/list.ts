@@ -100,6 +100,48 @@ export function convertCivitAIModel(model: CivitAIModel): MarketplaceModel {
 }
 
 /**
+ * MVP-compatible base models for sd-worker-rbee
+ * Source: bin/80-global-worker-catalog/src/data.ts lines 242-277
+ * TEAM-484: Only show models we can actually run
+ */
+const MVP_BASE_MODELS = [
+  // SD 1.x series
+  'SD 1.4',
+  'SD 1.5',
+  'SD 1.5 LCM',
+  'SD 1.5 Hyper',
+  // SD 2.x series
+  'SD 2.0',
+  'SD 2.0 768',
+  'SD 2.1',
+  'SD 2.1 768',
+  'SD 2.1 Unclip',
+  // SDXL series
+  'SDXL 0.9',
+  'SDXL 1.0',
+  'SDXL 1.0 LCM',
+  'SDXL Distilled',
+  'SDXL Turbo',
+  'SDXL Lightning',
+  'SDXL Hyper',
+  // FLUX series
+  'Flux.1 D',
+  'Flux.1 S',
+  'Flux.1 Krea',
+  'Flux.1 Kontext',
+  // Anime/Character models (SDXL-based)
+  'Illustrious',
+  'Pony',
+  'NoobAI',
+]
+
+/**
+ * MVP-compatible model types for sd-worker-rbee
+ * Source: bin/80-global-worker-catalog/src/data.ts lines 238-241
+ */
+const MVP_MODEL_TYPES = ['Checkpoint', 'LORA']
+
+/**
  * Fetch models from CivitAI API (LIST API)
  *
  * API Docs: https://developer.civitai.com/docs/api/public-rest
@@ -107,44 +149,60 @@ export function convertCivitAIModel(model: CivitAIModel): MarketplaceModel {
  * @param params - Query parameters for filtering/sorting
  * @param apiKey - Optional API key for NSFW content
  * @returns Paginated response with normalized MarketplaceModel[]
+ *
+ * TEAM-484: Enforces MVP compatibility - only returns models sd-worker-rbee can run
  */
 export async function fetchCivitAIModels(
   params: CivitAIListModelsParams = {},
   apiKey?: string,
 ): Promise<PaginatedResponse<MarketplaceModel>> {
+  // TEAM-484: Merge user params with MVP compatibility filters
+  const mvpParams: CivitAIListModelsParams = {
+    ...params,
+    // Override types to only MVP-compatible (Checkpoint, LORA)
+    types: params.types?.length
+      ? (params.types.filter((t) => MVP_MODEL_TYPES.includes(t)) as CivitAIListModelsParams['types'])
+      : (MVP_MODEL_TYPES as CivitAIListModelsParams['types']),
+    // Override baseModels to only MVP-compatible
+    baseModels: params.baseModels?.length
+      ? (params.baseModels.filter((m) => MVP_BASE_MODELS.includes(m)) as CivitAIListModelsParams['baseModels'])
+      : (MVP_BASE_MODELS as CivitAIListModelsParams['baseModels']),
+  }
+
   // Build query string
   const queryParams = new URLSearchParams()
 
-  if (params.limit) queryParams.append('limit', String(params.limit))
-  if (params.page) queryParams.append('page', String(params.page))
-  if (params.query) queryParams.append('query', params.query)
-  if (params.tag) queryParams.append('tag', params.tag)
-  if (params.username) queryParams.append('username', params.username)
-  if (params.sort) queryParams.append('sort', params.sort)
-  if (params.period) queryParams.append('period', params.period)
-  if (params.rating !== undefined) queryParams.append('rating', String(params.rating))
-  if (params.favorites !== undefined) queryParams.append('favorites', String(params.favorites))
-  if (params.hidden !== undefined) queryParams.append('hidden', String(params.hidden))
-  if (params.primaryFileOnly !== undefined) queryParams.append('primaryFileOnly', String(params.primaryFileOnly))
-  if (params.cursor) queryParams.append('cursor', params.cursor)
+  if (mvpParams.limit) queryParams.append('limit', String(mvpParams.limit))
+  if (mvpParams.page) queryParams.append('page', String(mvpParams.page))
+  if (mvpParams.query) queryParams.append('query', mvpParams.query)
+  if (mvpParams.tag) queryParams.append('tag', mvpParams.tag)
+  if (mvpParams.username) queryParams.append('username', mvpParams.username)
+  if (mvpParams.sort) queryParams.append('sort', mvpParams.sort)
+  if (mvpParams.period) queryParams.append('period', mvpParams.period)
+  if (mvpParams.rating !== undefined) queryParams.append('rating', String(mvpParams.rating))
+  if (mvpParams.favorites !== undefined) queryParams.append('favorites', String(mvpParams.favorites))
+  if (mvpParams.hidden !== undefined) queryParams.append('hidden', String(mvpParams.hidden))
+  if (mvpParams.primaryFileOnly !== undefined)
+    queryParams.append('primaryFileOnly', String(mvpParams.primaryFileOnly))
+  if (mvpParams.cursor) queryParams.append('cursor', mvpParams.cursor)
 
   // Handle types array
-  if (params.types && params.types.length > 0) {
-    for (const type of params.types) {
+  if (mvpParams.types && mvpParams.types.length > 0) {
+    for (const type of mvpParams.types) {
       queryParams.append('types', type)
     }
   }
 
   // Handle NSFW levels array (bit flags: 1,2,4,8,16)
-  if (params.nsfwLevel && params.nsfwLevel.length > 0) {
-    for (const level of params.nsfwLevel) {
+  if (mvpParams.nsfwLevel && mvpParams.nsfwLevel.length > 0) {
+    for (const level of mvpParams.nsfwLevel) {
       queryParams.append('nsfw', String(level))
     }
   }
 
   // Handle base models array
-  if (params.baseModels && params.baseModels.length > 0) {
-    for (const model of params.baseModels) {
+  if (mvpParams.baseModels && mvpParams.baseModels.length > 0) {
+    for (const model of mvpParams.baseModels) {
       queryParams.append('baseModels', model)
     }
   }

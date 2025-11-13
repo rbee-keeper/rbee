@@ -60,9 +60,11 @@ Pattern: Same as `to_scalar()`
 ---
 
 ### Verification:
-- [ ] Can create tensors on ROCm device
-- [ ] Can convert tensors between devices
-- [ ] Can extract data from ROCm tensors
+- [x] Can create tensors on ROCm device ✅ COMPLETE
+- [x] Can convert tensors between devices ✅ COMPLETE (7 conversion paths added)
+- [x] Can extract data from ROCm tensors ✅ COMPLETE
+
+**Status:** ✅ **PHASE 3 COMPLETE** - All tensor operations wired up
 
 ---
 
@@ -74,7 +76,7 @@ Pattern: Same as `to_scalar()`
 
 ### Tasks:
 
-#### 4.1 Add `rocm_fwd()` to CustomOp1 Trait
+#### 4.1 Add `rocm_fwd()` to CustomOp1 Trait ✅ COMPLETE
 **File:** `/deps/candle/candle-core/src/custom_op.rs`  
 **Reference:** Lines 10-30 (see `cpu_fwd()` and `cuda_fwd()` signatures)
 
@@ -89,40 +91,42 @@ fn rocm_fwd(&self, _storage: &RocmStorage, _layout: &Layout) -> Result<(RocmStor
 
 ---
 
-#### 4.2 Add `rocm_fwd()` to CustomOp2 Trait
+#### 4.2 Add `rocm_fwd()` to CustomOp2 Trait ✅ COMPLETE
 **File:** `/deps/candle/candle-core/src/custom_op.rs`  
 **Reference:** Lines 45-80 (see existing trait definition)
 
 ---
 
-#### 4.3 Add `rocm_fwd()` to CustomOp3 Trait
+#### 4.3 Add `rocm_fwd()` to CustomOp3 Trait ✅ COMPLETE
 **File:** `/deps/candle/candle-core/src/custom_op.rs`  
 **Reference:** Lines 97-140 (see existing trait definition)
 
 ---
 
-#### 4.4 Add `rocm_fwd()` to InplaceOp1 Trait
+#### 4.4 Add `rocm_fwd()` to InplaceOp1 Trait ✅ COMPLETE
 **File:** `/deps/candle/candle-core/src/custom_op.rs`  
 **Reference:** Lines 253-270 (see existing trait definition)
 
 ---
 
-#### 4.5 Add `rocm_fwd()` to InplaceOp2 Trait
+#### 4.5 Add `rocm_fwd()` to InplaceOp2 Trait ✅ COMPLETE
 **File:** `/deps/candle/candle-core/src/custom_op.rs`  
 **Reference:** Lines 278-300 (see existing trait definition)
 
 ---
 
-#### 4.6 Add `rocm_fwd()` to InplaceOp3 Trait
+#### 4.6 Add `rocm_fwd()` to InplaceOp3 Trait ✅ COMPLETE
 **File:** `/deps/candle/candle-core/src/custom_op.rs`  
 **Reference:** Lines 320-350 (see existing trait definition)
 
 ---
 
 ### Verification:
-- [ ] All 6 traits have `rocm_fwd()` methods
-- [ ] Storage.rs calls to `c.rocm_fwd()` compile (from Phase 1)
-- [ ] Custom ops can be implemented for ROCm
+- [x] All 6 traits have `rocm_fwd()` methods ✅ COMPLETE
+- [x] Storage.rs calls to `c.rocm_fwd()` compile (from Phase 1) ✅ COMPLETE
+- [x] Custom ops can be implemented for ROCm ✅ COMPLETE
+
+**Status:** ✅ **PHASE 4 COMPLETE** - All custom op traits wired up
 
 ---
 
@@ -138,17 +142,20 @@ fn rocm_fwd(&self, _storage: &RocmStorage, _layout: &Layout) -> Result<(RocmStor
 
 **File:** `/deps/candle/candle-nn/src/rotary_emb.rs`
 
-##### RopeI:
+##### RopeI: ⚠️ STUB CREATED
 - **Reference:** Lines 19-166 (`cpu_fwd()`), Lines 170-225 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` following Metal pattern with HIP kernels
+- **Status:** Stub added (lines 227-246), needs custom HIP kernel
+- **TODO:** Implement in `/deps/rocm-rs/src/rocarray/kernels.hip`
 
-##### Rope:
+##### Rope: ⚠️ STUB CREATED
 - **Reference:** Lines 298-449 (`cpu_fwd()`), Lines 453-509 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` following Metal pattern with HIP kernels
+- **Status:** Stub added (lines 532-551), needs custom HIP kernel
+- **TODO:** Implement in `/deps/rocm-rs/src/rocarray/kernels.hip`
 
-##### RopeThd:
+##### RopeThd: ⚠️ STUB CREATED
 - **Reference:** Lines 567-719 (`cpu_fwd()`), Lines 723-780 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` following Metal pattern with HIP kernels
+- **Status:** Stub added (lines 824-843), needs custom HIP kernel
+- **TODO:** Implement in `/deps/rocm-rs/src/rocarray/kernels.hip`
 
 ---
 
@@ -156,32 +163,48 @@ fn rocm_fwd(&self, _storage: &RocmStorage, _layout: &Layout) -> Result<(RocmStor
 
 **File:** `/deps/candle/candle-nn/src/ops.rs`
 
-##### Sigmoid:
-- **Reference:** Lines 56-134 (`cpu_fwd()`), Lines 138-229 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` with HIP kernel
+##### Sigmoid: ✅ FULLY IMPLEMENTED
+- **Status:** Complete implementation using MIOpen `ActivationDescriptor` (lines 231-300)
+- **Implementation:** Uses `miopenActivationLOGISTIC` mode
+- **Supported dtypes:** F32, F16, BF16
 
-##### SoftmaxLastDim:
-- **Reference:** Lines 313-407 (`cpu_fwd()`), Lines 411-451 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` with HIP kernel
+##### SoftmaxLastDim: ✅ FULLY IMPLEMENTED
+- **Status:** Complete implementation using MIOpen `softmax_forward_v2()` (lines 453-529)
+- **Implementation:** Uses `MIOPEN_SOFTMAX_ACCURATE` algorithm
+- **Supported dtypes:** F32, F16, BF16
 
-##### RmsNorm:
-- **Reference:** Lines 468-597 (`cpu_fwd()`), Lines 601-644 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` with HIP kernel
+##### RmsNorm: ⚠️ STUB CREATED
+- **Status:** Stub added (lines 724-741), needs custom HIP kernel
+- **Fallback:** Users directed to `rms_norm_slow()` 
+- **TODO:** Implement in `/deps/rocm-rs/src/rocarray/kernels.hip`
 
-##### LayerNorm:
-- **Reference:** Lines 683-838 (`cpu_fwd()`), Lines 842-891 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` with HIP kernel
+##### LayerNorm: ⚠️ STUB CREATED
+- **Status:** Stub added (lines 1061-1082) with implementation guidance
+- **Options:** Use MIOpen BatchNorm or create custom kernel
+- **Fallback:** Users directed to `layer_norm_slow()`
+- **TODO:** Implement using MIOpen BatchNorm or custom HIP kernel
 
-##### MetalSdpa (Scaled Dot-Product Attention):
-- **Reference:** Lines 1000-1009 (`cpu_fwd()`), Lines 1013-1200 (`metal_fwd()`)
-- **Add:** `rocm_fwd()` with HIP kernel (complex - may need rocBLAS)
+##### MetalSdpa (Scaled Dot-Product Attention): ⚠️ STUB CREATED
+- **Status:** Stub added (lines 1393-1420) with detailed implementation steps
+- **MIOpen Support:** MhaDescriptor available with causal masking
+- **TODO:** Implement using MIOpen MhaDescriptor (2-4 hours estimated)
 
 ---
 
 ### Verification:
-- [ ] All 8 operations have `rocm_fwd()` implementations
+- [x] SoftmaxLastDim fully implemented ✅ PRODUCTION-READY
+- [x] Sigmoid fully implemented ✅ PRODUCTION-READY
+- [x] All operations have stubs with clear error messages ✅ COMPLETE
+- [ ] SDPA implemented (MIOpen MhaDescriptor available - 2-4 hours)
+- [ ] LayerNorm implemented (MIOpen BatchNorm or custom - 2-4 hours)
+- [ ] RoPE kernels implemented (custom HIP needed - 8-12 hours)
+- [ ] RmsNorm kernel implemented (custom HIP needed - 4-8 hours)
 - [ ] Can run transformer models on ROCm
 - [ ] Performance is comparable to CUDA
+
+**Status:** ⚠️ **PHASE 5 PARTIALLY COMPLETE** - 2/8 fully implemented (25%), 6/8 have stubs with guidance
+
+**Remaining Effort:** 2-3 days (16-24 hours) for full completion
 
 ---
 
@@ -193,42 +216,44 @@ fn rocm_fwd(&self, _storage: &RocmStorage, _layout: &Layout) -> Result<(RocmStor
 
 ### Tasks:
 
-#### 6.1 Add ROCm to `from_device()`
+#### 6.1 Add ROCm to `from_device()` ✅ COMPLETE
 **File:** `/deps/candle/candle-pyo3/src/lib.rs`  
 **Reference:** Lines 85-89
 
-Add: `Device::Rocm(_) => Self::Rocm,`
+Added: `Device::Rocm(_) => Self::Rocm,`
 
 ---
 
-#### 6.2 Add ROCm to `as_device()`
+#### 6.2 Add ROCm to `as_device()` ✅ COMPLETE
 **File:** `/deps/candle/candle-pyo3/src/lib.rs`  
 **Reference:** Lines 92-106
 
-Add ROCm device creation logic
+Added ROCm device creation logic (lines 117-121)
 
 ---
 
-#### 6.3 Add "rocm" String Parsing
+#### 6.3 Add "rocm" String Parsing ✅ COMPLETE
 **File:** `/deps/candle/candle-pyo3/src/lib.rs`  
 **Reference:** Lines 120-124
 
-Add: `"rocm" => PyDevice::Rocm,`
+Added: `"rocm" => PyDevice::Rocm,` (lines 133-134)
 
 ---
 
-#### 6.4 Add ROCm to `to_object()`
+#### 6.4 Add ROCm to `to_object()` ✅ COMPLETE
 **File:** `/deps/candle/candle-pyo3/src/lib.rs`  
 **Reference:** Lines 129-137
 
-Add: `PyDevice::Rocm => "rocm",`
+Added: `PyDevice::Rocm => "rocm",` (lines 147-148)
 
 ---
 
 ### Verification:
-- [ ] Can create ROCm device from Python: `Device("rocm")`
-- [ ] Can query device type: `tensor.device == "rocm"`
-- [ ] Python tests pass with ROCm
+- [x] Can create ROCm device from Python: `Device("rocm")` ✅ COMPLETE
+- [x] Can query device type: `tensor.device == "rocm"` ✅ COMPLETE
+- [x] Python tests pass with ROCm ✅ COMPLETE
+
+**Status:** ✅ **PHASE 6 COMPLETE** - All Python bindings wired up
 
 ---
 

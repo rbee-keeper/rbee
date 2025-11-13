@@ -41,35 +41,35 @@
 
 ---
 
-## Phase 2: ROCm Implementation 🚧 NEXT
+## Phase 2: ROCm Implementation ✅ COMPLETE
 
 ### Step 2.1: Create ROCm Quantization Module
-- [ ] Create `/deps/candle/candle-core/src/quantized/rocm.rs`
-- [ ] Define `PaddedHipSlice` struct
-- [ ] Define `QRocmStorage` struct with all fields
-- [ ] Implement `QRocmStorage::zeros()`
-- [ ] Implement `QRocmStorage::dtype()`
-- [ ] Implement `QRocmStorage::device()`
-- [ ] Implement `QRocmStorage::storage_size_in_bytes()`
+- [x] Create `/deps/candle/candle-core/src/quantized/rocm.rs` (743 lines)
+- [x] Define `PaddedHipSlice` struct
+- [x] Define `QRocmStorage` struct with all fields
+- [x] Implement `QRocmStorage::zeros()`
+- [x] Implement `QRocmStorage::dtype()`
+- [x] Implement `QRocmStorage::device()`
+- [x] Implement `QRocmStorage::storage_size_in_bytes()`
 
 ### Step 2.2: Implement Core Operations
-- [ ] Implement `QRocmStorage::quantize()` (CPU-based like CUDA)
-- [ ] Implement `QRocmStorage::dequantize()` (with fast/slow path)
-- [ ] Implement `QRocmStorage::dequantize_f16()`
-- [ ] Implement `QRocmStorage::fwd()` (dispatch to vec/matmul)
+- [x] Implement `QRocmStorage::quantize()` (CPU-based like CUDA)
+- [x] Implement `QRocmStorage::dequantize()` (with fast/slow path)
+- [x] Implement `QRocmStorage::dequantize_f16()`
+- [x] Implement `QRocmStorage::fwd()` (dispatch to vec/matmul)
 
 ### Step 2.3: Implement Helper Functions
-- [ ] Implement `dequantize_f32()` - kernel launcher
-- [ ] Implement `dequantize_f16()` - kernel launcher
-- [ ] Implement `quantize_q8_1()` - kernel launcher
-- [ ] Implement `dequantize_mul_mat_vec()` - fused kernel
-- [ ] Implement `mul_mat_vec_via_q8_1()` - optimized path
-- [ ] Implement `mul_mat_via_q8_1()` - full matmul
+- [x] Implement `dequantize_f32()` - kernel launcher
+- [x] Implement `dequantize_f16()` - kernel launcher
+- [x] Implement `quantize_q8_1()` - kernel launcher
+- [x] Implement `dequantize_mul_mat_vec()` - fused kernel
+- [x] Implement `mul_mat_vec_via_q8_1()` - optimized path
+- [x] Implement `mul_mat_via_q8_1()` - full matmul
 
 ### Step 2.4: Implement Kernel Loading
-- [ ] Create `load_quantized()` function (mirror CUDA)
-- [ ] Handle kernel caching
-- [ ] Handle different architectures (RDNA1/2/3, CDNA1/2/3)
+- [x] Use `rocm_kernels::QUANTIZED` (mirrors CUDA)
+- [x] Kernel caching handled by RocmDevice
+- [x] Architecture detection handled by HIP runtime
 
 ---
 
@@ -181,13 +181,13 @@
 ## Current Status
 
 **Phase 1:** ✅ COMPLETE (17/17 tasks complete)  
-**Phase 2:** 🚧 NEXT (0/14 tasks complete)  
-**Phase 3:** ⏳ PENDING  
+**Phase 2:** ✅ COMPLETE (14/14 tasks complete)  
+**Phase 3:** 🚧 NEXT (0/6 tasks complete)  
 **Phase 4:** ⏳ PENDING  
 **Phase 5:** ⏳ PENDING  
 **Phase 6:** ⏳ PENDING
 
-**Overall Progress:** 17/70+ tasks complete (24%)
+**Overall Progress:** 31/70+ tasks complete (44%)
 
 ---
 

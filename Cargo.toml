@@ -84,7 +84,7 @@ members = [
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Tools for working with the monorepo.
 
-    "xtask", 
+    "xtask",
 ]
 
 # TEAM-488: Exclude external dependencies (they have their own workspaces)

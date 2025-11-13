@@ -59,14 +59,15 @@ too_many_lines = "allow"
 
 [dependencies]
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CANDLE — ML framework (feature-gated for CPU/CUDA/Metal)
+# CANDLE — ML framework (feature-gated for CPU/CUDA/Metal/ROCm)
+# TEAM-507: Using local path for ROCm support
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-candle-core = { git = "https://github.com/huggingface/candle.git", default-features = false }
-candle-nn = { git = "https://github.com/huggingface/candle.git", default-features = false }
-candle-transformers = { git = "https://github.com/huggingface/candle.git", default-features = false }
+candle-core = { path = "../../deps/candle/candle-core", default-features = false }
+candle-nn = { path = "../../deps/candle/candle-nn", default-features = false }
+candle-transformers = { path = "../../deps/candle/candle-transformers", default-features = false }
 
 # Flash attention (optional, CUDA only, requires Ampere/Ada/Hopper GPU)
-candle-flash-attn = { git = "https://github.com/huggingface/candle.git", optional = true }
+candle-flash-attn = { path = "../../deps/candle/candle-flash-attn", optional = true }
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # WORKER INFRASTRUCTURE — Shared with llm-worker-rbee
@@ -186,6 +187,14 @@ metal = [
     "shared-worker-rbee/metal",
 ]
 
+# TEAM-507: ROCm backend (AMD GPU)
+rocm = [
+    "candle-core/rocm",
+    "candle-nn/rocm",
+    "candle-transformers/rocm",
+    "shared-worker-rbee/rocm",
+]
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # BINARIES — Three feature-gated binaries
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -207,6 +216,12 @@ required-features = ["cuda"]
 name = "sd-worker-metal"
 path = "src/bin/metal.rs"
 required-features = ["metal"]
+
+# TEAM-507: ROCm binary (AMD GPU)
+[[bin]]
+name = "sd-worker-rocm"
+path = "src/bin/rocm.rs"
+required-features = ["rocm"]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # PROFILE CONFIGURATION

@@ -11,9 +11,10 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CANDLE — ML framework (feature-gated for CPU/CUDA/Metal)
+# CANDLE — ML framework (feature-gated for CPU/CUDA/Metal/ROCm)
+# TEAM-507: Using local path for ROCm support
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-candle-core = { git = "https://github.com/huggingface/candle.git", default-features = false }
+candle-core = { path = "../../deps/candle/candle-core", default-features = false }
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # OBSERVABILITY
@@ -56,3 +57,6 @@ cudnn = ["cuda", "candle-core/cudnn"]
 
 # Metal backend (Apple Silicon GPU)
 metal = ["candle-core/metal"]
+
+# TEAM-507: ROCm backend (AMD GPU)
+rocm = ["candle-core/rocm"]

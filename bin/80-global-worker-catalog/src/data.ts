@@ -114,6 +114,15 @@ export const WORKERS: GWCWorker[] = [
         libraries: [
           'transformers', // HuggingFace transformers library
         ],
+        formats: [
+          'gguf',         // GGUF format (llama.cpp compatible)
+          'safetensors',  // SafeTensors format
+        ],
+        // Optional: Add language support for multilingual models
+        languages: ['en', 'zh', 'fr', 'es', 'de', 'ja', 'ko', 'multilingual'],
+        // Optional: Parameter size limits (in billions)
+        minParameters: 0.1,   // Support tiny models (100M+)
+        maxParameters: 500,   // Support up to 500B models
       },
     },
   },
@@ -224,10 +233,12 @@ export const WORKERS: GWCWorker[] = [
         libraries: [
           'diffusers', // HuggingFace diffusers library
         ],
-        // Optional filters (uncomment to enable):
-        // tags: ['safetensors'],  // Only safe models (recommended)
-        // tags: ['stable-diffusion-xl', 'flux'],  // Only modern models
-        // author: ['stabilityai', 'black-forest-labs'],  // Only official models
+        formats: [
+          'safetensors',  // SafeTensors format (ONLY format supported)
+        ],
+        // Optional: Parameter size limits (in billions)
+        minParameters: 0.5,   // Support 500M+ models
+        maxParameters: 50,    // Support up to 50B models (FLUX)
       },
       civitai: {
         // SD Worker supports Stable Diffusion + FLUX base Checkpoint models

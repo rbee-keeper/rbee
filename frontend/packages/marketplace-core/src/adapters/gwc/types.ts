@@ -33,12 +33,37 @@ export type MarketplaceVendor = 'huggingface' | 'civitai'
 /**
  * HuggingFace marketplace filters
  * Defines which HF models this worker can run
+ * 
+ * TEAM-502: Expanded to support richer filter sidebar
+ * - tasks: What the model does (text-generation, image-to-image, etc.)
+ * - libraries: Framework/format (transformers, diffusers, etc.)
+ * - formats: Model file formats (gguf, safetensors, pytorch, etc.)
+ * - languages: Model training languages (optional - for multilingual models)
+ * - licenses: Acceptable model licenses (optional - for compliance)
+ * - minParameters: Minimum model size in billions (optional)
+ * - maxParameters: Maximum model size in billions (optional)
  */
 export interface HuggingFaceCompatibility {
   /** Supported HF tasks (e.g., 'text-generation', 'text-to-image') */
   tasks: string[]
+  
   /** Supported HF libraries (e.g., 'transformers', 'diffusers') */
   libraries: string[]
+  
+  /** Supported model formats (e.g., 'gguf', 'safetensors', 'pytorch') */
+  formats: string[]
+  
+  /** Supported languages (optional - for multilingual models) */
+  languages?: string[]
+  
+  /** Acceptable licenses (optional - for compliance filtering) */
+  licenses?: string[]
+  
+  /** Minimum model size in billions of parameters (optional) */
+  minParameters?: number
+  
+  /** Maximum model size in billions of parameters (optional) */
+  maxParameters?: number
 }
 
 /**

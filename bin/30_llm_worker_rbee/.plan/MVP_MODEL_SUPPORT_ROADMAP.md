@@ -2,7 +2,38 @@
 
 **Created by:** TEAM-481  
 **Date:** 2025-11-12  
+**Updated by:** TEAM-502  
+**Date:** 2025-11-13  
 **Status:** PLANNING
+
+## 🎯 TEAM-502 Analysis: Filter Coverage (2025-11-13)
+
+**Question:** Are our HuggingFace filters (`filter=gguf,safetensors`) too narrow?
+
+**Answer:** ✅ **NO! Our filters are perfect.**
+
+### Key Findings
+
+**Coverage of Top 50 Most Downloaded Models:**
+- ✅ **94% have safetensors or GGUF** (47/50 models)
+- ✅ **75% are already supported by rbee** (15/20 top models)
+- ❌ Only 6% are PyTorch-only (3/50 models)
+
+**Architecture Support:**
+- ✅ Llama (17.8M+ downloads) - FULLY SUPPORTED
+- ✅ Qwen (94M+ downloads) - FULLY SUPPORTED
+- ✅ Mistral (3.2M+ downloads) - FULLY SUPPORTED
+- ✅ Phi - FULLY SUPPORTED
+- ⚠️ Gemma (2.5M+ downloads) - GGUF only (need safetensors)
+- ❌ GPT-2 (11.9M downloads) - NOT SUPPORTED (#1 most downloaded!)
+- ❌ GPT-OSS (8.6M downloads) - NOT SUPPORTED
+- ❌ BLOOM (2.8M downloads) - NOT SUPPORTED
+
+**Recommendation:** Keep current filters. Focus on adding missing architectures (GPT-2, Gemma safetensors).
+
+**Full Analysis:** `.docs/TEAM_502_FILTER_ANALYSIS_POPULAR_MODELS.md`
+
+---
 
 ## Executive Summary
 
@@ -26,6 +57,18 @@ This document outlines the model support roadmap for rbee's LLM worker to achiev
    - Qwen2, Qwen2.5 (94M+ downloads for Qwen2.5-1.5B-Instruct)
 5. **Gemma** (GGUF only)
    - Gemma, Gemma 2, Gemma 3
+
+## Priority 0: CRITICAL - Most Downloaded Model 🚨
+
+### 0. GPT-2 ⭐⭐⭐⭐⭐ (TEAM-502 FINDING)
+- **Why:** #1 MOST DOWNLOADED MODEL (11.9M downloads!)
+- **Candle Support:** ✅ YES (`candle-transformers/src/models/gpt2.rs`)
+- **Implementation Effort:** LOW (existing candle example)
+- **Files to add:**
+  - `src/backend/models/gpt2.rs` (safetensors)
+  - `src/backend/models/quantized_gpt2.rs` (GGUF)
+- **Impact:** CRITICAL - #1 most downloaded model, widely used for testing
+- **Note:** Legacy model but still extremely popular
 
 ## Priority 1: High-Impact Models (MVP Critical) 🔥
 

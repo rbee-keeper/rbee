@@ -1,4 +1,26 @@
 // TEAM-476: HuggingFace API types based on https://huggingface.co/docs/hub/en/api
+// TEAM-502: Added comprehensive filter documentation and recommended defaults
+
+/**
+ * RECOMMENDED FILTERS FOR rbee WORKERS
+ * 
+ * LLM Worker (text-generation):
+ * - pipeline_tag: 'text-generation'
+ * - library: 'transformers'
+ * - filter: 'gguf,safetensors'  // Both formats supported
+ * 
+ * SD Worker (text-to-image):
+ * - pipeline_tag: 'text-to-image'
+ * - library: 'diffusers'
+ * - filter: 'safetensors'  // Only safetensors supported
+ * 
+ * IMPORTANT: The 'filter' parameter accepts comma-separated tags.
+ * Use 'gguf,safetensors' to get models with EITHER format.
+ * 
+ * Example API calls:
+ * - LLM: https://huggingface.co/api/models?limit=50&pipeline_tag=text-generation&library=transformers&filter=gguf,safetensors
+ * - SD:  https://huggingface.co/api/models?limit=50&pipeline_tag=text-to-image&library=diffusers&filter=safetensors
+ */
 
 /**
  * HuggingFace Model Tags

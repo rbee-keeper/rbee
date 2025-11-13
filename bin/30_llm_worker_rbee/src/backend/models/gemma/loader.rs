@@ -28,8 +28,9 @@ impl GemmaModel {
         // TEAM-482: Use helper to create VarBuilder
         let vb = create_varbuilder(&safetensor_files, device)?;
 
-        // Build model (use_flash_attn = false for compatibility)
-        let model = Model::new(false, &config, vb).context("Failed to load Gemma model")?;
+        // TEAM-487: Enable flash attention when available (CUDA builds)
+        let use_flash_attn = cfg!(feature = "flash-attn");
+        let model = Model::new(use_flash_attn, &config, vb).context("Failed to load Gemma model")?;
 
         // Extract metadata from config
         let vocab_size = config.vocab_size;
@@ -39,6 +40,7 @@ impl GemmaModel {
             architecture = "gemma",
             vocab_size = vocab_size,
             eos_token_id = eos_token_id,
+            use_flash_attn = use_flash_attn,  // TEAM-487: Log flash attention status
             "Loaded Gemma model"
         );
 

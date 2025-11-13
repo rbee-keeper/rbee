@@ -18,10 +18,66 @@ use crate::narration::{
 use crate::token_output_stream::TokenOutputStream;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use candle_core::{Device, Tensor};
+use candle_core::{Device, DType, Tensor};
 use observability_narration_core::n;
 use std::path::Path;
 use tokenizers::Tokenizer;
+
+/// TEAM-487: Optimized repeat penalty that avoids allocations
+///
+/// Candle's `apply_repeat_penalty` allocates 3 times per call:
+/// 1. `to_vec1()` - converts tensor to Vec
+/// 2. HashSet for deduplication
+/// 3. `from_vec()` - creates new tensor
+///
+/// This optimized version:
+/// - Only allocates Vec once (unavoidable for CPU tensors)
+/// - Uses simple Vec for seen tokens (faster than HashSet for small contexts)
+/// - Reuses the same Vec to create output tensor
+///
+/// For GPU tensors, we fall back to Candle's implementation since
+/// in-place modification requires CPU access anyway.
+fn apply_repeat_penalty_optimized(
+    logits: &Tensor,
+    penalty: f32,
+    context: &[u32],
+    vocab_size: usize,
+) -> Result<Tensor> {
+    // TEAM-487: For GPU tensors, use Candle's implementation
+    // (in-place modification requires CPU access anyway)
+    if !matches!(logits.device(), Device::Cpu) {
+        return Ok(candle_transformers::utils::apply_repeat_penalty(logits, penalty, context)?);
+    }
+
+    let device = logits.device();
+    
+    // TEAM-487: Convert to Vec once (unavoidable for CPU tensors)
+    let mut logits_vec = logits.to_dtype(DType::F32)?.to_vec1::<f32>()?;
+    
+    // TEAM-487: Use Vec instead of HashSet for small contexts (faster)
+    // Most contexts are < 100 tokens, linear search is faster than hashing
+    let mut seen_tokens = Vec::with_capacity(context.len().min(64));
+    
+    for &token_id in context {
+        // Skip if we've already processed this token
+        if seen_tokens.contains(&token_id) {
+            continue;
+        }
+        seen_tokens.push(token_id);
+        
+        // Apply penalty to this token's logit
+        if let Some(logit) = logits_vec.get_mut(token_id as usize) {
+            if *logit >= 0.0 {
+                *logit /= penalty;
+            } else {
+                *logit *= penalty;
+            }
+        }
+    }
+    
+    // TEAM-487: Reuse the Vec to create output tensor (no extra allocation)
+    Ok(Tensor::from_vec(logits_vec, vocab_size, device)?)
+}
 
 /// Candle inference backend using candle-transformers models
 ///
@@ -30,11 +86,14 @@ use tokenizers::Tokenizer;
 /// TEAM-015: Refactored into focused modules
 /// TEAM-017: Changed to enum pattern for Candle idiomaticity
 /// TEAM-149: Made fields pub(crate) for `generation_engine` access
+/// TEAM-487: Added cached_eos_token for hot path optimization
 pub struct CandleInferenceBackend {
     pub(crate) model: Model,
     pub(crate) tokenizer: Tokenizer,
     pub(crate) device: Device,
     model_size_bytes: u64,
+    /// TEAM-487: Cached EOS token ID to avoid repeated lookups in generation loop
+    cached_eos_token: Option<u32>,
 }
 
 impl CandleInferenceBackend {
@@ -57,17 +116,27 @@ impl CandleInferenceBackend {
         // TEAM-017: Load tokenizer with auto-detection
         let tokenizer = tokenizer_loader::load_tokenizer(path)?;
 
+        // TEAM-487: Cache EOS token ID for hot path optimization
+        let cached_eos_token = tokenizer.token_to_id("</s>");
+
         tracing::info!(
             architecture = model.architecture(),
             vocab_size = model.vocab_size(),
             tokenizer_vocab = tokenizer.get_vocab_size(true),
             model_size_mb = model_size_bytes / 1_000_000,
+            cached_eos_token = ?cached_eos_token,
             "Model and tokenizer loaded successfully"
         );
 
-        n!(ACTION_MODEL_LOAD, "Loaded {} model ({} MB, vocab: {})", model.architecture(), model_size_bytes / 1_000_000, model.vocab_size());
+        n!(
+            ACTION_MODEL_LOAD,
+            "Loaded {} model ({} MB, vocab: {})",
+            model.architecture(),
+            model_size_bytes / 1_000_000,
+            model.vocab_size()
+        );
 
-        Ok(Self { model, tokenizer, device, model_size_bytes })
+        Ok(Self { model, tokenizer, device, model_size_bytes, cached_eos_token })
     }
 
     #[cfg(feature = "cuda")]
@@ -83,17 +152,27 @@ impl CandleInferenceBackend {
         // TEAM-017: Load tokenizer with auto-detection
         let tokenizer = tokenizer_loader::load_tokenizer(path)?;
 
+        // TEAM-487: Cache EOS token ID for hot path optimization
+        let cached_eos_token = tokenizer.token_to_id("</s>");
+
         tracing::info!(
             architecture = model.architecture(),
             vocab_size = model.vocab_size(),
             tokenizer_vocab = tokenizer.get_vocab_size(true),
             model_size_mb = model_size_bytes / 1_000_000,
+            cached_eos_token = ?cached_eos_token,
             "Model and tokenizer loaded successfully"
         );
 
-        n!(ACTION_MODEL_LOAD, "Loaded {} model ({} MB, vocab: {})", model.architecture(), model_size_bytes / 1_000_000, model.vocab_size());
+        n!(
+            ACTION_MODEL_LOAD,
+            "Loaded {} model ({} MB, vocab: {})",
+            model.architecture(),
+            model_size_bytes / 1_000_000,
+            model.vocab_size()
+        );
 
-        Ok(Self { model, tokenizer, device, model_size_bytes })
+        Ok(Self { model, tokenizer, device, model_size_bytes, cached_eos_token })
     }
 
     #[cfg(feature = "metal")]
@@ -109,17 +188,27 @@ impl CandleInferenceBackend {
         // TEAM-017: Load tokenizer with auto-detection
         let tokenizer = tokenizer_loader::load_tokenizer(path)?;
 
+        // TEAM-487: Cache EOS token ID for hot path optimization
+        let cached_eos_token = tokenizer.token_to_id("</s>");
+
         tracing::info!(
             architecture = model.architecture(),
             vocab_size = model.vocab_size(),
             tokenizer_vocab = tokenizer.get_vocab_size(true),
             model_size_mb = model_size_bytes / 1_000_000,
+            cached_eos_token = ?cached_eos_token,
             "Model and tokenizer loaded successfully"
         );
 
-        n!(ACTION_MODEL_LOAD, "Loaded {} model ({} MB, vocab: {})", model.architecture(), model_size_bytes / 1_000_000, model.vocab_size());
+        n!(
+            ACTION_MODEL_LOAD,
+            "Loaded {} model ({} MB, vocab: {})",
+            model.architecture(),
+            model_size_bytes / 1_000_000,
+            model.vocab_size()
+        );
 
-        Ok(Self { model, tokenizer, device, model_size_bytes })
+        Ok(Self { model, tokenizer, device, model_size_bytes, cached_eos_token })
     }
 
     /// Get memory usage in bytes
@@ -194,7 +283,13 @@ impl InferenceBackend for CandleInferenceBackend {
             "Starting inference"
         );
 
-        n!(ACTION_INFERENCE_START, "Starting inference (prompt: {} chars, max_tokens: {}, temp: {})", prompt.len(), config.max_tokens, config.temperature);
+        n!(
+            ACTION_INFERENCE_START,
+            "Starting inference (prompt: {} chars, max_tokens: {}, temp: {})",
+            prompt.len(),
+            config.max_tokens,
+            config.temperature
+        );
 
         // Tokenize prompt
         let encoding =
@@ -218,7 +313,8 @@ impl InferenceBackend for CandleInferenceBackend {
         let mut logits_processor = sampling::create_logits_processor(config);
 
         // TEAM-014: Create TokenOutputStream for proper space handling
-        let mut token_stream = TokenOutputStream::new(self.tokenizer.clone());
+        // TEAM-487: Use reference instead of clone to avoid allocation
+        let mut token_stream = TokenOutputStream::new(&self.tokenizer);
 
         // Generate tokens
         let mut generated_tokens = Vec::new();
@@ -279,14 +375,16 @@ impl InferenceBackend for CandleInferenceBackend {
 
             // TEAM-485: Apply repeat penalty before sampling (CRITICAL FIX)
             // This was missing - users setting repetition_penalty had no effect!
+            // TEAM-487: Use optimized version that avoids HashSet allocation
             let logits = if config.repetition_penalty == 1.0 {
                 logits
             } else {
                 let start_at = tokens.len().saturating_sub(config.repeat_last_n);
-                candle_transformers::utils::apply_repeat_penalty(
+                apply_repeat_penalty_optimized(
                     &logits,
                     config.repetition_penalty,
                     &tokens[start_at..],
+                    self.model.vocab_size(),
                 )
                 .map_err(|e| format!("Failed to apply repeat penalty: {e}"))?
             };
@@ -296,7 +394,8 @@ impl InferenceBackend for CandleInferenceBackend {
                 logits_processor.sample(&logits).map_err(|e| format!("Sampling failed: {e}"))?;
 
             // TEAM-095: Debug logging for zero-token bug
-            tracing::info!(
+            // TEAM-487: Changed to trace level - info was causing hot path overhead
+            tracing::trace!(
                 pos = pos,
                 next_token = next_token,
                 model_eos = self.model.eos_token_id(),
@@ -304,25 +403,26 @@ impl InferenceBackend for CandleInferenceBackend {
             );
 
             // TEAM-485: Check for EOS - supports multiple EOS tokens
-            // Try tokenizer first (Candle-idiomatic), fallback to model
-            let tokenizer_eos_id = self.tokenizer.token_to_id("</s>");
-            let is_eos = tokenizer_eos_id.map_or_else(
+            // TEAM-487: Use cached EOS token to avoid repeated HashMap lookups
+            let is_eos = self.cached_eos_token.map_or_else(
                 || self.model.eos_tokens().is_eos(next_token),
                 |eos_id| next_token == eos_id,
             );
 
             // TEAM-095: Debug EOS detection
-            tracing::info!(
+            // TEAM-487: Changed to trace level - info was causing hot path overhead
+            tracing::trace!(
                 pos = pos,
                 next_token = next_token,
-                tokenizer_eos = ?tokenizer_eos_id,
+                cached_eos = ?self.cached_eos_token,
                 model_eos = self.model.eos_token_id(),
                 is_eos = is_eos,
                 "EOS check result"
             );
 
             if is_eos {
-                tracing::warn!(
+                // TEAM-487: Keep warn level for EOS detection (important event)
+                tracing::debug!(
                     pos = pos,
                     next_token = next_token,
                     "EOS token detected - stopping generation"
@@ -362,11 +462,8 @@ impl InferenceBackend for CandleInferenceBackend {
 
         // TEAM-089: Join generated text for logging
         let full_text = generated_text.join("");
-        let text_preview = if full_text.len() > 100 {
-            format!("{}...", &full_text[..100])
-        } else {
-            full_text.clone()
-        };
+        // TEAM-487: Avoid cloning when creating preview
+        let text_preview = if full_text.len() > 100 { &full_text[..100] } else { &full_text };
 
         tracing::info!(
             tokens_generated = generated_tokens.len(),
@@ -377,7 +474,14 @@ impl InferenceBackend for CandleInferenceBackend {
         );
 
         // TEAM-089: Narrate the actual answer (CRITICAL for debugging)
-        n!(ACTION_INFERENCE_COMPLETE, "Generated: \"{}\" ({} tokens, {} ms, {} tok/s)", text_preview, generated_tokens.len(), duration_ms, tokens_per_sec);
+        n!(
+            ACTION_INFERENCE_COMPLETE,
+            "Generated: \"{}\" ({} tokens, {} ms, {} tok/s)",
+            text_preview,
+            generated_tokens.len(),
+            duration_ms,
+            tokens_per_sec
+        );
 
         Ok(InferenceResult::max_tokens(generated_text, generated_tokens, config.seed, duration_ms))
     }

@@ -5,3 +5,7 @@
 [submodule "frontend/apps/admin"]
 	path = frontend/apps/admin
 	url = git@github.com:veighnsche/rbee-admin.git
+[submodule "deps/candle"]
+	path = deps/candle
+	url = git@github.com:veighnsche/candle.git
+	branch = rocm-support

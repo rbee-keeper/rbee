@@ -11,16 +11,27 @@ use anyhow::Result;
 
 /// Wrapper around tokenizer to ensure tokens can be returned in a streaming way
 /// with proper space handling.
-pub struct TokenOutputStream {
-    tokenizer: tokenizers::Tokenizer,
+///
+/// TEAM-487: Changed to use reference to avoid cloning tokenizer in hot path
+/// TEAM-487: Added cached_text to avoid redundant decode calls (2x per token -> 1x)
+pub struct TokenOutputStream<'a> {
+    tokenizer: &'a tokenizers::Tokenizer,
     tokens: Vec<u32>,
     prev_index: usize,
     current_index: usize,
+    /// TEAM-487: Cache of decoded text to avoid redundant decode() calls
+    cached_text: String,
 }
 
-impl TokenOutputStream {
-    pub fn new(tokenizer: tokenizers::Tokenizer) -> Self {
-        Self { tokenizer, tokens: Vec::new(), prev_index: 0, current_index: 0 }
+impl<'a> TokenOutputStream<'a> {
+    pub fn new(tokenizer: &'a tokenizers::Tokenizer) -> Self {
+        Self {
+            tokenizer,
+            tokens: Vec::new(),
+            prev_index: 0,
+            current_index: 0,
+            cached_text: String::new(), // TEAM-487: Initialize cache
+        }
     }
 
     fn decode(&self, tokens: &[u32]) -> Result<String> {
@@ -34,39 +45,46 @@ impl TokenOutputStream {
     ///
     /// Returns Some(text) when a complete word/token is ready,
     /// None if we need more tokens to form a complete unit.
+    ///
+    /// TEAM-487: Optimized to use cached_text, avoiding redundant decode() calls
     pub fn next_token(&mut self, token: u32) -> Result<Option<String>> {
-        let prev_text = if self.tokens.is_empty() {
-            String::new()
-        } else {
-            let tokens = &self.tokens[self.prev_index..self.current_index];
-            self.decode(tokens)?
-        };
+        // TEAM-487: Use cached text instead of decoding again
+        let prev_text_len = self.cached_text.len();
+
         self.tokens.push(token);
-        let text = self.decode(&self.tokens[self.prev_index..])?;
-        if text.len() > prev_text.len() && text.chars().last().unwrap().is_alphanumeric() {
-            let text = text.split_at(prev_text.len());
+
+        // TEAM-487: Decode once and cache the result
+        self.cached_text = self.decode(&self.tokens[self.prev_index..])?;
+
+        if self.cached_text.len() > prev_text_len
+            && self.cached_text.chars().last().unwrap().is_alphanumeric()
+        {
+            let result = self.cached_text[prev_text_len..].to_string();
             self.prev_index = self.current_index;
             self.current_index = self.tokens.len();
-            Ok(Some(text.1.to_string()))
+            // TEAM-487: Clear cache for next iteration
+            self.cached_text.clear();
+            Ok(Some(result))
         } else {
             Ok(None)
         }
     }
 
     /// Decode any remaining tokens
+    ///
+    /// TEAM-487: Optimized to avoid redundant decode() calls
     pub fn decode_rest(&self) -> Result<Option<String>> {
-        let prev_text = if self.tokens.is_empty() {
-            String::new()
-        } else {
-            let tokens = &self.tokens[self.prev_index..self.current_index];
-            self.decode(tokens)?
-        };
+        if self.tokens.is_empty() || self.prev_index >= self.tokens.len() {
+            return Ok(None);
+        }
+
+        // TEAM-487: Only decode once
         let text = self.decode(&self.tokens[self.prev_index..])?;
-        if text.len() > prev_text.len() {
-            let text = text.split_at(prev_text.len());
-            Ok(Some(text.1.to_string()))
-        } else {
+
+        if text.is_empty() {
             Ok(None)
+        } else {
+            Ok(Some(text))
         }
     }
 
@@ -74,5 +92,6 @@ impl TokenOutputStream {
         self.tokens.clear();
         self.prev_index = 0;
         self.current_index = 0;
+        self.cached_text.clear(); // TEAM-487: Clear cache
     }
 }

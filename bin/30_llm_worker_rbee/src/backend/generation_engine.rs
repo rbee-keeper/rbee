@@ -131,7 +131,8 @@ impl GenerationEngine {
 
         // Create sampling components
         let mut logits_processor = sampling::create_logits_processor(config);
-        let mut token_stream = TokenOutputStream::new(backend.tokenizer.clone());
+        // TEAM-487: Use reference instead of clone to avoid allocation
+        let mut token_stream = TokenOutputStream::new(&backend.tokenizer);
 
         // Generate tokens one by one
         for pos in 0..config.max_tokens {

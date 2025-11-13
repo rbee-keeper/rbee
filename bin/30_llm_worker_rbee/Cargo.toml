@@ -163,6 +163,9 @@ candle-transformers = "0.9"
 candle-kernels = { version = "0.9", optional = true }
 cudarc = { version = "0.11", optional = true, features = ["cuda-12050"] }
 
+# TEAM-487: Flash Attention for 2-4x faster GPU inference (CUDA only)
+candle-flash-attn = { version = "0.9", optional = true }
+
 # HuggingFace tokenizers (used by Candle examples)
 tokenizers = "0.15"
 
@@ -231,10 +234,14 @@ tempfile = "3.0"
 default = ["cpu"]
 
 # Backend features (mutually exclusive at build time)
-# Modified by: TEAM-007, TEAM-018
+# Modified by: TEAM-007, TEAM-018, TEAM-487
 cpu = []
-cuda = ["candle-kernels", "cudarc", "candle-core/cuda", "candle-nn/cuda"]
+cuda = ["candle-kernels", "cudarc", "candle-core/cuda", "candle-nn/cuda", "flash-attn"]
 metal = ["candle-core/metal", "candle-nn/metal"]
+
+# TEAM-487: Flash Attention feature (2-4x faster inference on CUDA)
+# Automatically enabled with CUDA backend
+flash-attn = ["candle-flash-attn", "candle-transformers/flash-attn"]
 
 # Performance benchmarking
 benchmark = []
@@ -278,3 +285,20 @@ debug = true
 
 [build-dependencies]
 shadow-rs = "0.35"
+
+# TEAM-487: Use local Candle fork (submodule) for ROCm development
+# This overrides published crates with local versions from deps/candle submodule
+# 
+# Submodule setup:
+#   - Location: deps/candle (git submodule)
+#   - Fork: veighnsche/candle
+#   - Branch: rocm-support
+#
+# To update submodule:
+#   git submodule update --remote deps/candle
+[patch.crates-io]
+candle-core = { path = "../../deps/candle/candle-core" }
+candle-nn = { path = "../../deps/candle/candle-nn" }
+candle-transformers = { path = "../../deps/candle/candle-transformers" }
+candle-kernels = { path = "../../deps/candle/candle-kernels" }
+candle-flash-attn = { path = "../../deps/candle/candle-flash-attn" }

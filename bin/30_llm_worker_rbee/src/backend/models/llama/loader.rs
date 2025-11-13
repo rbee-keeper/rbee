@@ -71,6 +71,10 @@ impl LlamaModel {
         
         let tie_word_embeddings = config_json["tie_word_embeddings"].as_bool().unwrap_or(false);
 
+        // TEAM-487: Enable flash attention when available (CUDA builds)
+        // This provides 2-4x faster inference on GPU with lower memory usage
+        let use_flash_attn = cfg!(feature = "flash-attn");
+        
         let config = Config {
             hidden_size: hidden_size as usize,
             intermediate_size: intermediate_size as usize,
@@ -85,7 +89,7 @@ impl LlamaModel {
             eos_token_id: Some(eos_token_id),
             rope_scaling: None,
             tie_word_embeddings,
-            use_flash_attn: false,
+            use_flash_attn,  // TEAM-487: Enabled for CUDA builds
         };
 
         // Create VarBuilder and load model
@@ -106,6 +110,7 @@ impl LlamaModel {
             hidden_size = hidden_size,
             num_layers = num_hidden_layers,
             vocab_size = vocab_size,
+            use_flash_attn = use_flash_attn,  // TEAM-487: Log flash attention status
             "Loaded Llama model"
         );
 

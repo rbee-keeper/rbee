@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
 				protocol: 'https',
 				hostname: 'image.civitai.com',
 			},
+			{
+				// TEAM-501: Allow worker cover images from backend.rbee.dev
+				protocol: 'https',
+				hostname: 'backend.rbee.dev',
+			},
 		],
 	},
 };

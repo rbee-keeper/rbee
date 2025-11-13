@@ -109,7 +109,12 @@ export async function fetchHuggingFaceModels(
   if (mvpParams.full !== undefined) queryParams.append('full', String(mvpParams.full))
   if (mvpParams.config !== undefined) queryParams.append('config', String(mvpParams.config))
 
-  // Handle filter parameter (can be string or array)
+  // TEAM-501: Fixed filter syntax - HuggingFace API uses direct query params, not filter=key:value
+  // Direct query parameters (MVP-enforced)
+  if (mvpParams.pipeline_tag) queryParams.append('pipeline_tag', mvpParams.pipeline_tag)
+  if (mvpParams.library) queryParams.append('library', mvpParams.library)
+
+  // Handle additional filter parameter (can be string or array) - for tags, etc.
   if (mvpParams.filter) {
     if (Array.isArray(mvpParams.filter)) {
       for (const f of mvpParams.filter) {
@@ -120,12 +125,10 @@ export async function fetchHuggingFaceModels(
     }
   }
 
-  // Additional filters (MVP-enforced)
-  if (mvpParams.pipeline_tag) queryParams.append('filter', `pipeline_tag:${mvpParams.pipeline_tag}`)
-  if (mvpParams.library) queryParams.append('filter', `library:${mvpParams.library}`)
-  if (mvpParams.language) queryParams.append('filter', `language:${mvpParams.language}`)
-  if (mvpParams.dataset) queryParams.append('filter', `dataset:${mvpParams.dataset}`)
-  if (mvpParams.license) queryParams.append('filter', `license:${mvpParams.license}`)
+  // Additional filters (if provided)
+  if (mvpParams.language) queryParams.append('language', mvpParams.language)
+  if (mvpParams.dataset) queryParams.append('dataset', mvpParams.dataset)
+  if (mvpParams.license) queryParams.append('license', mvpParams.license)
 
   const url = `${HF_API_BASE}/models?${queryParams.toString()}`
 

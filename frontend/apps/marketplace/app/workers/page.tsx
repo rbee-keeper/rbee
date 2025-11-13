@@ -52,11 +52,15 @@ export default async function WorkersPage({
 
           return (
             <div className="space-y-4">
-              {/* CARD GRID presentation for Workers (3 columns) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* CARD GRID presentation for Workers (4 columns, fixed size) - TEAM-501 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {uniqueWorkers.map((model) => {
-                  // Extract primary backend from tags (tags[1] is usually the first backend)
-                  const workerType = (model.tags[1] as 'cpu' | 'cuda' | 'metal' | 'rocm') || 'cpu'
+                  // TEAM-501: Extract all backends from tags (skip first tag which is implementation)
+                  const backends = model.tags
+                    .slice(1) // Skip first tag (rust/python/cpp)
+                    .filter((tag): tag is 'cpu' | 'cuda' | 'metal' | 'rocm' => 
+                      ['cpu', 'cuda', 'metal', 'rocm'].includes(tag)
+                    )
 
                   return (
                     <WorkerListCard
@@ -67,7 +71,7 @@ export default async function WorkersPage({
                         name: model.name,
                         description: model.description || '',
                         version: (model.metadata?.version as string) || '0.1.0',
-                        workerType,
+                        backends: backends.length > 0 ? backends : ['cpu'],
                         ...(model.imageUrl ? { imageUrl: model.imageUrl } : {}),
                       }}
                     />

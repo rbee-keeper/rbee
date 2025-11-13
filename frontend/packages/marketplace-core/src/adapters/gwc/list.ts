@@ -26,6 +26,8 @@ export function convertGWCWorker(worker: GWCWorker): MarketplaceModel {
     author: 'rbee', // All GWC workers are official rbee workers
     type: `${primaryBackend} worker`, // e.g., "cuda worker"
     description: worker.description,
+    // TEAM-501: Map coverImage to imageUrl for display
+    ...(worker.coverImage && { imageUrl: worker.coverImage }),
     tags: [
       worker.implementation, // rust, python, cpp
       ...(worker.variants?.map(v => v.backend) || []), // cpu, cuda, metal, rocm

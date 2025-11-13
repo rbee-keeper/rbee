@@ -19,7 +19,7 @@ export const WORKERS: GWCWorker[] = [
     license: 'GPL-3.0-or-later',
     coverImage: 'https://backend.rbee.dev/images/llm-worker-rbee.png',
     readmeUrl:
-      'https://raw.githubusercontent.com/rbee-keeper/rbee/refs/heads/development/bin/30_llm_worker_rbee/README.md',
+      'https://raw.githubusercontent.com/rbee-keeper/rbee/development/bin/30_llm_worker_rbee/README.md',
     buildSystem: 'cargo',
     source: {
       type: 'git',
@@ -130,7 +130,7 @@ export const WORKERS: GWCWorker[] = [
       'Candle-based Stable Diffusion inference worker for image generation. Supports CPU, CUDA, Metal, and ROCm acceleration.',
     license: 'GPL-3.0-or-later',
     coverImage: 'https://backend.rbee.dev/images/sd-worker-rbee.png',
-    readmeUrl: 'https://github.com/rbee-keeper/rbee/blob/development/bin/31_sd_worker_rbee/README.md',
+    readmeUrl: 'https://raw.githubusercontent.com/rbee-keeper/rbee/development/bin/31_sd_worker_rbee/README.md',
     buildSystem: 'cargo',
     source: {
       type: 'git',

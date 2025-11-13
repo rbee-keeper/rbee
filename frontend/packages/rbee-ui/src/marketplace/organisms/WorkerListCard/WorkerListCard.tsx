@@ -1,5 +1,6 @@
 // TEAM-482: Worker List Card - reusable component for worker listings
 // Simple card design with image support
+// TEAM-501: Fixed 1:1 aspect ratio for images, fixed card sizing
 
 'use client'
 
@@ -17,7 +18,7 @@ export interface WorkerListCardProps {
     name: string
     description: string
     version: string
-    workerType: WorkerType
+    backends: WorkerType[] // TEAM-501: Show all supported backends
     imageUrl?: string
   }
   href?: string
@@ -32,7 +33,7 @@ const workerTypeConfig = {
 }
 
 export function WorkerListCard({ worker, href, className }: WorkerListCardProps) {
-  const typeConfig = workerTypeConfig[worker.workerType] || workerTypeConfig.cpu
+  // TEAM-501: No longer need single type config, we show all backends
 
   const content = (
     <div
@@ -42,15 +43,15 @@ export function WorkerListCard({ worker, href, className }: WorkerListCardProps)
         className,
       )}
     >
-      {/* Worker image or placeholder */}
-      <div className="relative w-full h-40 bg-muted flex items-center justify-center">
+      {/* Worker image or placeholder - 1:1 aspect ratio */}
+      <div className="relative w-full aspect-square bg-muted flex items-center justify-center">
         {worker.imageUrl ? (
           <Image
             src={worker.imageUrl}
             alt={worker.name}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
           />
         ) : (
           <Cpu className="size-16 text-muted-foreground/30" />
@@ -59,15 +60,22 @@ export function WorkerListCard({ worker, href, className }: WorkerListCardProps)
 
       {/* Worker info */}
       <div className="p-4 flex-grow flex flex-col">
-        {/* Name and type */}
+        {/* Name and version */}
         <div className="mb-2">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-lg truncate flex-1">{worker.name}</h3>
-            <Badge variant={typeConfig.variant} className="text-xs shrink-0">
-              {typeConfig.label}
-            </Badge>
-          </div>
+          <h3 className="font-bold text-lg truncate">{worker.name}</h3>
           <p className="text-xs text-muted-foreground">v{worker.version}</p>
+        </div>
+
+        {/* Backend badges - subtle outline style */}
+        <div className="flex flex-wrap gap-1 mb-2">
+          {worker.backends.map((backend) => {
+            const config = workerTypeConfig[backend] || workerTypeConfig.cpu
+            return (
+              <Badge key={backend} variant="outline" className="text-xs">
+                {config.label}
+              </Badge>
+            )
+          })}
         </div>
 
         {/* Description */}

@@ -44,6 +44,7 @@ export * from './organisms/WorkerListCard' // TEAM-482: Worker list card
 export * from './templates/ArtifactDetailPageTemplate' // TEAM-421: Unified artifact detail template
 export * from './templates/CivitAIModelDetail' // TEAM-463: CivitAI Stable Diffusion model detail
 export * from './templates/HFModelDetail' // TEAM-463: HuggingFace LLM model detail
+export * from './templates/WorkerDetail' // TEAM-501: Worker detail template
 export * from './templates/WorkerListTemplate' // TEAM-463: Worker list (used in Tauri app)
 // Types
 export * from './types/compatibility'

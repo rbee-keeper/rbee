@@ -1,152 +1,96 @@
 // TEAM-482: Worker detail page - fetches from GWC API
+// TEAM-501: Refactored to match HuggingFace pattern with WorkerDetail template
 
-import type { MarketplaceModel } from '@rbee/marketplace-core'
-import { fetchGWCWorker } from '@rbee/marketplace-core'
-import { Badge } from '@rbee/ui/atoms/Badge'
-import { Button } from '@rbee/ui/atoms/Button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@rbee/ui/atoms/Card'
-import { DevelopmentBanner } from '@rbee/ui/molecules'
-import { FeatureHeader } from '@rbee/ui/molecules/FeatureHeader'
-import { Cpu, Download } from 'lucide-react'
+import { fetchGWCWorker, fetchGWCWorkerReadme } from '@rbee/marketplace-core'
+import { WorkerDetail } from '@rbee/ui/marketplace'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-interface WorkerDetailPageProps {
+// Cache for 1 hour
+export const revalidate = 3600
+
+interface Props {
   params: Promise<{ slug: string }>
 }
 
-const workerTypeConfig = {
-  cpu: { label: 'CPU', variant: 'secondary' as const },
-  cuda: { label: 'CUDA', variant: 'default' as const },
-  metal: { label: 'Metal', variant: 'accent' as const },
-  rocm: { label: 'ROCm', variant: 'destructive' as const },
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+
+  try {
+    const model = await fetchGWCWorker(slug)
+
+    return {
+      title: `${model.name} | AI Worker`,
+      description: model.description || `${model.name} - rbee AI Worker`,
+      openGraph: {
+        title: `${model.name} | AI Worker`,
+        description: model.description || `${model.name} - rbee AI Worker`,
+        images: model.imageUrl ? [{ url: model.imageUrl }] : undefined,
+      },
+    }
+  } catch {
+    return { title: 'Worker Not Found' }
+  }
 }
 
-export default async function WorkerDetailPage({ params }: WorkerDetailPageProps) {
+export default async function WorkerDetailPage({ params }: Props) {
   const { slug } = await params
-  
-  // Fetch worker from GWC API
-  let model: MarketplaceModel
+
   try {
-    model = await fetchGWCWorker(slug)
+    // TEAM-501: Fetch both worker data and README in parallel (like HuggingFace)
+    const [model, readme] = await Promise.all([fetchGWCWorker(slug), fetchGWCWorkerReadme(slug)])
+
+    // Extract all backends from tags (skip first tag which is implementation)
+    const backends = model.tags
+      .slice(1)
+      .filter((tag): tag is 'cpu' | 'cuda' | 'metal' | 'rocm' => ['cpu', 'cuda', 'metal', 'rocm'].includes(tag))
+
+    // Extract platforms and architectures
+    const platforms = model.tags.filter((t: string) => ['linux', 'macos', 'windows'].includes(t))
+    const architectures = model.tags.filter((t: string) => ['x86_64', 'aarch64'].includes(t))
+
+    // Convert MarketplaceModel to WorkerDetailData
+    const workerData = {
+      id: model.id,
+      name: model.name,
+      description: model.description || '',
+      version: (model.metadata?.version as string) || '0.1.0',
+      author: model.author,
+      license: model.license || 'Unknown',
+
+      // Backends (explicitly typed)
+      backends: (backends.length > 0 ? backends : ['cpu']) as Array<'cpu' | 'cuda' | 'metal' | 'rocm'>,
+
+      // Capabilities
+      supportedFormats: (model.metadata?.supportedFormats as string)?.split(', ') || [],
+      supportsStreaming: (model.metadata?.supportsStreaming as boolean) || false,
+      supportsBatching: (model.metadata?.supportsBatching as boolean) || false,
+      ...(model.metadata?.maxContextLength ? { maxContextLength: model.metadata.maxContextLength as number } : {}),
+
+      // Platforms
+      platforms: platforms.length > 0 ? platforms : ['linux', 'macos', 'windows'],
+      architectures: architectures.length > 0 ? architectures : ['x86_64', 'aarch64'],
+
+      // Implementation
+      implementation: (model.tags[0] as 'rust' | 'python' | 'cpp') || 'rust',
+      buildSystem: (model.metadata?.buildSystem as 'cargo' | 'cmake' | 'pip' | 'npm') || 'cargo',
+
+      // URLs
+      externalUrl: model.url,
+      externalLabel: 'View on GitHub',
+      ...(model.imageUrl ? { coverImage: model.imageUrl } : {}),
+
+      // README markdown
+      ...(readme ? { readmeMarkdown: readme } : {}),
+    }
+
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <WorkerDetail worker={workerData} />
+      </div>
+    )
   } catch (error) {
-    console.error(`Failed to fetch worker ${slug}:`, error)
+    console.error('[Worker Detail] Error:', error)
     notFound()
   }
-
-  // Extract worker type from tags (tags[1] is the backend)
-  const workerType = (model.tags[1] as 'cpu' | 'cuda' | 'metal' | 'rocm') || 'cpu'
-  const typeConfig = workerTypeConfig[workerType]
-  const version = model.metadata?.version as string || '0.1.0'
-  const backends = model.metadata?.backends as string || workerType
-  const platforms = model.tags.filter(t => ['linux', 'macos', 'windows'].includes(t))
-  const architectures = model.tags.filter(t => ['x86_64', 'aarch64'].includes(t))
-
-  return (
-    <>
-      {/* MVP Notice */}
-      <DevelopmentBanner
-        variant="mvp"
-        message="🔨 Worker detail page is under development."
-        details="Installation and configuration features coming soon."
-      />
-
-      <div className="container mx-auto py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="space-y-4">
-            <FeatureHeader title={model.name} subtitle={`Version ${version}`} />
-          </div>
-
-          {/* Main content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left column - Details */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>About</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{model.description}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Compatibility</CardTitle>
-                  <CardDescription>Supported platforms and architectures</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="text-sm font-medium mb-2">Backends</div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{backends}</Badge>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium mb-2">Platforms</div>
-                    <div className="flex flex-wrap gap-2">
-                      {platforms.length > 0 ? (
-                        platforms.map((platform) => (
-                          <Badge key={platform} variant="outline">
-                            {platform}
-                          </Badge>
-                        ))
-                      ) : (
-                        <Badge variant="outline">linux, macos, windows</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium mb-2">Architecture</div>
-                    <div className="flex flex-wrap gap-2">
-                      {architectures.length > 0 ? (
-                        architectures.map((arch) => (
-                          <Badge key={arch} variant="secondary">
-                            {arch}
-                          </Badge>
-                        ))
-                      ) : (
-                        <Badge variant="secondary">x86_64, aarch64</Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right column - Sidebar */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Cpu className="size-5 text-muted-foreground" />
-                    <CardTitle>Worker Type</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Badge variant={typeConfig.variant} className="text-sm">
-                    {typeConfig.label}
-                  </Badge>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Install</CardTitle>
-                  <CardDescription>Add this worker to your cluster</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" disabled>
-                    <Download className="size-4" />
-                    Install Worker
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2">Installation coming soon</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  )
 }

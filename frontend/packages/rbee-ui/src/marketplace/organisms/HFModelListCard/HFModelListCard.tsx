@@ -1,9 +1,14 @@
 // TEAM-481: HuggingFace Model List Card - reusable component for model listings
 // Used in homepage and HuggingFace models page
+// TEAM-505: Refactored to use existing rbee-ui components (Card, Badge, lucide-react icons)
+// TEAM-505: Complete redesign - compact, visually appealing, better space utilization
 
 'use client'
 
+import { Badge } from '@rbee/ui/atoms/Badge'
+import { Card } from '@rbee/ui/atoms/Card'
 import { cn } from '@rbee/ui/utils'
+import { Download, Heart } from 'lucide-react'
 import Link from 'next/link'
 
 export interface HFModelListCardProps {
@@ -28,54 +33,50 @@ export function HFModelListCard({ model, href, className }: HFModelListCardProps
   }
 
   const content = (
-    <div
+    <Card
       className={cn(
-        'border border-border rounded-lg p-5 hover:border-primary/50 transition-colors bg-card h-full min-h-[120px] flex flex-col',
-        href && 'cursor-pointer',
+        'group relative overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 h-full',
+        href && 'cursor-pointer hover:-translate-y-0.5',
         className,
       )}
     >
-      {/* Model name */}
-      <div className="mb-4 flex-grow">
-        <h3 className="text-lg truncate">
-          <span className="font-light text-muted-foreground">{model.author}</span>/
-          <span className="font-bold">{model.name.split('/').pop() || model.name}</span>
-        </h3>
+      {/* Compact single-section layout */}
+      <div className="p-4 space-y-3">
+        {/* Header: Model name + Type badge */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-medium leading-tight truncate">
+              <span className="text-muted-foreground">{model.author}</span>
+              <span className="text-foreground">/</span>
+              <span className="font-semibold text-foreground">{model.name.split('/').pop() || model.name}</span>
+            </h3>
+          </div>
+          <Badge variant="secondary" className="font-mono text-[10px] px-2 py-0.5 shrink-0">
+            {model.type}
+          </Badge>
+        </div>
+
+        {/* Stats row - compact with better spacing */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 group-hover:text-foreground transition-colors">
+            <Download className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="font-medium tabular-nums">{formatNumber(model.downloads)}</span>
+          </div>
+          <div className="flex items-center gap-1.5 group-hover:text-foreground transition-colors">
+            <Heart className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="font-medium tabular-nums">{formatNumber(model.likes)}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Stats row */}
-      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap mt-auto">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs bg-muted px-2 py-1 rounded font-mono">{model.type}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            />
-          </svg>
-          <span className="font-medium">{formatNumber(model.downloads)}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path
-              fillRule="evenodd"
-              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="font-medium">{formatNumber(model.likes)}</span>
-        </div>
-      </div>
-    </div>
+      {/* Subtle gradient accent on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:via-transparent group-hover:to-transparent transition-all duration-300 pointer-events-none" />
+    </Card>
   )
 
   if (href) {
     return (
-      <Link href={href} className="block">
+      <Link href={href} className="block h-full">
         {content}
       </Link>
     )

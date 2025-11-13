@@ -189,6 +189,23 @@ export function MarkdownContent({
     em: ({ children }) => (
       <em className="italic text-foreground">{children}</em>
     ),
+    
+    // TEAM-501: Form inputs - mark as readOnly to prevent React warnings
+    input: (props) => {
+      const { type, checked, ...rest } = props as any
+      if (type === 'checkbox') {
+        return (
+          <input
+            type="checkbox"
+            checked={checked}
+            readOnly
+            className="mr-2 cursor-default"
+            {...rest}
+          />
+        )
+      }
+      return <input readOnly {...props} />
+    },
   }
 
   const markdownContent = (

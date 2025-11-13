@@ -270,3 +270,17 @@ wildcard_imports = "warn"
 # use_self = "warn"
 # missing_const_for_fn = "warn"
 # option_if_let_else = "warn"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CANDLE PATCHES — Use local fork for ROCm development
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TEAM-488: Override published Candle crates with local versions from deps/candle
+# This allows us to develop ROCm support in the Candle fork
+
+[patch.crates-io]
+candle-core = { path = "deps/candle/candle-core" }
+candle-nn = { path = "deps/candle/candle-nn" }
+candle-transformers = { path = "deps/candle/candle-transformers" }
+candle-kernels = { path = "deps/candle/candle-kernels" }
+candle-flash-attn = { path = "deps/candle/candle-flash-attn" }
+# Note: Local fork is version 0.9.2-alpha.1, patches 0.9.x dependencies

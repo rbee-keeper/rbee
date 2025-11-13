@@ -24,6 +24,10 @@ pub enum LlorchError {
     #[cfg(feature = "cuda")]
     CudaError(String),
 
+    #[error("ROCm error: {0}")]
+    #[cfg(feature = "rocm")]
+    RocmError(String),
+
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 }

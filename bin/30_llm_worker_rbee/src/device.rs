@@ -47,6 +47,19 @@ pub fn init_metal_device(gpu_id: usize) -> CandleResult<Device> {
     Ok(device)
 }
 
+/// Initialize AMD ROCm device (GPU)
+/// Note: ROCm is AMD's GPU API, equivalent to CUDA for NVIDIA
+#[cfg(feature = "rocm")]
+pub fn init_rocm_device(gpu_id: usize) -> CandleResult<Device> {
+    tracing::info!("Initializing AMD ROCm device (GPU) {}", gpu_id);
+
+    let device = Device::new_rocm(gpu_id)?;
+
+    n!(ACTION_DEVICE_INIT, "Initialized AMD ROCm device {}", gpu_id);
+
+    Ok(device)
+}
+
 /// Verify device is available and working
 /// Performs a simple smoke test: create tensor and verify operations
 pub fn verify_device(device: &Device) -> CandleResult<()> {
@@ -85,6 +98,15 @@ mod tests {
     fn test_metal_device_init() {
         // Only run if Metal is available
         if let Ok(device) = init_metal_device(0) {
+            verify_device(&device).unwrap();
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "rocm")]
+    fn test_rocm_device_init() {
+        // Only run if ROCm is available
+        if let Ok(device) = init_rocm_device(0) {
             verify_device(&device).unwrap();
         }
     }

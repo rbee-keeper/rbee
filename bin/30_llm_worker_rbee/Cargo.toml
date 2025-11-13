@@ -147,24 +147,16 @@ async-stream = "0.3"  # TEAM-035: SSE streaming support
 # - candle-kernels: Optimized CUDA kernels (automatic when CUDA enabled)
 # - cudarc: CUDA runtime for kernel invocation
 # Modified by: TEAM-001
-# Note: Using published versions from crates.io (workspace inheritance incompatible)
+# TEAM-488: Use local Candle fork for ROCm support
+# Note: Path dependencies required to access rocm feature
 
-# Use published Candle from crates.io (stable)
-candle-core = "0.9"
+candle-core = { path = "../../deps/candle/candle-core" }
+candle-nn = { path = "../../deps/candle/candle-nn" }
+candle-transformers = { path = "../../deps/candle/candle-transformers" }
+candle-kernels = { path = "../../deps/candle/candle-kernels", optional = true }
+candle-flash-attn = { path = "../../deps/candle/candle-flash-attn", optional = true }
 
-# Candle neural network functions (rms_norm, silu, softmax, linear_no_bias)
-candle-nn = "0.9"
-
-# TEAM-008: Use candle-transformers for complete model implementations
-candle-transformers = "0.9"
-
-# Candle kernels for CUDA acceleration (optional, feature-gated)
-# TEAM-007: Added CUDA version feature for cudarc
-candle-kernels = { version = "0.9", optional = true }
 cudarc = { version = "0.11", optional = true, features = ["cuda-12050"] }
-
-# TEAM-487: Flash Attention for 2-4x faster GPU inference (CUDA only)
-candle-flash-attn = { version = "0.9", optional = true }
 
 # HuggingFace tokenizers (used by Candle examples)
 tokenizers = "0.15"
@@ -234,10 +226,11 @@ tempfile = "3.0"
 default = ["cpu"]
 
 # Backend features (mutually exclusive at build time)
-# Modified by: TEAM-007, TEAM-018, TEAM-487
+# Modified by: TEAM-007, TEAM-018, TEAM-487, TEAM-488
 cpu = []
 cuda = ["candle-kernels", "cudarc", "candle-core/cuda", "candle-nn/cuda", "flash-attn"]
 metal = ["candle-core/metal", "candle-nn/metal"]
+rocm = ["candle-kernels", "candle-core/rocm", "candle-nn/rocm"]
 
 # TEAM-487: Flash Attention feature (2-4x faster inference on CUDA)
 # Automatically enabled with CUDA backend
@@ -263,6 +256,11 @@ name = "llm-worker-rbee-metal"
 path = "src/bin/metal.rs"
 required-features = ["metal"]
 
+[[bin]]
+name = "llm-worker-rbee-rocm"
+path = "src/bin/rocm.rs"
+required-features = ["rocm"]
+
 # Main binary (CPU by default)
 [[bin]]
 name = "llm-worker-rbee"
@@ -286,19 +284,5 @@ debug = true
 [build-dependencies]
 shadow-rs = "0.35"
 
-# TEAM-487: Use local Candle fork (submodule) for ROCm development
-# This overrides published crates with local versions from deps/candle submodule
-# 
-# Submodule setup:
-#   - Location: deps/candle (git submodule)
-#   - Fork: veighnsche/candle
-#   - Branch: rocm-support
-#
-# To update submodule:
-#   git submodule update --remote deps/candle
-[patch.crates-io]
-candle-core = { path = "../../deps/candle/candle-core" }
-candle-nn = { path = "../../deps/candle/candle-nn" }
-candle-transformers = { path = "../../deps/candle/candle-transformers" }
-candle-kernels = { path = "../../deps/candle/candle-kernels" }
-candle-flash-attn = { path = "../../deps/candle/candle-flash-attn" }
+# TEAM-488: Candle patches moved to workspace root Cargo.toml
+# See /home/vince/Projects/rbee/Cargo.toml [patch.crates-io] section

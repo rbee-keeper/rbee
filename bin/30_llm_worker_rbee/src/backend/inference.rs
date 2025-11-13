@@ -211,6 +211,42 @@ impl CandleInferenceBackend {
         Ok(Self { model, tokenizer, device, model_size_bytes, cached_eos_token })
     }
 
+    #[cfg(feature = "rocm")]
+    pub fn load(model_path: &str, gpu_id: usize) -> Result<Self> {
+        let path = Path::new(model_path);
+        let device = Device::new_rocm(gpu_id)?;
+
+        // TEAM-017: Load model using model factory (returns Model enum)
+        // TEAM-485: Pass None for dtype to use model defaults
+        let model = models::load_model(model_path, &device, None)?;
+        let model_size_bytes = models::calculate_model_size(model_path)?;
+
+        // TEAM-017: Load tokenizer with auto-detection
+        let tokenizer = tokenizer_loader::load_tokenizer(path)?;
+
+        // TEAM-487: Cache EOS token ID for hot path optimization
+        let cached_eos_token = tokenizer.token_to_id("</s>");
+
+        tracing::info!(
+            architecture = model.architecture(),
+            vocab_size = model.vocab_size(),
+            tokenizer_vocab = tokenizer.get_vocab_size(true),
+            model_size_mb = model_size_bytes / 1_000_000,
+            cached_eos_token = ?cached_eos_token,
+            "Model and tokenizer loaded successfully"
+        );
+
+        n!(
+            ACTION_MODEL_LOAD,
+            "Loaded {} model ({} MB, vocab: {})",
+            model.architecture(),
+            model_size_bytes / 1_000_000,
+            model.vocab_size()
+        );
+
+        Ok(Self { model, tokenizer, device, model_size_bytes, cached_eos_token })
+    }
+
     /// Get memory usage in bytes
     pub fn memory_bytes(&self) -> u64 {
         self.model_size_bytes
@@ -498,7 +534,12 @@ impl InferenceBackend for CandleInferenceBackend {
             self.model_size_bytes
         }
 
-        #[cfg(not(feature = "cuda"))]
+        #[cfg(feature = "rocm")]
+        {
+            self.model_size_bytes
+        }
+
+        #[cfg(not(any(feature = "cuda", feature = "rocm")))]
         {
             0
         }

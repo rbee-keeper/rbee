@@ -1,6 +1,6 @@
 // TEAM-482: Global Worker Catalog (GWC) list API - Fetch all workers
 
-import type { MarketplaceModel, PaginatedResponse } from '../common'
+import type { MarketplaceModel } from '../common'
 import type { GWCListWorkersParams, GWCListWorkersResponse, GWCWorker } from './types'
 
 /**
@@ -53,16 +53,17 @@ export function convertGWCWorker(worker: GWCWorker): MarketplaceModel {
 }
 
 /**
- * Low-level helper: Fetch raw GWC workers over HTTP
+ * Fetch raw GWC workers from the GWC API.
  *
- * This is intentionally separate from fetchGWCWorkers so SSR callers
- * (like filter sidebars) can access the full GWCWorker shape including
- * marketplaceCompatibility, without importing the local data.ts.
+ * @param params - Filter parameters (optional)
+ * @returns Raw GWCWorker entries from the catalog
  */
-export async function fetchGWCWorkersRaw(params?: GWCListWorkersParams): Promise<GWCWorker[]> {
+export async function fetchGWCWorkers(
+  params?: GWCListWorkersParams
+): Promise<GWCWorker[]> {
   const url = `${GWC_API_BASE}/workers`
 
-  console.log('[GWC API] Fetching raw workers:', url)
+  console.log('[GWC API] Fetching:', url)
 
   const response = await fetch(url, {
     headers: {
@@ -76,6 +77,8 @@ export async function fetchGWCWorkersRaw(params?: GWCListWorkersParams): Promise
 
   const data: GWCListWorkersResponse = await response.json()
 
+  console.log(`[GWC API] Fetched ${data.workers.length} workers`)
+
   let workers = data.workers
 
   // Apply simple in-memory filtering for convenience; the HTTP API
@@ -85,72 +88,12 @@ export async function fetchGWCWorkersRaw(params?: GWCListWorkersParams): Promise
     workers = workers.filter((worker) => worker.variants.some((variant) => variant.backend === backend))
   }
 
+  // NOTE: We intentionally do NOT filter by platform here yet; that
+  // would require inspecting variants in more detail.
+
   if (params?.limit) {
     workers = workers.slice(0, params.limit)
   }
 
   return workers
-}
-
-/**
- * Fetch workers from GWC API
- *
- * @param params - Filter parameters (optional)
- * @returns Paginated response with workers
- */
-export async function fetchGWCWorkers(
-  params?: GWCListWorkersParams
-): Promise<PaginatedResponse<MarketplaceModel>> {
-  const url = `${GWC_API_BASE}/workers`
-
-  console.log('[GWC API] Fetching:', url)
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`GWC API error: ${response.status} ${response.statusText}`)
-    }
-
-    const data: GWCListWorkersResponse = await response.json()
-
-    console.log(`[GWC API] Fetched ${data.workers.length} workers`)
-
-    // Convert to MarketplaceModel format
-    const items = data.workers.map(convertGWCWorker)
-
-    // Apply client-side filtering if needed
-    let filteredItems = items
-    if (params?.backend) {
-      const backend = params.backend
-      filteredItems = filteredItems.filter(item =>
-        item.tags.includes(backend)
-      )
-    }
-    if (params?.platform) {
-      // Platform filtering would require checking variants
-      // For now, we skip this as it's complex
-    }
-
-    // Apply limit
-    const limit = params?.limit || 50
-    const paginatedItems = filteredItems.slice(0, limit)
-
-    return {
-      items: paginatedItems,
-      meta: {
-        page: 1,
-        limit,
-        total: filteredItems.length,
-        hasNext: false, // GWC doesn't support pagination yet
-      },
-    }
-  } catch (error) {
-    console.error('[GWC API] Error fetching workers:', error)
-    throw error
-  }
 }

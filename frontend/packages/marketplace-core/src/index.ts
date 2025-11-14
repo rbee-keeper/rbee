@@ -74,6 +74,6 @@ export type {
   WorkerType,
 } from './adapters/gwc/types'
 export { fetchGWCWorker, fetchGWCWorkerReadme } from './adapters/gwc/details'
-export { fetchGWCWorkers, fetchGWCWorkersRaw } from './adapters/gwc/list'
+export { fetchGWCWorkers } from './adapters/gwc/list'
 export type { VendorName } from './adapters/registry'
 export { adapters, getAdapter } from './adapters/registry'

@@ -15,10 +15,11 @@ export function buildHuggingFaceParamsFromFilters(
   workers: GWCWorker[],
   limit: number = 50,
 ): HuggingFaceListModelsParams {
-  // TEAM_511: Map UI sort options to actual HuggingFace sort fields.
-  // HF /api/models only accepts: downloads, likes, lastModified, createdAt, author.
+  // TEAM_511: Map UI sort options to HuggingFace sort fields.
+  // - `trending` is handled via the /models-json endpoint in the adapter.
+  // - /api/models accepts: downloads, likes, lastModified, createdAt.
   const sortMap: Record<HFFilterState['sort'], HuggingFaceListModelsParams['sort']> = {
-    trending: 'downloads',
+    trending: 'trending',
     downloads: 'downloads',
     likes: 'likes',
     updated: 'lastModified',

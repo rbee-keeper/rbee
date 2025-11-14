@@ -1,12 +1,34 @@
 // TEAM-476: HuggingFace list API - Fetch models from HuggingFace Hub
 
 import type { MarketplaceModel, PaginatedResponse } from '../common'
-import type { HuggingFaceListModelsParams, HuggingFaceModel } from './types'
+import type { HuggingFaceListModelsParams, HuggingFaceModel, HuggingFaceTask } from './types'
 
 /**
  * HuggingFace Hub API base URL
  */
 const HF_API_BASE = 'https://huggingface.co/api'
+
+/**
+ * HuggingFace Hub models JSON endpoint used by the website for trending.
+ * Example:
+ * https://huggingface.co/models-json?sort=trending&p=1&pipeline_tag=text-generation&library=transformers
+ */
+const HF_MODELS_JSON_BASE = 'https://huggingface.co/models-json'
+
+interface HuggingFaceModelsJsonModel {
+  id: string
+  author?: string
+  downloads?: number
+  likes?: number
+  lastModified?: string
+  pipeline_tag?: string
+  gated?: boolean
+  private?: boolean
+}
+
+interface HuggingFaceModelsJsonResponse {
+  models: HuggingFaceModelsJsonModel[]
+}
 
 /**
  * Convert HuggingFace model to normalized MarketplaceModel
@@ -76,6 +98,38 @@ const MVP_PIPELINE_TAG = 'text-generation'
  */
 const MVP_LIBRARY = 'transformers'
 
+function applyMVPConstraints(params: HuggingFaceListModelsParams): HuggingFaceListModelsParams {
+  const shouldApplyMVPConstraints = !params.pipeline_tag && !params.library && !params.filter
+
+  if (!shouldApplyMVPConstraints) return params
+
+  return {
+    ...params,
+    // Apply MVP defaults only for unfiltered requests
+    pipeline_tag: MVP_PIPELINE_TAG,
+    library: MVP_LIBRARY,
+  }
+}
+
+function appendCommonFilters(queryParams: URLSearchParams, params: HuggingFaceListModelsParams) {
+  if (params.search) queryParams.append('search', params.search)
+  if (params.pipeline_tag) queryParams.append('pipeline_tag', params.pipeline_tag)
+  if (params.library) queryParams.append('library', params.library)
+
+  if (params.filter) {
+    if (Array.isArray(params.filter)) {
+      for (const f of params.filter) {
+        queryParams.append('filter', f)
+      }
+    } else {
+      queryParams.append('filter', params.filter)
+    }
+  }
+
+  if (params.language) queryParams.append('language', params.language)
+  if (params.license) queryParams.append('license', String(params.license))
+}
+
 /**
  * Fetch models from HuggingFace Hub API
  *
@@ -89,22 +143,16 @@ const MVP_LIBRARY = 'transformers'
 export async function fetchHuggingFaceModels(
   params: HuggingFaceListModelsParams = {},
 ): Promise<PaginatedResponse<MarketplaceModel>> {
-  // TEAM-484: Conditional MVP compatibility logic
-  // Apply MVP constraints only when no specific pipeline_tag, library, or filter is provided
-  // This allows full filtering when users make explicit selections via worker-driven filters
-  const shouldApplyMVPConstraints = !params.pipeline_tag && !params.library && !params.filter
-  
-  const finalParams: HuggingFaceListModelsParams = shouldApplyMVPConstraints ? {
-    ...params,
-    // Apply MVP defaults only for unfiltered requests
-    pipeline_tag: MVP_PIPELINE_TAG,
-    library: MVP_LIBRARY,
-  } : params
+  // TEAM-511: True trending support via /models-json
+  if (params.sort === 'trending') {
+    return fetchHuggingFaceModelsTrending(params)
+  }
+
+  const finalParams: HuggingFaceListModelsParams = applyMVPConstraints(params)
 
   // Build query string
   const queryParams = new URLSearchParams()
 
-  if (finalParams.search) queryParams.append('search', finalParams.search)
   if (finalParams.author) queryParams.append('author', finalParams.author)
   if (finalParams.sort) queryParams.append('sort', finalParams.sort)
   if (finalParams.direction) queryParams.append('direction', String(finalParams.direction))
@@ -114,24 +162,8 @@ export async function fetchHuggingFaceModels(
 
   // TEAM-501: Fixed filter syntax - HuggingFace API uses direct query params, not filter=key:value
   // Direct query parameters (conditionally MVP-enforced)
-  if (finalParams.pipeline_tag) queryParams.append('pipeline_tag', finalParams.pipeline_tag)
-  if (finalParams.library) queryParams.append('library', finalParams.library)
-
-  // Handle additional filter parameter (can be string or array) - for tags, etc.
-  if (finalParams.filter) {
-    if (Array.isArray(finalParams.filter)) {
-      for (const f of finalParams.filter) {
-        queryParams.append('filter', f)
-      }
-    } else {
-      queryParams.append('filter', finalParams.filter)
-    }
-  }
-
-  // Additional filters (if provided)
-  if (finalParams.language) queryParams.append('language', finalParams.language)
+  appendCommonFilters(queryParams, finalParams)
   if (finalParams.dataset) queryParams.append('dataset', finalParams.dataset)
-  if (finalParams.license) queryParams.append('license', finalParams.license)
 
   const url = `${HF_API_BASE}/models?${queryParams.toString()}`
 
@@ -171,6 +203,72 @@ export async function fetchHuggingFaceModels(
     }
   } catch (error) {
     console.error('[HuggingFace API] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Fetch models sorted by "trending" using the website's /models-json endpoint.
+ * This endpoint powers the "Sort: Trending" dropdown on huggingface.co
+ * and is not part of the public /api surface.
+ */
+async function fetchHuggingFaceModelsTrending(
+  params: HuggingFaceListModelsParams = {},
+): Promise<PaginatedResponse<MarketplaceModel>> {
+  const finalParams: HuggingFaceListModelsParams = applyMVPConstraints(params)
+
+  const queryParams = new URLSearchParams()
+
+  // Trending is the canonical sort key for this endpoint.
+  queryParams.append('sort', 'trending')
+  // First page only for now; pagination can be added later if needed.
+  queryParams.append('p', '1')
+
+  appendCommonFilters(queryParams, finalParams)
+  if (finalParams.limit) queryParams.append('limit', String(finalParams.limit))
+
+  const url = `${HF_MODELS_JSON_BASE}?${queryParams.toString()}`
+
+  console.log('[HuggingFace API] Fetching trending:', url)
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HuggingFace models-json error: ${response.status} ${response.statusText}`)
+    }
+
+    const data: HuggingFaceModelsJsonResponse = await response.json()
+
+    const items: MarketplaceModel[] = data.models.map((model) =>
+      convertHFModel({
+        id: model.id,
+        author: model.author,
+        downloads: model.downloads,
+        likes: model.likes,
+        lastModified: model.lastModified,
+        pipeline_tag: model.pipeline_tag as HuggingFaceTask | undefined,
+        gated: model.gated,
+        private: model.private,
+      } as HuggingFaceModel),
+    )
+
+    console.log(`[HuggingFace API] Fetched ${items.length} trending models`)
+
+    return {
+      items,
+      meta: {
+        page: 1,
+        limit: finalParams.limit || items.length,
+        hasNext: false,
+      },
+    }
+  } catch (error) {
+    console.error('[HuggingFace API] Trending error:', error)
     throw error
   }
 }

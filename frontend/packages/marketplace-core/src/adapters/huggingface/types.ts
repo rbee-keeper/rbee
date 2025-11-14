@@ -56,7 +56,7 @@ export type HuggingFaceTask =
  * and `created` are mapped to these canonical values in
  * `buildHuggingFaceParamsFromFilters`.
  */
-export type HuggingFaceSort = 'downloads' | 'likes' | 'lastModified' | 'createdAt'
+export type HuggingFaceSort = 'downloads' | 'likes' | 'lastModified' | 'createdAt' | 'trending'
 
 /**
  * HuggingFace Model Size Categories

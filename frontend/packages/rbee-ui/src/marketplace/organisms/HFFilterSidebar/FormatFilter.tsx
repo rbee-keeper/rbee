@@ -1,9 +1,12 @@
 // TEAM-502: Format Filter Component
 // Shows available formats and libraries as checkboxes
 
-import { CheckCircle, ChevronDown, ChevronUp, Circle, Info } from 'lucide-react'
+import { ChevronDown, ChevronUp, Info } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
+import { Checkbox } from '@rbee/ui/atoms/Checkbox'
+import { Label } from '@rbee/ui/atoms/Label'
+import { Button } from '@rbee/ui/atoms/Button'
 
 interface FormatFilterProps {
   formats: string[]
@@ -225,7 +228,8 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
       },
     }
 
-    return colors[color] || colors.gray
+    const resolved = colors[color]
+    return resolved ?? colors.gray
   }
 
   return (
@@ -234,51 +238,49 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
       <div>
         <div className="flex items-center gap-2 mb-2">
           <h4 className="text-sm font-medium text-gray-900">File Formats</h4>
-          <Info className="w-3 h-3 text-gray-400" title="Model file formats" />
+          <Info className="w-3 h-3 text-gray-400" />
         </div>
 
         <div className="space-y-2">
           {displayedFormats.map((format) => {
             const isSelected = selectedFormats.includes(format)
-            const Icon = isSelected ? CheckCircle : Circle
             const info = getFormatInfo(format)
             const colors = getColorClasses(info.color, isSelected)
 
             return (
-              <label
+              <div
                 key={format}
                 className={`
-                  flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-all
-                  ${colors.bg} ${colors.border} border hover:opacity-80
+                  flex items-start gap-3 p-2 rounded-lg transition-all
+                  ${colors?.bg || ''} ${colors?.border || ''} border hover:opacity-80
                 `}
               >
-                <input
-                  type="checkbox"
+                <Checkbox
+                  id={`format-${format}`}
                   checked={isSelected}
-                  onChange={() => handleFormatToggle(format)}
-                  className="sr-only"
+                  onCheckedChange={() => handleFormatToggle(format)}
                 />
-                <Icon
-                  className={`
-                    w-4 h-4 mt-0.5 flex-shrink-0 transition-colors
-                    ${isSelected ? 'text-blue-600' : 'text-gray-400'}
-                  `}
-                />
-                <div className="flex-1 min-w-0">
+                <Label
+                  htmlFor={`format-${format}`}
+                  className="flex-1 min-w-0 cursor-pointer"
+                >
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{info.icon}</span>
-                    <span className={`font-medium text-sm ${colors.text}`}>{format}</span>
+                    <span className={`font-medium text-sm ${colors?.text || ''}`}>{format}</span>
                   </div>
                   <p className="text-xs text-gray-600 mt-0.5">{info.description}</p>
-                </div>
-              </label>
+                </Label>
+              </div>
             )
           })}
 
           {hasMoreFormats && (
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setShowAllFormats(!showAllFormats)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
             >
               {showAllFormats ? (
                 <>
@@ -291,7 +293,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
                   Show {sortedFormats.length - 6} more formats
                 </>
               )}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -300,51 +302,49 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
       <div>
         <div className="flex items-center gap-2 mb-2">
           <h4 className="text-sm font-medium text-gray-900">Libraries</h4>
-          <Info className="w-3 h-3 text-gray-400" title="Model libraries/frameworks" />
+          <Info className="w-3 h-3 text-gray-400" />
         </div>
 
         <div className="space-y-2">
           {displayedLibraries.map((library) => {
             const isSelected = selectedLibraries.includes(library)
-            const Icon = isSelected ? CheckCircle : Circle
             const info = getLibraryInfo(library)
             const colors = getColorClasses(info.color, isSelected)
 
             return (
-              <label
+              <div
                 key={library}
                 className={`
-                  flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-all
-                  ${colors.bg} ${colors.border} border hover:opacity-80
+                  flex items-start gap-3 p-2 rounded-lg transition-all
+                  ${colors?.bg || ''} ${colors?.border || ''} border hover:opacity-80
                 `}
               >
-                <input
-                  type="checkbox"
+                <Checkbox
+                  id={`library-${library}`}
                   checked={isSelected}
-                  onChange={() => handleLibraryToggle(library)}
-                  className="sr-only"
+                  onCheckedChange={() => handleLibraryToggle(library)}
                 />
-                <Icon
-                  className={`
-                    w-4 h-4 mt-0.5 flex-shrink-0 transition-colors
-                    ${isSelected ? 'text-blue-600' : 'text-gray-400'}
-                  `}
-                />
-                <div className="flex-1 min-w-0">
+                <Label
+                  htmlFor={`library-${library}`}
+                  className="flex-1 min-w-0 cursor-pointer"
+                >
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{info.icon}</span>
-                    <span className={`font-medium text-sm ${colors.text}`}>{library}</span>
+                    <span className={`font-medium text-sm ${colors?.text || ''}`}>{library}</span>
                   </div>
                   <p className="text-xs text-gray-600 mt-0.5">{info.description}</p>
-                </div>
-              </label>
+                </Label>
+              </div>
             )
           })}
 
           {hasMoreLibraries && (
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setShowAllLibraries(!showAllLibraries)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
             >
               {showAllLibraries ? (
                 <>
@@ -357,7 +357,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
                   Show {sortedLibraries.length - 6} more libraries
                 </>
               )}
-            </button>
+            </Button>
           )}
         </div>
       </div>

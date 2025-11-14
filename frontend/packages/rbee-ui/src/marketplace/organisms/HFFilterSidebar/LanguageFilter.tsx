@@ -2,7 +2,11 @@
 // Shows available languages as checkboxes
 
 import React, { useState } from 'react'
-import { CheckCircle, Circle, ChevronDown, ChevronUp, Globe } from 'lucide-react'
+import { ChevronDown, ChevronUp, Globe } from 'lucide-react'
+import { Input } from '@rbee/ui/atoms/Input'
+import { Checkbox } from '@rbee/ui/atoms/Checkbox'
+import { Label } from '@rbee/ui/atoms/Label'
+import { Button } from '@rbee/ui/atoms/Button'
 
 interface LanguageFilterProps {
   languages: string[]
@@ -164,29 +168,33 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
     <div className="space-y-3">
       {/* Quick Actions */}
       <div className="flex gap-2">
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleSelectCommon}
-          className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+          className="text-xs"
         >
           Common Languages
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleSelectMultilingual}
-          className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+          className="text-xs"
         >
           Multilingual Only
-        </button>
+        </Button>
       </div>
       
       {/* Search */}
       <div className="relative">
         <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
-        <input
+        <Input
           type="text"
           placeholder="Search languages..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="h-8 pl-8 text-sm"
         />
       </div>
       
@@ -194,34 +202,29 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
       <div className="space-y-2">
         {displayedLanguages.map((language) => {
           const isSelected = selectedLanguages.includes(language)
-          const Icon = isSelected ? CheckCircle : Circle
           const displayName = languageNames[language] || language
           const flag = languageFlags[language] || '🏳️'
           
           return (
-            <label
+            <div
               key={language}
               className={`
-                flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all
+                flex items-center gap-3 p-2 rounded-lg transition-all
                 ${isSelected 
                   ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
                   : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
                 }
               `}
             >
-              <input
-                type="checkbox"
+              <Checkbox
+                id={`language-${language}`}
                 checked={isSelected}
-                onChange={() => handleLanguageToggle(language)}
-                className="sr-only"
+                onCheckedChange={() => handleLanguageToggle(language)}
               />
-              <Icon 
-                className={`
-                  w-4 h-4 flex-shrink-0 transition-colors
-                  ${isSelected ? 'text-blue-600' : 'text-gray-400'}
-                `} 
-              />
-              <div className="flex items-center gap-2 flex-1">
+              <Label
+                htmlFor={`language-${language}`}
+                className="flex items-center gap-2 flex-1 cursor-pointer"
+              >
                 <span className="text-base">{flag}</span>
                 <span className="font-medium text-gray-900 text-sm">
                   {displayName}
@@ -229,8 +232,8 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
                 <span className="text-xs text-gray-500">
                   ({language})
                 </span>
-              </div>
-            </label>
+              </Label>
+            </div>
           )
         })}
         

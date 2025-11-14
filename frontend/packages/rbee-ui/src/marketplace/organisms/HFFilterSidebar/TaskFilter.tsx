@@ -2,7 +2,10 @@
 // Shows available HuggingFace tasks as checkboxes
 
 import React, { useState } from 'react'
-import { CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Checkbox } from '@rbee/ui/atoms/Checkbox'
+import { Label } from '@rbee/ui/atoms/Label'
+import { Button } from '@rbee/ui/atoms/Button'
 
 interface TaskFilterProps {
   tasks: string[]
@@ -120,33 +123,28 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
     <div className="space-y-2">
       {displayedTasks.map((task) => {
         const isSelected = selectedTasks.includes(task)
-        const Icon = isSelected ? CheckCircle : Circle
         const description = getTaskDescription(task)
         
         return (
-          <label
+          <div
             key={task}
             className={`
-              flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-all
+              flex items-start gap-3 p-2 rounded-lg transition-all
               ${isSelected 
                 ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
                 : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
               }
             `}
           >
-            <input
-              type="checkbox"
+            <Checkbox
+              id={`task-${task}`}
               checked={isSelected}
-              onChange={() => handleTaskToggle(task)}
-              className="sr-only"
+              onCheckedChange={() => handleTaskToggle(task)}
             />
-            <Icon 
-              className={`
-                w-4 h-4 mt-0.5 flex-shrink-0 transition-colors
-                ${isSelected ? 'text-blue-600' : 'text-gray-400'}
-              `} 
-            />
-            <div className="flex-1 min-w-0">
+            <Label
+              htmlFor={`task-${task}`}
+              className="flex-1 min-w-0 cursor-pointer"
+            >
               <div className="flex items-center gap-2">
                 <span className="text-sm">{getTaskIcon(task)}</span>
                 <span className="font-medium text-gray-900 text-sm">
@@ -158,15 +156,18 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
                   {description}
                 </p>
               )}
-            </div>
-          </label>
+            </Label>
+          </div>
         )
       })}
       
       {hasMore && (
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setShowAll(!showAll)}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors mt-2"
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mt-2"
         >
           {showAll ? (
             <>
@@ -179,7 +180,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
               Show {sortedTasks.length - 8} more tasks
             </>
           )}
-        </button>
+        </Button>
       )}
       
       {tasks.length === 0 && (

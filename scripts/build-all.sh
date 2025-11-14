@@ -79,6 +79,20 @@ if ! command -v wasm-pack &> /dev/null; then
 else
   WASM_PACK_VERSION=$(wasm-pack --version | cut -d' ' -f2)
   echo "  ✓ wasm-pack $WASM_PACK_VERSION"
+
+  if command -v rustup &> /dev/null; then
+    if ! rustup target list --installed | grep -q "wasm32-unknown-unknown"; then
+      echo "  → Installing wasm32-unknown-unknown target via rustup..."
+      if rustup target add wasm32-unknown-unknown; then
+        echo "  ✓ wasm32-unknown-unknown target installed"
+      else
+        echo "  ✗ Failed to install wasm32-unknown-unknown target with rustup (try: rustup target add wasm32-unknown-unknown)"
+        FAILED=1
+      fi
+    else
+      echo "  ✓ wasm32-unknown-unknown target already installed"
+    fi
+  fi
 fi
 
 # Check for required system libraries (pkg-config)

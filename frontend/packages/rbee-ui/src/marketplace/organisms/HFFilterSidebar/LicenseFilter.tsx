@@ -2,7 +2,11 @@
 // Shows available licenses as checkboxes
 
 import React, { useState } from 'react'
-import { CheckCircle, Circle, ChevronDown, ChevronUp, Shield, AlertTriangle } from 'lucide-react'
+import { ChevronDown, ChevronUp, Shield, AlertTriangle } from 'lucide-react'
+import { Input } from '@rbee/ui/atoms/Input'
+import { Checkbox } from '@rbee/ui/atoms/Checkbox'
+import { Label } from '@rbee/ui/atoms/Label'
+import { Button } from '@rbee/ui/atoms/Button'
 
 interface LicenseFilterProps {
   licenses: string[]
@@ -133,10 +137,10 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
   
   const handleSelectLowRisk = () => {
     const lowRiskLicenses = Object.entries(licenseInfo)
-      .filter((_, license) => licenseInfo[license].risk === 'low')
+      .filter(([, info]) => info.risk === 'low')
       .map(([license]) => license)
-      .filter(license => licenses.includes(license))
-    
+      .filter((license) => licenses.includes(license))
+
     onLicensesChange(lowRiskLicenses)
   }
   
@@ -152,32 +156,36 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
     <div className="space-y-3">
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleSelectLowRisk}
-          className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+          className="text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
         >
           Low Risk Only
-        </button>
+        </Button>
         {sortedCategories.map(category => (
-          <button
+          <Button
             key={category}
+            variant="outline"
+            size="sm"
             onClick={() => handleSelectCategory(category)}
-            className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors capitalize"
+            className="text-xs capitalize"
           >
             {licenseCategories[category as keyof typeof licenseCategories]?.name || category}
-          </button>
+          </Button>
         ))}
       </div>
       
       {/* Search */}
       <div className="relative">
         <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
-        <input
+        <Input
           type="text"
           placeholder="Search licenses..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="h-8 pl-8 text-sm"
         />
       </div>
       
@@ -209,33 +217,28 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
               <div className="space-y-2">
                 {categoryLicenses.map(license => {
                   const isSelected = selectedLicenses.includes(license)
-                  const Icon = isSelected ? CheckCircle : Circle
                   const info = licenseInfo[license]
                   
                   return (
-                    <label
+                    <div
                       key={license}
                       className={`
-                        flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-all
+                        flex items-start gap-3 p-2 rounded-lg transition-all
                         ${isSelected 
                           ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
                           : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
                         }
                       `}
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
+                        id={`license-${license}`}
                         checked={isSelected}
-                        onChange={() => handleLicenseToggle(license)}
-                        className="sr-only"
+                        onCheckedChange={() => handleLicenseToggle(license)}
                       />
-                      <Icon 
-                        className={`
-                          w-4 h-4 mt-0.5 flex-shrink-0 transition-colors
-                          ${isSelected ? 'text-blue-600' : 'text-gray-400'}
-                        `} 
-                      />
-                      <div className="flex-1 min-w-0">
+                      <Label
+                        htmlFor={`license-${license}`}
+                        className="flex-1 min-w-0 cursor-pointer"
+                      >
                         <div className="flex items-center gap-2">
                           {info && getRiskIcon(info.risk)}
                           <span className="font-medium text-gray-900 text-sm">
@@ -248,8 +251,8 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
                         <p className="text-xs text-gray-500 mt-0.5">
                           {license}
                         </p>
-                      </div>
-                    </label>
+                      </Label>
+                    </div>
                   )
                 })}
               </div>

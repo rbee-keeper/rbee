@@ -10,4 +10,4 @@ export { LanguageFilter } from './LanguageFilter'
 export { LicenseFilter } from './LicenseFilter'
 export { SortFilter } from './SortFilter'
 
-export default HFFilterSidebar
+export { HFFilterSidebar as default } from './HFFilterSidebar'

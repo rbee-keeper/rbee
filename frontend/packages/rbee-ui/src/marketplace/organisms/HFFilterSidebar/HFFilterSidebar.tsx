@@ -1,10 +1,11 @@
 // TEAM-502: HuggingFace Filter Sidebar Component
 // Design: .docs/TEAM_502_FILTER_SIDEBAR_DESIGN.md
 
-import type { GWCWorker } from '@rbee/marketplace-core'
 import { ChevronDown, ChevronUp, RotateCcw, Search } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
+import { Input } from '@rbee/ui/atoms/Input'
+import { Button } from '@rbee/ui/atoms/Button'
 import { FormatFilter } from './FormatFilter'
 import { LanguageFilter } from './LanguageFilter'
 import { LicenseFilter } from './LicenseFilter'
@@ -12,6 +13,23 @@ import { ParameterFilter } from './ParameterFilter'
 import { SortFilter } from './SortFilter'
 import { TaskFilter } from './TaskFilter'
 import { WorkerFilter } from './WorkerFilter'
+
+export interface HFFilterWorker {
+  id: string
+  name: string
+  description: string
+  marketplaceCompatibility: {
+    huggingface?: {
+      tasks: string[]
+      libraries: string[]
+      formats: string[]
+      languages?: string[]
+      licenses?: string[]
+      minParameters?: number
+      maxParameters?: number
+    }
+  }
+}
 
 export interface HFFilterState {
   // Worker selection
@@ -35,7 +53,7 @@ export interface HFFilterState {
 
 export interface HFFilterOptions {
   // Available options (from GWC workers)
-  availableWorkers: GWCWorker[]
+  availableWorkers: HFFilterWorker[]
   availableTasks: string[]
   availableLibraries: string[]
   availableFormats: string[]
@@ -162,7 +180,7 @@ export const HFFilterSidebar: React.FC<HFFilterSidebarProps> = ({
     const tasks = new Set<string>()
     selectedWorkers.forEach((worker) => {
       if (worker.marketplaceCompatibility.huggingface) {
-        worker.marketplaceCompatibility.huggingface.tasks.forEach((task) => {
+        worker.marketplaceCompatibility.huggingface.tasks.forEach((task: string) => {
           tasks.add(task)
         })
       }
@@ -182,7 +200,7 @@ export const HFFilterSidebar: React.FC<HFFilterSidebarProps> = ({
     const formats = new Set<string>()
     selectedWorkers.forEach((worker) => {
       if (worker.marketplaceCompatibility.huggingface) {
-        worker.marketplaceCompatibility.huggingface.formats.forEach((format) => {
+        worker.marketplaceCompatibility.huggingface.formats.forEach((format: string) => {
           formats.add(format)
         })
       }
@@ -202,7 +220,7 @@ export const HFFilterSidebar: React.FC<HFFilterSidebarProps> = ({
     const libraries = new Set<string>()
     selectedWorkers.forEach((worker) => {
       if (worker.marketplaceCompatibility.huggingface) {
-        worker.marketplaceCompatibility.huggingface.libraries.forEach((library) => {
+        worker.marketplaceCompatibility.huggingface.libraries.forEach((library: string) => {
           libraries.add(library)
         })
       }
@@ -252,9 +270,15 @@ export const HFFilterSidebar: React.FC<HFFilterSidebarProps> = ({
   if (collapsed) {
     return (
       <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
-        <button type="button" onClick={onToggleCollapse} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={onToggleCollapse}
+          className="hover:bg-gray-100 rounded-lg"
+        >
           <ChevronDown className="w-5 h-5 text-gray-600 rotate-180" />
-        </button>
+        </Button>
       </div>
     )
   }
@@ -265,22 +289,26 @@ export const HFFilterSidebar: React.FC<HFFilterSidebarProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={resetAllFilters}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
             >
               <RotateCcw className="w-3 h-3" />
               Reset All
-            </button>
+            </Button>
             {onToggleCollapse && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={onToggleCollapse}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                className="hover:bg-gray-100 rounded"
               >
                 <ChevronDown className="w-4 h-4 text-gray-600 rotate-180" />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -288,12 +316,12 @@ export const HFFilterSidebar: React.FC<HFFilterSidebarProps> = ({
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
+          <Input
             type="text"
             placeholder="Search models..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+            className="w-full pl-10 pr-4 py-2 text-sm"
           />
         </div>
       </div>

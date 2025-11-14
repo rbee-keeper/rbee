@@ -2,12 +2,14 @@
 // Shows parameter size range slider
 
 import React, { useState, useCallback } from 'react'
+import { Slider } from '@rbee/ui/atoms/Slider'
+import { Input } from '@rbee/ui/atoms/Input'
 
 interface ParameterFilterProps {
   min: number
   max: number
-  selectedMin?: number
-  selectedMax?: number
+  selectedMin: number | undefined
+  selectedMax: number | undefined
   onParametersChange: (min?: number, max?: number) => void
 }
 
@@ -131,43 +133,19 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
             <span className={`
               text-xs px-2 py-1 rounded
               ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}
-            `}>
+           `}>
               {formatNumber(localMin)} - {formatNumber(localMax)}
             </span>
           </div>
         </div>
-        
-        {/* Custom range slider implementation */}
-        <div className="relative h-2 bg-gray-200 rounded-full">
-          {/* Track */}
-          <div 
-            className="absolute h-2 bg-blue-500 rounded-full"
-            style={{
-              left: `${((localMin - min) / (max - min)) * 100}%`,
-              right: `${100 - ((localMax - min) / (max - min)) * 100}%`
-            }}
-          />
-          
-          {/* Min thumb */}
-          <div
-            className="absolute w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow-sm cursor-pointer hover:scale-110 transition-transform"
-            style={{
-              left: `${((localMin - min) / (max - min)) * 100}%`,
-              transform: 'translateX(-50%)'
-            }}
-            title={`Min: ${formatNumber(localMin)}`}
-          />
-          
-          {/* Max thumb */}
-          <div
-            className="absolute w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow-sm cursor-pointer hover:scale-110 transition-transform"
-            style={{
-              left: `${((localMax - min) / (max - min)) * 100}%`,
-              transform: 'translateX(-50%)'
-            }}
-            title={`Max: ${formatNumber(localMax)}`}
-          />
-        </div>
+        <Slider
+          min={min}
+          max={max}
+          step={0.1}
+          value={[localMin, localMax]}
+          onValueChange={handleSliderChange}
+          aria-label="Parameter range in billions of parameters"
+        />
         
         {/* Range labels */}
         <div className="flex justify-between mt-1 text-xs text-gray-500">
@@ -183,28 +161,28 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Min (B)
             </label>
-            <input
+            <Input
               type="number"
               step="0.1"
               min={min}
               max={localMax}
               value={localMin}
               onChange={(e) => handleMinInputChange(e.target.value)}
-              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="h-8"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Max (B)
             </label>
-            <input
+            <Input
               type="number"
               step="0.1"
               min={localMin}
               max={max}
               value={localMax}
               onChange={(e) => handleMaxInputChange(e.target.value)}
-              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="h-8"
             />
           </div>
         </div>

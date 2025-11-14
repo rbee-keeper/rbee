@@ -53,6 +53,46 @@ export function convertGWCWorker(worker: GWCWorker): MarketplaceModel {
 }
 
 /**
+ * Low-level helper: Fetch raw GWC workers over HTTP
+ *
+ * This is intentionally separate from fetchGWCWorkers so SSR callers
+ * (like filter sidebars) can access the full GWCWorker shape including
+ * marketplaceCompatibility, without importing the local data.ts.
+ */
+export async function fetchGWCWorkersRaw(params?: GWCListWorkersParams): Promise<GWCWorker[]> {
+  const url = `${GWC_API_BASE}/workers`
+
+  console.log('[GWC API] Fetching raw workers:', url)
+
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`GWC API error: ${response.status} ${response.statusText}`)
+  }
+
+  const data: GWCListWorkersResponse = await response.json()
+
+  let workers = data.workers
+
+  // Apply simple in-memory filtering for convenience; the HTTP API
+  // does not yet support backend/platform filters directly.
+  if (params?.backend) {
+    const backend = params.backend
+    workers = workers.filter((worker) => worker.variants.some((variant) => variant.backend === backend))
+  }
+
+  if (params?.limit) {
+    workers = workers.slice(0, params.limit)
+  }
+
+  return workers
+}
+
+/**
  * Fetch workers from GWC API
  *
  * @param params - Filter parameters (optional)

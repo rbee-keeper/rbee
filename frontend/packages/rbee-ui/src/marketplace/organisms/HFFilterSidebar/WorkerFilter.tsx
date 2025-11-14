@@ -2,11 +2,12 @@
 // Shows available workers as checkboxes
 
 import React from 'react'
-import { CheckCircle, Circle } from 'lucide-react'
-import type { GWCWorker } from '@rbee/marketplace-core'
+import type { HFFilterWorker } from './HFFilterSidebar'
+import { Checkbox } from '@rbee/ui/atoms/Checkbox'
+import { Label } from '@rbee/ui/atoms/Label'
 
 interface WorkerFilterProps {
-  workers: GWCWorker[]
+  workers: HFFilterWorker[]
   selectedWorkers: string[]
   onWorkersChange: (workers: string[]) => void
 }
@@ -29,7 +30,7 @@ export const WorkerFilter: React.FC<WorkerFilterProps> = ({
     }
   }
 
-  const getWorkerDescription = (worker: GWCWorker) => {
+  const getWorkerDescription = (worker: HFFilterWorker) => {
     if (worker.marketplaceCompatibility.huggingface) {
       const compat = worker.marketplaceCompatibility.huggingface
       const taskCount = compat.tasks.length
@@ -42,7 +43,7 @@ export const WorkerFilter: React.FC<WorkerFilterProps> = ({
     return worker.description
   }
 
-  const getWorkerIcon = (worker: GWCWorker) => {
+  const getWorkerIcon = (worker: HFFilterWorker) => {
     // Return appropriate icon based on worker type
     if (worker.id.includes('llm')) {
       return '🤖' // LLM icon
@@ -59,32 +60,27 @@ export const WorkerFilter: React.FC<WorkerFilterProps> = ({
     <div className="space-y-2">
       {workers.map((worker) => {
         const isSelected = selectedWorkers.includes(worker.id)
-        const Icon = isSelected ? CheckCircle : Circle
         
         return (
-          <label
+          <div
             key={worker.id}
             className={`
-              flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all
+              flex items-start gap-3 p-3 rounded-lg transition-all
               ${isSelected 
                 ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
                 : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
               }
             `}
           >
-            <input
-              type="checkbox"
+            <Checkbox
+              id={`worker-${worker.id}`}
               checked={isSelected}
-              onChange={() => handleWorkerToggle(worker.id)}
-              className="sr-only"
+              onCheckedChange={() => handleWorkerToggle(worker.id)}
             />
-            <Icon 
-              className={`
-                w-5 h-5 mt-0.5 flex-shrink-0 transition-colors
-                ${isSelected ? 'text-blue-600' : 'text-gray-400'}
-              `} 
-            />
-            <div className="flex-1 min-w-0">
+            <Label
+              htmlFor={`worker-${worker.id}`}
+              className="flex-1 min-w-0 cursor-pointer"
+            >
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">{getWorkerIcon(worker)}</span>
                 <span className="font-medium text-gray-900 text-sm">
@@ -114,8 +110,8 @@ export const WorkerFilter: React.FC<WorkerFilterProps> = ({
                   ))}
                 </div>
               )}
-            </div>
-          </label>
+            </Label>
+          </div>
         )
       })}
       

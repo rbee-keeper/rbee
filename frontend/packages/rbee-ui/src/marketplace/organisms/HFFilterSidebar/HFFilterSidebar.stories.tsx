@@ -1,6 +1,6 @@
 // TEAM-502: HuggingFace Filter Sidebar Storybook Stories
 
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { type HFFilterOptions, HFFilterSidebar, type HFFilterState } from './index'
 
 // Mock worker data
@@ -205,8 +205,8 @@ export const Default: Story = {
     filters: defaultFilters,
     options: mockOptions,
     searchQuery: '',
-    onFiltersChange: (filters) => console.log('Filters changed:', filters),
-    onSearchChange: (query) => console.log('Search changed:', query),
+    onFiltersChange: (filters: HFFilterState) => console.log('Filters changed:', filters),
+    onSearchChange: (query: string) => console.log('Search changed:', query),
     collapsed: false,
   },
 }
@@ -243,8 +243,8 @@ export const WithMultipleFilters: Story = {
     },
     options: mockOptions,
     searchQuery: 'llama',
-    onFiltersChange: (filters) => console.log('Filters changed:', filters),
-    onSearchChange: (query) => console.log('Search changed:', query),
+    onFiltersChange: (filters: HFFilterState) => console.log('Filters changed:', filters),
+    onSearchChange: (query: string) => console.log('Search changed:', query),
     collapsed: false,
   },
 }
@@ -273,8 +273,8 @@ export const Collapsed: Story = {
     filters: defaultFilters,
     options: mockOptions,
     searchQuery: '',
-    onFiltersChange: (filters) => console.log('Filters changed:', filters),
-    onSearchChange: (query) => console.log('Search changed:', query),
+    onFiltersChange: (filters: HFFilterState) => console.log('Filters changed:', filters),
+    onSearchChange: (query: string) => console.log('Search changed:', query),
     collapsed: true,
     onToggleCollapse: () => console.log('Toggle collapse'),
   },
@@ -289,8 +289,8 @@ export const NoWorkers: Story = {
       availableWorkers: [],
     },
     searchQuery: '',
-    onFiltersChange: (filters) => console.log('Filters changed:', filters),
-    onSearchChange: (query) => console.log('Search changed:', query),
+    onFiltersChange: (filters: HFFilterState) => console.log('Filters changed:', filters),
+    onSearchChange: (query: string) => console.log('Search changed:', query),
     collapsed: false,
   },
 }

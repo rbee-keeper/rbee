@@ -188,7 +188,7 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
       
       {/* Search */}
       <div className="relative">
-        <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
+        <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground" />
         <Input
           type="text"
           placeholder="Search languages..."
@@ -211,8 +211,8 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
               className={`
                 flex items-center gap-3 p-2 rounded-lg transition-all
                 ${isSelected 
-                  ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
-                  : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
+                  ? 'bg-sidebar-accent/10 border border-sidebar-accent hover:bg-sidebar-accent/20' 
+                  : 'bg-muted border border-sidebar-border hover:bg-muted/80'
                 }
               `}
             >
@@ -226,10 +226,10 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
                 className="flex items-center gap-2 flex-1 cursor-pointer"
               >
                 <span className="text-base">{flag}</span>
-                <span className="font-medium text-gray-900 text-sm">
+                <span className="font-medium text-sidebar-foreground text-sm">
                   {displayName}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   ({language})
                 </span>
               </Label>
@@ -240,7 +240,7 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
         {hasMore && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
           >
             {showAll ? (
               <>
@@ -257,13 +257,13 @@ export const LanguageFilter: React.FC<LanguageFilterProps> = ({
         )}
         
         {filteredLanguages.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="text-center py-4 text-muted-foreground text-sm">
             No languages found matching "{searchQuery}"
           </div>
         )}
         
         {languages.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="text-center py-4 text-muted-foreground text-sm">
             No languages available. Select a worker first.
           </div>
         )}

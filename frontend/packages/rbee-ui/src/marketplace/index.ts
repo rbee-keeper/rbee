@@ -24,6 +24,7 @@ export * from './molecules/ModelMetadataCard'
 export type { SortDropdownProps, SortOption } from './molecules/SortDropdown'
 export { SortDropdown } from './molecules/SortDropdown' // TEAM-476: Sort component
 export * from './molecules/WidgetDataCard' // TEAM-464: HuggingFace widget examples
+export * from './molecules/SidebarFilterItem'
 // Organisms (Pure presentation)
 export * from './organisms/CategoryFilterBar'
 export * from './organisms/CivitAIDetailsCard' // TEAM-463: Premium CivitAI components

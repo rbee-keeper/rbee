@@ -5,10 +5,15 @@ import type { GWCListWorkersParams, GWCListWorkersResponse, GWCWorker } from './
 
 /**
  * GWC API base URL
- * Production: https://gwc.rbee.dev
- * Development: Can be overridden via env
+ * - Dev: http://localhost:7811 (global-worker-catalog dev port, see PORT_CONFIGURATION.md)
+ * - Prod: https://gwc.rbee.dev
+ * - Override: NEXT_PUBLIC_GWC_API_URL
  */
-const GWC_API_BASE = process.env.NEXT_PUBLIC_GWC_API_URL || 'https://gwc.rbee.dev'
+const GWC_API_BASE =
+  process.env.NEXT_PUBLIC_GWC_API_URL
+  || (process.env.NODE_ENV === 'development'
+    ? 'http://localhost:7811'
+    : 'https://gwc.rbee.dev')
 
 /**
  * Convert GWC worker to MarketplaceModel

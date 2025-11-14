@@ -3,6 +3,7 @@
 
 import React from 'react'
 import { TrendingUp, Download, Heart, Calendar, Clock, ArrowUp, ArrowDown } from 'lucide-react'
+import { SidebarFilterItem } from '@rbee/ui/marketplace/molecules/SidebarFilterItem'
 
 interface SortFilterProps {
   sort: 'trending' | 'downloads' | 'likes' | 'updated' | 'created'
@@ -76,60 +77,53 @@ export const SortFilter: React.FC<SortFilterProps> = ({
           const isSelected = sort === option.value
           
           return (
-            <label
-              key={option.value}
-              className={`
-                flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all
-                ${isSelected 
-                  ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
-                  : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
-                }
-              `}
-            >
-              <input
-                type="radio"
-                name="sort"
-                value={option.value}
-                checked={isSelected}
-                onChange={() => handleSortChange(option.value)}
-                className="sr-only"
-              />
-              <div className={`
-                w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 transition-all
-                ${isSelected 
-                  ? 'border-blue-600 bg-blue-600' 
-                  : 'border-gray-300 bg-white'
-                }
-              `}>
-                {isSelected && (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon className="w-4 h-4 text-gray-600" />
-                  <span className="font-medium text-gray-900 text-sm">
-                    {option.label}
-                  </span>
+            <SidebarFilterItem key={option.value} selected={isSelected} size="md" asChild className="cursor-pointer">
+              <label>
+                <input
+                  type="radio"
+                  name="sort"
+                  value={option.value}
+                  checked={isSelected}
+                  onChange={() => handleSortChange(option.value)}
+                  className="sr-only"
+                />
+                <div className={`
+                  w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 transition-all
+                  ${isSelected 
+                    ? 'border-sidebar-accent bg-sidebar-accent' 
+                    : 'border-sidebar-border bg-sidebar'
+                  }
+                `}>
+                  {isSelected && (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-600">
-                  {option.description}
-                </p>
-              </div>
-            </label>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-medium text-sidebar-foreground text-sm">
+                      {option.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {option.description}
+                  </p>
+                </div>
+              </label>
+            </SidebarFilterItem>
           )
         })}
       </div>
       
       {/* Direction Toggle */}
-      <div className="pt-2 border-t border-gray-200">
+      <div className="pt-2 border-t border-sidebar-border">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-900">Sort Direction</span>
+          <span className="text-sm font-medium text-sidebar-foreground">Sort Direction</span>
           <button
             onClick={handleDirectionToggle}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-muted text-sidebar-foreground rounded-lg hover:bg-muted/80 transition-colors"
           >
             {direction === -1 ? (
               <>
@@ -144,7 +138,7 @@ export const SortFilter: React.FC<SortFilterProps> = ({
             )}
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           {direction === -1 
             ? 'Show highest values first (most downloads, newest, etc.)'
             : 'Show lowest values first (least downloads, oldest, etc.)'

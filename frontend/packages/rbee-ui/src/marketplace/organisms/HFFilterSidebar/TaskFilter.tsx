@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { Checkbox } from '@rbee/ui/atoms/Checkbox'
 import { Label } from '@rbee/ui/atoms/Label'
 import { Button } from '@rbee/ui/atoms/Button'
+import { SidebarFilterItem } from '@rbee/ui/marketplace/molecules/SidebarFilterItem'
 
 interface TaskFilterProps {
   tasks: string[]
@@ -126,16 +127,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
         const description = getTaskDescription(task)
         
         return (
-          <div
-            key={task}
-            className={`
-              flex items-start gap-3 p-2 rounded-lg transition-all
-              ${isSelected 
-                ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
-                : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
-              }
-            `}
-          >
+          <SidebarFilterItem key={task} selected={isSelected} size="sm">
             <Checkbox
               id={`task-${task}`}
               checked={isSelected}
@@ -147,17 +139,17 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
             >
               <div className="flex items-center gap-2">
                 <span className="text-sm">{getTaskIcon(task)}</span>
-                <span className="font-medium text-gray-900 text-sm">
+                <span className="font-medium text-sidebar-foreground text-sm">
                   {getTaskDisplayName(task)}
                 </span>
               </div>
               {description && (
-                <p className="text-xs text-gray-600 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {description}
                 </p>
               )}
             </Label>
-          </div>
+          </SidebarFilterItem>
         )
       })}
       
@@ -167,7 +159,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => setShowAll(!showAll)}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mt-2"
+          className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 mt-2"
         >
           {showAll ? (
             <>
@@ -184,7 +176,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
       )}
       
       {tasks.length === 0 && (
-        <div className="text-center py-4 text-gray-500 text-sm">
+        <div className="text-center py-4 text-muted-foreground text-sm">
           No tasks available. Select a worker first.
         </div>
       )}

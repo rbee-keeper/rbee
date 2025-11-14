@@ -146,9 +146,9 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
   
   const getRiskIcon = (risk: 'low' | 'medium' | 'high') => {
     switch (risk) {
-      case 'low': return <Shield className="w-3 h-3 text-green-500" />
-      case 'medium': return <AlertTriangle className="w-3 h-3 text-yellow-500" />
-      case 'high': return <AlertTriangle className="w-3 h-3 text-red-500" />
+      case 'low': return <Shield className="w-3 h-3 text-sidebar-foreground" />
+      case 'medium': return <AlertTriangle className="w-3 h-3 text-sidebar-foreground" />
+      case 'high': return <AlertTriangle className="w-3 h-3 text-sidebar-foreground" />
     }
   }
 
@@ -160,7 +160,7 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
           variant="outline"
           size="sm"
           onClick={handleSelectLowRisk}
-          className="text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+          className="text-xs bg-sidebar-accent/10 text-sidebar-foreground border-sidebar-border hover:bg-sidebar-accent/20"
         >
           Low Risk Only
         </Button>
@@ -179,7 +179,7 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
       
       {/* Search */}
       <div className="relative">
-        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
+        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground" />
         <Input
           type="text"
           placeholder="Search licenses..."
@@ -200,16 +200,16 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
           return (
             <div key={category}>
               <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-sm font-medium text-gray-900 capitalize">
+                <h4 className="text-sm font-medium text-sidebar-foreground capitalize">
                   {categoryInfo?.name || category}
                 </h4>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   ({categoryLicenses.length})
                 </span>
               </div>
               
               {categoryInfo?.description && (
-                <p className="text-xs text-gray-600 mb-2">
+                <p className="text-xs text-muted-foreground mb-2">
                   {categoryInfo.description}
                 </p>
               )}
@@ -225,8 +225,8 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
                       className={`
                         flex items-start gap-3 p-2 rounded-lg transition-all
                         ${isSelected 
-                          ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' 
-                          : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
+                          ? 'bg-sidebar-accent/10 border border-sidebar-accent hover:bg-sidebar-accent/20' 
+                          : 'bg-muted border border-sidebar-border hover:bg-muted/80'
                         }
                       `}
                     >
@@ -241,14 +241,14 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
                       >
                         <div className="flex items-center gap-2">
                           {info && getRiskIcon(info.risk)}
-                          <span className="font-medium text-gray-900 text-sm">
+                          <span className="font-medium text-sidebar-foreground text-sm">
                             {info?.name || license}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {info?.description || 'License for model usage'}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {license}
                         </p>
                       </Label>
@@ -261,13 +261,13 @@ export const LicenseFilter: React.FC<LicenseFilterProps> = ({
         })}
         
         {filteredLicenses.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="text-center py-4 text-muted-foreground text-sm">
             No licenses found matching "{searchQuery}"
           </div>
         )}
         
         {licenses.length === 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="text-center py-4 text-muted-foreground text-sm">
             No licenses available. Select a worker first.
           </div>
         )}

@@ -225,7 +225,7 @@ export interface GWCWorker {
   
   // ━━━ Marketplace Compatibility (GLOBAL) ━━━
   /** Which marketplace vendors and model types this worker supports */
-  marketplaceCompatibility: MarketplaceCompatibility
+  marketplaceCompatibility?: MarketplaceCompatibility
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -3,20 +3,20 @@
 
 /**
  * RECOMMENDED FILTERS FOR rbee WORKERS
- * 
+ *
  * LLM Worker (text-generation):
  * - pipeline_tag: 'text-generation'
  * - library: 'transformers'
  * - filter: 'gguf,safetensors'  // Both formats supported
- * 
+ *
  * SD Worker (text-to-image):
  * - pipeline_tag: 'text-to-image'
  * - library: 'diffusers'
  * - filter: 'safetensors'  // Only safetensors supported
- * 
+ *
  * IMPORTANT: The 'filter' parameter accepts comma-separated tags.
  * Use 'gguf,safetensors' to get models with EITHER format.
- * 
+ *
  * Example API calls:
  * - LLM: https://huggingface.co/api/models?limit=50&pipeline_tag=text-generation&library=transformers&filter=gguf,safetensors
  * - SD:  https://huggingface.co/api/models?limit=50&pipeline_tag=text-to-image&library=diffusers&filter=safetensors
@@ -50,8 +50,13 @@ export type HuggingFaceTask =
 
 /**
  * HuggingFace Sort Options
+ *
+ * TEAM-511: These values must match the actual sort fields accepted by
+ * `GET /api/models`. UI-friendly labels like `trending`, `updated`,
+ * and `created` are mapped to these canonical values in
+ * `buildHuggingFaceParamsFromFilters`.
  */
-export type HuggingFaceSort = 'trending' | 'downloads' | 'likes' | 'updated' | 'created'
+export type HuggingFaceSort = 'downloads' | 'likes' | 'lastModified' | 'createdAt'
 
 /**
  * HuggingFace Model Size Categories

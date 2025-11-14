@@ -164,72 +164,20 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
     )
   }
 
-  const getColorClasses = (color: string, isSelected: boolean) => {
-    const colors: Record<string, { bg: string; text: string; border: string }> = {
-      green: {
-        bg: isSelected ? 'bg-green-50' : 'bg-gray-50',
-        text: isSelected ? 'text-green-700' : 'text-gray-700',
-        border: isSelected ? 'border-green-200' : 'border-gray-200',
-      },
-      purple: {
-        bg: isSelected ? 'bg-purple-50' : 'bg-gray-50',
-        text: isSelected ? 'text-purple-700' : 'text-gray-700',
-        border: isSelected ? 'border-purple-200' : 'border-gray-200',
-      },
-      orange: {
-        bg: isSelected ? 'bg-orange-50' : 'bg-gray-50',
-        text: isSelected ? 'text-orange-700' : 'text-gray-700',
-        border: isSelected ? 'border-orange-200' : 'border-gray-200',
-      },
-      blue: {
-        bg: isSelected ? 'bg-blue-50' : 'bg-gray-50',
-        text: isSelected ? 'text-blue-700' : 'text-gray-700',
-        border: isSelected ? 'border-blue-200' : 'border-gray-200',
-      },
-      red: {
-        bg: isSelected ? 'bg-red-50' : 'bg-gray-50',
-        text: isSelected ? 'text-red-700' : 'text-gray-700',
-        border: isSelected ? 'border-red-200' : 'border-gray-200',
-      },
-      cyan: {
-        bg: isSelected ? 'bg-cyan-50' : 'bg-gray-50',
-        text: isSelected ? 'text-cyan-700' : 'text-gray-700',
-        border: isSelected ? 'border-cyan-200' : 'border-gray-200',
-      },
-      yellow: {
-        bg: isSelected ? 'bg-yellow-50' : 'bg-gray-50',
-        text: isSelected ? 'text-yellow-700' : 'text-gray-700',
-        border: isSelected ? 'border-yellow-200' : 'border-gray-200',
-      },
-      pink: {
-        bg: isSelected ? 'bg-pink-50' : 'bg-gray-50',
-        text: isSelected ? 'text-pink-700' : 'text-gray-700',
-        border: isSelected ? 'border-pink-200' : 'border-gray-200',
-      },
-      indigo: {
-        bg: isSelected ? 'bg-indigo-50' : 'bg-gray-50',
-        text: isSelected ? 'text-indigo-700' : 'text-gray-700',
-        border: isSelected ? 'border-indigo-200' : 'border-gray-200',
-      },
-      teal: {
-        bg: isSelected ? 'bg-teal-50' : 'bg-gray-50',
-        text: isSelected ? 'text-teal-700' : 'text-gray-700',
-        border: isSelected ? 'border-teal-200' : 'border-gray-200',
-      },
-      lime: {
-        bg: isSelected ? 'bg-lime-50' : 'bg-gray-50',
-        text: isSelected ? 'text-lime-700' : 'text-gray-700',
-        border: isSelected ? 'border-lime-200' : 'border-gray-200',
-      },
-      gray: {
-        bg: isSelected ? 'bg-gray-100' : 'bg-gray-50',
-        text: isSelected ? 'text-gray-800' : 'text-gray-700',
-        border: isSelected ? 'border-gray-300' : 'border-gray-200',
-      },
+  const getColorClasses = (isSelected: boolean) => {
+    if (isSelected) {
+      return {
+        bg: 'bg-sidebar-accent/10',
+        text: 'text-sidebar-foreground',
+        border: 'border-sidebar-accent',
+      }
     }
 
-    const resolved = colors[color]
-    return resolved ?? colors.gray
+    return {
+      bg: 'bg-muted',
+      text: 'text-sidebar-foreground',
+      border: 'border-sidebar-border',
+    }
   }
 
   return (
@@ -237,15 +185,15 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
       {/* Formats Section */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <h4 className="text-sm font-medium text-gray-900">File Formats</h4>
-          <Info className="w-3 h-3 text-gray-400" />
+          <h4 className="text-sm font-medium text-sidebar-foreground">File Formats</h4>
+          <Info className="w-3 h-3 text-muted-foreground" />
         </div>
 
         <div className="space-y-2">
           {displayedFormats.map((format) => {
             const isSelected = selectedFormats.includes(format)
             const info = getFormatInfo(format)
-            const colors = getColorClasses(info.color, isSelected)
+            const colors = getColorClasses(isSelected)
 
             return (
               <div
@@ -268,7 +216,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
                     <span className="text-sm">{info.icon}</span>
                     <span className={`font-medium text-sm ${colors?.text || ''}`}>{format}</span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-0.5">{info.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{info.description}</p>
                 </Label>
               </div>
             )
@@ -280,7 +228,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => setShowAllFormats(!showAllFormats)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+              className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
             >
               {showAllFormats ? (
                 <>
@@ -301,15 +249,15 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
       {/* Libraries Section */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <h4 className="text-sm font-medium text-gray-900">Libraries</h4>
-          <Info className="w-3 h-3 text-gray-400" />
+          <h4 className="text-sm font-medium text-sidebar-foreground">Libraries</h4>
+          <Info className="w-3 h-3 text-muted-foreground" />
         </div>
 
         <div className="space-y-2">
           {displayedLibraries.map((library) => {
             const isSelected = selectedLibraries.includes(library)
             const info = getLibraryInfo(library)
-            const colors = getColorClasses(info.color, isSelected)
+            const colors = getColorClasses(isSelected)
 
             return (
               <div
@@ -332,7 +280,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
                     <span className="text-sm">{info.icon}</span>
                     <span className={`font-medium text-sm ${colors?.text || ''}`}>{library}</span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-0.5">{info.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{info.description}</p>
                 </Label>
               </div>
             )
@@ -344,7 +292,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => setShowAllLibraries(!showAllLibraries)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+              className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
             >
               {showAllLibraries ? (
                 <>
@@ -363,7 +311,7 @@ export const FormatFilter: React.FC<FormatFilterProps> = ({
       </div>
 
       {formats.length === 0 && libraries.length === 0 && (
-        <div className="text-center py-4 text-gray-500 text-sm">
+        <div className="text-center py-4 text-muted-foreground text-sm">
           No formats or libraries available. Select a worker first.
         </div>
       )}

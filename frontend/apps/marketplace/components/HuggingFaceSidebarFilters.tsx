@@ -37,7 +37,7 @@ function buildFilterOptions(workers: GWCWorker[]): HFFilterOptions {
   const licenses = new Set<string>()
 
   workers.forEach((worker) => {
-    const compat = worker.marketplaceCompatibility.huggingface
+    const compat = worker.marketplaceCompatibility?.huggingface
     if (!compat) return
 
     compat.tasks.forEach((t) => tasks.add(t))

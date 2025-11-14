@@ -2,7 +2,7 @@
 // to HuggingFaceListModelsParams. This is the single source of truth for
 // building HF queries from worker-driven filters.
 
-import type { HuggingFaceListModelsParams, GWCWorker } from '@rbee/marketplace-core'
+import type { GWCWorker, HuggingFaceListModelsParams } from '@rbee/marketplace-core'
 import type { HFFilterState } from '@rbee/ui/marketplace/organisms/HFFilterSidebar'
 
 /**
@@ -15,9 +15,19 @@ export function buildHuggingFaceParamsFromFilters(
   workers: GWCWorker[],
   limit: number = 50,
 ): HuggingFaceListModelsParams {
+  // TEAM_511: Map UI sort options to actual HuggingFace sort fields.
+  // HF /api/models only accepts: downloads, likes, lastModified, createdAt, author.
+  const sortMap: Record<HFFilterState['sort'], HuggingFaceListModelsParams['sort']> = {
+    trending: 'downloads',
+    downloads: 'downloads',
+    likes: 'likes',
+    updated: 'lastModified',
+    created: 'createdAt',
+  }
+
   const params: HuggingFaceListModelsParams = {
     limit,
-    sort: filters.sort,
+    sort: sortMap[filters.sort],
     direction: filters.direction,
   }
 
@@ -33,31 +43,22 @@ export function buildHuggingFaceParamsFromFilters(
   const compatFormats = new Set<string>()
 
   selectedWorkers.forEach((worker) => {
-    const compat = worker.marketplaceCompatibility.huggingface
+    const compat = worker.marketplaceCompatibility?.huggingface
     if (!compat) return
 
-    compat.tasks.forEach((t) => compatTasks.add(t))
-    compat.libraries.forEach((l) => compatLibraries.add(l))
-    compat.formats.forEach((f) => compatFormats.add(f))
+    compat.tasks.forEach((t) => void compatTasks.add(t))
+    compat.libraries.forEach((l) => void compatLibraries.add(l))
+    compat.formats.forEach((f) => void compatFormats.add(f))
   })
 
-  const effectiveTasks = filters.tasks.length > 0
-    ? filters.tasks
-    : selectedWorkers.length > 0
-      ? Array.from(compatTasks)
-      : []
+  const effectiveTasks =
+    filters.tasks.length > 0 ? filters.tasks : selectedWorkers.length > 0 ? Array.from(compatTasks) : []
 
-  const effectiveLibraries = filters.libraries.length > 0
-    ? filters.libraries
-    : selectedWorkers.length > 0
-      ? Array.from(compatLibraries)
-      : []
+  const effectiveLibraries =
+    filters.libraries.length > 0 ? filters.libraries : selectedWorkers.length > 0 ? Array.from(compatLibraries) : []
 
-  const effectiveFormats = filters.formats.length > 0
-    ? filters.formats
-    : selectedWorkers.length > 0
-      ? Array.from(compatFormats)
-      : []
+  const effectiveFormats =
+    filters.formats.length > 0 ? filters.formats : selectedWorkers.length > 0 ? Array.from(compatFormats) : []
 
   if (effectiveTasks.length > 0) {
     // HF supports a single pipeline_tag; choose the first effective task.

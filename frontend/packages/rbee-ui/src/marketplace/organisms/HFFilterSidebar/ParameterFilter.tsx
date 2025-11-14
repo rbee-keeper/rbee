@@ -114,8 +114,8 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
               className={`
                 px-3 py-2 text-xs font-medium rounded-lg transition-all
                 ${index === activePresetIndex
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                  ? 'bg-sidebar-accent/10 text-sidebar-foreground border border-sidebar-accent'
+                  : 'bg-muted text-sidebar-foreground border border-sidebar-border hover:bg-muted/80'
                 }
               `}
             >
@@ -129,10 +129,10 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
       <div>
         <div className="mb-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-900">Parameter Range</span>
+            <span className="font-medium text-sidebar-foreground">Parameter Range</span>
             <span className={`
               text-xs px-2 py-1 rounded
-              ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}
+              ${isActive ? 'bg-sidebar-accent/10 text-sidebar-foreground' : 'bg-muted text-muted-foreground'}
            `}>
               {formatNumber(localMin)} - {formatNumber(localMax)}
             </span>
@@ -148,7 +148,7 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
         />
         
         {/* Range labels */}
-        <div className="flex justify-between mt-1 text-xs text-gray-500">
+        <div className="flex justify-between mt-1 text-xs text-muted-foreground">
           <span>{formatNumber(min)}</span>
           <span>{formatNumber(max)}</span>
         </div>
@@ -158,7 +158,7 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
       <div>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-sidebar-foreground mb-1">
               Min (B)
             </label>
             <Input
@@ -172,7 +172,7 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-sidebar-foreground mb-1">
               Max (B)
             </label>
             <Input
@@ -189,7 +189,7 @@ export const ParameterFilter: React.FC<ParameterFilterProps> = ({
       </div>
       
       {/* Info Text */}
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-muted-foreground">
         <p>Parameter size affects model performance and memory requirements:</p>
         <ul className="mt-1 space-y-1">
           <li>• &lt;1B: Fast, low memory, good for simple tasks</li>
